@@ -19,31 +19,20 @@ are defined in evennia.default_cmds.UnloggedinCmdSet. The parsing and display
 of the screen is done by the unlogged-in "look" command.
 
 """
-
 from django.conf import settings
-from utils.formatting import wrap
+
+# from utils.formatting import wrap
 
 CONNECTION_SCREEN = """
-|b|#2f4f4f==============================================================|n
+|b|#2f4f4f------------------------------------------------------------------|n
 {} Welcome to |w{}|n!
-  
-{}
+|b|#2f4f4f------------------------------------------------------------------|n 
 
- If you have an existing account, connect to it by typing:
-      |wconnect <username> <password>|n
- If you need to create an account, type (without the <>'s):
-      |wcreate <username> <password>|n
+If you have an existing account, connect to it by typing:
+    |wconnect <username> <password>|n
+If you need to create an account, type (without the <>'s):
+    |wcreate <username> <password>|n
 
- Enter |whelp|n for more info. |wlook|n will re-show this screen.
-|b|#2f4f4f==============================================================|n""".format(
-    " " * 20,
-    settings.SERVERNAME,
-    wrap(
-        '"In the heart of every man and woman, there lies a battlefield '
-        "between ambition and benevolence; may you always remember that power "
-        'is but a tool, and it is love that truly rules." - Queen Sylvie',
-        62,
-        pre_text=" ",
-        indent=3,
-    ),
+|b|#2f4f4f------------------------------------------------------------------|n """.format(
+    " " * 22, settings.SERVERNAME
 )
