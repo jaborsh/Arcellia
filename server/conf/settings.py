@@ -4,7 +4,7 @@ Evennia settings file.
 The available options are found in the default settings file found
 here:
 
-/root/evennia/mud-platform/evennia/evennia/settings_default.py
+/Users/jake/Evennia/evenv/lib/python3.11/site-packages/evennia/settings_default.py
 
 Remember:
 
@@ -66,10 +66,10 @@ MAX_CHAR_LIMIT_WARNING = (
 # On a multi-match when search objects or commands, the user has the
 # ability to search again with an index marker that differentiates
 # the results. If multiple "box" objects are found, they can by default
-# can be separated as box 1, box 2. 
+# can be separated as box 1, box 2.
 # The regex must have one have two capturing groups:
-# (?P<number>...) and (?P<name>...) 
-# the default parser expects this. It should also involve a number 
+# (?P<number>...) and (?P<name>...)
+# the default parser expects this. It should also involve a number
 # starting from 1. When changing this you must also update
 # SEARCH_MULTIMATCH_TEMPLATE to properly describe the syntax.
 SEARCH_MULTIMATCH_REGEX = r"(?P<name>[^-]*) (?P<number>[0-9]+)(?P<args>.*)"
@@ -157,9 +157,9 @@ CLIENT_DEFAULT_WIDTH = 80
 # Set rate limits per-IP on account creations and login attempts. Set limits
 # to None to disable.
 CREATION_THROTTLE_LIMIT = 0
-#CREATION_THROTTLE_TIMEOUT = 10 * 60
+# CREATION_THROTTLE_TIMEOUT = 10 * 60
 LOGIN_THROTTLE_LIMIT = 0
-#LOGIN_THROTTLE_TIMEOUT = 5 * 60
+# LOGIN_THROTTLE_TIMEOUT = 5 * 60
 
 ######################################################################
 # In-game Channels created from server start
@@ -191,7 +191,7 @@ DEFAULT_CHANNELS = [
         "key": "Staff",
         "desc": "The official staff channel.",
         "locks": "control:perm(Developer);listen:perm(Admin);send:perm(Admin)",
-    }
+    },
 ]
 
 ######################################################################
@@ -202,7 +202,9 @@ DEFAULT_CHANNELS = [
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     # {
     #     "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     #     "OPTIONS": {"min_length": 8},
@@ -222,6 +224,13 @@ AUTH_USERNAME_VALIDATORS = [
     },
     {"NAME": "evennia.server.validators.EvenniaUsernameAvailabilityValidator"},
 ]
+
+######################################################################
+# Networking Replaceables
+######################################################################
+# Server-side session class used. This will inherit from BASE_SESSION_CLASS.
+# This one isn't as dangerous to replace.
+SERVER_SESSION_CLASS = "server.conf.serversession.ServerSession"
 
 ######################################################################
 # Settings given in secret_settings.py override those in this file.
