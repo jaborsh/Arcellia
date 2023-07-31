@@ -21,20 +21,29 @@ of the screen is done by the unlogged-in "look" command.
 """
 
 from django.conf import settings
-
-from evennia import utils
+from utils.formatting import wrap
 
 CONNECTION_SCREEN = """
-|b==============================================================|n
- Welcome to |g{}|n, version {}!
+|b|#2f4f4f==============================================================|n
+{} Welcome to |w{}|n!
+  
+{}
 
  If you have an existing account, connect to it by typing:
       |wconnect <username> <password>|n
  If you need to create an account, type (without the <>'s):
       |wcreate <username> <password>|n
 
- If you have spaces in your username, enclose it in quotes.
  Enter |whelp|n for more info. |wlook|n will re-show this screen.
-|b==============================================================|n""".format(
-    settings.SERVERNAME, utils.get_evennia_version("short")
+|b|#2f4f4f==============================================================|n""".format(
+    " " * 20,
+    settings.SERVERNAME,
+    wrap(
+        '"In the heart of every man and woman, there lies a battlefield '
+        "between ambition and benevolence; may you always remember that power "
+        'is but a tool, and it is love that truly rules." - Queen Sylvie',
+        62,
+        pre_text=" ",
+        indent=3,
+    ),
 )

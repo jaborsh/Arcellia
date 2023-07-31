@@ -45,11 +45,14 @@ class ServerSession(BaseServerSession):
                 for the protocol(s).
 
         """
-        kwargs["text"] = (
-            hex_to_xterm(kwargs["text"][0])
-            if type(kwargs["text"]) == tuple
-            else hex_to_xterm(kwargs["text"])
-        )
+        try:
+            kwargs["text"] = (
+                hex_to_xterm(kwargs["text"][0])
+                if type(kwargs["text"]) == tuple
+                else hex_to_xterm(kwargs["text"])
+            )
+        except KeyError:
+            pass
 
         self.sessionhandler.data_out(self, **kwargs)
 
