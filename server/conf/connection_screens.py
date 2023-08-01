@@ -22,16 +22,8 @@ of the screen is done by the unlogged-in "look" command.
 from django.conf import settings
 
 CONNECTION_SCREEN = """
-|b|#2f4f4f------------------------------------------------------------------|n
+|b|#2f4f4f--------------------------------------------------------|n
 {} Welcome to |w{}|n!
-|b|#2f4f4f------------------------------------------------------------------|n 
-
-If you have an existing account, connect to it by typing:
-    |wconnect <username> <password>|n
-If you need to create an account, type (without the <>'s):
-    |wcreate <username> <password>|n
-
-|b|#2f4f4f------------------------------------------------------------------|n
-""".format(
-    " " * 22, settings.SERVERNAME
+|b|#2f4f4f--------------------------------------------------------|n""".format(
+    " " * 17, settings.SERVERNAME
 )

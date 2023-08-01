@@ -43,7 +43,9 @@ class Account(DefaultAccount):
 
      key (string) - name of account
      name (string)- wrapper for user.username
-     aliases (list of strings) - aliases to the object. Will be saved to database as AliasDB entries but returned as strings.
+     aliases (list of strings) - aliases to the object. Will be saved to
+                                 database as AliasDB entries but returned as
+                                 strings.
      dbref (int, read-only) - unique #id-number. Also "id" can be used.
      date_created (string) - time stamp of object creation
      permissions (list of strings) - list of permission strings
@@ -56,8 +58,10 @@ class Account(DefaultAccount):
     * Handlers
 
      locks - lock-handler: use locks.add() to add new lock strings
-     db - attribute-handler: store/retrieve database attributes on this self.db.myattr=val, val=self.db.myattr
-     ndb - non-persistent attribute handler: same as db but does not create a database entry when storing data
+     db - attribute-handler: store/retrieve database attributes on this
+                             self.db.myattr=val, val=self.db.myattr
+     ndb - non-persistent attribute handler: same as db but does not create a
+                                             database entry when storing data
      scripts - script-handler. Add new scripts to object with scripts.add()
      cmdset - cmdset-handler. Use cmdset.add() to add new cmdsets to object
      nicks - nick-handler. New nicks with nicks.add().
@@ -66,13 +70,21 @@ class Account(DefaultAccount):
 
      msg(text=None, **kwargs)
      execute_cmd(raw_string, session=None)
-     search(ostring, global_search=False, attribute_name=None, use_nicks=False, location=None, ignore_errors=False, account=False)
+     search(
+        ostring,
+        global_search=False,
+        attribute_name=None,
+        use_nicks=False,
+        location=None,
+        ignore_errors=False,
+    account=False)
      is_typeclass(typeclass, exact=False)
      swap_typeclass(new_typeclass, clean_attributes=False, no_default=True)
      access(accessing_obj, access_type='read', default=False)
      check_permstring(permstring)
 
-    * Hook methods (when re-implementation, remember methods need to have self as first arg)
+    * Hook methods (when re-implementation, remember methods need to have self as first
+                    arg)
 
      basetype_setup()
      at_account_creation()
