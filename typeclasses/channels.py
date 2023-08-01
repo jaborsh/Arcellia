@@ -11,8 +11,27 @@ syscommand (see evennia.syscmds). The sending should normally not need
 to be modified.
 
 """
-
+from django.conf import settings
 from evennia.comms.comms import DefaultChannel
+from evennia.comms.models import ChannelDB
+from evennia.utils import logger
+
+
+def send_mudinfo(message):
+    """
+    Helper method for loading and sending to the comm channel dedicated to
+    connection messages. This will also be sent to the mudinfo channel.
+
+    Args:
+        message (str): A message to send to the connect channel.
+    """
+    if settings.CHANNEL_MUDINFO:
+        try:
+            channel = ChannelDB.objects.get(db_key=settings.CHANNEL_MUDINFO["key"])
+        except ChannelDB.DoesNotExist:
+            return logger.log_trace()
+
+        channel.msg(f"{message}")
 
 
 class Channel(DefaultChannel):
