@@ -16,24 +16,7 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 
 from evennia import default_cmds
 
-
-class CharacterCmdSet(default_cmds.CharacterCmdSet):
-    """
-    The `CharacterCmdSet` contains general in-game commands like `look`,
-    `get`, etc available on in-game Character objects. It is merged with
-    the `AccountCmdSet` when an Account puppets a Character.
-    """
-
-    key = "DefaultCharacter"
-
-    def at_cmdset_creation(self):
-        """
-        Populates the cmdset
-        """
-        super().at_cmdset_creation()
-        #
-        # any commands you add below will overload the default ones.
-        #
+from commands import account, unloggedin
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):
@@ -54,15 +37,17 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
+        self.add(account.CmdWho())
 
 
-class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
+class CharacterCmdSet(default_cmds.CharacterCmdSet):
     """
-    Command set available to the Session before being logged in.  This
-    holds commands like creating a new account, logging in, etc.
+    The `CharacterCmdSet` contains general in-game commands like `look`,
+    `get`, etc available on in-game Character objects. It is merged with
+    the `AccountCmdSet` when an Account puppets a Character.
     """
 
-    key = "DefaultUnloggedin"
+    key = "DefaultCharacter"
 
     def at_cmdset_creation(self):
         """
@@ -94,3 +79,22 @@ class SessionCmdSet(default_cmds.SessionCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
+
+
+class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
+    """
+    Command set available to the Session before being logged in.  This
+    holds commands like creating a new account, logging in, etc.
+    """
+
+    key = "DefaultUnloggedin"
+
+    def at_cmdset_creation(self):
+        """
+        Populates the cmdset
+        """
+        super().at_cmdset_creation()
+        #
+        # any commands you add below will overload the default ones.
+        #
+        self.add(unloggedin.CmdUnloggedinLook())
