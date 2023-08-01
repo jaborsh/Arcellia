@@ -21,8 +21,6 @@ of the screen is done by the unlogged-in "look" command.
 """
 from django.conf import settings
 
-# from utils.formatting import wrap
-
 CONNECTION_SCREEN = """
 |b|#2f4f4f------------------------------------------------------------------|n
 {} Welcome to |w{}|n!
