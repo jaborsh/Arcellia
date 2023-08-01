@@ -31,6 +31,7 @@ If you have an existing account, connect to it by typing:
 If you need to create an account, type (without the <>'s):
     |wcreate <username> <password>|n
 
-|b|#2f4f4f------------------------------------------------------------------|n """.format(
+|b|#2f4f4f------------------------------------------------------------------|n
+""".format(
     " " * 22, settings.SERVERNAME
 )

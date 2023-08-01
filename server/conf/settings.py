@@ -228,6 +228,11 @@ AUTH_USERNAME_VALIDATORS = [
 ######################################################################
 # Networking Replaceables
 ######################################################################
+# Telnet Protocol inherits from whatever above BASE_SESSION_CLASS is specified.
+# It is used for all telnet connections, and is also inherited by the SSL Protocol
+# (which is just TLS + Telnet).
+TELNET_PROTOCOL_CLASS = "server.conf.telnet.TelnetProtocol"
+
 # Server-side session class used. This will inherit from BASE_SESSION_CLASS.
 # This one isn't as dangerous to replace.
 SERVER_SESSION_CLASS = "server.conf.serversession.ServerSession"
