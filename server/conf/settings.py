@@ -27,12 +27,37 @@ put secret game- or server-specific settings in secret_settings.py.
 # Use the defaults from Evennia unless explicitly overridden
 from evennia.settings_default import *
 
+from server.conf import secret_settings
+
 ######################################################################
 # Evennia base server config
 ######################################################################
 
 # This is the name of your game. Make it catchy!
 SERVERNAME = "Arcellia"
+# Short one-sentence blurb describing your game. Shown under the title
+# on the website and could be used in online listings of your game etc.
+GAME_SLOGAN = None
+
+# open to the internet: 4000, 4001, 4002
+# closed to the internet (internal use): 4005, 4006
+TELNET_PORTS = [4000]
+WEBSOCKET_CLIENT_PORT = 4002
+WEBSERVER_PORTS = [(4001, 4005)]
+AMP_PORT = 4006
+
+# This needs to be set to your website address for django or you'll receive a
+# CSRF error when trying to log on to the web portal
+# CSRF_TRUSTED_ORIGINS = ['https://mymudgame.com']
+
+# Optional - security measures limiting interface access
+# (don't set these before you know things work without them)
+# TELNET_INTERFACES = ['203.0.113.0']
+# WEBSOCKET_CLIENT_INTERFACE = '203.0.113.0'
+# ALLOWED_HOSTS = [".mymudgame.com"]
+
+# uncomment if you want to lock the server down for maintenance.
+# LOCKDOWN_MODE = True
 
 # Determine how many commands per second a given Session is allowed
 # to send to the Portal via a connected protocol. Too high rate will
@@ -193,6 +218,21 @@ DEFAULT_CHANNELS = [
         "locks": "control:perm(Developer);listen:perm(Admin);send:perm(Admin)",
     },
 ]
+
+######################################################################
+# External Connections
+######################################################################
+# Discord (discord.com) is a popular communication service for many, especially
+# for game communities. Evennia's channels can be connected to Discord channels
+# and relay messages between Evennia and Discord. To use, you will need to create
+# your own Discord application and bot.
+# Discord also requires installing the pyopenssl library.
+# Full step-by-step instructions are available in the official Evennia documentation.
+DISCORD_ENABLED = False
+
+# The authentication token for the Discord bot. This should be kept secret and
+# put in your secret_settings file.
+DISCORD_BOT_TOKEN = secret_settings.DISCORD_BOT_TOKEN
 
 ######################################################################
 # Evennia components
