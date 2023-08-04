@@ -37,6 +37,7 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
+        self.add(account.CmdOOCLook())
         self.add(account.CmdWho())
 
 

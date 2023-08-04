@@ -257,6 +257,12 @@ TELNET_PROTOCOL_CLASS = "server.conf.telnet.TelnetProtocol"
 # This one isn't as dangerous to replace.
 SERVER_SESSION_CLASS = "server.conf.serversession.ServerSession"
 
+# The Server SessionHandler manages all ServerSessions, handling logins,
+# ensuring the login process happens smoothly, handling expected and
+# unexpected disconnects. You shouldn't need to touch it, but you can.
+# Replace it to implement altered game logic.
+SERVER_SESSION_HANDLER_CLASS = "server.conf.sessionhandler.ServerSessionHandler"
+
 ######################################################################
 # Settings given in secret_settings.py override those in this file.
 ######################################################################

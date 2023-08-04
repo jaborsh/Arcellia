@@ -2,11 +2,57 @@ import time
 from datetime import datetime
 
 from django.conf import settings
+from evennia.commands.default.account import MuxAccountLookCommand
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import utils
 from evennia.utils.ansi import strip_ansi
 
 from commands.command import Command
+
+_MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
+_AUTO_PUPPET_ON_LOGIN = settings.AUTO_PUPPET_ON_LOGIN
+
+
+# note that this is inheriting from MuxAccountLookCommand,
+# and has the .playable property.
+class CmdOOCLook(MuxAccountLookCommand):
+    """
+    This is an OOC version of the look command. Since an account doesn't have
+    an in-game existence, there is no concept of location or "self". If we are
+    controlling a character, the IC version of look takes over.
+
+    Usage:
+      look
+    """
+
+    key = "look"
+    aliases = ["l", "ls"]
+    locks = "cmd:all()"
+    help_category = "General"
+
+    # this is used by the parent
+    account_caller = True
+
+    def func(self):
+        """implement the ooc look command"""
+
+        if self.session.puppet:
+            # if we are puppeting, this is only reached in the case the that puppet
+            # has no look command on its own.
+            self.msg("You currently have no ability to look around.")
+            return
+
+        if _AUTO_PUPPET_ON_LOGIN and _MAX_NR_CHARACTERS == 1 and self.playable:
+            # only one exists and is allowed - simplify
+            self.msg(
+                "You are out-of-character (OOC).\nUse |wic|n to get back into the game."
+            )
+            return
+
+        # call on-account look helper method
+        self.msg(
+            self.account.at_look(account=self.playable, session=self.session),
+        )
 
 
 class CmdWho(Command):
