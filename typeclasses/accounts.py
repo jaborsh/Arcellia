@@ -21,8 +21,11 @@ possibility to connect with a guest account. The setting file accepts
 several more options for customizing the Guest account system.
 
 """
-
+from django.conf import settings
+from django.utils.translation import gettext as _
 from evennia.accounts.accounts import DefaultAccount, DefaultGuest
+
+from typeclasses.channels import send_mudinfo
 
 
 class Account(DefaultAccount):
@@ -37,74 +40,66 @@ class Account(DefaultAccount):
     on the character level).
 
     Can be set using BASE_ACCOUNT_TYPECLASS.
-
-
-    * available properties
-
-     key (string) - name of account
-     name (string)- wrapper for user.username
-     aliases (list of strings) - aliases to the object. Will be saved to
-                                 database as AliasDB entries but returned as
-                                 strings.
-     dbref (int, read-only) - unique #id-number. Also "id" can be used.
-     date_created (string) - time stamp of object creation
-     permissions (list of strings) - list of permission strings
-
-     user (User, read-only) - django User authorization object
-     obj (Object) - game object controlled by account. 'character' can also be used.
-     sessions (list of Sessions) - sessions connected to this account
-     is_superuser (bool, read-only) - if the connected user is a superuser
-
-    * Handlers
-
-     locks - lock-handler: use locks.add() to add new lock strings
-     db - attribute-handler: store/retrieve database attributes on this
-                             self.db.myattr=val, val=self.db.myattr
-     ndb - non-persistent attribute handler: same as db but does not create a
-                                             database entry when storing data
-     scripts - script-handler. Add new scripts to object with scripts.add()
-     cmdset - cmdset-handler. Use cmdset.add() to add new cmdsets to object
-     nicks - nick-handler. New nicks with nicks.add().
-
-    * Helper methods
-
-     msg(text=None, **kwargs)
-     execute_cmd(raw_string, session=None)
-     search(
-        ostring,
-        global_search=False,
-        attribute_name=None,
-        use_nicks=False,
-        location=None,
-        ignore_errors=False,
-    account=False)
-     is_typeclass(typeclass, exact=False)
-     swap_typeclass(new_typeclass, clean_attributes=False, no_default=True)
-     access(accessing_obj, access_type='read', default=False)
-     check_permstring(permstring)
-
-    * Hook methods (when re-implementation, remember methods need to have self as first
-                    arg)
-
-     basetype_setup()
-     at_account_creation()
-
-     - note that the following hooks are also found on Objects and are
-       usually handled on the character level:
-
-     at_init()
-     at_cmdset_get(**kwargs)
-     at_first_login()
-     at_post_login(session=None)
-     at_disconnect()
-     at_message_receive()
-     at_message_send()
-     at_server_reload()
-     at_server_shutdown()
-
     """
 
-    pass
+    def at_post_login(self, session=None, **kwargs):
+        """
+        Called at the end of the login process, just before letting the account
+        loose.
+
+        Args:
+            session (Session, optional): Session logging in, if any.
+            **kwargs (dict): Arbitrary, optional arguments for users overriding
+                             the call (unused by default).
+
+        Notes:
+            This is called *before* an eventual Character's `at_post_login`
+            hook. By default it is used to set up auto-puppeting based on
+            `MULTISESSION_MODE`.
+        """
+        # if we have saved protocol flags on ourselves, load them here.
+        protocol_flags = self.attributes.get("_saved_protocol_flags", {})
+        if session and protocol_flags:
+            session.update_flags(**protocol_flags)
+
+        # inform the client that we logged in through an OOB message
+        if session:
+            session.msg(logged_in={})
+
+        send_mudinfo(_("|G{key} connected.|n").format(key=self.key))
+        if settings.AUTO_PUPPET_ON_LOGIN:
+            # in this mode we try to auto-connect to our last connected object, if any
+            try:
+                self.puppet_object(session, self.db._last_puppet)
+            except RuntimeError:
+                self.msg(_("The Character does not exist."))
+                return
+        else:
+            # In this mode we don't auto-connect but by default end up at a character selection
+            # screen. We execute look on the account.
+            # we make sure to clean up the _playable_characters list in case
+            # any was deleted in the interim.
+            self.db._playable_characters = [
+                char for char in self.db._playable_characters if char
+            ]
+            self.msg(
+                self.at_look(target=self.db._playable_characters, session=session),
+                session=session,
+            )
+
+    def at_disconnect(self, reason=None, **kwargs):
+        """
+        Called just before user is disconnected.
+
+        Args:
+            reason (str, optional): The reason given for the disconnect.
+            **kwargs (dict): Arbitrary, optional arguments for users overriding
+                             the call (unused by default).
+        """
+        reason = f" ({reason})." if reason else "."
+        send_mudinfo(
+            _("|R{key} disconnected{reason}|n").format(key=self.key, reason=reason)
+        )
 
 
 class Guest(DefaultGuest):
