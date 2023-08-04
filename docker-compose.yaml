@@ -7,5 +7,5 @@ services:
     ports:
       - "4001-4002:4001-4002"
       - "4000:4000"
-    volumes:
-      - .:/usr/src/game
+    #volumes:
+    #  - .:/usr/src/game
