@@ -17,12 +17,11 @@ _AUTO_PUPPET_ON_LOGIN = settings.AUTO_PUPPET_ON_LOGIN
 # and has the .playable property.
 class CmdOOCLook(MuxAccountLookCommand):
     """
+    Usage: look
+
     This is an OOC version of the look command. Since an account doesn't have
     an in-game existence, there is no concept of location or "self". If we are
     controlling a character, the IC version of look takes over.
-
-    Usage:
-      look
     """
 
     key = "look"
@@ -57,10 +56,9 @@ class CmdOOCLook(MuxAccountLookCommand):
 
 class CmdWho(Command):
     """
-    Usage:
-      who
+    Usage: who
 
-    Shows who is currently online.
+    This command lists all players.
     """
 
     key = "who"

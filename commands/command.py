@@ -4,13 +4,13 @@ Commands
 Commands describe the input the account can do to the game.
 
 """
+from django.conf import settings
+from evennia.utils import utils
 
-from evennia.commands.command import Command as BaseCommand
-
-# from evennia import default_cmds
+COMMAND_DEFAULT_CLASS = utils.class_from_module(settings.COMMAND_DEFAULT_CLASS)
 
 
-class Command(BaseCommand):
+class Command(COMMAND_DEFAULT_CLASS):
     """
     Base command (you may see this if a child command had no help text defined)
 

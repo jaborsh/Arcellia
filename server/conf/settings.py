@@ -27,8 +27,6 @@ put secret game- or server-specific settings in secret_settings.py.
 # Use the defaults from Evennia unless explicitly overridden
 from evennia.settings_default import *
 
-from server.conf import secret_settings
-
 ######################################################################
 # Evennia base server config
 ######################################################################
@@ -54,7 +52,7 @@ CSRF_TRUSTED_ORIGINS = ["https://arcellia.com"]
 # (don't set these before you know things work without them)
 TELNET_INTERFACES = ["127.0.0.1"]
 WEBSOCKET_CLIENT_INTERFACE = "127.0.0.1"
-WEBSOCKET_CLIENT_URL = 'wss://arcellia.com:4002/'
+WEBSOCKET_CLIENT_URL = "wss://arcellia.com:4002/"
 ALLOWED_HOSTS = [".arcellia.com"]
 
 # uncomment if you want to lock the server down for maintenance.
@@ -155,7 +153,7 @@ AUTO_CREATE_CHARACTER_WITH_ACCOUNT = True
 # MULTISESSION_MODE=0, AUTO_CREATE_CHARACTER_WITH_ACCOUNT=True and this value to
 # mimic a legacy mud with minimal difference between Account and Character. Disable
 # this and AUTO_PUPPET to get a chargen/character select screen on login.
-AUTO_PUPPET_ON_LOGIN = False
+AUTO_PUPPET_ON_LOGIN = True
 # How many *different* characters an account can puppet *at the same time*. A value
 # above 1 only makes a difference together with MULTISESSION_MODE > 1.
 MAX_NR_SIMULTANEOUS_PUPPETS = None
