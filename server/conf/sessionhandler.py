@@ -72,3 +72,6 @@ class ServerSessionHandler(BaseSessionHandler):
                 if session.logged_in and not session.account.permissions.check("Admin")
             )
         )
+
+
+SESSIONS = None  # legacy
