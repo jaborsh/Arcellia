@@ -15,6 +15,7 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 """
 
 from evennia import default_cmds
+from evennia.contrib.git_integration import CmdGit, CmdGitEvennia
 
 from commands import account, unloggedin
 
@@ -37,6 +38,8 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
+        self.add(CmdGit)
+        self.add(CmdGitEvennia)
         self.add(account.CmdOOCLook())
         self.add(account.CmdWho())
 
