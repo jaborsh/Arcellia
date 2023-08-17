@@ -1,5 +1,4 @@
 from evennia.server.sessionhandler import SESSIONS
-from evennia.utils.utils import dedent
 from server.conf.settings import SERVERNAME
 from utils.formatting import wrap
 
@@ -26,16 +25,13 @@ class CmdAnnounce(Command):
 
         self.args = wrap(self.args, 63, align="c", pre_text="  ")
 
-        string = dedent(
-            """
-            |C  .:*~*:._.:*~*:._.:*~ |r{SERVERNAME} Announcement |C~*:._.:*~*:._.:*~*:.|n
+        string = """
+|C  .:*~*:._.:*~*:._.:*~ |r{SERVERNAME} Announcement |C~*:._.:*~*:._.:*~*:.|n
+           
+|Y{message}|n
             
-            |Y  {message}|n
-            
-            |C  .:*~*:._.:*~*:._.:*~                       ~*:._.:*~*:._.:*~*:.|n
-        """.format(
-                SERVERNAME=SERVERNAME, message=self.args
-            )
+|C  .:*~*:._.:*~*:._.:*~                       ~*:._.:*~*:._.:*~*:.|n""".format(
+            SERVERNAME=SERVERNAME, message=self.args
         )
 
         SESSIONS.announce_all(string)

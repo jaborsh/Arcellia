@@ -12,16 +12,16 @@ def wrap(text, text_width=80, pre_text="", align="l", indent=0):
 
     text = text.lstrip()
     text_width = text_width if text_width else settings.CLIENT_DEFAULT_WIDTH
+    final_text = []
 
     # Cache each manually determined line break
     text_lines = re.split(r"\n|\|/", text)
-
     for text_line in text_lines:
         line = ""
         line_list = []
 
         # Determine available characters.
-        available_chars = text_width - len(pre_text)
+        available_chars = text_width - len(strip_ansi(pre_text))
 
         # Cache each word in the line.
         word_list = re.findall(r"((?:\S+\s*)|(?:^\s+))", text_line)
@@ -33,7 +33,7 @@ def wrap(text, text_width=80, pre_text="", align="l", indent=0):
                 available_chars -= len(strip_ansi(word))
 
             # Catch words that are too long to fit on a line, for whatever reason.
-            elif len(strip_ansi(word)) > text_width - len(pre_text):
+            elif len(strip_ansi(word)) > text_width - len(strip_ansi(pre_text)):
                 char_list = re.findall(
                     # r"(?:\|[0-5]{3}\w)|(?:\|\w{2})|(?:\S)", word
                     r"\|\[?([0-5][0-5][0-5]|\=?[rRyYgGcCbBmMwWxX]|#?[0-9a-f]{6})",
@@ -55,27 +55,22 @@ def wrap(text, text_width=80, pre_text="", align="l", indent=0):
             else:
                 line_list.append(line)
                 line = word
-                available_chars = text_width - len(pre_text) - len(strip_ansi(word))
-
+                available_chars = (
+                    text_width - len(strip_ansi(pre_text)) - len(strip_ansi(word))
+                )
         # Add the last line to the list.
         line_list.append(line)
 
         # Justify the text.
-        first_line = True
-        final_text = ""
+
         for line in line_list:
-            line_text = ""
-
-            if first_line:
-                line_text = justify(line, text_width, align, indent) + pre_text
-                first_line = False
+            if not final_text:
+                line_text = pre_text + justify(line, text_width, align, indent)
             else:
-                line_text = justify(line, text_width, align, len(pre_text))
+                line_text = justify(line, text_width, align, len(strip_ansi(pre_text)))
+            final_text.append(line_text)
 
-            final_text += line_text + "|/"
-
-    final_text = final_text[:-2]
-    return final_text + "|n"
+    return "\n".join(final_text) + "|n"
 
 
 def justify(text, width, align, indent=0):

@@ -134,7 +134,7 @@ class Account(DefaultAccount):
         "|wAvailable Commands:|n\n"
         "    |wcreate <name>|n - Create a new character.\n"
         "    |wdelete <name>|n - Delete a character.\n"
-        "    |wic [name]|n - Enter the game as character.\n"
+        "    |wpuppet [name]|n - Enter the game as character.\n"
         "\n"
         "{characters}\n"
         "{footer}\n"

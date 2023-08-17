@@ -3,14 +3,129 @@ from datetime import datetime
 
 from django.conf import settings
 from evennia.commands.default.account import MuxAccountLookCommand
+from evennia.objects.models import ObjectDB
 from evennia.server.sessionhandler import SESSIONS
-from evennia.utils import utils
+from evennia.utils import create, logger, utils
 from evennia.utils.ansi import strip_ansi
+from utils.formatting import wrap
 
 from commands.command import Command
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
 _AUTO_PUPPET_ON_LOGIN = settings.AUTO_PUPPET_ON_LOGIN
+
+
+class CmdCreate(Command):
+    """
+    Usage: create <name>
+
+    Create a new character. Names will automatically capitalize. Follow the
+    provided rules when creating a new character.
+    """
+
+    key = "create"
+    locks = "cmd:pperm(Player)"
+    help_category = "General"
+    account_caller = True
+
+    def func(self):
+        account = self.account
+        session = self.session
+        if not self.args:
+            self.msg("Usage: create <name>")
+            return
+
+        if _MAX_NR_CHARACTERS is not None:
+            if (
+                not account.is_superuser
+                and not account.check_permstring("Developer")
+                and account.db._playable_characters
+                and len(account.db._playable_characters) >= _MAX_NR_CHARACTERS
+            ):
+                plural = "" if _MAX_NR_CHARACTERS == 1 else "s"
+                self.msg(
+                    f"You may only have a maximum of {_MAX_NR_CHARACTERS} character{plural}."
+                )
+                return
+        if not self.args.isalpha():
+            self.msg("|rYour character's name may only contain letters.|n")
+            return
+
+        key = self.args.replace(" ", "").capitalize()[:16]
+        typeclass = settings.BASE_CHARACTER_TYPECLASS
+
+        # check if the character already exists
+        if ObjectDB.objects.filter(db_typeclass_path=typeclass, db_key__iexact=key):
+            self.msg(f"|rA character named '|w{key}|r' already exists.|n")
+            return
+
+        # check if the name is valid
+        rules_string = "The following rules apply to names:\n\n"
+        rules_string += (
+            wrap(
+                "|gNames should be distinct from iconic media characters.",
+                pre_text="1. ",
+            )
+            + "\n"
+        )
+        rules_string += (
+            wrap(
+                "|gNames should suit the game's theme and setting.",
+                pre_text="2. ",
+            )
+            + "\n"
+        )
+        rules_string += (
+            wrap(
+                "|gNames should be understandable and pronounceable.",
+                pre_text="3. ",
+            )
+            + "\n"
+        )
+        self.msg(rules_string)
+        answer = yield (
+            f"Did you enter |n'|w{key}|n' correctly and does this name comply with the rules? |r[Y/n]|n"
+        )
+        if answer.strip().lower() not in ["y", "yes"]:
+            self.msg("Character creation aborted.")
+            return
+
+        # create the character
+        start_location = ObjectDB.objects.get_id(settings.START_LOCATION)
+        default_home = ObjectDB.objects.get_id(settings.DEFAULT_HOME)
+        permissions = settings.PERMISSION_ACCOUNT_DEFAULT
+        new_character = create.create_object(
+            typeclass,
+            key=key,
+            location=start_location,
+            home=default_home,
+            permissions=permissions,
+        )
+        new_character.locks.add(
+            "puppet:id(%i) or pid(%i) or perm(Developer) or pperm(Developer);"
+            "delete:id(%i) or perm(Admin)" % (new_character.id, account.id, account.id)
+        )
+        account.db._playable_characters.append(new_character)
+        new_character.db.desc = "This is a character."
+        logger.log_sec(
+            f"Character Created: {new_character} "
+            f"(Caller: {account}, IP: {session.address})."
+        )
+
+        # start puppeting the character
+        try:
+            account.puppet_object(session, new_character)
+            account.db._last_puppet = new_character
+            logger.log_sec(
+                f"Puppet Success: (Caller: {account}, Target: {new_character}, IP:"
+                f" {session.address})."
+            )
+        except RuntimeError as error:
+            self.msg(f"|rYou cannot become |C{new_character.name}|n: {error}")
+            logger.log_sec(
+                f"Puppet Failed: %s (Caller: {account}, Target: {new_character}, IP:"
+                f" {session.address})."
+            )
 
 
 # note that this is inheriting from MuxAccountLookCommand,

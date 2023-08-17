@@ -52,6 +52,7 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         self.add(admin.CmdAnnounce)
 
         # Account Commands
+        self.add(account.CmdCreate)
         self.add(account.CmdOOCLook)
         self.add(account.CmdWho)
         self.add(default_help.CmdHelp)
