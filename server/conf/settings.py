@@ -148,7 +148,7 @@ MULTISESSION_MODE = 3
 # Whether we should create a character with the same name as the account when
 # a new account is created. Together with AUTO_PUPPET_ON_LOGIN, this mimics
 # a legacy MUD, where there is no difference between account and character.
-AUTO_CREATE_CHARACTER_WITH_ACCOUNT = False
+AUTO_CREATE_CHARACTER_WITH_ACCOUNT = True
 # Whether an account should auto-puppet the last puppeted puppet when logging in. This
 # will only work if the session/puppet combination can be determined (usually
 # MULTISESSION_MODE 0 or 1), otherwise, the player will end up OOC. Use
@@ -163,7 +163,7 @@ MAX_NR_SIMULTANEOUS_PUPPETS = None
 # char-creation command. This can be seen as how big of a 'stable' of characters
 # an account can have (not how many you can puppet at the same time). Set to
 # None for no limit.
-MAX_NR_CHARACTERS = None
+MAX_NR_CHARACTERS = 2
 # The access hierarchy, in climbing order. A higher permission in the
 # hierarchy includes access of all levels below it. Used by the perm()/pperm()
 # lock functions, which accepts both plural and singular (Admin & Admins)
@@ -271,6 +271,12 @@ TELNET_PROTOCOL_CLASS = "server.conf.telnet.TelnetProtocol"
 # Server-side session class used. This will inherit from BASE_SESSION_CLASS.
 # This one isn't as dangerous to replace.
 SERVER_SESSION_CLASS = "server.conf.serversession.ServerSession"
+
+# The Server SessionHandler manages all ServerSessions, handling logins,
+# ensuring the login process happens smoothly, handling expected and
+# unexpected disconnects. You shouldn't need to touch it, but you can.
+# Replace it to implement altered game logic.
+SERVER_SESSION_HANDLER_CLASS = "server.conf.sessionhandler.ServerSessionHandler"
 
 ######################################################################
 # Settings given in secret_settings.py override those in this file.
