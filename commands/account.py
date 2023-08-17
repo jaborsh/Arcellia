@@ -84,49 +84,52 @@ class CmdCreate(Command):
             + "\n"
         )
         self.msg(rules_string)
-        answer = yield (
-            f"Did you enter |n'|w{key}|n' correctly and does this name comply with the rules? |r[Y/n]|n"
-        )
-        if answer.strip().lower() not in ["y", "yes"]:
-            self.msg("Character creation aborted.")
-            return
 
-        # create the character
-        start_location = ObjectDB.objects.get_id(settings.START_LOCATION)
-        default_home = ObjectDB.objects.get_id(settings.DEFAULT_HOME)
-        permissions = settings.PERMISSION_ACCOUNT_DEFAULT
-        new_character = create.create_object(
-            typeclass,
-            key=key,
-            location=start_location,
-            home=default_home,
-            permissions=permissions,
-        )
-        new_character.locks.add(
-            "puppet:id(%i) or pid(%i) or perm(Developer) or pperm(Developer);"
-            "delete:id(%i) or perm(Admin)" % (new_character.id, account.id, account.id)
-        )
-        account.db._playable_characters.append(new_character)
-        new_character.db.desc = "This is a character."
-        logger.log_sec(
-            f"Character Created: {new_character} "
-            f"(Caller: {account}, IP: {session.address})."
-        )
+        def _callback(caller, callback_prompt, result):
+            if result.lower() not in ["yes", "y"]:
+                self.msg("Creation aborted.")
+                return
 
-        # start puppeting the character
-        try:
-            account.puppet_object(session, new_character)
-            account.db._last_puppet = new_character
-            logger.log_sec(
-                f"Puppet Success: (Caller: {account}, Target: {new_character}, IP:"
-                f" {session.address})."
+            # create the character
+            start_location = ObjectDB.objects.get_id(settings.START_LOCATION)
+            default_home = ObjectDB.objects.get_id(settings.DEFAULT_HOME)
+            permissions = settings.PERMISSION_ACCOUNT_DEFAULT
+            new_character = create.create_object(
+                typeclass,
+                key=key,
+                location=start_location,
+                home=default_home,
+                permissions=permissions,
             )
-        except RuntimeError as error:
-            self.msg(f"|rYou cannot become |C{new_character.name}|n: {error}")
-            logger.log_sec(
-                f"Puppet Failed: %s (Caller: {account}, Target: {new_character}, IP:"
-                f" {session.address})."
+            new_character.locks.add(
+                "puppet:id(%i) or pid(%i) or perm(Developer) or pperm(Developer);"
+                "delete:id(%i) or perm(Admin)"
+                % (new_character.id, account.id, account.id)
             )
+            account.db._playable_characters.append(new_character)
+            new_character.db.desc = "This is a character."
+            logger.log_sec(
+                f"Character Created: {new_character} "
+                f"(Caller: {account}, IP: {session.address})."
+            )
+
+            # start puppeting the character
+            try:
+                account.puppet_object(session, new_character)
+                account.db._last_puppet = new_character
+                logger.log_sec(
+                    f"Puppet Success: (Caller: {account}, Target: {new_character}, IP:"
+                    f" {session.address})."
+                )
+            except RuntimeError as error:
+                self.msg(f"|rYou cannot become |C{new_character.name}|n: {error}")
+                logger.log_sec(
+                    f"Puppet Failed: %s (Caller: {account}, Target: {new_character}, IP:"
+                    f" {session.address})."
+                )
+
+        prompt = f"Did you enter '|w{key}|n' correctly and does this name comply with the rules? |r[Y/n]|n"
+        get_input(account, prompt, _callback)
 
 
 class CmdDelete(Command):
@@ -188,8 +191,8 @@ class CmdDelete(Command):
             self.msg("You do not have permission to delete this character.")
             return
 
-        prompt = "|rThis will permanently delete |n'|w%s|n'|r. This cannot be undone!|n Continue? |r[Y/n]|n"
-        get_input(account, prompt % match.key, _callback)
+        prompt = f"|rThis will permanently delete |n'|w{match.key}|n'|r. This cannot be undone!|n Continue? |r[Y/n]|n"
+        get_input(account, prompt, _callback)
 
 
 # note that this is inheriting from MuxAccountLookCommand,
