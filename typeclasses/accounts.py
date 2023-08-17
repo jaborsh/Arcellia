@@ -24,11 +24,14 @@ several more options for customizing the Guest account system.
 from django.conf import settings
 from django.utils.translation import gettext as _
 from evennia.accounts.accounts import DefaultAccount, DefaultGuest
+from evennia.server.signals import SIGNAL_OBJECT_POST_PUPPET
 from evennia.utils.utils import is_iter
 
 from typeclasses.channels import send_mudinfo
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
+_MAX_NR_SIMULTANEOUS_PUPPETS = settings.MAX_NR_SIMULTANEOUS_PUPPETS
+_MULTISESSION_MODE = settings.MULTISESSION_MODE
 
 
 class Account(DefaultAccount):
@@ -251,6 +254,102 @@ class Account(DefaultAccount):
         import evennia
 
         evennia.SESSION_HANDLER.disconnect(session, reason)
+
+    def puppet_object(self, session, obj):
+        """
+        Use the given session to control (puppet) the given object (usually
+        a Character type).
+
+        Args:
+            session (Session): session to use for puppeting
+            obj (Object): the object to start puppeting
+
+        Raises:
+            RuntimeError: If puppeting is not possible, the
+                `exception.msg` will contain the reason.
+
+
+        """
+        # safety checks
+        if not obj:
+            raise RuntimeError("Object not found")
+        if not session:
+            raise RuntimeError("Session not found")
+        if self.get_puppet(session) == obj:
+            # already puppeting this object
+            self.msg("You are already puppeting this object.")
+            return
+        if not obj.access(self, "puppet"):
+            # no access
+            self.msg(f"You don't have permission to puppet '{obj.key}'.")
+            return
+        if obj.account:
+            # object already puppeted
+            if obj.account == self:
+                if obj.sessions.count():
+                    # we may take over another of our sessions
+                    # output messages to the affected sessions
+                    if _MULTISESSION_MODE in (1, 3):
+                        txt1 = f"Sharing |c{obj.name}|n with another of your sessions."
+                        txt2 = f"|c{obj.name}|n|G is now shared from another of your sessions.|n"
+                        self.msg(txt1, session=session)
+                        self.msg(txt2, session=obj.sessions.all())
+                    else:
+                        txt1 = (
+                            f"Taking over |c{obj.name}|n from another of your sessions."
+                        )
+                        txt2 = f"|c{obj.name}|n|R is now acted from another of your sessions.|n"
+                        self.msg(txt1, session=session)
+                        self.msg(txt2, session=obj.sessions.all())
+                        self.unpuppet_object(obj.sessions.get())
+            elif obj.account.is_connected and not self.is_superuser:
+                # controlled by another account
+                self.msg(
+                    _("|c{key}|R is already puppeted by another Account.").format(
+                        key=obj.key
+                    )
+                )
+                return
+
+        if session.puppet:
+            # cleanly unpuppet eventual previous object puppeted by this session
+            self.unpuppet_object(session)
+        # if we get to this point the character is ready to puppet or it
+        # was left with a lingering account/session reference from an unclean
+        # server kill or similar
+
+        # check so we are not puppeting too much already
+        if _MAX_NR_SIMULTANEOUS_PUPPETS is not None:
+            already_puppeted = self.get_all_puppets()
+            if (
+                not self.is_superuser
+                and not self.check_permstring("Developer")
+                and obj not in already_puppeted
+                and len(self.get_all_puppets()) >= _MAX_NR_SIMULTANEOUS_PUPPETS
+            ):
+                self.msg(
+                    _(
+                        f"You cannot control any more puppets (max {_MAX_NR_SIMULTANEOUS_PUPPETS})"
+                    )
+                )
+                return
+
+        # do the puppeting
+        obj.at_pre_puppet(self, session=session)
+        # used to track in case of crash so we can clean up later
+        obj.tags.add("puppeted", category="account")
+
+        # do the connection
+        obj.sessions.add(session)
+        obj.account = self
+        session.puid = obj.id
+        session.puppet = obj
+
+        # re-cache locks to make sure superuser bypass is updated
+        obj.locks.cache_lock_bypass(obj)
+        # final hook
+        obj.at_post_puppet()
+        SIGNAL_OBJECT_POST_PUPPET.send(sender=obj, account=self, session=session)
 
 
 class Guest(DefaultGuest):
