@@ -3,9 +3,11 @@ from datetime import datetime
 
 from django.conf import settings
 from evennia.commands.default.account import MuxAccountLookCommand
-from evennia.server.sessionhandler import SESSIONS
+
+# from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import utils
 from evennia.utils.ansi import strip_ansi
+from server.conf.sessionhandler import SESSIONS
 
 from commands.command import Command
 

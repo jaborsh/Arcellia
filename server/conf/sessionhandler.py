@@ -54,3 +54,21 @@ class ServerSessionHandler(BaseSessionHandler):
                 operation=amp.SDISCONN,
                 reason=reason if reason != "quit" else "",
             )
+
+    def account_player_count(self):
+        """
+        Get the number of connected accounts (not sessions since a
+        account may have more than one session depending on settings).
+        Only logged-in accounts are counted here.
+
+        Returns:
+            naccount (int): Number of connected accounts
+
+        """
+        return len(
+            set(
+                session.uid
+                for session in self.values()
+                if session.logged_in and not session.account.permissions.check("Admin")
+            )
+        )
