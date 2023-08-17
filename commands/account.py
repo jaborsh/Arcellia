@@ -3,11 +3,9 @@ from datetime import datetime
 
 from django.conf import settings
 from evennia.commands.default.account import MuxAccountLookCommand
-
-# from evennia.server.sessionhandler import SESSIONS
+from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import utils
 from evennia.utils.ansi import strip_ansi
-from server.conf.sessionhandler import SESSIONS
 
 from commands.command import Command
 
@@ -199,7 +197,7 @@ class CmdWho(Command):
                 session_account = session.get_account()
                 table.add_row(session_account.get_display_name(caller))
 
-        naccounts = SESSIONS.all_connected_accounts()  # - len(admin)
+        naccounts = SESSIONS.all_connected_accounts()
         is_one = naccounts == 1
         header = self.create_header(width)
         footer = self.get_footer(width)
