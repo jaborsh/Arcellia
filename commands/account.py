@@ -7,6 +7,7 @@ from evennia.objects.models import ObjectDB
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import create, logger, utils
 from evennia.utils.ansi import strip_ansi
+from evennia.utils.evmenu import get_input
 from utils.formatting import wrap
 
 from commands.command import Command
@@ -126,6 +127,69 @@ class CmdCreate(Command):
                 f"Puppet Failed: %s (Caller: {account}, Target: {new_character}, IP:"
                 f" {session.address})."
             )
+
+
+class CmdDelete(Command):
+    """
+    Usage: delete <name>
+
+    Permanently delete one of your characters. This cannot be undone!
+    """
+
+    key = "delete"
+    locks = "cmd:pperm(Player)"
+    help_category = "General"
+    account_caller = True
+
+    def func(self):
+        account = self.account
+        session = self.session
+
+        if not self.args:
+            self.msg("Usage: delete <name>")
+            return
+
+        match = [
+            char
+            for char in utils.make_iter(account.db._playable_characters)
+            if char.key.lower() == self.args.lower()
+        ]
+        if not match:
+            self.msg("You have no such character to delete.")
+            return
+        elif len(match) > 1:
+            self.msg(
+                "Aborting - there are two characters with the same name. Ask an admin to delete the right one."
+            )
+            return
+
+        def _callback(caller, callback_prompt, result):
+            if result.lower() not in ["yes", "y"]:
+                self.msg("Deletion aborted.")
+                return
+
+            delobj = caller.ndb._char_to_delete
+            key = delobj.key
+            caller.db._playable_characters = [
+                pc for pc in caller.db._playable_characters if pc != delobj
+            ]
+            delobj.delete()
+            self.msg(f"Character '|w{key}|n' permanently deleted.")
+            logger.log_sec(
+                f"Character Deleted: {key} (Caller: {account}, IP: {session.address})."
+            )
+            del caller.ndb._char_to_delete
+
+        match = match[0]
+        account.ndb._char_to_delete = match
+
+        # Return if caller has no permission to delete this
+        if not match.access(account, "delete"):
+            self.msg("You do not have permission to delete this character.")
+            return
+
+        prompt = "|rThis will permanently delete |n'|w%s|n'|r. This cannot be undone!|n Continue? |r[Y/n]|n"
+        get_input(account, prompt % match.key, _callback)
 
 
 # note that this is inheriting from MuxAccountLookCommand,
