@@ -26,8 +26,7 @@ from django.utils.translation import gettext as _
 from evennia.accounts.accounts import DefaultAccount, DefaultGuest
 from evennia.server.signals import SIGNAL_OBJECT_POST_PUPPET
 from evennia.utils.utils import is_iter
-
-from typeclasses.channels import send_mudinfo
+from server.conf import logger
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
 _MAX_NR_SIMULTANEOUS_PUPPETS = settings.MAX_NR_SIMULTANEOUS_PUPPETS
@@ -78,7 +77,7 @@ class Account(DefaultAccount):
             if self.sessions.count() > 1
             else f"{self.sessions.count()} session total"
         )
-        send_mudinfo(
+        logger.send_mudinfo(
             _("|GLogged in: {key} ({addr}) ({sessions})|n").format(
                 key=self.key, addr=addr, sessions=sessions
             )
@@ -119,7 +118,7 @@ class Account(DefaultAccount):
             if count != 1
             else f"{count} session remaining"
         )
-        send_mudinfo(
+        logger.send_mudinfo(
             _("|RLogged out: {key} ({sessions})|n").format(
                 key=self.key, sessions=sessions
             )

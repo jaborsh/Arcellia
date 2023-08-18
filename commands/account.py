@@ -8,8 +8,8 @@ from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import create, search, utils
 from evennia.utils.ansi import strip_ansi
 from evennia.utils.evmenu import get_input
-from utils import logger
-from utils.formatting import wrap
+from server.conf import logger
+from ui.formatting import wrap
 
 from commands.command import Command
 

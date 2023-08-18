@@ -1,6 +1,6 @@
 from evennia.server.sessionhandler import SESSIONS
 from server.conf.settings import SERVERNAME
-from utils.formatting import wrap
+from ui.formatting import wrap
 
 from commands.command import Command
 

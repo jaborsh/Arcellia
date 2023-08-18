@@ -19,10 +19,12 @@ import time
 from datetime import datetime
 from traceback import format_exc
 
+from django.conf import settings
+from evennia.comms.models import ChannelDB
 from twisted import logger as twisted_logger
 from twisted.internet.threads import deferToThread
 from twisted.python import logfile
-from typeclasses.channels import send_mudinfo
+from ui.formatting import wrap
 
 log = twisted_logger.Logger()
 
@@ -180,6 +182,25 @@ def log_server(msg, **kwargs):
             formatting markers that should match the keywords.
     """
     _log(msg, log.info, prefix="Server", color="|#28A745", **kwargs)
+
+
+def send_mudinfo(message):
+    """
+    Helper method for loading and sending to the comm channel dedicated to
+    connection messages. This will also be sent to the mudinfo channel.
+
+    Args:
+        message (str): A message to send to the connect channel.
+    """
+    if settings.CHANNEL_MUDINFO:
+        try:
+            channel = ChannelDB.objects.get(db_key=settings.CHANNEL_MUDINFO["key"])
+        except ChannelDB.DoesNotExist:
+            return log_trace()
+
+        message = wrap(message, hang=10)
+
+        channel.msg(f"{message}")
 
 
 class GetLogObserver:
