@@ -55,6 +55,7 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         self.add(account.CmdCreate)
         self.add(account.CmdDelete)
         self.add(account.CmdOOCLook)
+        self.add(account.CmdPuppet)
         self.add(account.CmdWho)
         self.add(default_help.CmdHelp)
 

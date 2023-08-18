@@ -2,7 +2,7 @@ import time
 from datetime import datetime
 
 from django.conf import settings
-from evennia.commands.default.account import MuxAccountLookCommand
+from evennia.commands.default import account
 from evennia.objects.models import ObjectDB
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import create, logger, utils
@@ -45,7 +45,7 @@ class CmdCreate(Command):
             ):
                 plural = "" if _MAX_NR_CHARACTERS == 1 else "s"
                 self.msg(
-                    f"You may only have a maximum of {_MAX_NR_CHARACTERS} character{plural}."
+                    f"You may only have a maximum of {_MAX_NR_CHARACTERS} character{plural}."  # noqa: E501
                 )
                 return
         if not self.args.isalpha():
@@ -124,11 +124,11 @@ class CmdCreate(Command):
             except RuntimeError as error:
                 self.msg(f"|rYou cannot become |C{new_character.name}|n: {error}")
                 logger.log_sec(
-                    f"Puppet Failed: %s (Caller: {account}, Target: {new_character}, IP:"
+                    f"Puppet Failed: %s (Caller: {account}, Target: {new_character}, IP:"  # noqa: E501
                     f" {session.address})."
                 )
 
-        prompt = f"Did you enter '|w{key}|n' correctly and does this name comply with the rules? |r[Y/n]|n"
+        prompt = f"Did you enter '|w{key}|n' correctly and does this name comply with the rules? |r[Y/n]|n"  # noqa: E501
         get_input(account, prompt, _callback)
 
 
@@ -162,7 +162,7 @@ class CmdDelete(Command):
             return
         elif len(match) > 1:
             self.msg(
-                "Aborting - there are two characters with the same name. Ask an admin to delete the right one."
+                "Aborting - there are two characters with the same name. Ask an admin to delete the right one."  # noqa: E501
             )
             return
 
@@ -191,13 +191,13 @@ class CmdDelete(Command):
             self.msg("You do not have permission to delete this character.")
             return
 
-        prompt = f"|rThis will permanently delete |n'|w{match.key}|n'|r. This cannot be undone!|n Continue? |r[Y/n]|n"
+        prompt = f"|rThis will permanently delete |n'|w{match.key}|n'|r. This cannot be undone!|n Continue? |r[Y/n]|n"  # noqa: E501
         get_input(account, prompt, _callback)
 
 
 # note that this is inheriting from MuxAccountLookCommand,
 # and has the .playable property.
-class CmdOOCLook(MuxAccountLookCommand):
+class CmdOOCLook(account.MuxAccountLookCommand):
     """
     Usage: look
 
@@ -234,6 +234,17 @@ class CmdOOCLook(MuxAccountLookCommand):
         self.msg(
             self.account.at_look(account=self.playable, session=self.session),
         )
+
+
+class CmdPuppet(account.CmdIC):
+    """
+    Usage: puppet <character>
+
+    Go in-character (IC) as a given character.
+    """
+
+    key = "puppet"
+    aliases = ["ic"]
 
 
 class CmdWho(Command):
