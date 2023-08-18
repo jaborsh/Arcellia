@@ -39,13 +39,6 @@ SERVERNAME = "Arcellia"
 # on the website and could be used in online listings of your game etc.
 GAME_SLOGAN = None
 
-# open to the internet: 4000, 4001, 4002
-# closed to the internet (internal use): 4005, 4006
-TELNET_PORTS = [4000]
-WEBSOCKET_CLIENT_PORT = 4002
-WEBSERVER_PORTS = [(4001, 4005)]
-AMP_PORT = 4006
-
 # This needs to be set to your website address for django or you'll receive a
 # CSRF error when trying to log on to the web portal
 CSRF_TRUSTED_ORIGINS = ["https://arcellia.com"]
