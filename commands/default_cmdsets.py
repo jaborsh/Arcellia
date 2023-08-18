@@ -15,8 +15,11 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 """
 
 from evennia import default_cmds
+from evennia.commands.default import help as default_help
+from evennia.commands.default import system as default_system
+from evennia.contrib.utils.git_integration import git_integration as git
 
-from commands import account, unloggedin
+from commands import account, admin, unloggedin
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):
@@ -33,12 +36,34 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         """
         Populates the cmdset
         """
-        super().at_cmdset_creation()
-        #
-        # any commands you add below will overload the default ones.
-        #
-        self.add(account.CmdOOCLook())
-        self.add(account.CmdWho())
+        # super().at_cmdset_creation()
+
+        # Developer Commands
+        self.add(default_system.CmdReload)
+        self.add(default_system.CmdReset)
+        self.add(default_system.CmdShutdown)
+        self.add(default_system.CmdPy)
+        self.add(git.CmdGit)
+
+        # Admin Commands
+        self.add(admin.CmdAnnounce)
+        self.add(admin.CmdEcho)
+
+        # Account Commands
+        self.add(account.CmdConnect)
+        self.add(account.CmdCreate)
+        self.add(account.CmdDelete)
+        self.add(account.CmdDisconnect)
+        self.add(account.CmdOOCLook)
+        self.add(account.CmdOptions)
+        self.add(account.CmdPassword)
+        self.add(account.CmdSessions)
+        self.add(account.CmdQuell)
+        self.add(account.CmdQuit)
+        self.add(account.CmdWho)
+
+        # Help Command
+        self.add(default_help.CmdHelp)
 
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
@@ -54,7 +79,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         """
         Populates the cmdset
         """
-        super().at_cmdset_creation()
+        # super().at_cmdset_creation()
         #
         # any commands you add below will overload the default ones.
         #
@@ -76,7 +101,7 @@ class SessionCmdSet(default_cmds.SessionCmdSet):
         As and example we just add the empty base `Command` object.
         It prints some info.
         """
-        super().at_cmdset_creation()
+        # super().at_cmdset_creation()
         #
         # any commands you add below will overload the default ones.
         #
@@ -94,7 +119,7 @@ class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
         """
         Populates the cmdset
         """
-        super().at_cmdset_creation()
+        # super().at_cmdset_creation()
         #
         # any commands you add below will overload the default ones.
         #

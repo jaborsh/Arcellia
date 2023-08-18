@@ -26,8 +26,7 @@ from django.utils.translation import gettext as _
 from evennia.accounts.accounts import DefaultAccount, DefaultGuest
 from evennia.server.signals import SIGNAL_OBJECT_POST_PUPPET
 from evennia.utils.utils import is_iter
-
-from typeclasses.channels import send_mudinfo
+from server.conf import logger
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
 _MAX_NR_SIMULTANEOUS_PUPPETS = settings.MAX_NR_SIMULTANEOUS_PUPPETS
@@ -78,7 +77,7 @@ class Account(DefaultAccount):
             if self.sessions.count() > 1
             else f"{self.sessions.count()} session total"
         )
-        send_mudinfo(
+        logger.send_mudinfo(
             _("|GLogged in: {key} ({addr}) ({sessions})|n").format(
                 key=self.key, addr=addr, sessions=sessions
             )
@@ -119,7 +118,7 @@ class Account(DefaultAccount):
             if count != 1
             else f"{count} session remaining"
         )
-        send_mudinfo(
+        logger.send_mudinfo(
             _("|RLogged out: {key} ({sessions})|n").format(
                 key=self.key, sessions=sessions
             )
@@ -128,16 +127,23 @@ class Account(DefaultAccount):
     ooc_appearance_template = (
         "{fill}\n"
         "{header}\n"
+        # "\n"
+        # "{sessions}\n"
         "\n"
-        "{sessions}\n"
+        "{characters}\n\n"
+        "|wCharacter Commands:|n\n"
+        "    |wconnect <name>|n - Connect to a character.\n"
+        "    |wcreate  <name>|n - Create a character.\n"
+        "    |wdelete  <name>|n - Delete a character.\n"
         "\n"
-        "|wAvailable Commands:|n\n"
-        "    |wcreate <name>|n - Create a new character.\n"
-        "    |wdelete <name>|n - Delete a character.\n"
-        "    |wic [name]|n - Enter the game as character.\n"
+        "|wGeneral Commands:|n\n"
+        "    |wlook|n           - Show this screen.\n"
+        "    |woptions|n        - Show and change options.\n"
+        "    |wpassword|n       - Change your password.\n"
+        "    |wquit|n           - Quit the game.\n"
+        "    |wwho|n            - Show who is online.\n"
         "\n"
-        "{characters}\n"
-        "{footer}\n"
+        "{footer}"
         "{fill}\n"
     ).strip()
 
@@ -177,7 +183,7 @@ class Account(DefaultAccount):
             return ""
 
         # header text
-        txt_header = f"Account |g{self.name}|n (you are Out-of-Character)"
+        txt_header = f"Account: |g{self.name}|n (you are Out-of-Character)"
 
         # sessions
         sess_strings = []
@@ -229,7 +235,7 @@ class Account(DefaultAccount):
                     )
 
             txt_characters = (
-                f"Available character(s) ({ncars}/{max_chars}, |wic <name>|n to play):|n\n"
+                f"|wAvailable Characters: |n[{ncars}/{max_chars}]|n\n"
                 + "\n".join(char_strings)
             )
         return self.ooc_appearance_template.format(

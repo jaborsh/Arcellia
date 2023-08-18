@@ -27,8 +27,6 @@ put secret game- or server-specific settings in secret_settings.py.
 # Use the defaults from Evennia unless explicitly overridden
 from evennia.settings_default import *
 
-from server.conf import secret_settings
-
 ######################################################################
 # Evennia base server config
 ######################################################################
@@ -52,10 +50,9 @@ CSRF_TRUSTED_ORIGINS = ["https://arcellia.com"]
 
 # Optional - security measures limiting interface access
 # (don't set these before you know things work without them)
-TELNET_INTERFACES = ["127.0.0.1"]
-WEBSOCKET_CLIENT_INTERFACE = "127.0.0.1"
-WEBSOCKET_CLIENT_URL = 'wss://arcellia.com:4002/'
-ALLOWED_HOSTS = [".arcellia.com"]
+# WEBSOCKET_CLIENT_INTERFACE = "127.0.0.1"
+# WEBSOCKET_CLIENT_URL = "wss://arcellia.com:4002/"
+# ALLOWED_HOSTS = [".arcellia.com"]
 
 # uncomment if you want to lock the server down for maintenance.
 # LOCKDOWN_MODE = True
@@ -148,7 +145,7 @@ MULTISESSION_MODE = 3
 # Whether we should create a character with the same name as the account when
 # a new account is created. Together with AUTO_PUPPET_ON_LOGIN, this mimics
 # a legacy MUD, where there is no difference between account and character.
-AUTO_CREATE_CHARACTER_WITH_ACCOUNT = True
+AUTO_CREATE_CHARACTER_WITH_ACCOUNT = False
 # Whether an account should auto-puppet the last puppeted puppet when logging in. This
 # will only work if the session/puppet combination can be determined (usually
 # MULTISESSION_MODE 0 or 1), otherwise, the player will end up OOC. Use
