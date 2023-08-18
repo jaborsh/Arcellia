@@ -27,6 +27,8 @@ put secret game- or server-specific settings in secret_settings.py.
 # Use the defaults from Evennia unless explicitly overridden
 from evennia.settings_default import *  # noqa: F403
 
+from server.conf import secret_settings
+
 ######################################################################
 # Evennia base server config
 ######################################################################
@@ -50,9 +52,9 @@ CSRF_TRUSTED_ORIGINS = ["https://arcellia.com"]
 
 # Optional - security measures limiting interface access
 # (don't set these before you know things work without them)
-# WEBSOCKET_CLIENT_INTERFACE = "127.0.0.1"
-# WEBSOCKET_CLIENT_URL = "wss://arcellia.com:4002/"
-# ALLOWED_HOSTS = [".arcellia.com"]
+WEBSOCKET_CLIENT_INTERFACE = secret_settings.WEBSOCKET_CLIENT_INTERFACE
+WEBSOCKET_CLIENT_URL = secret_settings.WEBSOCKET_CLIENT_URL
+ALLOWED_HOSTS = secret_settings.ALLOWED_HOSTS
 
 # uncomment if you want to lock the server down for maintenance.
 # LOCKDOWN_MODE = True
