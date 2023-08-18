@@ -407,7 +407,7 @@ class CmdOOCLook(account.MuxAccountLookCommand):
 
 class CmdOptions(account.CmdOption):
     """
-    Usage: option[/switch] [name = value]
+    Usage: options[/switch] [name = value]
 
     Switches:
       save - Save the current option setting for future logins.
@@ -417,6 +417,9 @@ class CmdOptions(account.CmdOption):
     that saved options may not be able to be used if later connecting with
     a client with different capabilities.
     """
+
+    key = "options"
+    aliases = ["option"]
 
 
 class CmdPassword(Command):
