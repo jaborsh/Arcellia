@@ -27,8 +27,6 @@ put secret game- or server-specific settings in secret_settings.py.
 # Use the defaults from Evennia unless explicitly overridden
 from evennia.settings_default import *  # noqa: F403
 
-from server.conf import secret_settings
-
 ######################################################################
 # Evennia base server config
 ######################################################################
@@ -43,11 +41,18 @@ GAME_SLOGAN = None
 # CSRF error when trying to log on to the web portal
 CSRF_TRUSTED_ORIGINS = ["https://arcellia.com"]
 
-# Optional - security measures limiting interface access
-# (don't set these before you know things work without them)
-WEBSOCKET_CLIENT_INTERFACE = secret_settings.WEBSOCKET_CLIENT_INTERFACE
-WEBSOCKET_CLIENT_URL = secret_settings.WEBSOCKET_CLIENT_URL
-ALLOWED_HOSTS = secret_settings.ALLOWED_HOSTS
+# Interface addresses to listen to. If 0.0.0.0, listen to all. Use :: for IPv6.
+WEBSOCKET_CLIENT_INTERFACE = "127.0.0.1"
+# Actual URL for webclient component to reach the websocket. You only need
+# to set this if you know you need it, like using some sort of proxy setup.
+# If given it must be on the form "ws[s]://hostname[:port]". If left at None,
+# the client will itself figure out this url based on the server's hostname.
+# e.g. ws://external.example.com or wss://external.example.com:443
+WEBSOCKET_CLIENT_URL = "wss://arcellia.com:4002/"
+# This is a security setting protecting against host poisoning
+# attacks.  It defaults to allowing all. In production, make
+# sure to change this to your actual host addresses/IPs.
+ALLOWED_HOSTS = [".arcellia.com"]
 
 # uncomment if you want to lock the server down for maintenance.
 # LOCKDOWN_MODE = True
