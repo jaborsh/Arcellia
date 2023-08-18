@@ -40,7 +40,7 @@ class CmdConnect(account.CmdIC):
     """
 
     key = "connect"
-    aliases = ["puppet"]
+    aliases = ["ic", "puppet"]
 
     def func(self):
         """
@@ -350,7 +350,7 @@ class CmdDisconnect(account.CmdOOC):
                 # only one character exists and is allowed - simplify
                 self.msg(
                     "You are out-of-character (OOC).\n"
-                    "Use |wic|n to get back into the game."
+                    "Use |wconnect|n to get back into the game."
                 )
                 return
 
