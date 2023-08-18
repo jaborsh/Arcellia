@@ -145,14 +145,14 @@ MULTISESSION_MODE = 3
 # Whether we should create a character with the same name as the account when
 # a new account is created. Together with AUTO_PUPPET_ON_LOGIN, this mimics
 # a legacy MUD, where there is no difference between account and character.
-AUTO_CREATE_CHARACTER_WITH_ACCOUNT = False
+AUTO_CREATE_CHARACTER_WITH_ACCOUNT = True
 # Whether an account should auto-puppet the last puppeted puppet when logging in. This
 # will only work if the session/puppet combination can be determined (usually
 # MULTISESSION_MODE 0 or 1), otherwise, the player will end up OOC. Use
 # MULTISESSION_MODE=0, AUTO_CREATE_CHARACTER_WITH_ACCOUNT=True and this value to
 # mimic a legacy mud with minimal difference between Account and Character. Disable
 # this and AUTO_PUPPET to get a chargen/character select screen on login.
-AUTO_PUPPET_ON_LOGIN = False
+AUTO_PUPPET_ON_LOGIN = True
 # How many *different* characters an account can puppet *at the same time*. A value
 # above 1 only makes a difference together with MULTISESSION_MODE > 1.
 MAX_NR_SIMULTANEOUS_PUPPETS = None

@@ -15,6 +15,7 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 """
 
 from evennia import default_cmds
+from evennia.commands.default import admin as default_admin
 from evennia.commands.default import help as default_help
 from evennia.commands.default import system as default_system
 from evennia.contrib.utils.git_integration import git_integration as git
@@ -39,6 +40,8 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         # super().at_cmdset_creation()
 
         # Developer Commands
+        self.add(admin.CmdQuell)
+        self.add(default_admin.CmdPerm)
         self.add(default_system.CmdReload)
         self.add(default_system.CmdReset)
         self.add(default_system.CmdShutdown)
@@ -50,15 +53,16 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         self.add(admin.CmdEcho)
 
         # Account Commands
-        self.add(account.CmdConnect)
         self.add(account.CmdCreate)
         self.add(account.CmdDelete)
         self.add(account.CmdDisconnect)
         self.add(account.CmdOOCLook)
         self.add(account.CmdOptions)
         self.add(account.CmdPassword)
+        self.add(account.CmdPlay)
         self.add(account.CmdSessions)
-        self.add(account.CmdQuell)
+        self.add(account.CmdSetMain)
+
         self.add(account.CmdQuit)
         self.add(account.CmdWho)
 

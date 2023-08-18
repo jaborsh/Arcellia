@@ -30,7 +30,7 @@ def node_enter_username(caller, raw_text, **kwargs):
         The return from this callback determines which node we go to next
         and what kwarg it will be called with.
         """
-        username = username.rstrip("\n")
+        username = username.rstrip("\n").capitalize()
         try:
             _ACCOUNT.objects.get(username__iexact=username)
         except _ACCOUNT.DoesNotExist:

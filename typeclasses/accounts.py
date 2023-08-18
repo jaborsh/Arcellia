@@ -24,7 +24,9 @@ several more options for customizing the Guest account system.
 from django.conf import settings
 from django.utils.translation import gettext as _
 from evennia.accounts.accounts import DefaultAccount, DefaultGuest
+from evennia.objects.models import ObjectDB
 from evennia.server.signals import SIGNAL_OBJECT_POST_PUPPET
+from evennia.utils import class_from_module
 from evennia.utils.utils import is_iter
 from server.conf import logger
 
@@ -46,6 +48,15 @@ class Account(DefaultAccount):
 
     Can be set using BASE_ACCOUNT_TYPECLASS.
     """
+
+    def at_account_creation(self):
+        """
+        This is called once, the very first time the account is created (i.e.
+        the first time they register with the gamee). It's a good place to store
+        attributes all accounts should have, like configuration values.
+        """
+        super().at_account_creation()
+        self.attributes.add("_main_character", None, lockstring=super().lockstring)
 
     def at_post_login(self, session=None, **kwargs):
         """
@@ -124,29 +135,6 @@ class Account(DefaultAccount):
             )
         )
 
-    ooc_appearance_template = (
-        "{fill}\n"
-        "{header}\n"
-        # "\n"
-        # "{sessions}\n"
-        "\n"
-        "{characters}\n\n"
-        "|wCharacter Commands:|n\n"
-        "    |wconnect <name>|n - Connect to a character.\n"
-        "    |wcreate  <name>|n - Create a character.\n"
-        "    |wdelete  <name>|n - Delete a character.\n"
-        "\n"
-        "|wGeneral Commands:|n\n"
-        "    |wlook|n           - Show this screen.\n"
-        "    |woptions|n        - Show and change options.\n"
-        "    |wpassword|n       - Change your password.\n"
-        "    |wquit|n           - Quit the game.\n"
-        "    |wwho|n            - Show who is online.\n"
-        "\n"
-        "{footer}"
-        "{fill}\n"
-    ).strip()
-
     def at_look(self, target=None, session=None, **kwargs):
         """
         Called when this object executes a look. It allows to customize
@@ -164,6 +152,29 @@ class Account(DefaultAccount):
                 off to any recipient (usually to ourselves)
 
         """
+        ooc_appearance_template = (
+            "{fill}\n"
+            "{header}\n"
+            # "\n"
+            # "{sessions}\n"
+            "\n"
+            "{characters}\n\n"
+            "|wCharacter Commands:|n\n"
+            "  |wcreate  <name>|n - Create a character.\n"
+            "  |wdelete  <name>|n - Delete a character.\n"
+            "  |wplay    [name]|n - Connect to a character.\n"
+            "  |wsetmain [name]|n - Set your main character.\n"
+            "\n"
+            "|wGeneral Commands:|n\n"
+            "  |wlook|n          - Show this screen.\n"
+            "  |woptions|n       - Show and change options.\n"
+            "  |wpassword|n      - Change your password.\n"
+            "  |wquit|n          - Quit the game.\n"
+            "  |wwho|n           - Show who is online.\n"
+            "{footer}"
+            "{fill}\n"
+        ).strip()
+
         if target and not is_iter(target):
             # single target - just show it
             if hasattr(target, "return_appearance"):
@@ -230,15 +241,17 @@ class Account(DefaultAccount):
                             )
                 else:
                     # character is "free to puppet"
+
                     char_strings.append(
-                        f"  - {char.name} [{', '.join(char.permissions.all())}]"
+                        f"  - {char.name}"  # [{', '.join(char.permissions.all())}]"
+                        + (" (Main)" if char == self.db._main_character else "")
                     )
 
             txt_characters = (
                 f"|wAvailable Characters: |n[{ncars}/{max_chars}]|n\n"
                 + "\n".join(char_strings)
             )
-        return self.ooc_appearance_template.format(
+        return ooc_appearance_template.format(
             fill="-" * width,
             header=txt_header,
             sessions=txt_sessions,
@@ -246,20 +259,61 @@ class Account(DefaultAccount):
             footer="",
         )
 
-    def disconnect_session_from_account(self, session, reason=None):
+    def create_character(self, *args, **kwargs):
         """
-        Access method for disconnecting a given session from the
-        account (connection happens automatically in the
-        sessionhandler)
+        Create a character linked to this account.
 
         Args:
-            session (Session): Session to disconnect.
-            reason (str, optional): Eventual reason for the disconnect.
+            key (str, optional): If not given, use the same name as the account.
+            typeclass (str, optional): Typeclass to use for this character. If
+                not given, use settings.BASE_CHARACTER_TYPECLASS.
+            permissions (list, optional): If not given, use the account's permissions.
+            ip (str, optional): The client IP creating this character. Will fall back to the
+                one stored for the account if not given.
+            kwargs (any): Other kwargs will be used in the create_call.
+        Returns:
+            Object: A new character of the `character_typeclass` type. None on an error.
+            list or None: A list of errors, or None.
 
         """
-        import evennia
+        # parse inputs
+        character_key = kwargs.pop("key", self.key)
+        character_ip = kwargs.pop("ip", self.db.creator_ip)
+        character_permissions = kwargs.pop("permissions", self.permissions)
 
-        evennia.SESSION_HANDLER.disconnect(session, reason)
+        # Load the appropriate Character class
+        character_typeclass = kwargs.pop("typeclass", None)
+        character_typeclass = (
+            character_typeclass
+            if character_typeclass
+            else settings.BASE_CHARACTER_TYPECLASS
+        )
+        Character = class_from_module(character_typeclass)
+
+        if "location" not in kwargs:
+            kwargs["location"] = ObjectDB.objects.get_id(settings.START_LOCATION)
+
+        # Create the character
+        character, errs = Character.create(
+            character_key,
+            self,
+            ip=character_ip,
+            typeclass=character_typeclass,
+            permissions=character_permissions,
+            **kwargs,
+        )
+        if character:
+            # Establish main if no other characters exist.
+            if not self.db._playable_characters:
+                self.db._main_character = character
+
+            # Update playable character list
+            if character not in self.characters:
+                self.db._playable_characters.append(character)
+
+            # We need to set this to have @ic auto-connect to this character
+            self.db._last_puppet = character
+        return character, errs
 
     def puppet_object(self, session, obj):
         """

@@ -18,119 +18,18 @@ _AUTO_PUPPET_ON_LOGIN = settings.AUTO_PUPPET_ON_LOGIN
 
 # limit symbol import for  API
 __all__ = (
-    "CmdConnect",
     "CmdCreate",
     "CmdDelete",
     "CmdDisconnect",
     "CmdOOCLook",
     "CmdOptions",
     "CmdPassword",
-    "CmdQuell",
+    "CmdPlay",
     "CmdQuit",
     "CmdSessions",
+    "CmdSetMain",
     "CmdWho",
 )
-
-
-class CmdConnect(account.CmdIC):
-    """
-    Usage: connect <character>
-
-    Go in-character (IC) as a given character.
-    """
-
-    key = "connect"
-    aliases = ["ic", "puppet"]
-
-    def func(self):
-        """
-        Main puppet method
-        """
-        account = self.account
-        session = self.session
-
-        new_character = None
-        character_candidates = []
-
-        if not self.args:
-            character_candidates = (
-                [account.db._last_puppet] if account.db._last_puppet else []
-            )
-            if not character_candidates:
-                self.msg("Usage: ic <character>")
-                return
-        else:
-            # argument given
-
-            if account.db._playable_characters:
-                # look at the playable_characters list first
-                character_candidates.extend(
-                    utils.make_iter(
-                        account.search(
-                            self.args,
-                            candidates=account.db._playable_characters,
-                            search_object=True,
-                            quiet=True,
-                        )
-                    )
-                )
-
-            if account.locks.check_lockstring(account, "perm(Builder)"):
-                # builders and higher should be able to puppet more than their
-                # playable characters.
-                if session.puppet:
-                    # start by local search - this helps to avoid the user
-                    # getting locked into their playable characters should one
-                    # happen to be named the same as another. We replace the suggestion
-                    # from playable_characters here - this allows builders to puppet objects  # noqa: E501
-                    # with the same name as their playable chars should it be necessary
-                    # (by going to the same location).
-                    character_candidates = [
-                        char
-                        for char in session.puppet.search(self.args, quiet=True)
-                        if char.access(account, "puppet")
-                    ]
-                if not character_candidates:
-                    # fall back to global search only if Builder+ has no
-                    # playable_characters in list and is not standing in a room
-                    # with a matching char.
-                    character_candidates.extend(
-                        [
-                            char
-                            for char in search.object_search(self.args)
-                            if char.access(account, "puppet")
-                        ]
-                    )
-
-        # handle possible candidates
-        if not character_candidates:
-            self.msg("That is not a valid character choice.")
-            return
-        if len(character_candidates) > 1:
-            self.msg(
-                "Multiple targets with the same name:\n %s"
-                % ", ".join(
-                    "%s(#%s)" % (obj.key, obj.id) for obj in character_candidates
-                )
-            )
-            return
-        else:
-            new_character = character_candidates[0]
-
-        # do the puppet puppet
-        try:
-            account.puppet_object(session, new_character)
-            account.db._last_puppet = new_character
-            logger.log_sec(
-                f"{new_character} enters the game (Account: {account})."
-                # f"IP: {self.session.address})."
-            )
-        except RuntimeError as exc:
-            self.msg(f"|rYou cannot become |C{new_character.name}|n: {exc}")
-            logger.log_sec(
-                f"{new_character} fails to enter the game (Account: {account})."
-                # f"IP: {self.session.address})."
-            )
 
 
 class CmdCreate(Command):
@@ -142,7 +41,7 @@ class CmdCreate(Command):
     """
 
     key = "create"
-    locks = "cmd:pperm(Player)"
+    locks = "cmd:is_ooc() and pperm(Player)"
     help_category = "General"
     account_caller = True
 
@@ -257,7 +156,7 @@ class CmdDelete(Command):
     """
 
     key = "delete"
-    locks = "cmd:pperm(Player)"
+    locks = "cmd:is_ooc() and pperm(Player)"
     help_category = "General"
     account_caller = True
 
@@ -311,6 +210,7 @@ class CmdDelete(Command):
         get_input(account, prompt, _callback)
 
 
+# move this to characters eventually
 class CmdDisconnect(account.CmdOOC):
     """
     Usage: disconnect
@@ -463,22 +363,111 @@ class CmdPassword(Command):
         )
 
 
-class CmdQuell(account.CmdQuell):
+class CmdPlay(Command):
     """
-    Usage: quell
-           unquell
+    Usage: play <character>
 
-    Normally the permission level of the account is used when puppeting a
-    character/object to determine access. Queeling will switch the lock system
-    to make use of the puppeted object's permissions instead. This is useful
-    mainly for testing.
-
-    Hierarchical permission quelling only works downwards, thus an account
-    cannot use a higher-permission character to escalate their permission
-    level.
-
-    Use 'unquell' to revert to normal permissions.
+    Play (IC) as a given character.
     """
+
+    key = "play"
+    locks = "cmd:is_ooc()"
+    aliases = ["connect", "ic", "puppet"]
+    help_category = "General"
+
+    def func(self):
+        """
+        Main puppet method
+        """
+        account = self.account
+        session = self.session
+
+        new_character = None
+        character_candidates = []
+
+        if not self.args:
+            if account.db._main_character:
+                # if a main character is set, use that
+                character_candidates.append(account.db._main_character)
+            else:
+                character_candidates = (
+                    [account.db._last_puppet] if account.db._last_puppet else []
+                )
+            if not character_candidates:
+                self.msg("Usage: ic <character>")
+                return
+        else:
+            # argument given
+
+            if account.db._playable_characters:
+                # look at the playable_characters list first
+                character_candidates.extend(
+                    utils.make_iter(
+                        account.search(
+                            self.args,
+                            candidates=account.db._playable_characters,
+                            search_object=True,
+                            quiet=True,
+                        )
+                    )
+                )
+
+            if account.locks.check_lockstring(account, "perm(Builder)"):
+                # builders and higher should be able to puppet more than their
+                # playable characters.
+                if session.puppet:
+                    # start by local search - this helps to avoid the user
+                    # getting locked into their playable characters should one
+                    # happen to be named the same as another. We replace the suggestion
+                    # from playable_characters here - this allows builders to puppet objects  # noqa: E501
+                    # with the same name as their playable chars should it be necessary
+                    # (by going to the same location).
+                    character_candidates = [
+                        char
+                        for char in session.puppet.search(self.args, quiet=True)
+                        if char.access(account, "puppet")
+                    ]
+                if not character_candidates:
+                    # fall back to global search only if Builder+ has no
+                    # playable_characters in list and is not standing in a room
+                    # with a matching char.
+                    character_candidates.extend(
+                        [
+                            char
+                            for char in search.object_search(self.args)
+                            if char.access(account, "puppet")
+                        ]
+                    )
+
+        # handle possible candidates
+        if not character_candidates:
+            self.msg("That is not a valid character choice.")
+            return
+        if len(character_candidates) > 1:
+            self.msg(
+                "Multiple targets with the same name:\n %s"
+                % ", ".join(
+                    "%s(#%s)" % (obj.key, obj.id) for obj in character_candidates
+                )
+            )
+            return
+        else:
+            new_character = character_candidates[0]
+
+        # do the puppet puppet
+        try:
+            account.puppet_object(session, new_character)
+            account.db._last_puppet = new_character
+            logger.log_sec(
+                f"{new_character} enters the game (Account: {account})."
+                # f"IP: {self.session.address})."
+            )
+        except RuntimeError as exc:
+            self.msg(f"|rYou cannot become |C{new_character.name}|n: {exc}")
+            logger.log_sec(
+                f"{new_character} fails to enter the game (Account: {account})."
+                # f"IP: {self.session.address})."
+            )
 
 
 class CmdQuit(account.CmdQuit):
@@ -499,6 +488,64 @@ class CmdSessions(account.CmdSessions):
 
     Lists the sessions currently connected to your account.
     """
+
+
+class CmdSetMain(Command):
+    """
+    Usage: setmain [character]
+
+    This command is responsible for setting your main character which will
+    establish them as the character that you automatically log into upon
+    connection.
+    """
+
+    key = "setmain"
+    aliases = ["main"]
+    locks = "cmd:is_ooc()"
+    help_category = "General"
+    account_caller = True
+
+    def func(self):
+        account = self.account
+
+        if not account.db._playable_characters:
+            self.msg("You have no playable characters.")
+            return
+
+        if not self.args:
+            self.msg(f"Main Character: {account.db._main_character}.")
+            return
+
+        if self.args.strip().lower() == "none":
+            account.db._main_character = None
+            self.msg("Main Character set to None.")
+            logger.log_sec(f"Main Character Set: None (Account: {account}).")
+            return
+
+        character = utils.make_iter(
+            account.search(
+                self.args,
+                candidates=account.db._playable_characters,
+                search_object=True,
+                quiet=True,
+            )
+        )
+
+        if len(character) > 1:
+            self.msg(
+                "Multiple targets with the same name:\n %s"
+                % ", ".join("%s(#%s)" % (obj.key, obj.id) for obj in character)
+            )
+            return
+
+        character = character[0]
+        if character not in account.characters:
+            self.msg("You have no such character.")
+            return
+
+        account.db._main_character = character
+        self.msg(f"Main Character set to: {character}.")
+        logger.log_sec(f"Main Character Set: {character} (Account: {account}).")
 
 
 class CmdWho(Command):
