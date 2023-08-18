@@ -12,6 +12,11 @@ from commands.command import Command
 
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 
+__all__ = (
+    "CmdAnnounce",
+    "CmdEcho",
+)
+
 
 class CmdAnnounce(Command):
     """
@@ -135,31 +140,3 @@ class CmdEcho(COMMAND_DEFAULT_CLASS):
             echoed.append(obj.name)
 
         caller.msg(f"Echoed to {', '.join(echoed)}: {message}")
-
-
-def echo_command(command_string):
-    """
-    Parses an echo command and handles optional switches, objects, and the message.
-
-    The command follows the pattern "echo[/switches] [objects] message", where:
-      - [/switches]: An optional part starting with a slash, followed by one or more non-space characters representing command switches.
-      - [objects]: An optional part representing one or more non-space characters, typically a list of objects separated by commas.
-      - message: The remaining part of the command, representing the message to be echoed.
-
-    Examples:
-      - "echo/switch1,switch2 obj1,obj2 This is the message." will identify the switches "switch1,switch2", the objects "obj1,obj2", and the message "This is the message."
-      - "echo/switch This is the message." will identify the switch "switch", no objects, and the message "This is the message."
-      - "echo This is the message." will identify no switches, no objects, and the message "This is the message."
-
-    Args:
-        command_string (str): The command string to be parsed.
-
-    Returns:
-        dict: A dictionary containing the parsed components: 'switches', 'objects', and 'message'.
-    """
-
-    pattern = r"echo(/[^ ]+)? ?([^ ]+)? (.+)"
-    match = re.match(pattern, command_string)
-
-    if match:
-        match.group(1)[1:] if match.group(1) else None

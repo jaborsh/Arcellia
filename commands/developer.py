@@ -1,5 +1,7 @@
 from evennia.commands.default import admin
 
+from commands.command import Command
+
 
 class CmdBan(admin.CmdBan):
     """
@@ -58,4 +60,32 @@ class CmdBoot(admin.CmdBoot):
     to the user unless /quiet is set.
     """
 
+    locks = "cmd:perm(Developer)"
+
+
+class CmdSetPassword(Command):
+    """
+    Usage: setpassword <account> <password>
+
+    Set an account's password.
+    """
+
+    key = "setpassword"
+    locks = "cmd:perm(Developer)"
+
+
+class CmdSetPerm(admin.CmdPerm):
+    """
+    Usage: setperm[/switch] <object> [=<permission>[,<permission>,...]]
+           setperm[/switch] *<account> [=<permission>[,<permission>,...]]
+
+    Switches: account - set the permission on an account
+              del     - delete the permission from the object
+
+    This command manages individual permission strings on an object or account.
+    If no permission is given, list all permissions.
+    """
+
+    key = "setperm"
+    aliases = ["perm"]
     locks = "cmd:perm(Developer)"
