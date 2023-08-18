@@ -50,6 +50,7 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
 
         # Admin Commands
         self.add(admin.CmdAnnounce)
+        self.add(admin.CmdEcho)
 
         # Account Commands
         self.add(account.CmdConnect)
