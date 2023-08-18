@@ -52,11 +52,19 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         self.add(admin.CmdAnnounce)
 
         # Account Commands
+        self.add(account.CmdConnect)
         self.add(account.CmdCreate)
         self.add(account.CmdDelete)
+        self.add(account.CmdDisconnect)
         self.add(account.CmdOOCLook)
-        self.add(account.CmdPuppet)
+        self.add(account.CmdOptions)
+        self.add(account.CmdPassword)
+        self.add(account.CmdSessions)
+        self.add(account.CmdQuell)
+        self.add(account.CmdQuit)
         self.add(account.CmdWho)
+
+        # Help Command
         self.add(default_help.CmdHelp)
 
 

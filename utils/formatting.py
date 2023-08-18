@@ -5,7 +5,7 @@ from django.conf import settings
 from evennia.utils.ansi import strip_ansi
 
 
-def wrap(text, text_width=80, pre_text="", align="l", indent=0):
+def wrap(text, text_width=80, pre_text="", align="l", indent=0, hang=0):
     # Wrap the text to the terminal width.
     if not text:
         return ""
@@ -21,7 +21,7 @@ def wrap(text, text_width=80, pre_text="", align="l", indent=0):
         line_list = []
 
         # Determine available characters.
-        available_chars = text_width - len(strip_ansi(pre_text))
+        available_chars = text_width - len(strip_ansi(pre_text)) - hang
 
         # Cache each word in the line.
         word_list = re.findall(r"((?:\S+\s*)|(?:^\s+))", text_line)
@@ -67,15 +67,17 @@ def wrap(text, text_width=80, pre_text="", align="l", indent=0):
             if not final_text:
                 line_text = pre_text + justify(line, text_width, align, indent)
             else:
-                line_text = justify(line, text_width, align, len(strip_ansi(pre_text)))
+                line_text = justify(
+                    line, text_width, align, len(strip_ansi(pre_text)), hang
+                )
             final_text.append(line_text)
 
     return "\n".join(final_text) + "|n"
 
 
-def justify(text, width, align, indent=0):
+def justify(text, width, align, indent=0, hang=0):
     if align == "l":
-        return " " * indent + text
+        return " " * (indent + hang) + text
     elif align == "c":
         return (
             " " * math.ceil((width / 2) - (len(strip_ansi(text)) / 2) + indent) + text

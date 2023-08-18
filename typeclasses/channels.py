@@ -15,6 +15,7 @@ from django.conf import settings
 from evennia.comms.comms import DefaultChannel
 from evennia.comms.models import ChannelDB
 from evennia.utils import logger
+from utils.formatting import wrap
 
 
 def send_mudinfo(message):
@@ -30,6 +31,8 @@ def send_mudinfo(message):
             channel = ChannelDB.objects.get(db_key=settings.CHANNEL_MUDINFO["key"])
         except ChannelDB.DoesNotExist:
             return logger.log_trace()
+
+        message = wrap(message, hang=10)
 
         channel.msg(f"{message}")
 

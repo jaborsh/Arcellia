@@ -5,15 +5,132 @@ from django.conf import settings
 from evennia.commands.default import account
 from evennia.objects.models import ObjectDB
 from evennia.server.sessionhandler import SESSIONS
-from evennia.utils import create, logger, utils
+from evennia.utils import create, search, utils
 from evennia.utils.ansi import strip_ansi
 from evennia.utils.evmenu import get_input
+from utils import logger
 from utils.formatting import wrap
 
 from commands.command import Command
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
 _AUTO_PUPPET_ON_LOGIN = settings.AUTO_PUPPET_ON_LOGIN
+
+# limit symbol import for  API
+__all__ = (
+    "CmdConnect",
+    "CmdCreate",
+    "CmdDelete",
+    "CmdDisconnect",
+    "CmdOOCLook",
+    "CmdOptions",
+    "CmdPassword",
+    "CmdQuell",
+    "CmdQuit",
+    "CmdSessions",
+    "CmdWho",
+)
+
+
+class CmdConnect(account.CmdIC):
+    """
+    Usage: connect <character>
+
+    Go in-character (IC) as a given character.
+    """
+
+    key = "connect"
+    aliases = ["puppet"]
+
+    def func(self):
+        """
+        Main puppet method
+        """
+        account = self.account
+        session = self.session
+
+        new_character = None
+        character_candidates = []
+
+        if not self.args:
+            character_candidates = (
+                [account.db._last_puppet] if account.db._last_puppet else []
+            )
+            if not character_candidates:
+                self.msg("Usage: ic <character>")
+                return
+        else:
+            # argument given
+
+            if account.db._playable_characters:
+                # look at the playable_characters list first
+                character_candidates.extend(
+                    utils.make_iter(
+                        account.search(
+                            self.args,
+                            candidates=account.db._playable_characters,
+                            search_object=True,
+                            quiet=True,
+                        )
+                    )
+                )
+
+            if account.locks.check_lockstring(account, "perm(Builder)"):
+                # builders and higher should be able to puppet more than their
+                # playable characters.
+                if session.puppet:
+                    # start by local search - this helps to avoid the user
+                    # getting locked into their playable characters should one
+                    # happen to be named the same as another. We replace the suggestion
+                    # from playable_characters here - this allows builders to puppet objects
+                    # with the same name as their playable chars should it be necessary
+                    # (by going to the same location).
+                    character_candidates = [
+                        char
+                        for char in session.puppet.search(self.args, quiet=True)
+                        if char.access(account, "puppet")
+                    ]
+                if not character_candidates:
+                    # fall back to global search only if Builder+ has no
+                    # playable_characters in list and is not standing in a room
+                    # with a matching char.
+                    character_candidates.extend(
+                        [
+                            char
+                            for char in search.object_search(self.args)
+                            if char.access(account, "puppet")
+                        ]
+                    )
+
+        # handle possible candidates
+        if not character_candidates:
+            self.msg("That is not a valid character choice.")
+            return
+        if len(character_candidates) > 1:
+            self.msg(
+                "Multiple targets with the same name:\n %s"
+                % ", ".join(
+                    "%s(#%s)" % (obj.key, obj.id) for obj in character_candidates
+                )
+            )
+            return
+        else:
+            new_character = character_candidates[0]
+
+        # do the puppet puppet
+        try:
+            account.puppet_object(session, new_character)
+            account.db._last_puppet = new_character
+            logger.log_sec(
+                f"{new_character} enters the game (Account: {account})."
+                # f"IP: {self.session.address})."
+            )
+        except RuntimeError as exc:
+            self.msg(f"|rYou cannot become |C{new_character.name}|n: {exc}")
+            logger.log_sec(
+                f"{new_character} fails to enter the game (Account: {account})."
+                # f"IP: {self.session.address})."
+            )
 
 
 class CmdCreate(Command):
@@ -110,7 +227,7 @@ class CmdCreate(Command):
             new_character.db.desc = "This is a character."
             logger.log_sec(
                 f"Character Created: {new_character} "
-                f"(Caller: {account}, IP: {session.address})."
+                f"(Account: {account}, IP: {session.address})."
             )
 
             # start puppeting the character
@@ -118,14 +235,14 @@ class CmdCreate(Command):
                 account.puppet_object(session, new_character)
                 account.db._last_puppet = new_character
                 logger.log_sec(
-                    f"Puppet Success: (Caller: {account}, Target: {new_character}, IP:"
-                    f" {session.address})."
+                    f"{new_character} enters the game (Account: {account})."
+                    # f"IP: {self.session.address})."
                 )
             except RuntimeError as error:
                 self.msg(f"|rYou cannot become |C{new_character.name}|n: {error}")
                 logger.log_sec(
-                    f"Puppet Failed: %s (Caller: {account}, Target: {new_character}, IP:"  # noqa: E501
-                    f" {session.address})."
+                    f"{new_character} fails to enter the game (Account: {account})."
+                    # f"IP: {self.session.address})."
                 )
 
         prompt = f"Did you enter '|w{key}|n' correctly and does this name comply with the rules? |r[Y/n]|n"  # noqa: E501
@@ -146,7 +263,6 @@ class CmdDelete(Command):
 
     def func(self):
         account = self.account
-        session = self.session
 
         if not self.args:
             self.msg("Usage: delete <name>")
@@ -179,7 +295,7 @@ class CmdDelete(Command):
             delobj.delete()
             self.msg(f"Character '|w{key}|n' permanently deleted.")
             logger.log_sec(
-                f"Character Deleted: {key} (Caller: {account}, IP: {session.address})."
+                f"Character Deleted: {key} (Account: {account})."  # , IP: {session.address})."
             )
             del caller.ndb._char_to_delete
 
@@ -193,6 +309,58 @@ class CmdDelete(Command):
 
         prompt = f"|rThis will permanently delete |n'|w{match.key}|n'|r. This cannot be undone!|n Continue? |r[Y/n]|n"  # noqa: E501
         get_input(account, prompt, _callback)
+
+
+class CmdDisconnect(account.CmdOOC):
+    """
+    Usage: disconnect
+
+    Go out-of-character (OOC)
+    """
+
+    key = "disconnect"
+    aliases = ["unpuppet"]
+
+    def func(self):
+        """Implement function"""
+
+        account = self.account
+        session = self.session
+        self.args = None
+
+        old_char = account.get_puppet(session)
+        if not old_char:
+            string = "You are already OOC."
+            self.msg(string)
+            return
+
+        account.db._last_puppet = old_char
+
+        # disconnect
+        try:
+            account.unpuppet_object(session)
+            self.msg("\n|GYou go OOC.|n\n")
+
+            logger.log_sec(
+                f"{old_char} exits the game (Account: {account})."
+                # f"IP: {session.address})."
+            )
+
+            if _AUTO_PUPPET_ON_LOGIN and _MAX_NR_CHARACTERS == 1 and self.playable:
+                # only one character exists and is allowed - simplify
+                self.msg(
+                    "You are out-of-character (OOC).\nUse |wic|n to get back into the game."
+                )
+                return
+
+            self.msg(account.at_look(target=None, session=session))
+
+        except RuntimeError as exc:
+            self.msg(f"|rCould not unpuppet from |c{old_char}|n: {exc}")
+            logger.log_sec(
+                f"{old_char} fails to exit the game (Account: {account})."
+                # f"IP: {session.address})."
+            )
 
 
 # note that this is inheriting from MuxAccountLookCommand,
@@ -236,15 +404,97 @@ class CmdOOCLook(account.MuxAccountLookCommand):
         )
 
 
-class CmdPuppet(account.CmdIC):
+class CmdOptions(account.CmdOption):
     """
-    Usage: puppet <character>
+    Usage: option[/switch] [name = value]
 
-    Go in-character (IC) as a given character.
+    Switches:
+      save - Save the current option setting for future logins.
+      clear - Clear the saved options.
+
+    This command allows viewing and setting client interface settinggs. Note
+    that saved options may not be able to be used if later connecting with
+    a client with different capabilities.
     """
 
-    key = "puppet"
-    aliases = ["ic"]
+
+class CmdPassword(Command):
+    """
+    Usage: password
+
+    Change your password. Make sure to pick a safe one!
+    """
+
+    key = "password"
+    locks = "cmd:pperm(Player)"
+    account_caller = True
+
+    def func(self):
+        account = self.account
+        oldpass = yield ("Enter your password:")
+
+        if not oldpass:
+            self.msg("Password change aborted.")
+            return
+        if not account.check_password(oldpass):
+            self.msg("The specified password is incorrect.")
+            return
+
+        newpass = yield ("Enter your new password:")
+        if not newpass:
+            self.msg("Password change aborted.")
+            return
+        validated, error = account.validate_password(newpass)
+        if not validated:
+            errors = [e for suberror in error.messages for e in error.messages]
+            string = "\n".join(errors)
+            self.msg(string)
+            return
+
+        account.set_password(newpass)
+        account.save()
+        self.msg("Password changed.")
+        logger.log_sec(
+            f"Password Changed: {account} (Caller: {account}, IP: {self.session.address})."
+        )
+
+
+class CmdQuell(account.CmdQuell):
+    """
+    Usage: quell
+           unquell
+
+    Normally the permission level of the account is used when puppeting a
+    character/object to determine access. Queeling will switch the lock system
+    to make use of the puppeted object's permissions instead. This is useful
+    mainly for testing.
+
+    Hierarchical permission quelling only works downwards, thus an account
+    cannot use a higher-permission character to escalate their permission
+    level.
+
+    Use 'unquell' to revert to normal permissions.
+    """
+
+
+class CmdQuit(account.CmdQuit):
+    """
+    Usage: quit
+
+    Switch:
+      all - disconnect all connected sessions
+
+    Disconnect your current session from the game. Use /all to disconnect all
+    sessions.
+    """
+
+
+class CmdSessions(account.CmdSessions):
+    """
+    Usage: sessions
+
+    Lists the sessions currently connected to your account.
+    """
 
 
 class CmdWho(Command):
@@ -263,7 +513,7 @@ class CmdWho(Command):
         header_string += f"{self.get_time_display(width)}\n"
         header_string += f"{self.get_admin_display(width)}\n"
         header_string += (
-            f"{self.format_admin('Jake - Developer', 'Jeanie - Writer', width)}\n"
+            f"{self.format_admin('Jake - Developer', 'Jeanne - Writer', width)}\n"
         )
         header_string += f"{self.get_player_display(width)}"
 

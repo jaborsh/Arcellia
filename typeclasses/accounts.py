@@ -128,16 +128,23 @@ class Account(DefaultAccount):
     ooc_appearance_template = (
         "{fill}\n"
         "{header}\n"
+        # "\n"
+        # "{sessions}\n"
         "\n"
-        "{sessions}\n"
+        "{characters}\n\n"
+        "|wCharacter Commands:|n\n"
+        "    |wconnect <name>|n - Connect to a character.\n"
+        "    |wcreate  <name>|n - Create a character.\n"
+        "    |wdelete  <name>|n - Delete a character.\n"
         "\n"
-        "|wAvailable Commands:|n\n"
-        "    |wcreate <name>|n - Create a new character.\n"
-        "    |wdelete <name>|n - Delete a character.\n"
-        "    |wpuppet [name]|n - Enter the game as character.\n"
+        "|wGeneral Commands:|n\n"
+        "    |wlook|n           - Show this screen.\n"
+        "    |woptions|n        - Show and change options.\n"
+        "    |wpassword|n       - Change your password.\n"
+        "    |wquit|n           - Quit the game.\n"
+        "    |wwho|n            - Show who is online.\n"
         "\n"
-        "{characters}\n"
-        "{footer}\n"
+        "{footer}"
         "{fill}\n"
     ).strip()
 
@@ -177,7 +184,7 @@ class Account(DefaultAccount):
             return ""
 
         # header text
-        txt_header = f"Account |g{self.name}|n (you are Out-of-Character)"
+        txt_header = f"Account: |g{self.name}|n (you are Out-of-Character)"
 
         # sessions
         sess_strings = []
@@ -229,7 +236,7 @@ class Account(DefaultAccount):
                     )
 
             txt_characters = (
-                f"Available character(s) ({ncars}/{max_chars}, |wic <name>|n to play):|n\n"
+                f"|wAvailable Characters: |n[{ncars}/{max_chars}]|n\n"
                 + "\n".join(char_strings)
             )
         return self.ooc_appearance_template.format(
