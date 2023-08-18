@@ -82,7 +82,7 @@ class CmdConnect(account.CmdIC):
                     # start by local search - this helps to avoid the user
                     # getting locked into their playable characters should one
                     # happen to be named the same as another. We replace the suggestion
-                    # from playable_characters here - this allows builders to puppet objects
+                    # from playable_characters here - this allows builders to puppet objects  # noqa: E501
                     # with the same name as their playable chars should it be necessary
                     # (by going to the same location).
                     character_candidates = [
@@ -295,7 +295,7 @@ class CmdDelete(Command):
             delobj.delete()
             self.msg(f"Character '|w{key}|n' permanently deleted.")
             logger.log_sec(
-                f"Character Deleted: {key} (Account: {account})."  # , IP: {session.address})."
+                f"Character Deleted: {key} (Account: {account})."  # , IP: {session.address})."  # noqa: E501
             )
             del caller.ndb._char_to_delete
 
@@ -349,7 +349,8 @@ class CmdDisconnect(account.CmdOOC):
             if _AUTO_PUPPET_ON_LOGIN and _MAX_NR_CHARACTERS == 1 and self.playable:
                 # only one character exists and is allowed - simplify
                 self.msg(
-                    "You are out-of-character (OOC).\nUse |wic|n to get back into the game."
+                    "You are out-of-character (OOC).\n"
+                    "Use |wic|n to get back into the game."
                 )
                 return
 
@@ -455,7 +456,7 @@ class CmdPassword(Command):
         account.save()
         self.msg("Password changed.")
         logger.log_sec(
-            f"Password Changed: {account} (Caller: {account}, IP: {self.session.address})."
+            f"Password Changed: {account} (Caller: {account}, IP: {self.session.address})."  # noqa: E501
         )
 
 

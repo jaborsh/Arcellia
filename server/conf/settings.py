@@ -25,7 +25,7 @@ put secret game- or server-specific settings in secret_settings.py.
 """
 
 # Use the defaults from Evennia unless explicitly overridden
-from evennia.settings_default import *
+from evennia.settings_default import *  # noqa: F403
 
 ######################################################################
 # Evennia base server config
@@ -235,7 +235,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"  # noqa: E501
     },
     # {
     #     "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
@@ -279,6 +279,6 @@ SERVER_SESSION_HANDLER_CLASS = "server.conf.sessionhandler.ServerSessionHandler"
 # Settings given in secret_settings.py override those in this file.
 ######################################################################
 try:
-    from server.conf.secret_settings import *
+    from server.conf.secret_settings import *  # noqa: F403
 except ImportError:
     print("secret_settings.py file not found or failed to import.")
