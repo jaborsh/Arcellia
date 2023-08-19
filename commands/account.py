@@ -219,7 +219,7 @@ class CmdDisconnect(account.CmdOOC):
     """
 
     key = "disconnect"
-    aliases = ["unpuppet"]
+    aliases = ["disc", "unpuppet"]
 
     def func(self):
         """Implement function"""
