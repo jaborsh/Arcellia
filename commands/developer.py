@@ -153,12 +153,13 @@ class CmdScripts(building.CmdScripts):
 
 class CmdSetPassword(Command):
     """
-    Usage: setpassword <account> <password>
+    Usage: setpass <account> <password>
 
     Set an account's password.
     """
 
-    key = "setpassword"
+    key = "setpass"
+    aliases = ["setpassword"]
     locks = "cmd:perm(Developer)"
     help_category = "Admin"
 
