@@ -15,11 +15,10 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 """
 
 from evennia import default_cmds
-from evennia.commands.default import batchprocess
 from evennia.commands.default import help as default_help
 from evennia.commands.default import system as default_system
 
-from commands import account, admin, building, git, unloggedin
+from commands import account, admin, building, developer, git, unloggedin
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):
@@ -38,7 +37,7 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         """
         # super().at_cmdset_creation()
         modules = {
-            "Developer Modules": [batchprocess, default_system, git],
+            "Developer Modules": [default_system, developer, git],  # batchprocess,
             "Admin Modules": [admin],
             "Account Modules": [account],
             "Help Modules": [default_help],

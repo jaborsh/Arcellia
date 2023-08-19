@@ -2,6 +2,17 @@ from evennia.commands.default import account, admin, building
 
 from commands.command import Command
 
+__all__ = (
+    "CmdBan",
+    "CmdUnban",
+    "CmdBoot",
+    "CmdListCmdSets",
+    "CmdQuell",
+    "CmdScripts",
+    "CmdSetPassword",
+    "CmdSetPerm",
+)
+
 
 class CmdBan(admin.CmdBan):
     """
@@ -149,6 +160,7 @@ class CmdSetPassword(Command):
 
     key = "setpassword"
     locks = "cmd:perm(Developer)"
+    help_category = "Admin"
 
 
 class CmdSetPerm(admin.CmdPerm):

@@ -14,18 +14,27 @@ COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 
 __all__ = (
     "CmdBuild",
+    "CmdConnect",
     "CmdCopy",
-    "CmdCopyAttribute",
+    "CmdCpAttr",
     "CmdCreate",
     "CmdDescribe",
     "CmdDestroy",
+    "CmdExamine",
+    "CmdFind",
     "CmdLink",
     "CmdUnlink",
-    "CmdMoveAttrribute",
+    "CmdLockstring",
+    "CmdMvAttr",
     "CmdRename",
     "CmdSetAlias",
+    "CmdSetAttribute",
     "CmdSetHome",
+    "CmdSpawn",
+    "CmdTag",
     "CmdTunnel",
+    "CmdTypeclass",
+    "CmdWipe",
 )
 
 
@@ -100,9 +109,9 @@ class CmdCopy(building.CmdCopy):
     key = "copy"
 
 
-class CmdCopyAttribute(building.CmdCpAttr):
+class CmdCpAttr(building.CmdCpAttr):
     """
-    Usage: copyattr[/switch] <obj>/<attr> = <obj1>/<attr1> [,<obj2>/<attr2>,<obj3>/<attr3>,...]
+    Usage: cpattr[/switch] <obj>/<attr> = <obj1>/<attr1> [,<obj2>/<attr2>,<obj3>/<attr3>,...]
            cpattr[/switch] <obj>/<attr> = <obj1> [,<obj2>,<obj3>,...]
            cpattr[/switch] <attr> = <obj1>/<attr1> [,<obj2>/<attr2>,<obj3>/<attr3>,...]
            cpattr[/switch] <attr> = <obj1>[,<obj2>,<obj3>,...]
@@ -119,8 +128,8 @@ class CmdCopyAttribute(building.CmdCpAttr):
     If you don't supply a source object, yourself is used.
     """
 
-    key = "copyattribuute"
-    aliases = ["cpattr", "copyattr"]
+    key = "cpattr"
+    aliases = ["copyattribute", "copyattr"]
 
 
 class CmdCreate(building.CmdCreate):
@@ -464,7 +473,7 @@ class CmdLockstring(building.CmdLock):
         caller.msg("\n".join(obj.locks.all()))
 
 
-class CmdMoveAttrribute(building.CmdMvAttr):
+class CmdMvAttr(building.CmdMvAttr):
     """
     Usage: mvattr[/switch] <obj>/<attr> = <obj1>/<attr1> [,<obj2>/<attr2>,<obj3>/<attr3>,...]
            mvattr[/switch] <obj>/<attr> = <obj1> [,<obj2>,<obj3>,...]
@@ -478,8 +487,8 @@ class CmdMoveAttrribute(building.CmdMvAttr):
     object. If you don't supply a source object, yourself is used.
     """
 
-    key = "moveattribute"
-    aliases = ["mvattr", "moveattr"]
+    key = "mvattr"
+    aliases = ["moveattr"]
 
 
 class CmdRename(building.ObjManipCommand):
