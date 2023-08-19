@@ -97,7 +97,12 @@ class Account(DefaultAccount):
         if settings.AUTO_PUPPET_ON_LOGIN:
             # in this mode we try to auto-connect to our last connected object, if any
             try:
-                self.puppet_object(session, self.db._last_puppet)
+                self.puppet_object(
+                    session,
+                    self.db._main_character
+                    if self.db._main_character
+                    else self.db._last_puppet,
+                )
             except RuntimeError:
                 self.msg(_("The Character does not exist."))
                 return
