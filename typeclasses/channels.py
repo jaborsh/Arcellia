@@ -82,43 +82,81 @@ class Channel(DefaultChannel):
             message = f"{senders}{message}"
             logger.log_file(message, log_file)
 
-    def mute(self, muter, **kwargs):
-        """
-        Mutes the channel, rendering it unusuable by any character except
-        individuals with appropriate privileges
+    # def connect(self, subscriber, **kwargs):
+    #     """
+    #     Connect the user to this channel. This checks access.
 
-        Args:
-            muter (Object or Account): Individual declaring the mute.
-            **kwargs (dict): Arbitrary, optional arguments for users
-                             overriding the call. Unused by default.
+    #     Args:
+    #         subscriber (Account or Object): the entity to subscribe to this
+    #                                         channel.
+    #         **kwargs (dict): Arbitrary, optional arguments for users overriding
+    #                          the call (unused by default).
 
-        Returns:
-            bool: True if successful; False if already muted.
-        """
+    #     Returns:
+    #         success (bool): Whether or not the addition was successful.
+    #     """
+    #     # check access
+    #     if subscriber in self.banlist or not self.access(subscriber, "listen"):
+    #         return False
+    #     # pre-join hook
+    #     connect = self.pre_join_channel(subscriber)
+    #     if not connect:
+    #         return False
+    #     # subscribe
+    #     self.subscriptions.add(subscriber)
+    #     # post-join hook
+    #     self.post_join_channel(subscriber)
+    #     return True
 
-        if self.db.muted:
-            return False
+    # def mute(self, muter, **kwargs):
+    #     """
+    #     Mutes the channel, rendering it unusuable by any character except
+    #     individuals with appropriate privileges
 
-        self.db.muted = True
-        logger.log_info(f"{self.key} channel muted by {muter}.")
-        return True
+    #     Args:
+    #         muter (Object or Account): Individual declaring the mute.
+    #         **kwargs (dict): Arbitrary, optional arguments for users
+    #                          overriding the call. Unused by default.
 
-    def unmute(self, muter, **kwargs):
-        """
-        Removes the channel mute, reopening it for public discussion.
+    #     Returns:
+    #         bool: True if successful; False if already muted.
+    #     """
 
-        Args:
-            muter (Object or Account): Individual declaring the unmute.
-            **kwargs (dict): Arbitrary, optional arguments for users
-                             overriding the call. Unused by default.
+    #     try:
+    #         self.locks.remove("send:all()")
+    #     except LockException as err:
+    #         return False, err
 
-        Returns:
-            bool: True if successful; False if already unmuted.
-        """
+    #     try:
+    #         self.locks.add("send:perm(Admin)")
+    #     except LockException as err:
+    #         return False, err
 
-        if not self.db.muted:
-            return False
+    #     logger.log_info(f"{self.key} channel muted by {muter}.")
+    #     return True, ""
 
-        self.db.muted = False
-        logger.log_info(f"{self.key} channel unmuted by {muter}.")
-        return True
+    # def unmute(self, muter, **kwargs):
+    #     """
+    #     Removes the channel mute, reopening it for public discussion.
+
+    #     Args:
+    #         muter (Object or Account): Individual declaring the unmute.
+    #         **kwargs (dict): Arbitrary, optional arguments for users
+    #                          overriding the call. Unused by default.
+
+    #     Returns:
+    #         bool: True if successful; False if already unmuted.
+    #     """
+
+    #     try:
+    #         self.locks.remove("send:perm(Admin)")
+    #     except LockException as err:
+    #         return False, err
+
+    #     try:
+    #         self.locks.add("send:all()")
+    #     except LockException as err:
+    #         return False, err
+
+    #     logger.log_info(f"{self.key} channel unmuted by {muter}.")
+    #     return True, ""
