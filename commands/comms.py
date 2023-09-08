@@ -263,13 +263,13 @@ class CmdChannel(default_comms.CmdChannel):
                 self.msg("You are not allowed to ban users from channels.")
                 return
 
-            if not self.args:
+            if not len(self.args.strip().split(" ", 1)) > 1:
                 # view bans on channel
                 if not channel.access(caller, "control"):
                     self.msg("You are not allowed to view this channel's bans.")
                     return
 
-                bans = ["Channel bans "]
+                bans = ["Channel bans:"]
                 bans.extend(self.channel_list_bans(channel))
                 self.msg("\n".join(bans))
                 return
@@ -301,7 +301,7 @@ class CmdChannel(default_comms.CmdChannel):
                 self.msg("You are not allowed to unban users from channels.")
                 return
 
-            if not self.args:
+            if not len(self.args.strip().split(" ", 1)) > 1:
                 self.msg("Usage: channel/unban <channel> <target>")
                 return
 
