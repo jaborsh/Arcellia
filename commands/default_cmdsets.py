@@ -18,7 +18,18 @@ from evennia import default_cmds
 from evennia.commands.default import help as default_help
 from evennia.commands.default import system as default_system
 
-from commands import account, admin, building, developer, git, unloggedin
+from commands import account, admin, building, comms, developer, git, unloggedin
+
+
+def add_modules(self, modules):
+    """
+    Add all commands from modules passed by argument.
+    """
+    for module_group in modules.values():
+        for module in module_group:
+            for cmd_name in module.__all__:
+                cmd_class = getattr(module, cmd_name)
+                self.add(cmd_class)
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):
@@ -35,19 +46,14 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         """
         Populates the cmdset
         """
-        # super().at_cmdset_creation()
         modules = {
             "Developer Modules": [default_system, developer, git],  # batchprocess,
             "Admin Modules": [admin],
             "Account Modules": [account],
+            "Comm Modules": [comms],
             "Help Modules": [default_help],
         }
-
-        for module_group in modules.values():
-            for module in module_group:
-                for cmd_name in module.__all__:
-                    cmd_class = getattr(module, cmd_name)
-                    self.add(cmd_class)
+        add_modules(self, modules)
 
         # Developer Commands
         # self.add(admin.CmdQuell)
@@ -94,14 +100,8 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         """
         Populates the cmdset
         """
-        # super().at_cmdset_creation()
         modules = {"Building Modules": [building]}
-
-        for module_group in modules.values():
-            for module in module_group:
-                for cmd_name in module.__all__:
-                    cmd_class = getattr(module, cmd_name)
-                    self.add(cmd_class)
+        add_modules(self, modules)
 
 
 class SessionCmdSet(default_cmds.SessionCmdSet):
@@ -120,13 +120,7 @@ class SessionCmdSet(default_cmds.SessionCmdSet):
         As and example we just add the empty base `Command` object.
         It prints some info.
         """
-        # super().at_cmdset_creation()
-        modules = {}
-        for module_group in modules.values():
-            for module in module_group:
-                for cmd_name in module.__all__:
-                    cmd_class = getattr(module, cmd_name)
-                    self.add(cmd_class)
+        super().at_cmdset_creation()
 
 
 class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
@@ -141,10 +135,5 @@ class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
         """
         Populates the cmdset
         """
-        # super().at_cmdset_creation()
         modules = {"Unloggedin Modules": [unloggedin]}
-        for module_group in modules.values():
-            for module in module_group:
-                for cmd_name in module.__all__:
-                    cmd_class = getattr(module, cmd_name)
-                    self.add(cmd_class)
+        add_modules(self, modules)

@@ -55,8 +55,13 @@ class Account(DefaultAccount):
         the first time they register with the gamee). It's a good place to store
         attributes all accounts should have, like configuration values.
         """
-        super().at_account_creation()
-        self.attributes.add("_main_character", None, lockstring=super().lockstring)
+        # set an (empty) attribute holding the characters this account has
+        lockstring = (
+            "attrread:perm(Admin);attredit:perm(Admins);attrcreate:perm(Admin);"
+        )
+        self.attributes.add("_main_character", None, lockstring=lockstring)
+        self.attributes.add("_playable_characters", [], lockstring=lockstring)
+        self.attributes.add("_saved_protocol_flags", {}, lockstring=lockstring)
 
     def at_post_login(self, session=None, **kwargs):
         """

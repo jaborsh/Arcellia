@@ -12,6 +12,7 @@ to be modified.
 
 """
 from evennia.comms.comms import DefaultChannel
+from server.conf import logger
 
 
 class Channel(DefaultChannel):
@@ -58,4 +59,66 @@ class Channel(DefaultChannel):
 
     """
 
-    pass
+    def at_post_msg(self, message, **kwargs):
+        """
+        This is called after sending to *all* valid recipients. It is normally
+        used for logging/channel history.
+
+        Args:
+            message (str): The message sent.
+            **kwargs (any): Keywords passed on from `msg`, including `senders`.
+        """
+
+        # save channel history to log file
+        log_file = self.get_log_filename()
+        if log_file:
+            senders = ",".join(sender.key for sender in kwargs.get("senders", []))
+            senders = f"{senders}" if senders else ""
+            if message.startswith(";"):
+                senders += " "
+                message = message[1:]
+            else:
+                senders += ": "
+            message = f"{senders}{message}"
+            logger.log_file(message, log_file)
+
+    def mute(self, muter, **kwargs):
+        """
+        Mutes the channel, rendering it unusuable by any character except
+        individuals with appropriate privileges
+
+        Args:
+            muter (Object or Account): Individual declaring the mute.
+            **kwargs (dict): Arbitrary, optional arguments for users
+                             overriding the call. Unused by default.
+
+        Returns:
+            bool: True if successful; False if already muted.
+        """
+
+        if self.db.muted:
+            return False
+
+        self.db.muted = True
+        logger.log_info(f"{self.key} channel muted by {muter}.")
+        return True
+
+    def unmute(self, muter, **kwargs):
+        """
+        Removes the channel mute, reopening it for public discussion.
+
+        Args:
+            muter (Object or Account): Individual declaring the unmute.
+            **kwargs (dict): Arbitrary, optional arguments for users
+                             overriding the call. Unused by default.
+
+        Returns:
+            bool: True if successful; False if already unmuted.
+        """
+
+        if not self.db.muted:
+            return False
+
+        self.db.muted = False
+        logger.log_info(f"{self.key} channel unmuted by {muter}.")
+        return True
