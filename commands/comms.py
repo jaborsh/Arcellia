@@ -1,5 +1,6 @@
 from django.conf import settings
 from evennia.commands.default import comms as default_comms
+from evennia.utils import create
 from evennia.utils.ansi import strip_ansi
 from evennia.utils.evmenu import ask_yes_no
 from evennia.utils.utils import class_from_module
@@ -11,7 +12,7 @@ COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 CHANNEL_DEFAULT_TYPECLASS = class_from_module(
     settings.BASE_CHANNEL_TYPECLASS, fallback=settings.FALLBACK_CHANNEL_TYPECLASS
 )
-__all__ = ("CmdChannel", "CmdLast", "CmdTune")
+__all__ = ("CmdChannel", "CmdObjectChannel", "CmdLast", "CmdTell", "CmdTune")
 
 
 class CmdChannel(default_comms.CmdChannel):
@@ -401,6 +402,11 @@ class CmdChannel(default_comms.CmdChannel):
             return
 
 
+# a channel-command parent for use with Characters/Objects.
+class CmdObjectChannel(CmdChannel):
+    account_caller = False
+
+
 class CmdLast(Command):
     """
     Usage: last <channel>
@@ -440,6 +446,66 @@ class CmdLast(Command):
 
         # asynchronously tail the log file
         logger.tail_log_file(log_file, 0, 10, callback=send_msg)
+
+
+class CmdTell(Command):
+    """
+    Usage: tell <character> <message>
+
+    Send a message to a character if online. If no argument is given, you
+    will receive your most recent message. If sending to multiple
+    characters, separate names with commas.
+
+    Example: tell jake,john Hi there!
+    """
+
+    key = "tell"
+    locks = "cmd:all()"
+    help_category = "Communications"
+
+    def func(self):
+        caller = self.caller
+
+        if not self.args:
+            # No argument, show latest messages.
+            return self.msg("Usage: tell <character[s]> <message>")
+
+        args = self.args.strip().split(" ", 1)
+        targets, message = args[0].split(","), args[1]
+
+        receivers = []
+        for target in targets:
+            target_obj = caller.search(target, quiet=True, global_search=True)[0]
+            if not target_obj:
+                continue
+            receivers.append(target_obj)
+        message = message.strip()
+
+        if not receivers:
+            return self.msg("Who do you want to tell?")
+
+        if not message:
+            return self.msg("What do you want to tell them?")
+
+        create.create_message(caller, message, receivers=receivers)
+
+        # tell the characters they got a message.
+        received = []
+        rstrings = []
+        for target in receivers:
+            if not target.access(caller, "msg"):
+                rstrings.append(f"You are not allowed to send tells to {target}.")
+                continue
+            target.msg(f"{caller.name} tells you: {message}")
+            if hasattr(target, "sessions") and not target.sessions.count():
+                rstrings.append(f"{received[-1]} is offline.")
+            else:
+                received.append(f"|c{target.name}|n")
+
+        if rstrings:
+            self.msg("\n".join(rstrings))
+
+        self.msg("You tell %s: %s" % (", ".join(received), message))
 
 
 class CmdTune(Command):
