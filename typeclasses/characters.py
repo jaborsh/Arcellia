@@ -35,6 +35,9 @@ class Character(ObjectParent, DefaultCharacter):
 
     """
 
+    def at_object_creation(self):
+        self.locks.add("msg:all()")
+
     def msg(self, text=None, from_obj=None, session=None, options=None, **kwargs):
         """
         Emits something to a session attached to the object.

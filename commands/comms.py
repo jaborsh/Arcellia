@@ -12,7 +12,48 @@ COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 CHANNEL_DEFAULT_TYPECLASS = class_from_module(
     settings.BASE_CHANNEL_TYPECLASS, fallback=settings.FALLBACK_CHANNEL_TYPECLASS
 )
-__all__ = ("CmdChannel", "CmdObjectChannel", "CmdLast", "CmdTell", "CmdTune")
+__all__ = (
+    "CmdBlock",
+    "CmdChannel",
+    "CmdObjectChannel",
+    "CmdLast",
+    "CmdTell",
+    "CmdTune",
+)
+
+
+class CmdBlock(Command):
+    """
+    Usage: block <character>
+
+    Block a character from sending you tells. If the character is already
+    blocked, this command will unblock them.
+
+    Example: block jake
+    """
+
+    key = "block"
+    locks = "cmd:all()"
+    help_category = "Communications"
+
+    def func(self):
+        caller = self.caller
+
+        if not self.args:
+            return self.msg("Block who?")
+
+        target_name = self.args.strip()
+        target = caller.search(target_name, quiet=True, global_search=True)[0]
+        if not target:
+            return self.msg(f"No characters named '{target_name}' found.")
+
+        # Check if the target is already blocked
+        if f"{target.id}" in caller.locks.get("msg"):
+            caller.locks.replace("msg:all()")
+            caller.msg(f"You unblocked {target.get_display_name(caller)}.")
+        else:
+            caller.locks.replace(f"msg: not id({target.id})")
+            caller.msg(f"You block {target.get_display_name(caller)}.")
 
 
 class CmdChannel(default_comms.CmdChannel):
@@ -450,7 +491,10 @@ class CmdLast(Command):
 
 class CmdTell(Command):
     """
-    Usage: tell <character> <message>
+    Usage: tell <character> <message>                 # regular tells
+           tell <character>,<character>,... <message> # multiple characters tell
+           tell <character> ;<emote>                  # emoted tells
+           tell <character>,<character>,... ;<emote>  # multiple characters emote
 
     Send a message to a character if online. If no argument is given, you
     will receive your most recent message. If sending to multiple
@@ -463,6 +507,46 @@ class CmdTell(Command):
     locks = "cmd:all()"
     help_category = "Communications"
 
+    def _send_message(self, caller, content, receivers, is_emote=False):
+        """
+        Sends a message to a list of receivers.
+
+        Args:
+            caller (Object): The object sending the message.
+            content (str): The message content.
+            receivers (list): A list of objects to receive the message.
+            is_emote (bool, optional): Whether the message is an emote. Defaults to False.
+        """
+        create.create_message(caller, content, receivers=receivers)
+
+        received = []
+        rstrings = []
+        for target in receivers:
+            if not target.access(caller, "msg"):
+                rstrings.append(
+                    f"You are not allowed to send tells to {target.get_display_name(caller)}."
+                )
+                continue
+            if is_emote:
+                target.msg("Privately, %s" % (content))
+            else:
+                target.msg(f"{caller.get_display_name(target)} tells you: {content}")
+            if hasattr(target, "sessions") and not target.sessions.count():
+                rstrings.append(f"{target.get_display_name(caller)} is not awake.")
+            else:
+                received.append(f"{target.get_display_name(caller)}")
+
+        if rstrings:
+            self.msg("\n".join(rstrings))
+
+        if not received:
+            return
+
+        if is_emote:
+            self.msg("Privately to %s: %s" % (", ".join(received), content))
+        else:
+            self.msg("You tell %s: %s" % (", ".join(received), content))
+
     def func(self):
         caller = self.caller
 
@@ -473,12 +557,12 @@ class CmdTell(Command):
         args = self.args.strip().split(" ", 1)
         targets, message = args[0].split(","), args[1]
 
-        receivers = []
-        for target in targets:
-            target_obj = caller.search(target, quiet=True, global_search=True)[0]
-            if not target_obj:
-                continue
-            receivers.append(target_obj)
+        receivers = [
+            caller.search(target, quiet=True, global_search=True)[0]
+            for target in targets
+            if caller.search(target, quiet=True, global_search=True)
+        ]
+
         message = message.strip()
 
         if not receivers:
@@ -487,32 +571,28 @@ class CmdTell(Command):
         if not message:
             return self.msg("What do you want to tell them?")
 
-        create.create_message(caller, message, receivers=receivers)
-
-        # tell the characters they got a message.
-        received = []
-        rstrings = []
-        for target in receivers:
-            if not target.access(caller, "msg"):
-                rstrings.append(f"You are not allowed to send tells to {target}.")
-                continue
-            target.msg(f"{caller.name} tells you: {message}")
-            if hasattr(target, "sessions") and not target.sessions.count():
-                rstrings.append(f"{received[-1]} is offline.")
-            else:
-                received.append(f"|c{target.name}|n")
-
-        if rstrings:
-            self.msg("\n".join(rstrings))
-
-        self.msg("You tell %s: %s" % (", ".join(received), message))
+        if message.startswith(";"):
+            # Emoted tell
+            emote = message[1:].strip()
+            if not emote:
+                return self.msg("What do you want to emote to them?")
+            self._send_message(
+                caller, f"{caller.name} {emote}", receivers, is_emote=True
+            )
+        else:
+            # Regular tell
+            message = message.strip()
+            self._send_message(caller, message, receivers)
 
 
 class CmdTune(Command):
     """
-    Usage: tune <channel>
+    Usage:
+        tune <channel>
 
-    Tune into or out of a channel.
+    This command allows the user to tune in or out of a communication channel.
+    If the user is already tuned in to the channel, they will be tuned out.
+    If the user is not tuned in to the channel, they will be tuned in.
     """
 
     key = "tune"
