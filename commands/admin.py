@@ -324,8 +324,20 @@ class CmdTransfer(COMMAND_DEFAULT_CLASS):
 
 
 class CmdWatch(Command):
+    """
+    Usage: watch <character>
+
+    Aliases:
+        snoop
+
+    When called, the admin will start watching the actions of the specified character.
+    If the admin is already watching a character, calling watch again will stop the
+    current watch and start a new one on the specified character.
+    """
+
     key = "watch"
     aliases = ["snoop"]
+    locks = "cmd:perm(Admin)"
 
     def func(self):
         caller = self.caller

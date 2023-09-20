@@ -499,6 +499,7 @@ class CmdRename(building.ObjManipCommand):
     """
 
     key = "rename"
+    locks = "cmd:perm(rename) or perm(Builder)"
 
     def func(self):
         caller = self.caller
