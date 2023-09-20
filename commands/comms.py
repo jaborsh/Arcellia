@@ -1,6 +1,5 @@
 from django.conf import settings
 from evennia.commands.default import comms as default_comms
-from evennia.utils import create
 from evennia.utils.ansi import strip_ansi
 from evennia.utils.evmenu import ask_yes_no
 from evennia.utils.utils import class_from_module
@@ -13,47 +12,11 @@ CHANNEL_DEFAULT_TYPECLASS = class_from_module(
     settings.BASE_CHANNEL_TYPECLASS, fallback=settings.FALLBACK_CHANNEL_TYPECLASS
 )
 __all__ = (
-    "CmdBlock",
     "CmdChannel",
     "CmdObjectChannel",
     "CmdLast",
-    "CmdTell",
     "CmdTune",
 )
-
-
-class CmdBlock(Command):
-    """
-    Usage: block <character>
-
-    Block a character from sending you tells. If the character is already
-    blocked, this command will unblock them.
-
-    Example: block jake
-    """
-
-    key = "block"
-    locks = "cmd:all()"
-    help_category = "Communications"
-
-    def func(self):
-        caller = self.caller
-
-        if not self.args:
-            return self.msg("Block who?")
-
-        target_name = self.args.strip()
-        target = caller.search(target_name, quiet=True, global_search=True)[0]
-        if not target:
-            return self.msg(f"No characters named '{target_name}' found.")
-
-        # Check if the target is already blocked
-        if f"{target.id}" in caller.locks.get("msg"):
-            caller.locks.replace("msg:all()")
-            caller.msg(f"You unblocked {target.get_display_name(caller)}.")
-        else:
-            caller.locks.replace(f"msg: not id({target.id})")
-            caller.msg(f"You block {target.get_display_name(caller)}.")
 
 
 class CmdChannel(default_comms.CmdChannel):
@@ -116,7 +79,7 @@ class CmdChannel(default_comms.CmdChannel):
 
     key = "channel"
     aliases = ["chan", "chans", "channels"]
-    help_category = "Communication"
+    help_category = "General"
     locks = (
         "cmd:not pperm(channel_banned);"
         "admin:pperm(Admin);"
@@ -457,13 +420,17 @@ class CmdLast(Command):
 
     key = "last"
     locks = "cmd:all()"
-    help_category = "Communication"
+    help_category = "General"
 
     account_caller = True
 
     def func(self):
         if not self.args:
-            return self.msg("Usage: last <channel>")
+            return self.msg("Usage: last <channel/tell>")
+
+        # Get tell history
+        if self.args.lower().strip() == "tell":
+            return self.msg("Tell history has not been implemented yet.")
 
         channel = CmdChannel.search_channel(self, self.args.strip())
         log_file = channel.get_log_filename()
@@ -489,102 +456,6 @@ class CmdLast(Command):
         logger.tail_log_file(log_file, 0, 10, callback=send_msg)
 
 
-class CmdTell(Command):
-    """
-    Usage: tell <character> <message>                 # regular tells
-           tell <character>,<character>,... <message> # multiple characters tell
-           tell <character> ;<emote>                  # emoted tells
-           tell <character>,<character>,... ;<emote>  # multiple characters emote
-
-    Send a message to a character if online. If no argument is given, you
-    will receive your most recent message. If sending to multiple
-    characters, separate names with commas.
-
-    Example: tell jake,john Hi there!
-    """
-
-    key = "tell"
-    locks = "cmd:all()"
-    help_category = "Communications"
-
-    def _send_message(self, caller, content, receivers, is_emote=False):
-        """
-        Sends a message to a list of receivers.
-
-        Args:
-            caller (Object): The object sending the message.
-            content (str): The message content.
-            receivers (list): A list of objects to receive the message.
-            is_emote (bool, optional): Whether the message is an emote. Defaults to False.
-        """
-        create.create_message(caller, content, receivers=receivers)
-
-        received = []
-        rstrings = []
-        for target in receivers:
-            if not target.access(caller, "msg"):
-                rstrings.append(
-                    f"You are not allowed to send tells to {target.get_display_name(caller)}."
-                )
-                continue
-            if is_emote:
-                target.msg("Privately, %s" % (content))
-            else:
-                target.msg(f"{caller.get_display_name(target)} tells you: {content}")
-            if hasattr(target, "sessions") and not target.sessions.count():
-                rstrings.append(f"{target.get_display_name(caller)} is not awake.")
-            else:
-                received.append(f"{target.get_display_name(caller)}")
-
-        if rstrings:
-            self.msg("\n".join(rstrings))
-
-        if not received:
-            return
-
-        if is_emote:
-            self.msg("Privately to %s: %s" % (", ".join(received), content))
-        else:
-            self.msg("You tell %s: %s" % (", ".join(received), content))
-
-    def func(self):
-        caller = self.caller
-
-        if not self.args:
-            # No argument, show latest messages.
-            return self.msg("Usage: tell <character[s]> <message>")
-
-        args = self.args.strip().split(" ", 1)
-        targets, message = args[0].split(","), args[1]
-
-        receivers = [
-            caller.search(target, quiet=True, global_search=True)[0]
-            for target in targets
-            if caller.search(target, quiet=True, global_search=True)
-        ]
-
-        message = message.strip()
-
-        if not receivers:
-            return self.msg("Who do you want to tell?")
-
-        if not message:
-            return self.msg("What do you want to tell them?")
-
-        if message.startswith(";"):
-            # Emoted tell
-            emote = message[1:].strip()
-            if not emote:
-                return self.msg("What do you want to emote to them?")
-            self._send_message(
-                caller, f"{caller.name} {emote}", receivers, is_emote=True
-            )
-        else:
-            # Regular tell
-            message = message.strip()
-            self._send_message(caller, message, receivers)
-
-
 class CmdTune(Command):
     """
     Usage:
@@ -597,7 +468,7 @@ class CmdTune(Command):
 
     key = "tune"
     locks = "cmd:all()"
-    help_category = "Communication"
+    help_category = "General"
 
     account_caller = True
 

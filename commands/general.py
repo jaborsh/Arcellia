@@ -3,10 +3,21 @@ import re
 from django.conf import settings
 from evennia.commands.default import general as default_general
 from evennia.typeclasses.attributes import NickTemplateInvalid
-from evennia.utils import class_from_module, utils
+from evennia.utils import class_from_module, create, utils
+
+from commands.command import Command
 
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
-__all__ = ["CmdAlias", "CmdLook"]
+__all__ = [
+    "CmdAlias",
+    "CmdBlock",
+    "CmdDrop",
+    "CmdGet",
+    "CmdGive",
+    "CmdInventory",
+    "CmdLook",
+    "CmdTell",
+]
 
 
 class CmdAlias(default_general.CmdNick):
@@ -267,6 +278,119 @@ class CmdAlias(default_general.CmdNick):
         caller.msg(_cy(string))
 
 
+class CmdBlock(Command):
+    """
+    Usage: block <character>
+
+    Block a character from sending you tells. If the character is already
+    blocked, this command will unblock them.
+
+    Example: block jake
+    """
+
+    key = "block"
+    locks = "cmd:all()"
+    help_category = "General"
+
+    def func(self):
+        caller = self.caller
+
+        if not self.args:
+            return self.msg("Block who?")
+
+        target_name = self.args.strip()
+        target = caller.search(target_name, quiet=True, global_search=True)[0]
+        if not target:
+            return self.msg(f"No characters named '{target_name}' found.")
+
+        # Check if the target is already blocked
+        if f"{target.id}" in caller.locks.get("msg"):
+            caller.locks.replace("msg:all()")
+            caller.msg(f"You unblocked {target.get_display_name(caller)}.")
+        else:
+            caller.locks.replace(f"msg: not id({target.id})")
+            caller.msg(f"You block {target.get_display_name(caller)}.")
+
+
+class CmdDrop(default_general.CmdDrop):
+    """
+    Usage: drop <obj>
+
+    Drops an object from your inventory into your location.
+    """
+
+
+class CmdGet(default_general.CmdGet):
+    """
+    Usage: get <obj>
+
+    Picks up an object from your location and puts it in your inventory.
+    """
+
+
+class CmdGive(default_general.CmdGive):
+    """
+    Usage: give <inventory object> to <target>
+
+    Gives an item from your inventory to another person, placing it in their
+    inventory.
+    """
+
+    key = "give"
+    rhs_split = " to "
+    locks = "cmd:all()"
+    arg_regex = r"\s|$"
+
+    def func(self):
+        """Implement give"""
+
+        caller = self.caller
+        if not self.args or not self.rhs:
+            caller.msg("Usage: give <inventory object> to <target>")
+            return
+        to_give = caller.search(
+            self.lhs,
+            location=caller,
+            nofound_string=f"You aren't carrying {self.lhs}.",
+            multimatch_string=f"You carry more than one {self.lhs}:",
+        )
+        target = caller.search(self.rhs)
+        if not (to_give and target):
+            return
+
+        singular, _ = to_give.get_numbered_name(1, caller)
+        if target == caller:
+            caller.msg(f"You keep {singular} to yourself.")
+            return
+        if not to_give.location == caller:
+            caller.msg(f"You are not holding {singular}.")
+            return
+
+        # calling at_pre_give hook method
+        if not to_give.at_pre_give(caller, target):
+            return
+
+        # give object
+        success = to_give.move_to(target, quiet=True, move_type="give")
+        if not success:
+            caller.msg(f"You could not give {singular} to {target.key}.")
+        else:
+            caller.msg(f"You give {singular} to {target.key}.")
+            target.msg(f"{caller.key} gives you {singular}.")
+            # Call the object script's at_give() method.
+            to_give.at_give(caller, target)
+
+
+class CmdInventory(default_general.CmdInventory):
+    """
+    Usage: i
+           inv
+           inventory
+
+    Shows your inventory
+    """
+
+
 class CmdLook(default_general.CmdLook):
     """
     Usage: look
@@ -274,3 +398,99 @@ class CmdLook(default_general.CmdLook):
 
     Observes your location or objects in your vicinity.
     """
+
+
+class CmdTell(Command):
+    """
+    Usage: tell <character> <message>                 # regular tells
+           tell <character>,<character>,... <message> # multiple characters tell
+           tell <character> ;<emote>                  # emoted tells
+           tell <character>,<character>,... ;<emote>  # multiple characters emote
+
+    Example: tell jake,john Hi there!
+
+    Send a message to a character if online. If no argument is given, you
+    will receive your most recent message. If sending to multiple
+    characters, separate names with commas.
+    """
+
+    key = "tell"
+    locks = "cmd:all()"
+    help_category = "General"
+
+    def _send_message(self, caller, content, receivers, is_emote=False):
+        """
+        Sends a message to a list of receivers.
+
+        Args:
+            caller (Object): The object sending the message.
+            content (str): The message content.
+            receivers (list): A list of objects to receive the message.
+            is_emote (bool, optional): Whether the message is an emote. Defaults to False.
+        """
+        create.create_message(caller, content, receivers=receivers)
+
+        received = []
+        rstrings = []
+        for target in receivers:
+            if not target.access(caller, "msg"):
+                rstrings.append(
+                    f"You are not allowed to send tells to {target.get_display_name(caller)}."
+                )
+                continue
+            if is_emote:
+                target.msg("Privately, %s" % (content))
+            else:
+                target.msg(f"{caller.get_display_name(target)} tells you: {content}")
+            if hasattr(target, "sessions") and not target.sessions.count():
+                rstrings.append(f"{target.get_display_name(caller)} is not awake.")
+            else:
+                received.append(f"{target.get_display_name(caller)}")
+
+        if rstrings:
+            self.msg("\n".join(rstrings))
+
+        if not received:
+            return
+
+        if is_emote:
+            self.msg("Privately to %s: %s" % (", ".join(received), content))
+        else:
+            self.msg("You tell %s: %s" % (", ".join(received), content))
+
+    def func(self):
+        caller = self.caller
+
+        if not self.args:
+            # No argument, show latest messages.
+            return self.msg("Usage: tell <character[s]> <message>")
+
+        args = self.args.strip().split(" ", 1)
+        targets, message = args[0].split(","), args[1]
+
+        receivers = [
+            caller.search(target, quiet=True, global_search=True)[0]
+            for target in targets
+            if caller.search(target, quiet=True, global_search=True)
+        ]
+
+        message = message.strip()
+
+        if not receivers:
+            return self.msg("Who do you want to tell?")
+
+        if not message:
+            return self.msg("What do you want to tell them?")
+
+        if message.startswith(";"):
+            # Emoted tell
+            emote = message[1:].strip()
+            if not emote:
+                return self.msg("What do you want to emote to them?")
+            self._send_message(
+                caller, f"{caller.name} {emote}", receivers, is_emote=True
+            )
+        else:
+            # Regular tell
+            message = message.strip()
+            self._send_message(caller, message, receivers)
