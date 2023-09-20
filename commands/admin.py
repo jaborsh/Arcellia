@@ -16,6 +16,7 @@ __all__ = (
     "CmdAnnounce",
     "CmdEcho",
     "CmdForce",
+    "CmdHome",
     "CmdTeleport",
     "CmdTransfer",
     "CmdWatch",
@@ -172,6 +173,31 @@ class CmdForce(Command):
 
         obj.execute_cmd(args[1])
         self.msg(f"You force {obj} to {args[1]}")
+
+
+class CmdHome(COMMAND_DEFAULT_CLASS):
+    """
+    Usage: home
+
+    Teleports you to your home location.
+    """
+
+    key = "home"
+    locks = "cmd:perm(home) or perm(Admin)"
+    help_category = "Admin"
+    arg_regex = r"$"
+
+    def func(self):
+        """Implement the command"""
+        caller = self.caller
+        home = caller.home
+        if not home:
+            caller.msg("You have no home!")
+        elif home == caller.location:
+            caller.msg("You are already home!")
+        else:
+            caller.msg("There's no place like home ...")
+            caller.move_to(home, move_type="teleport")
 
 
 class CmdTeleport(COMMAND_DEFAULT_CLASS):

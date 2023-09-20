@@ -18,7 +18,16 @@ from evennia import default_cmds
 from evennia.commands.default import help as default_help
 from evennia.commands.default import system as default_system
 
-from commands import account, admin, building, comms, developer, git, unloggedin
+from commands import (
+    account,
+    admin,
+    building,
+    comms,
+    developer,
+    general,
+    git,
+    unloggedin,
+)
 
 
 def add_modules(self, modules):
@@ -100,7 +109,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         """
         Populates the cmdset
         """
-        modules = {"Building Modules": [building]}
+        modules = {"Building Modules": [building], "General Modules": [general]}
         add_modules(self, modules)
 
 
