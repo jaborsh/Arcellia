@@ -422,28 +422,34 @@ class CmdLast(Command):
     locks = "cmd:all()"
     help_category = "General"
 
-    account_caller = True
+    account_caller = False
 
     def func(self):
+        history_type = "channel"
         if not self.args:
             return self.msg("Usage: last <channel/tell>")
 
         # Get tell history
         if self.args.lower().strip() == "tell":
-            return self.msg("Tell history has not been implemented yet.")
-
-        channel = CmdChannel.search_channel(self, self.args.strip())
-        log_file = channel.get_log_filename()
+            history_type = "tell"
+            log_file = self.caller.log_folder + "tells.log"
+        else:
+            channel = CmdChannel.search_channel(self, self.args.strip())
+            log_file = channel.get_log_filename()
 
         def send_msg(lines):
-            header = f"|G{channel.key} Channel History|n"
+            if history_type == "tell":
+                header = "|GHistory of Tells|n"
+            else:
+                header = f"|GHistory of {channel.key} Channel|n"
             border = "\n" + "|G" + "-" * len(strip_ansi(header)) + "|n"
             message = (
                 header
                 + border
                 + "\n|C"
                 + "".join(
-                    line.split("[-]", 1)[1] if "[-]" in line else line for line in lines
+                    line.split("[-] ", 1)[1] if "[-] " in line else line
+                    for line in lines
                 )
                 + "|G"
                 + border

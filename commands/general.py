@@ -439,10 +439,17 @@ class CmdTell(Command):
                     f"You are not allowed to send tells to {target.get_display_name(caller)}."
                 )
                 continue
+
+            if caller == target:
+                rstrings.append("Telepathy isn't for inner monologues!")
+                continue
+
             if is_emote:
-                target.msg("Privately, %s" % (content))
+                target.msg(
+                    "Silently from %s: %s" % (caller.get_display_name(target), content)
+                )
                 logger.log_file(
-                    "Privately, %s" % (content),
+                    "Silently from %s: %s" % (caller.get_display_name(target), content),
                     filename=f"{target.log_folder}/tells.log",
                 )
             else:
@@ -463,9 +470,9 @@ class CmdTell(Command):
             return
 
         if is_emote:
-            self.msg("Privately to %s: %s" % (", ".join(received), content))
+            self.msg("Silently to %s: %s" % (", ".join(received), content))
             logger.log_file(
-                "Privately to %s: %s" % (", ".join(received), content),
+                "Silently to %s: %s" % (", ".join(received), content),
                 filename=f"{caller.log_folder}/tells.log",
             )
         else:
