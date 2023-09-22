@@ -7,8 +7,11 @@ is setup to be the "default" character type created by the default
 creation commands.
 
 """
+import os
+
+from django.conf import settings
 from evennia.objects.objects import DefaultCharacter
-from evennia.utils.utils import make_iter, to_str
+from evennia.utils.utils import lazy_property, make_iter, to_str
 from server.conf import logger
 
 from .objects import ObjectParent
@@ -36,7 +39,20 @@ class Character(ObjectParent, DefaultCharacter):
     """
 
     def at_object_creation(self):
+        self.create_log_folder()
         self.locks.add("msg:all()")
+
+    def create_log_folder(self):
+        """
+        Creates a log folder for the character.
+        """
+        char_log_dir = f"{settings.CHARACTER_LOG_DIR}/{self.key.lower()}/"
+        os.makedirs(char_log_dir, exist_ok=True)
+        self.attributes.add("_log_folder", f"characters/{self.key.lower()}/")
+
+    @lazy_property
+    def log_folder(self):
+        return self.attributes.get("_log_folder", f"characters/{self.key.lower()}/")
 
     def msg(self, text=None, from_obj=None, session=None, options=None, **kwargs):
         """

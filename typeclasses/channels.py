@@ -11,6 +11,9 @@ syscommand (see evennia.syscmds). The sending should normally not need
 to be modified.
 
 """
+import os
+
+from django.conf import settings
 from evennia.comms.comms import DefaultChannel
 from server.conf import logger
 
@@ -58,6 +61,22 @@ class Channel(DefaultChannel):
         post_send_message(msg) - called just after message was sent to channel
 
     """
+
+    log_file = "channels/{channelname}/channel_{channelname}.log"
+
+    def at_channel_creation(self):
+        """
+        Called once, when the channel is first created.
+
+        """
+        self.create_log_folder()
+
+    def create_log_folder(self):
+        """
+        Creates a log folder for the channel.
+        """
+        chan_log_dir = f"{settings.CHANNEL_LOG_DIR}/{self.key.lower()}/"
+        os.makedirs(chan_log_dir, exist_ok=True)
 
     def at_post_msg(self, message, **kwargs):
         """

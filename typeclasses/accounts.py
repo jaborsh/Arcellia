@@ -21,6 +21,8 @@ possibility to connect with a guest account. The setting file accepts
 several more options for customizing the Guest account system.
 
 """
+import os
+
 from django.conf import settings
 from django.utils.translation import gettext as _
 from evennia.accounts.accounts import DefaultAccount, DefaultGuest
@@ -62,6 +64,7 @@ class Account(DefaultAccount):
         self.attributes.add("_main_character", None, lockstring=lockstring)
         self.attributes.add("_playable_characters", [], lockstring=lockstring)
         self.attributes.add("_saved_protocol_flags", {}, lockstring=lockstring)
+        self.create_log_folder()
 
     def at_post_login(self, session=None, **kwargs):
         """
@@ -420,6 +423,15 @@ class Account(DefaultAccount):
         # final hook
         obj.at_post_puppet()
         SIGNAL_OBJECT_POST_PUPPET.send(sender=obj, account=self, session=session)
+
+    def create_log_folder(self):
+        """
+        Create a log folder for the account.
+
+        """
+        account_log_dir = f"{settings.ACCOUNT_LOG_DIR}/{self.key.lower()}/"
+        os.makedirs(account_log_dir, exist_ok=True)
+        self.attributes.add("_log_folder", f"accounts/{self.key.lower()}/")
 
 
 class Guest(DefaultGuest):

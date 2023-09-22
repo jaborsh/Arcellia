@@ -4,6 +4,7 @@ from django.conf import settings
 from evennia.commands.default import general as default_general
 from evennia.typeclasses.attributes import NickTemplateInvalid
 from evennia.utils import class_from_module, create, utils
+from server.conf import logger
 
 from commands.command import Command
 
@@ -440,8 +441,16 @@ class CmdTell(Command):
                 continue
             if is_emote:
                 target.msg("Privately, %s" % (content))
+                logger.log_file(
+                    "Privately, %s" % (content),
+                    filename=f"{target.log_folder}/tells.log",
+                )
             else:
                 target.msg(f"{caller.get_display_name(target)} tells you: {content}")
+                logger.log_file(
+                    f"{caller.get_display_name(target)} tells you: {content}",
+                    filename=f"{target.log_folder}/tells.log",
+                )
             if hasattr(target, "sessions") and not target.sessions.count():
                 rstrings.append(f"{target.get_display_name(caller)} is not awake.")
             else:
@@ -455,8 +464,16 @@ class CmdTell(Command):
 
         if is_emote:
             self.msg("Privately to %s: %s" % (", ".join(received), content))
+            logger.log_file(
+                "Privately to %s: %s" % (", ".join(received), content),
+                filename=f"{caller.log_folder}/tells.log",
+            )
         else:
             self.msg("You tell %s: %s" % (", ".join(received), content))
+            logger.log_file(
+                "You tell %s: %s" % (", ".join(received), content),
+                filename=f"{caller.log_folder}/tells.log",
+            )
 
     def func(self):
         caller = self.caller

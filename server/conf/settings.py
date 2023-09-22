@@ -23,6 +23,7 @@ If you want to share your game dir, including its settings, you can
 put secret game- or server-specific settings in secret_settings.py.
 
 """
+import os
 
 # Use the defaults from Evennia unless explicitly overridden
 from evennia.settings_default import *  # noqa: F403
@@ -60,6 +61,30 @@ ALLOWED_HOSTS = secret_settings.ALLOWED_HOSTS or [".arcellia.com"]
 
 # uncomment if you want to lock the server down for maintenance.
 # LOCKDOWN_MODE = True
+
+# Place to put log files, how often to rotate the log and how big each log file
+# may become before rotating.
+LOG_DIR = os.path.join(GAME_DIR, "server", "logs")
+SERVER_LOG_FILE = os.path.join(LOG_DIR, "server", "server.log")
+PORTAL_LOG_FILE = os.path.join(LOG_DIR, "portal", "portal.log")
+HTTP_LOG_FILE = os.path.join(LOG_DIR, "http", "http_requests.log")
+LOCKWARNING_LOG_FILE = os.path.join(LOG_DIR, "lockwarning", "lockwarnings.log")
+ACCOUNT_LOG_DIR = os.path.join(LOG_DIR, "accounts")
+CHANNEL_LOG_DIR = os.path.join(LOG_DIR, "channels")
+CHARACTER_LOG_DIR = os.path.join(LOG_DIR, "characters")
+
+log_files = [
+    SERVER_LOG_FILE,
+    PORTAL_LOG_FILE,
+    HTTP_LOG_FILE,
+    LOCKWARNING_LOG_FILE,
+    ACCOUNT_LOG_DIR,
+    CHANNEL_LOG_DIR,
+    CHARACTER_LOG_DIR,
+]
+for log_file in log_files:
+    log_dir = os.path.dirname(log_file)
+    os.makedirs(log_dir, exist_ok=True)
 
 # Determine how many commands per second a given Session is allowed
 # to send to the Portal via a connected protocol. Too high rate will
