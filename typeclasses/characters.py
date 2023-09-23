@@ -108,10 +108,10 @@ class Character(ObjectParent, DefaultCharacter):
 
         """
 
-        def format_receivers(receiver, receivers, type, self_obj):
+        def format_receivers(self, receiver, receivers, type):
             """Format the receivers' list into a readable string."""
             if type == "self":
-                display_names = [recv.get_display_name(self_obj) for recv in receivers]
+                display_names = [recv.get_display_name(self) for recv in receivers]
             elif type == "receiver":
                 display_names = [
                     "you"
@@ -135,35 +135,33 @@ class Character(ObjectParent, DefaultCharacter):
             return ""
 
         def construct_self_message(
-            self_obj, receivers, location, message, msg_self, msg_type, custom_mapping
+            self, receivers, location, message, msg_self, msg_type, custom_mapping
         ):
-            all_receivers = format_receivers(self_obj, receivers, "self", self_obj)
+            all_receivers = format_receivers(self, self, receivers, "self")
             self_mapping = {
                 "self": "You",
                 "to": " to " if receivers else "",
-                "object": self_obj.get_display_name(self_obj),
-                "location": location.get_display_name(self_obj) if location else None,
+                "object": self.get_display_name(self),
+                "location": location.get_display_name(self) if location else None,
                 "receiver": None,
                 "all_receivers": all_receivers,
                 "speech": message,
             }
             self_mapping.update(custom_mapping)
-            self_obj.msg(
+            self.msg(
                 text=(msg_self.format_map(self_mapping), {"type": msg_type}),
-                from_obj=self_obj,
+                from_obj=self,
             )
 
         def construct_receiver_messages(
-            self_obj, receivers, location, message, msg_receivers, msg_type
+            self, receivers, location, message, msg_receivers, msg_type
         ):
             for receiver in receivers:
-                all_receivers = format_receivers(
-                    receiver, receivers, "receiver", self_obj
-                )
+                all_receivers = format_receivers(self, receiver, receivers, "receiver")
                 receiver_mapping = {
                     "self": "You",
                     "to": " to " if receivers else "",
-                    "object": self_obj.get_display_name(receiver),
+                    "object": self.get_display_name(receiver),
                     "location": location.get_display_name(receiver)
                     if location
                     else None,
@@ -176,11 +174,11 @@ class Character(ObjectParent, DefaultCharacter):
                         msg_receivers.format_map(receiver_mapping),
                         {"type": msg_type},
                     ),
-                    from_obj=self_obj,
+                    from_obj=self,
                 )
 
         def construct_location_message(
-            self_obj,
+            self,
             receivers,
             location,
             message,
@@ -188,7 +186,7 @@ class Character(ObjectParent, DefaultCharacter):
             msg_type,
             custom_mapping,
         ):
-            exclude = [self_obj]
+            exclude = [self]
             if receivers:
                 exclude.extend(receivers)
 
@@ -196,11 +194,11 @@ class Character(ObjectParent, DefaultCharacter):
                 if individual in exclude:
                     continue
                 all_receivers = format_receivers(
-                    individual, receivers, "location", self_obj
+                    self, individual, receivers, "location"
                 )
                 location_mapping = {
                     "self": "You",
-                    "object": self_obj,
+                    "object": self,
                     "to": " to " if receivers else "",
                     "location": location,
                     "all_receivers": all_receivers,
@@ -213,7 +211,7 @@ class Character(ObjectParent, DefaultCharacter):
                         msg_location.format_map(location_mapping),
                         {"type": msg_type},
                     ),
-                    from_obj=self_obj,
+                    from_obj=self,
                 )
 
         msg_type = "say"
