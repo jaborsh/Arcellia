@@ -13,6 +13,7 @@ from commands.command import Command
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 
 __all__ = (
+    "CmdAccess",
     "CmdAnnounce",
     "CmdEcho",
     "CmdForce",
@@ -21,6 +22,42 @@ __all__ = (
     "CmdTransfer",
     "CmdWatch",
 )
+
+
+class CmdAccess(COMMAND_DEFAULT_CLASS):
+    """
+    Usage: access
+
+    This command shows you the permission hierarchy and which permission groups
+    you are a member of.
+    """
+
+    key = "access"
+    aliases = ["groups", "hierarchy"]
+    locks = "cmd:perm(Admin)"
+    arg_regex = r"$"
+
+    def func(self):
+        """Load the permission groups"""
+
+        caller = self.caller
+        hierarchy_full = settings.PERMISSION_HIERARCHY
+        string = "\n|wPermission Hierarchy|n (climbing):\n %s" % ", ".join(
+            hierarchy_full
+        )
+
+        if self.caller.account.is_superuser:
+            cperms = "<Superuser>"
+            pperms = "<Superuser>"
+        else:
+            cperms = ", ".join(caller.permissions.all())
+            pperms = ", ".join(caller.account.permissions.all())
+
+        string += "\n|wYour access|n:"
+        string += f"\nCharacter |c{caller.key}|n: {cperms}"
+        if hasattr(caller, "account"):
+            string += f"\nAccount |c{caller.account.key}|n: {pperms}"
+        caller.msg(string)
 
 
 class CmdAnnounce(Command):
@@ -338,6 +375,7 @@ class CmdWatch(Command):
     key = "watch"
     aliases = ["snoop"]
     locks = "cmd:perm(Admin)"
+    help_category = "Admin"
 
     def func(self):
         caller = self.caller

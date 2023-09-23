@@ -45,6 +45,7 @@ class CmdBan(admin.CmdBan):
     """
 
     locks = "cmd:perm(Developer)"
+    help_category = "Admin"
 
 
 class CmdUnban(admin.CmdUnban):
@@ -57,6 +58,7 @@ class CmdUnban(admin.CmdUnban):
     """
 
     locks = "cmd:perm(Developer)"
+    help_category = "Admin"
 
 
 class CmdBoot(admin.CmdBoot):
@@ -72,6 +74,7 @@ class CmdBoot(admin.CmdBoot):
     """
 
     locks = "cmd:perm(Developer)"
+    help_category = "Admin"
 
 
 class CmdListCmdSets(building.CmdListCmdSets):
@@ -179,3 +182,4 @@ class CmdSetPerm(admin.CmdPerm):
     key = "setperm"
     aliases = ["perm"]
     locks = "cmd:perm(Developer)"
+    help_category = "Admin"

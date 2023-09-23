@@ -55,6 +55,27 @@ class Character(ObjectParent, DefaultCharacter):
     def log_folder(self):
         return self.attributes.get("_log_folder", f"characters/{self.key.lower()}/")
 
+    def at_pre_emote(self, message, **kwargs):
+        """
+        Before the object emotes something.
+
+        This hook is by default used by the 'emote' command.
+
+        Args:
+            message (str): The suggested emote text.
+
+        Keyword Args:
+            emote_type (str): The type of emote being performed. The options
+                              are 'emote', 'omote', or 'pmote'. Defaults to
+                              'emote'.
+        """
+        emote_type = kwargs.get("emote_type", "emote")
+        if emote_type == "omote":
+            message = message.split(" ;", 1)
+            message = f" {self}".join(message)
+
+        return grammarize(message)
+
     def at_pre_say(self, message, **kwargs):
         """
         Before the object says something.
