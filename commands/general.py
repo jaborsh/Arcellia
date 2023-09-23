@@ -145,7 +145,7 @@ class CmdAlias(default_general.CmdNick):
                     _, _, old_nickstring, old_replstring = oldnick.value
                     caller.nicks.remove(old_nickstring, category=nicktype)
                     caller.msg(
-                        f"{nicktypestr} removed: '|w{old_nickstring}|n' -> |w{old_replstring}|n."
+                        f"{nicktypestr} removed: '|w{old_nickstring}|n' -> |w{old_replstring}|n."  # noqa: E501
                     )
             else:
                 caller.msg("No matching aliases to remove.")
@@ -264,17 +264,17 @@ class CmdAlias(default_general.CmdNick):
                             f" '|w{replstring}|n'."
                         )
                 else:
-                    string += f"\n{nicktypestr} '|w{nickstring}|n' mapped to '|w{replstring}|n'."
+                    string += f"\n{nicktypestr} '|w{nickstring}|n' mapped to '|w{replstring}|n'."  # noqa: E501
                 try:
                     caller.nicks.add(nickstring, replstring, category=nicktype)
                 except NickTemplateInvalid:
                     caller.msg(
-                        "You must use the same $-markers both in the alias and in the replacement."
+                        "You must use the same $-markers both in the alias and in the replacement."  # noqa: E501
                     )
                     return
             elif old_nickstring and old_replstring:
                 # just looking at the nick
-                string += f"\n{nicktypestr} '|w{old_nickstring}|n' maps to '|w{old_replstring}|n'."
+                string += f"\n{nicktypestr} '|w{old_nickstring}|n' maps to '|w{old_replstring}|n'."  # noqa: E501
                 errstring = ""
         string = errstring if errstring else string
         caller.msg(_cy(string))
@@ -477,7 +477,7 @@ class CmdTell(Command):
             content (str): The message content.
             receivers (list): A list of objects to receive the message.
             is_emote (bool, optional): Whether the message is an emote. Defaults to False.
-        """
+        """  # noqa: E501
         create.create_message(caller, content, receivers=receivers)
 
         received = []
@@ -485,7 +485,7 @@ class CmdTell(Command):
         for target in receivers:
             if not target.access(caller, "msg"):
                 rstrings.append(
-                    f"You are not allowed to send tells to {target.get_display_name(caller)}."
+                    f"You are not allowed to send tells to {target.get_display_name(caller)}."  # noqa: E501
                 )
                 continue
 

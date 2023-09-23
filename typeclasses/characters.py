@@ -36,7 +36,7 @@ class Character(ObjectParent, DefaultCharacter):
                     pre_logout_location Attribute and move it back on the grid.
     at_post_puppet - Echoes "AccountName has entered the game" to the room.
 
-    """
+    """  # noqa: E501
 
     def at_object_creation(self):
         self.create_log_folder()
@@ -106,7 +106,7 @@ class Character(ObjectParent, DefaultCharacter):
                                  if more than one, otherwise same as receiver
                 {location}: the location where object is.
 
-        """
+        """  # noqa: E501
 
         def format_receivers(self, receiver, receivers, type):
             """Format the receivers' list into a readable string."""
