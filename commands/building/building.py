@@ -2,13 +2,16 @@ import re
 
 from django.conf import settings
 from evennia import InterruptCommand
-from evennia.commands.default import building
+from evennia.commands.default import building, system
+from evennia.contrib.base_systems import building_menu as building_contrib
 from evennia.locks.lockhandler import LockException
 from evennia.utils import class_from_module
 from evennia.utils.ansi import strip_ansi
 from evennia.utils.eveditor import EvEditor
 from evennia.utils.utils import inherits_from
 from server.conf import logger
+
+from commands.building import building_menu
 
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 
@@ -20,6 +23,7 @@ __all__ = (
     "CmdCreate",
     "CmdDescribe",
     "CmdDestroy",
+    "CmdEdit",  # building_menu
     "CmdExamine",
     "CmdFind",
     "CmdLink",
@@ -32,6 +36,7 @@ __all__ = (
     "CmdSetHome",
     "CmdSpawn",
     "CmdTag",
+    "CmdTickers",
     "CmdTunnel",
     "CmdTypeclass",
     "CmdWipe",
@@ -40,9 +45,9 @@ __all__ = (
 
 class CmdBuild(building.CmdDig):
     """
-    Usage: build[/switches] <roomname>[;alias;alias...][:typeclass]
-           [= <exit_to_there>[;alias][:typeclass]]
-           [, <exit_to_here>[;alias][:typeclass]]
+    Syntax: build[/switches] <roomname>[;alias;alias...][:typeclass]
+            [= <exit_to_there>[;alias][:typeclass]]
+            [, <exit_to_here>[;alias][:typeclass]]
 
     Switches:
        tel or teleport - move yourself to the new room
@@ -65,8 +70,8 @@ class CmdBuild(building.CmdDig):
 
 class CmdConnect(building.CmdOpen):
     """
-    Usage: open <new exit>[;alias;alias..][:typeclass]
-           [ ,<return exit>[;alias;..][:typeclass]]] = <destination>
+    Syntax: open <new exit>[;alias;alias..][:typeclass]
+            [ ,<return exit>[;alias;..][:typeclass]]] = <destination>
 
     Handles the creation of exits. If a destination is given, the exit will
     point there. The <return exist> argument sets up an exit at the destination
@@ -81,7 +86,7 @@ class CmdConnect(building.CmdOpen):
         self.location = self.caller.location
         if not self.args or not self.rhs:
             self.caller.msg(
-                "Usage: connect <new exit>[;alias...][:typeclass]"
+                "Syntax: connect <new exit>[;alias...][:typeclass]"
                 "[,<return exit>[;alias..][:typeclass]]] "
                 "= <destination>"
             )
@@ -99,8 +104,8 @@ class CmdConnect(building.CmdOpen):
 
 class CmdCopy(building.CmdCopy):
     """
-    Usage: copy <original obj> [= <new name>][;alias;alias...]
-           [:<new location>] [,<new name2> ...]
+    Syntax: copy <original obj> [= <new name>][;alias;alias...]
+            [:<new location>] [,<new name2> ...]
 
     Create one or more copies of an object. If you don't supply any targets,
     one exact copy of the original object will be created with the name *_copy.
@@ -111,10 +116,10 @@ class CmdCopy(building.CmdCopy):
 
 class CmdCpAttr(building.CmdCpAttr):
     """
-    Usage: cpattr[/switch] <obj>/<attr> = <obj1>/<attr1> [,<obj2>/<attr2>,<obj3>/<attr3>,...]
-           cpattr[/switch] <obj>/<attr> = <obj1> [,<obj2>,<obj3>,...]
-           cpattr[/switch] <attr> = <obj1>/<attr1> [,<obj2>/<attr2>,<obj3>/<attr3>,...]
-           cpattr[/switch] <attr> = <obj1>[,<obj2>,<obj3>,...]
+    Syntax: cpattr[/switch] <obj>/<attr> = <obj1>/<attr1> [,<obj2>/<attr2>,<obj3>/<attr3>,...]
+            cpattr[/switch] <obj>/<attr> = <obj1> [,<obj2>,<obj3>,...]
+            cpattr[/switch] <attr> = <obj1>/<attr1> [,<obj2>/<attr2>,<obj3>/<attr3>,...]
+            cpattr[/switch] <attr> = <obj1>[,<obj2>,<obj3>,...]
 
     Switches:
         move - delete the attribute from the source object after copying.
@@ -134,7 +139,7 @@ class CmdCpAttr(building.CmdCpAttr):
 
 class CmdCreate(building.CmdCreate):
     """
-    Usage: create[/drop] <objname>[;alias;alias...][:typeclass], <objname>...
+    Syntax: create[/drop] <objname>[;alias;alias...][:typeclass], <objname>...
 
     switch:
        drop - automatically drop the new object into your current
@@ -176,7 +181,7 @@ def _desc_quit(caller):
 
 class CmdDescribe(COMMAND_DEFAULT_CLASS):
     """
-    Usage: desc [<obj>] <description>
+    Syntax: desc [<obj>] <description>
 
     Switches:
       edit - Open up a line editor for more advanced editing.
@@ -221,7 +226,7 @@ class CmdDescribe(COMMAND_DEFAULT_CLASS):
     def func(self):
         caller = self.caller
         if not self.args and "edit" not in self.switches:
-            caller.msg("Usage: desc [<obj>] <description>")
+            caller.msg("Syntax: desc [<obj>] <description>")
             return
 
         if "edit" in self.switches:
@@ -250,7 +255,7 @@ class CmdDescribe(COMMAND_DEFAULT_CLASS):
 
 class CmdDestroy(building.CmdDestroy):
     """
-    Usage: destroy[/switches] [obj, obj2, obj3, [dbref-dbref], ...]
+    Syntax: destroy[/switches] [obj, obj2, obj3, [dbref-dbref], ...]
 
     Switches:
        override - The destroy command will usually avoid accidentally
@@ -271,10 +276,46 @@ class CmdDestroy(building.CmdDestroy):
     key = "destroy"
 
 
+class CmdEdit(building_contrib.GenericBuildingCmd):
+    """
+    Syntax: edit <object>
+
+    Open a building menu to edit the specified object.  This menu allows to
+    change the object's key and description.
+
+    Examples:
+      edit here
+      edit self
+      edit #142
+    """
+
+    key = "edit"
+    aliases = ["redit"]
+    help_category = "Building"
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+        if not args:
+            obj = caller.location
+        else:
+            obj = self.caller.search(args, global_search=True)
+
+        if not obj:
+            return
+
+        if obj.typename == "Room":
+            menu = building_menu.RoomBuildingMenu(caller, obj)
+        else:
+            menu = building_menu.GenericBuildingMenu(caller, obj)
+
+        menu.open()
+
+
 class CmdExamine(building.CmdExamine):
     """
-    Usage: examine [<object>[/attrname]]
-           examine [*<account>[/attrname]]
+    Syntax: examine [<object>[/attrname]]
+            examine [*<account>[/attrname]]
 
     Switch:
         account - examine an Account (same as adding *)
@@ -293,8 +334,8 @@ class CmdExamine(building.CmdExamine):
 
 class CmdFind(building.CmdFind):
     """
-    Usage: find[/switches] <name or dbref or *account> [= dbrefmin[-dbrefmax]]
-           locate - this is a shorthand for using the /loc switch.
+    Syntax: find[/switches] <name or dbref or *account> [= dbrefmin[-dbrefmax]]
+            locate - this is a shorthand for using the /loc switch.
 
     Switches:
         room       - only look for rooms (location=None)
@@ -317,9 +358,9 @@ class CmdFind(building.CmdFind):
 
 class CmdLink(building.CmdLink):
     """
-    Usage: link[/switches] <object> = <target>
-           link[/switches] <object> =
-           link[/switches] <object>
+    Syntax: link[/switches] <object> = <target>
+            link[/switches] <object> =
+            link[/switches] <object>
 
     Switch:
       twoway - connect two exits. For this to work, BOTH <object>
@@ -339,7 +380,7 @@ class CmdLink(building.CmdLink):
 
 class CmdUnlink(building.CmdUnLink):
     """
-    Usage: unlink <Object>
+    Syntax: unlink <Object>
 
     Unlinks an object, for example an exit, disconnecting
     it from whatever it was connected to.
@@ -350,8 +391,8 @@ class CmdUnlink(building.CmdUnLink):
 
 class CmdLockstring(building.CmdLock):
     """
-    Usage: lock <object or *account>[ = <lockstring>]
-           lock[/switch] <object or *account>/<access_type>
+    Syntax: lock <object or *account>[ = <lockstring>]
+            lock[/switch] <object or *account>/<access_type>
 
     Switch:
         del - delete given access type
@@ -384,7 +425,7 @@ class CmdLockstring(building.CmdLock):
 
         caller = self.caller
         if not self.args:
-            string = "Usage: lockstring <object>[ = <lockstring>] or lock[/switch] <object>/<access_type>"
+            string = "Syntax: lockstring <object>[ = <lockstring>] or lock[/switch] <object>/<access_type>"
             caller.msg(string)
             return
 
@@ -475,10 +516,10 @@ class CmdLockstring(building.CmdLock):
 
 class CmdMvAttr(building.CmdMvAttr):
     """
-    Usage: mvattr[/switch] <obj>/<attr> = <obj1>/<attr1> [,<obj2>/<attr2>,<obj3>/<attr3>,...]
-           mvattr[/switch] <obj>/<attr> = <obj1> [,<obj2>,<obj3>,...]
-           mvattr[/switch] <attr> = <obj1>/<attr1> [,<obj2>/<attr2>,<obj3>/<attr3>,...]
-           mvattr[/switch] <attr> = <obj1>[,<obj2>,<obj3>,...]
+    Syntax: mvattr[/switch] <obj>/<attr> = <obj1>/<attr1> [,<obj2>/<attr2>,<obj3>/<attr3>,...]
+            mvattr[/switch] <obj>/<attr> = <obj1> [,<obj2>,<obj3>,...]
+            mvattr[/switch] <attr> = <obj1>/<attr1> [,<obj2>/<attr2>,<obj3>/<attr3>,...]
+            mvattr[/switch] <attr> = <obj1>[,<obj2>,<obj3>,...]
 
     Switches:
       copy - Don't delete the original after moving.
@@ -493,7 +534,7 @@ class CmdMvAttr(building.CmdMvAttr):
 
 class CmdRename(building.ObjManipCommand):
     """
-    Usage: rename <obj> <newname>[;alias,alias,...]
+    Syntax: rename <obj> <newname>[;alias,alias,...]
 
     Rename an object to something new. Use *obj to rename an account.
     """
@@ -505,7 +546,7 @@ class CmdRename(building.ObjManipCommand):
         caller = self.caller
         args = self.args.strip().split(" ", 1)
         if len(args) < 2:
-            caller.msg("Usage: rename <obj> <newname>[;alias,alias,...]")
+            caller.msg("Syntax: rename <obj> <newname>[;alias,alias,...]")
             return
 
         obj_name, rest = args
@@ -575,9 +616,9 @@ class CmdRename(building.ObjManipCommand):
 
 class CmdSetAlias(building.CmdSetObjAlias):
     """
-    Usage: setalias <obj> [= [alias[,alias,alias,...]]]
-           setalias <obj> =
-           setalias/category <obj> = [alias[,alias,...]]:<category>
+    Syntax: setalias <obj> [= [alias[,alias,alias,...]]]
+            setalias <obj> =
+            setalias/category <obj> = [alias[,alias,...]]:<category>
 
     Switches:
         category - requires ending input with :category, to store the
@@ -599,10 +640,10 @@ class CmdSetAlias(building.CmdSetObjAlias):
 
 class CmdSetAttribute(building.CmdSetAttribute):
     """
-    Usage: set[/switch] <obj>/<attr>[:category] = <value>
-           set[/switch] <obj>/<attr>[:category] =            # delete attribute
-           set[/switch] <obj>/<attr>[:category]              # view attribute
-           set[/switch] *<account>/<attr>[:category] = <value>
+    Syntax: set[/switch] <obj>/<attr>[:category] = <value>
+            set[/switch] <obj>/<attr>[:category] =            # delete attribute
+            set[/switch] <obj>/<attr>[:category]              # view attribute
+            set[/switch] *<account>/<attr>[:category] = <value>
 
     Switch:
         edit: Open the line editor (string values only)
@@ -649,8 +690,8 @@ class CmdSetAttribute(building.CmdSetAttribute):
 
 class CmdSetHome(building.CmdSetHome):
     """
-    Usage: sethome <obj> [= <home_location>]
-           sethome <obj>
+    Syntax: sethome <obj> [= <home_location>]
+            sethome <obj>
 
     The "home" location is a "safety" location for objects; they
     will be moved there if their current location ceases to exist. All
@@ -665,18 +706,18 @@ class CmdSetHome(building.CmdSetHome):
 
 class CmdSpawn(building.CmdSpawn):
     """
-    Usage: spawn[/noloc] <prototype_key>
-           spawn[/noloc] <prototype_dict>
+    Syntax: spawn[/noloc] <prototype_key>
+            spawn[/noloc] <prototype_dict>
 
-           spawn/search [prototype_keykey][;tag[,tag]]
-           spawn/list [tag, tag, ...]
-           spawn/list modules    - list only module-based prototypes
-           spawn/show [<prototype_key>]
-           spawn/update <prototype_key>
+            spawn/search [prototype_keykey][;tag[,tag]]
+            spawn/list [tag, tag, ...]
+            spawn/list modules    - list only module-based prototypes
+            spawn/show [<prototype_key>]
+            spawn/update <prototype_key>
 
-           spawn/save <prototype_dict>
-           spawn/edit [<prototype_key>]
-           olc     - equivalent to spawn/edit
+            spawn/save <prototype_dict>
+            spawn/edit [<prototype_key>]
+            olc     - equivalent to spawn/edit
 
     Switches:
         noloc - allow location to be None if not specified explicitly. Otherwise,
@@ -733,8 +774,8 @@ class CmdSpawn(building.CmdSpawn):
 
 class CmdTag(building.CmdTag):
     """
-    Usage: tag[/del] <obj> [= <tag>[:<category>]]
-           tag/search <tag>[:<category]
+    Syntax: tag[/del] <obj> [= <tag>[:<category>]]
+            tag/search <tag>[:<category]
 
     Switches:
         search - return all objects with a given Tag
@@ -752,10 +793,27 @@ class CmdTag(building.CmdTag):
     key = "tag"
     aliases = ["tags"]
 
+    key = "tickers"
+    help_category = "Building"
+    locks = "cmd:perm(tickers) or perm(Builder)"
+
+
+class CmdTickers(system.CmdTickers):
+    """
+    Syntax: tickers
+
+    Note: Tickers are created, stopped and manipulated in Python code
+    using the TickerHandler. This is merely a convenience function for
+    inspecting the current status.
+    """
+
+    key = "tickers"
+    help_category = "Building"
+
 
 class CmdTunnel(building.CmdTunnel):
     """
-    Usage: tunnel[/switch] <direction>[:typeclass] [= <roomname>[;alias;alias;...][:typeclass]]
+    Syntax: tunnel[/switch] <direction>[:typeclass] [= <roomname>[;alias;alias;...][:typeclass]]
 
     Switches:
         oneway - do not create an exit back to the current location
@@ -802,7 +860,7 @@ class CmdTunnel(building.CmdTunnel):
 
         if not self.args or not self.lhs:
             string = (
-                "Usage: tunnel[/switch] <direction>[:typeclass] [= <roomname>"
+                "Syntax: tunnel[/switch] <direction>[:typeclass] [= <roomname>"
                 "[;alias;alias;...][:typeclass]]"
             )
             self.caller.msg(string)
@@ -851,7 +909,7 @@ class CmdTunnel(building.CmdTunnel):
 
 class CmdTypeclass(building.CmdTypeclass):
     """
-    Usage: typeclass[/switch] <object> [= typeclass.path]
+    Syntax: typeclass[/switch] <object> [= typeclass.path]
            typeclass/prototype <object> = prototype_key
 
            typeclasses or typeclass/list/show [typeclass.path]
@@ -902,7 +960,7 @@ class CmdTypeclass(building.CmdTypeclass):
 
 class CmdWipe(building.CmdWipe):
     """
-    Usage: wipe <object>[/<attr>[/<attr>...]]
+    Syntax: wipe <object>[/<attr>[/<attr>...]]
 
     Example:
         wipe box

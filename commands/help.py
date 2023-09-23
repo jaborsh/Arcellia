@@ -4,15 +4,15 @@ from evennia.utils.utils import dedent, pad
 from parsing.colors import strip_ansi
 from parsing.text import format_grid
 
-__all__ = ("CmdHelp",)
+__all__ = ("CmdHelp", "CmdSetHelp")
 
 
 class CmdHelp(default_help.CmdHelp):
     """
-    Usage: help
-           help <topic, command, or category>
-           help <topic>/<subtopic>
-           help <topic>/<subtopic>/<subsubtopic> ...
+    Syntax: help
+            help <topic, command, or category>
+            help <topic>/<subtopic>
+            help <topic>/<subtopic>/<subsubtopic> ...
 
     Use the 'help' command alone to see an index of all help files, organized
     by category. Some big topics may offer additional sub-topics.
@@ -26,7 +26,7 @@ class CmdHelp(default_help.CmdHelp):
         self,
         cmd_help_dict=None,
         db_help_dict=None,
-        title_lone_category=False,
+        title_lone_category=True,
         click_topics=True,
     ):
         """Output a category-ordered g for displaying the main help, grouped by
@@ -115,7 +115,7 @@ class CmdHelp(default_help.CmdHelp):
             gridrows = format_grid(
                 grid,
                 width,
-                sep="  ",
+                sep="     ",
                 verbatim_elements=verbatim_elements,
                 line_prefix=self.index_topic_clr,
             )
@@ -138,11 +138,13 @@ class CmdHelp(default_help.CmdHelp):
             )
             db_grid = ANSIString("\n").join(gridrows) if gridrows else ""
 
+        footer = f"{self.color}" + "-" * width + "|n"
+
         # only show the main separators if there are actually both cmd and db-based help
         if cmd_grid and db_grid:
             help_index = f"{sep1}\n{cmd_grid}\n{sep2}\n{db_grid}"
         else:
-            help_index = f"{cmd_grid}{db_grid}"
+            help_index = f"{cmd_grid}{db_grid}{footer}"
 
         return help_index
 
@@ -254,6 +256,71 @@ class CmdHelp(default_help.CmdHelp):
         partorder = (start, help_text, subtopics, suggested, end)
 
         return "\n\n".join(part.rstrip() for part in partorder if part)
+
+
+class CmdSetHelp(default_help.CmdSetHelp):
+    """
+    Syntax: sethelp[/switches] <topic>[[;alias;alias][,category[,locks]] [= <text>]
+
+    Switches:
+      edit - open a line editor to edit the topic's help text.
+      replace - overwrite existing help topic.
+      append - add text to the end of existing topic with a newline between.
+      extend - as append, but don't add a newline.
+      delete - remove help topic.
+
+    Examples:
+      sethelp lore = In the beginning was ...
+      sethelp/append pickpocketing,Thievery = This steals ...
+      sethelp/replace pickpocketing, ,attr(is_thief) = This steals ...
+      sethelp/edit thievery
+
+    If not assigning a category, the `settings.DEFAULT_HELP_CATEGORY` category
+    will be used. If no lockstring is specified, everyone will be able to read
+    the help entry.  Sub-topics are embedded in the help text.
+
+    Note that this cannot modify command-help entries - these are modified
+    in-code, outside the game.
+
+    # SUBTOPICS
+
+    ## Adding subtopics
+
+    Subtopics helps to break up a long help entry into sub-sections. Users can
+    access subtopics with |whelp topic/subtopic/...|n Subtopics are created and
+    stored together with the main topic.
+
+    To start adding subtopics, add the text '# SUBTOPICS' on a new line at the
+    end of your help text. After this you can now add any number of subtopics,
+    each starting with '## <subtopic-name>' on a line, followed by the
+    help-text of that subtopic.
+    Use '### <subsub-name>' to add a sub-subtopic and so on. Max depth is 5. A
+    subtopic's title is case-insensitive and can consist of multiple words -
+    the user will be able to enter a partial match to access it.
+
+    For example:
+
+    | Main help text for <topic>
+    |
+    | # SUBTOPICS
+    |
+    | ## about
+    |
+    | Text for the '<topic>/about' subtopic'
+    |
+    | ### more about-info
+    |
+    | Text for the '<topic>/about/more about-info sub-subtopic
+    |
+    | ## extra
+    |
+    | Text for the '<topic>/extra' subtopic
+
+    """
+
+    key = "sethelp"
+    locks = "cmd:perm(Admin)"
+    help_category = "Admin"
 
 
 """
@@ -753,7 +820,7 @@ creation of other help topics such as RP help or game-world aides.
 
 #         if not self.args:
 #             self.msg(
-#                 "Usage: sethelp[/switches] <topic>[;alias;alias][,category[,locks,..] = <text>"
+#                 "Syntax: sethelp[/switches] <topic>[;alias;alias][,category[,locks,..] = <text>"
 #             )
 #             return
 

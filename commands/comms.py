@@ -21,57 +21,57 @@ __all__ = (
 
 class CmdChannel(default_comms.CmdChannel):
     """
-    Usage: channel            (show all tuned channels)
-           channels           (show all channels)
-           <channel> <msg>    (send message to channel)
+    Syntax: channel            (show all tuned channels)
+            channels           (show all channels)
+            <channel> <msg>    (send message to channel)
 
     This sends a message to the channel. Note that you will rarely use this
     command like this; instead you will use the channelname.
     """
 
     ADMIN_DOCSTRING = """
-        Usage: channel                   (show all tuned channels)
-               channels                  (show all channels)
-               <channel> <msg>           (send message to channel)  
+        Syntax: channel                   (show all tuned channels)
+                channels                  (show all channels)
+                <channel> <msg>           (send message to channel)  
 
         This sends a message to the channel. Note that you will rarely use this
         command like this; instead you will use the channelname.
 
-        Admin Usage: channel/desc <channel> <description>
-                     channel/ban[/quiet] <channel> [player]
-                     channel/unban[/quiet] <channel> [player]
-                     channel/create <channel>  
-                     channel/destroy <channel> 
-                     channel/lock <channel> <lockstring>
-                     channel/unlock <channel> <lockstring>
-                     channel/mute <channel>    
-                     channel/unmute <channel> 
+        Admin Syntax: channel/desc <channel> <description>
+                      channel/ban[/quiet] <channel> [player]
+                      channel/unban[/quiet] <channel> [player]
+                      channel/create <channel>  
+                      channel/destroy <channel> 
+                      channel/lock <channel> <lockstring>
+                      channel/unlock <channel> <lockstring>
+                      channel/mute <channel>    
+                      channel/unmute <channel> 
 
         # subtopics
 
         ## ban and unban
-        Usage: channel/ban[/quiet] <channel> [player]
-               channel/unban[/quiet] <channel> [player]
+        Syntax: channel/ban[/quiet] <channel> [player]
+                channel/unban[/quiet] <channel> [player]
 
         Ban or unban a player from a channel. If no player is given, list all bans.           
 
         ## create and destroy
-        Usage: channel/create <channel>  (create channel)
-               channel/destroy <channel> (destroy channel)
+        Syntax: channel/create <channel>  (create channel)
+                channel/destroy <channel> (destroy channel)
 
         Creates a new channel or destroys one you control. You will automatically
         join the channel you create and everyone will be kicked from a destroyed
         channel.
 
         ## lock and unlock
-        Usage: channel/lock <channel> <lockstring>    (lock channel)
-               channel/unlock <channel> <lockstring>  (unlock channel)
+        Syntax: channel/lock <channel> <lockstring>    (lock channel)
+                channel/unlock <channel> <lockstring>  (unlock channel)
 
         Edit permissions associated with a channel.
 
         ## mute and unmute
-        Usage: channel/mute <channel>    (mute channel)
-               channel/unmute <channel>  (unmute channel)
+        Syntax: channel/mute <channel>    (mute channel)
+                channel/unmute <channel>  (unmute channel)
 
         Muting silences all input from players. Admins are the only 
         individuals who can use a muted channel.
@@ -155,7 +155,7 @@ class CmdChannel(default_comms.CmdChannel):
             config = self.lhs
             if not config:
                 self.msg(
-                    "Usage: channel/create <name>[;aliases][:typeclass] [= description]"
+                    "Syntax: channel/create <name>[;aliases][:typeclass] [= description]"
                 )
                 return
 
@@ -211,7 +211,7 @@ class CmdChannel(default_comms.CmdChannel):
                 self.msg_channel(channel, possible_lhs_message.strip())
             else:
                 # send error message
-                self.msg(f"Usage: {channel.key.lower()} <message>.")
+                self.msg(f"Syntax: {channel.key.lower()} <message>.")
             return
 
         elif "destroy" in switches:
@@ -255,7 +255,7 @@ class CmdChannel(default_comms.CmdChannel):
 
             desc = self.args.strip().split(" ", 1)[1]
             if not desc:
-                self.msg("Usage: channel/desc <channel> <description>")
+                self.msg("Syntax: channel/desc <channel> <description>")
                 return
 
             self.set_desc(channel, desc)
@@ -307,7 +307,7 @@ class CmdChannel(default_comms.CmdChannel):
                 return
 
             if not len(self.args.strip().split(" ", 1)) > 1:
-                self.msg("Usage: channel/unban <channel> <target>")
+                self.msg("Syntax: channel/unban <channel> <target>")
                 return
 
             target_str = self.args.split(" ", 1)[1]
@@ -348,7 +348,7 @@ class CmdChannel(default_comms.CmdChannel):
 
             lockstring = self.args.strip().split(" ", 1)[1]
             if not lockstring:
-                self.msg("Usage: channel/lock <channel> <lockstring>")
+                self.msg("Syntax: channel/lock <channel> <lockstring>")
                 return
 
             success, err = self.set_lock(channel, lockstring)
@@ -376,7 +376,7 @@ class CmdChannel(default_comms.CmdChannel):
                 logger.log_info(
                     f"{channel.key} channel lockstring removed by {self.caller}."
                 )
-                self.msg("Usage: channel/unlock <channel> <lockstring>")
+                self.msg("Syntax: channel/unlock <channel> <lockstring>")
                 return
 
             success, err = self.unset_lock(channel, lockstring)
@@ -413,7 +413,7 @@ class CmdObjectChannel(CmdChannel):
 
 class CmdLast(Command):
     """
-    Usage: last <channel>
+    Syntax: last <channel>
 
     View a channel's recent history.
     """
@@ -427,7 +427,7 @@ class CmdLast(Command):
     def func(self):
         history_type = "channel"
         if not self.args:
-            return self.msg("Usage: last <channel/tell>")
+            return self.msg("Syntax: last <channel/tell>")
 
         # Get tell history
         if self.args.lower().strip() == "tell":
@@ -464,8 +464,7 @@ class CmdLast(Command):
 
 class CmdTune(Command):
     """
-    Usage:
-        tune <channel>
+    Syntax: tune <channel>
 
     This command allows the user to tune in or out of a communication channel.
     If the user is already tuned in to the channel, they will be tuned out.
@@ -480,7 +479,7 @@ class CmdTune(Command):
 
     def func(self):
         if not self.args:
-            return self.msg("Usage: tune <channel>")
+            return self.msg("Syntax: tune <channel>")
 
         channel = CmdChannel.search_channel(self, self.args.strip())
         if not channel:

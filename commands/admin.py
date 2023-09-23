@@ -26,7 +26,7 @@ __all__ = (
 
 class CmdAccess(COMMAND_DEFAULT_CLASS):
     """
-    Usage: access
+    Syntax: access
 
     This command shows you the permission hierarchy and which permission groups
     you are a member of.
@@ -35,6 +35,7 @@ class CmdAccess(COMMAND_DEFAULT_CLASS):
     key = "access"
     aliases = ["groups", "hierarchy"]
     locks = "cmd:perm(Admin)"
+    help_category = "Admin"
     arg_regex = r"$"
 
     def func(self):
@@ -62,7 +63,7 @@ class CmdAccess(COMMAND_DEFAULT_CLASS):
 
 class CmdAnnounce(Command):
     """
-    Usage: announce <message>
+    Syntax: announce <message>
 
     Announces a message to all connected sessions including all currently
     disconnected.
@@ -74,7 +75,7 @@ class CmdAnnounce(Command):
 
     def func(self):
         if not self.args:
-            self.caller.msg("Usage: announce <message>")
+            self.caller.msg("Syntax: announce <message>")
             return
 
         self.args = wrap(self.args, 63, align="c", pre_text="  ")
@@ -93,7 +94,7 @@ class CmdAnnounce(Command):
 
 class CmdEcho(COMMAND_DEFAULT_CLASS):
     """
-    Usage: echo[/switch] <objects> <message>
+    Syntax: echo[/switch] <objects> <message>
 
     Switches:
       - all:   Echo to all objects in the game.
@@ -160,7 +161,7 @@ class CmdEcho(COMMAND_DEFAULT_CLASS):
             return
 
         if not self.objects:
-            caller.msg("Usage: echo[/switches] <objects> <message>")
+            caller.msg("Syntax: echo[/switches] <objects> <message>")
             return
 
         # send the message to the objects
@@ -186,7 +187,7 @@ class CmdEcho(COMMAND_DEFAULT_CLASS):
 
 class CmdForce(Command):
     """
-    Usage: force <object> <command>
+    Syntax: force <object> <command>
 
     Forces an object to execute a command.
     """
@@ -197,7 +198,7 @@ class CmdForce(Command):
 
     def func(self):
         if not self.args:
-            self.msg("Usage: force <object> <command>")
+            self.msg("Syntax: force <object> <command>")
 
         args = self.args.split(" ", 1)
         obj = self.account.search(args[0], global_search=True, search_object=True)
@@ -214,7 +215,7 @@ class CmdForce(Command):
 
 class CmdHome(COMMAND_DEFAULT_CLASS):
     """
-    Usage: home
+    Syntax: home
 
     Teleports you to your home location.
     """
@@ -239,8 +240,8 @@ class CmdHome(COMMAND_DEFAULT_CLASS):
 
 class CmdTeleport(COMMAND_DEFAULT_CLASS):
     """
-    Usage: tel[/switch] <target>
-           goto[/switch] <target>
+    Syntax: tel[/switch] <target>
+            goto[/switch] <target>
 
     Switches:
         quiet    - don't echo leave/arrive messages to the source/target
@@ -272,7 +273,7 @@ class CmdTeleport(COMMAND_DEFAULT_CLASS):
         caller = self.caller
 
         if not self.args:
-            caller.msg("Usage: tel[/switch] <target>")
+            caller.msg("Syntax: tel[/switch] <target>")
             return
 
         destination = self.args.strip()
@@ -309,7 +310,7 @@ class CmdTeleport(COMMAND_DEFAULT_CLASS):
 
 class CmdTransfer(COMMAND_DEFAULT_CLASS):
     """
-    Usage: transfer <object>
+    Syntax: transfer <object>
 
     Transfers an object to your current location.
     """
@@ -322,7 +323,7 @@ class CmdTransfer(COMMAND_DEFAULT_CLASS):
         caller = self.caller
 
         if not self.args:
-            caller.msg("Usage: transfer <object>")
+            caller.msg("Syntax: transfer <object>")
             return
 
         obj_to_transfer = self.caller.search(self.args.strip(), global_search=True)
@@ -362,10 +363,7 @@ class CmdTransfer(COMMAND_DEFAULT_CLASS):
 
 class CmdWatch(Command):
     """
-    Usage: watch <character>
-
-    Aliases:
-        snoop
+    Syntax: watch <character>
 
     When called, the admin will start watching the actions of the specified character.
     If the admin is already watching a character, calling watch again will stop the
@@ -385,7 +383,7 @@ class CmdWatch(Command):
             self.msg(f"You stop watching {caller.ndb._watching}.")
             caller.ndb._watching = None
         elif not self.args:
-            self.msg("Usage: watch <character>")
+            self.msg("Syntax: watch <character>")
             return
 
         target = self.account.search(self.args.strip(), search_object=True)

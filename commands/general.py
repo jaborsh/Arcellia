@@ -1,7 +1,7 @@
 import re
 
 from django.conf import settings
-from evennia.commands.default import general as default_general
+from evennia.commands.default import general, system
 from evennia.typeclasses.attributes import NickTemplateInvalid
 from evennia.utils import class_from_module, create, utils
 from server.conf import logger
@@ -20,16 +20,17 @@ __all__ = [
     "CmdLook",
     "CmdSay",
     "CmdTell",
+    "CmdTime",
     "CmdWhisper",
 ]
 
 
-class CmdAlias(default_general.CmdNick):
+class CmdAlias(general.CmdNick):
     """
-    Usage: alias[/switches] <string> [= [replacement_string]]
-           alias[/switches] <template> = <replacement_template>
-           alias/delete <string> or number
-           aliases
+    Syntax: alias[/switches] <string> [= [replacement_string]]
+            alias[/switches] <template> = <replacement_template>
+            alias/delete <string> or number
+            aliases
 
     Switches:
       inputline - replace on the inputline (default)
@@ -229,7 +230,7 @@ class CmdAlias(default_general.CmdNick):
             return
 
         if not self.args or not self.lhs:
-            caller.msg("Usage: alias[/switches] alias = [realname]")
+            caller.msg("Syntax: alias[/switches] alias = [realname]")
             return
 
         # setting new aliases
@@ -284,7 +285,7 @@ class CmdAlias(default_general.CmdNick):
 
 class CmdBlock(Command):
     """
-    Usage: block <character>
+    Syntax: block <character>
 
     Block a character from sending you tells. If the character is already
     blocked, this command will unblock them.
@@ -316,9 +317,9 @@ class CmdBlock(Command):
             caller.msg(f"You block {target.get_display_name(caller)}.")
 
 
-class CmdDrop(default_general.CmdDrop):
+class CmdDrop(general.CmdDrop):
     """
-    Usage: drop <obj>
+    Syntax: drop <obj>
 
     Drops an object from your inventory into your location.
     """
@@ -326,9 +327,9 @@ class CmdDrop(default_general.CmdDrop):
 
 class CmdEmote(Command):
     """
-    Usage: emote <pose>
-           omote <pose>
-           pmote <pose>
+    Syntax: emote <pose>
+            omote <pose>
+            pmote <pose>
 
     Examples: emote waves.           -> Jake waves.
               omote Waving, ; smiles. -> Waving, Jake smiles.
@@ -382,17 +383,17 @@ class CmdEmote(Command):
         )
 
 
-class CmdGet(default_general.CmdGet):
+class CmdGet(general.CmdGet):
     """
-    Usage: get <obj>
+    Syntax: get <obj>
 
     Picks up an object from your location and puts it in your inventory.
     """
 
 
-class CmdGive(default_general.CmdGive):
+class CmdGive(general.CmdGive):
     """
-    Usage: give <inventory object> to <target>
+    Syntax: give <inventory object> to <target>
 
     Gives an item from your inventory to another person, placing it in their
     inventory.
@@ -408,7 +409,7 @@ class CmdGive(default_general.CmdGive):
 
         caller = self.caller
         if not self.args or not self.rhs:
-            caller.msg("Usage: give <inventory object> to <target>")
+            caller.msg("Syntax: give <inventory object> to <target>")
             return
         to_give = caller.search(
             self.lhs,
@@ -443,20 +444,18 @@ class CmdGive(default_general.CmdGive):
             to_give.at_give(caller, target)
 
 
-class CmdInventory(default_general.CmdInventory):
+class CmdInventory(general.CmdInventory):
     """
-    Usage: i
-           inv
-           inventory
+    Syntax: i
 
-    Shows your inventory
+    Shows your inventory.
     """
 
 
-class CmdLook(default_general.CmdLook):
+class CmdLook(general.CmdLook):
     """
-    Usage: look
-           look <obj>
+    Syntax: look
+            look <obj>
 
     Observes your location or objects in your vicinity.
     """
@@ -464,9 +463,9 @@ class CmdLook(default_general.CmdLook):
 
 class CmdSay(Command):
     """
-    Usage: say <message>
-           say to <character> <message>
-           say to <character>,[character,...] <message>
+    Syntax: say <message>
+            say to <character> <message>
+            say to <character>,[character,...] <message>
 
     Example: say to jake,john Hi there!
 
@@ -512,10 +511,10 @@ class CmdSay(Command):
 
 class CmdTell(Command):
     """
-    Usage: tell <character> <message>                 # regular tells
-           tell <character>,<character>,... <message> # multiple characters tell
-           tell <character> ;<emote>                  # emoted tells
-           tell <character>,<character>,... ;<emote>  # multiple characters emote
+    Syntax: tell <character> <message>                 # regular tells
+            tell <character>,<character>,... <message> # multiple characters tell
+            tell <character> ;<emote>                  # emoted tells
+            tell <character>,<character>,... ;<emote>  # multiple characters emote
 
     Example: tell jake,john Hi there!
 
@@ -596,7 +595,7 @@ class CmdTell(Command):
 
         if not self.args:
             # No argument, show latest messages.
-            return self.msg("Usage: tell <character[s]> <message>")
+            return self.msg("Syntax: tell <character[s]> <message>")
 
         args = self.args.strip().split(" ", 1)
         targets, message = args[0].split(","), args[1]
@@ -629,10 +628,24 @@ class CmdTell(Command):
             self._send_message(caller, message, receivers)
 
 
+class CmdTime(system.CmdTime):
+    """
+    Syntax: time
+
+    List Server time statistics such as uptime
+    and the current time stamp.
+    """
+
+    key = "time"
+    aliases = "uptime"
+    locks = "cmd:all()"
+    help_category = "General"
+
+
 class CmdWhisper(Command):
     """
-    Usage: whisper <character> <message>
-           whisper <character>,[[character],...] <message>
+    Syntax: whisper <character> <message>
+            whisper <character>,[[character],...] <message>
 
     Speak privately to one or more characters in your current location without
     others in the room being informed.

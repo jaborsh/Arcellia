@@ -34,7 +34,7 @@ __all__ = (
 
 class CmdCreate(Command):
     """
-    Usage: create <name>
+    Syntax: create <name>
 
     Create a new character. Names will automatically capitalize. Follow the
     provided rules when creating a new character.
@@ -49,7 +49,7 @@ class CmdCreate(Command):
         account = self.account
         session = self.session
         if not self.args:
-            self.msg("Usage: create <name>")
+            self.msg("Syntax: create <name>")
             return
 
         if _MAX_NR_CHARACTERS is not None:
@@ -150,7 +150,7 @@ class CmdCreate(Command):
 
 class CmdDelete(Command):
     """
-    Usage: delete <name>
+    Syntax: delete <name>
 
     Permanently delete one of your characters. This cannot be undone!
     """
@@ -164,7 +164,7 @@ class CmdDelete(Command):
         account = self.account
 
         if not self.args:
-            self.msg("Usage: delete <name>")
+            self.msg("Syntax: delete <name>")
             return
 
         match = [
@@ -213,7 +213,7 @@ class CmdDelete(Command):
 # move this to characters eventually
 class CmdDisconnect(account.CmdOOC):
     """
-    Usage: disconnect
+    Syntax: disconnect
 
     Go out-of-character (OOC)
     """
@@ -268,7 +268,7 @@ class CmdDisconnect(account.CmdOOC):
 # and has the .playable property.
 class CmdOOCLook(account.MuxAccountLookCommand):
     """
-    Usage: look
+    Syntax: look
 
     This is an OOC version of the look command. Since an account doesn't have
     an in-game existence, there is no concept of location or "self". If we are
@@ -307,7 +307,7 @@ class CmdOOCLook(account.MuxAccountLookCommand):
 
 class CmdOptions(account.CmdOption):
     """
-    Usage: options[/switch] [name = value]
+    Syntax: options[/switch] [name = value]
 
     Switches:
       save - Save the current option setting for future logins.
@@ -324,7 +324,7 @@ class CmdOptions(account.CmdOption):
 
 class CmdPassword(Command):
     """
-    Usage: password
+    Syntax: password
 
     Change your password. Make sure to pick a safe one!
     """
@@ -365,7 +365,7 @@ class CmdPassword(Command):
 
 class CmdPlay(Command):
     """
-    Usage: play <character>
+    Syntax: play <character>
 
     Play (IC) as a given character.
     """
@@ -394,7 +394,7 @@ class CmdPlay(Command):
                     [account.db._last_puppet] if account.db._last_puppet else []
                 )
             if not character_candidates:
-                self.msg("Usage: ic <character>")
+                self.msg("Syntax: ic <character>")
                 return
         else:
             # argument given
@@ -472,7 +472,7 @@ class CmdPlay(Command):
 
 class CmdQuit(account.CmdQuit):
     """
-    Usage: quit
+    Syntax: quit
 
     Switch:
       all - disconnect all connected sessions
@@ -484,7 +484,7 @@ class CmdQuit(account.CmdQuit):
 
 class CmdSessions(account.CmdSessions):
     """
-    Usage: sessions
+    Syntax: sessions
 
     Lists the sessions currently connected to your account.
     """
@@ -492,7 +492,7 @@ class CmdSessions(account.CmdSessions):
 
 class CmdSetMain(Command):
     """
-    Usage: setmain [character]
+    Syntax: setmain [character]
 
     This command is responsible for setting your main character which will
     establish them as the character that you automatically log into upon
@@ -550,7 +550,7 @@ class CmdSetMain(Command):
 
 class CmdWho(Command):
     """
-    Usage: who
+    Syntax: who
 
     This command lists all players.
     """

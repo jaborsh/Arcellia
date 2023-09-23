@@ -1,10 +1,12 @@
-from evennia.commands.default import account, admin, building
+from evennia.commands.default import account, admin, batchprocess, building
 
 from commands.command import Command
 
 __all__ = (
     "CmdBan",
     "CmdUnban",
+    "CmdBatchCommands",
+    "CmdBatchCode",
     "CmdBoot",
     "CmdListCmdSets",
     "CmdQuell",
@@ -16,7 +18,7 @@ __all__ = (
 
 class CmdBan(admin.CmdBan):
     """
-    Usage: ban [<name or ip> [:reason]]
+    Syntax: ban [<name or ip> [:reason]]
 
     Ban an account from the server.
 
@@ -50,7 +52,7 @@ class CmdBan(admin.CmdBan):
 
 class CmdUnban(admin.CmdUnban):
     """
-    Usage: unban <banid>
+    Syntax: unban <banid>
 
     This will clear an account name/ip ban previously set with the ban command.
     Use this command without an argument to view a numbered list of bans. Use
@@ -61,9 +63,51 @@ class CmdUnban(admin.CmdUnban):
     help_category = "Admin"
 
 
+class CmdBatchCommands(batchprocess.CmdBatchCommands):
+    """
+    Syntax: batchcommands[/interactive] <python.path.to.file>
+
+    Switch:
+       interactive - this mode will offer more control when
+                     executing the batch file, like stepping,
+                     skipping, reloading etc.
+
+    Runs batches of commands from a batch-cmd text file (*.ev).
+    """
+
+    key = "batchcommands"
+    aliases = ["batchcommand", "batchcmd"]
+    switch_options = ("interactive",)
+    locks = "cmd:perm(batchcommands) or perm(Developer)"
+    help_category = "Admin"
+
+
+class CmdBatchCode(batchprocess.CmdBatchCode):
+    """
+    Syntax: batchcode[/interactive] <python path to file>
+
+    Switch:
+       interactive - this mode will offer more control when
+                     executing the batch file, like stepping,
+                     skipping, reloading etc.
+       debug - auto-delete all objects that has been marked as
+               deletable in the script file (see example files for
+               syntax). This is useful so as to to not leave multiple
+               object copies behind when testing out the script.
+
+    Runs batches of commands from a batch-code text file (*.py).
+    """
+
+    key = "batchcode"
+    aliases = ["batchcodes"]
+    switch_options = ("interactive", "debug")
+    locks = "cmd:superuser()"
+    help_category = "Admin"
+
+
 class CmdBoot(admin.CmdBoot):
     """
-    Usage: boot[/switches] <target> [:reason]
+    Syntax: boot[/switches] <target> [:reason]
 
     Switches:
       quiet - Silently boot without informing the account.
@@ -79,7 +123,7 @@ class CmdBoot(admin.CmdBoot):
 
 class CmdListCmdSets(building.CmdListCmdSets):
     """
-    Usage: cmdsets <obj>
+    Syntax: cmdsets <obj>
 
     This displays all cmdsets assigned to a user. Defaults to yourself.
     """
@@ -91,8 +135,8 @@ class CmdListCmdSets(building.CmdListCmdSets):
 
 class CmdQuell(account.CmdQuell):
     """
-    Usage: quell
-           unquell
+    Syntax: quell
+            unquell
 
     Normally the permission level of the account is used when puppeting a
     character/object to determine access. Queeling will switch the lock system
@@ -112,8 +156,8 @@ class CmdQuell(account.CmdQuell):
 
 class CmdScripts(building.CmdScripts):
     """
-    Usage: script[/switches] [script-#dbref, key, script.path]
-           script[/start||stop] <obj> = [<script.path or script-key>]
+    Syntax: script[/switches] [script-#dbref, key, script.path]
+            script[/start||stop] <obj> = [<script.path or script-key>]
 
     Switches:
         start - start/unpause an existing script's timer.
@@ -156,7 +200,7 @@ class CmdScripts(building.CmdScripts):
 
 class CmdSetPassword(Command):
     """
-    Usage: setpass <account> <password>
+    Syntax: setpass <account> <password>
 
     Set an account's password.
     """
@@ -169,8 +213,8 @@ class CmdSetPassword(Command):
 
 class CmdSetPerm(admin.CmdPerm):
     """
-    Usage: setperm[/switch] <object> [=<permission>[,<permission>,...]]
-           setperm[/switch] *<account> [=<permission>[,<permission>,...]]
+    Syntax: setperm[/switch] <object> [=<permission>[,<permission>,...]]
+            setperm[/switch] *<account> [=<permission>[,<permission>,...]]
 
     Switches: account - set the permission on an account
               del     - delete the permission from the object
