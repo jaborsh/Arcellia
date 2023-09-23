@@ -5,6 +5,71 @@ from django.conf import settings
 from evennia.utils.ansi import strip_ansi
 
 
+def grammarize(message):
+    """
+    Corrects specific grammatical errors in the input message.
+    """
+
+    # Contraction apostrophe correction
+    contractions = {
+        r"\b(cant)\b": "can't",
+        r"\b(couldnt)\b": "couldn't",
+        r"\b(couldve)\b": "could've",
+        r"\b(didnt)\b": "didn't",
+        r"\b(doesnt)\b": "doesn't",
+        r"\b(dont)\b": "don't",
+        r"\b(hadnt)\b": "hadn't",
+        r"\b(hasnt)\b": "hasn't",
+        r"\b(im)\b": "I'm",
+        r"\b(isnt)\b": "isn't",
+        r"\b(itll)\b": "it'll",
+        r"\b(ive)\b": "I've",
+        r"\b(mightve)\b": "might've",
+        r"\b(mustve)\b": "must've",
+        r"\b(shouldnt)\b": "shouldn't",
+        r"\b(shouldve)\b": "should've",
+        r"\b(thats)\b": "that's",
+        r"\b(theres)\b": "there's",
+        r"\b(theyll)\b": "they'll",
+        r"\b(theyre)\b": "they're",
+        r"\b(wasnt)\b": "wasn't",
+        r"\b(weve)\b": "we've",
+        r"\b(wheres)\b": "where's",
+        r"\b(whos)\b": "who's",
+        r"\b(wouldve)\b": "would've",
+    }
+
+    for pattern, replacement in contractions.items():
+        message = re.sub(pattern, replacement, message, flags=re.IGNORECASE)
+
+    # Multiple spaces
+    message = re.sub(r" +", " ", message)
+
+    # Capitalize standalone letter 'i'
+    message = re.sub(r"\bi\b", "I", message)
+
+    # Correcting use of a and an
+    message = re.sub(r"\ba ([aeiou])", r"an \1", message, flags=re.IGNORECASE)
+
+    # Unnecessary space before punctuation
+    message = re.sub(r" ([.,;!?])", r"\1", message)
+
+    # Add period if the message doesn't end with one
+    if not message.endswith("."):
+        message += "."
+
+    # Capitalize the beginning of each sentence
+    def capitalize_sentence(t):
+        return t.group(0).capitalize()
+
+    # Regex pattern to match the start of a sentence but not after an ellipsis
+    pattern = r"(^[a-z])|(?<=[.!?]\s)(?<!\.\.\.\s)[a-z]"
+
+    message = re.sub(pattern, capitalize_sentence, message)
+
+    return message
+
+
 def wrap(text, text_width=80, pre_text="", align="l", indent=0, hang=0):
     # Wrap the text to the terminal width.
     if not text:

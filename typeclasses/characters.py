@@ -12,6 +12,7 @@ import os
 from django.conf import settings
 from evennia.objects.objects import DefaultCharacter
 from evennia.utils.utils import lazy_property, make_iter, to_str
+from parsing.text import grammarize
 from server.conf import logger
 
 from .objects import ObjectParent
@@ -53,6 +54,31 @@ class Character(ObjectParent, DefaultCharacter):
     @lazy_property
     def log_folder(self):
         return self.attributes.get("_log_folder", f"characters/{self.key.lower()}/")
+
+    def at_pre_say(self, message, **kwargs):
+        """
+        Before the object says something.
+
+        This hook is by default used by the 'say' and 'whisper'
+        commands as used by this command it is called before the text
+        is said/whispered and can be used to customize the outgoing
+        text from the object. Returning `None` aborts the command.
+
+        Args:
+            message (str): The suggested say/whisper text spoken by self.
+        Keyword Args:
+            whisper (bool): If True, this is a whisper rather than
+                a say. This is sent by the whisper command by default.
+                Other verbal commands could use this hook in similar
+                ways.
+            receivers (Object or iterable): If set, this is the target or targets for the
+                say/whisper.
+
+        Returns:
+            message (str): The (possibly modified) text to be spoken.
+
+        """
+        return grammarize(message)
 
     def at_say(
         self,
@@ -214,19 +240,33 @@ class Character(ObjectParent, DefaultCharacter):
                     from_obj=self,
                 )
 
-        msg_type = "say"
-        msg_self = (
-            '{self} say{to}{all_receivers}, "|n{speech}|n"'
-            if msg_self is True
-            else msg_self
-        )
-        msg_location = msg_location or '{object} says{to}{all_receivers}, "{speech}"'
-        msg_receivers = msg_receivers or '{object} says{to}{all_receivers}, "{speech}"'
+        msg_type = kwargs.get("msg_type", "say")
+        if msg_type == "say":
+            msg_self = (
+                '{self} say{to}{all_receivers}, "|n{speech}|n"'
+                if msg_self is True
+                else msg_self
+            )
+            msg_location = (
+                msg_location or '{object} says{to}{all_receivers}, "{speech}"'
+            )
+            msg_receivers = (
+                msg_receivers or '{object} says{to}{all_receivers}, "{speech}"'
+            )
 
-        custom_mapping = kwargs.get("mapping", {})
-        receivers = make_iter(receivers) if receivers else []
-        location = self.location
-
+            custom_mapping = kwargs.get("mapping", {})
+            receivers = make_iter(receivers) if receivers else []
+            location = self.location
+        elif msg_type == "whisper":
+            msg_self = (
+                '{self} whisper to {all_receivers}, "|n{speech}|n"'
+                if msg_self is True
+                else msg_self
+            )
+            msg_receivers = msg_receivers or '{object} whispers, "|n{speech}|n"'
+            custom_mapping = kwargs.get("mapping", {})
+            msg_location = None
+            location = None
         if msg_self:
             construct_self_message(
                 self, receivers, location, message, msg_self, msg_type, custom_mapping

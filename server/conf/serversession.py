@@ -21,7 +21,7 @@ settings file:
 
 """
 from evennia.server.serversession import ServerSession as BaseServerSession
-from ui.colors import hex_to_xterm
+from parsing.colors import hex_to_xterm
 
 
 class ServerSession(BaseServerSession):

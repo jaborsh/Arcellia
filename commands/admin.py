@@ -4,9 +4,9 @@ from django.conf import settings
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import class_from_module
 from evennia.utils.utils import inherits_from
+from parsing.text import wrap
 from server.conf import logger
 from server.conf.settings import SERVERNAME
-from ui.formatting import wrap
 
 from commands.command import Command
 

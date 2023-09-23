@@ -21,10 +21,10 @@ from traceback import format_exc
 
 from django.conf import settings
 from evennia.comms.models import ChannelDB
+from parsing.text import wrap
 from twisted import logger as twisted_logger
 from twisted.internet.threads import deferToThread
 from twisted.python import logfile
-from ui.formatting import wrap
 
 log = twisted_logger.Logger()
 
