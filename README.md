@@ -2,8 +2,6 @@
 ![Arcellia](https://github.com/jaborsh/Arcellia/assets/73198594/51185e75-cc21-437b-92b7-ecbc5f9b1d7b)
 
 ## Lore
-In the heart of Arcellia, during the Age of Romance, the Valarian Empire rose like a beacon of hope, uniting art, passion, and dreams. This land was a vast canvas painted with shimmering rivers, towering gemstone-veined mountains, and skies so vividly blue they could make poets weep. 
-
 In the heart of Valaria, Empress Eveline, a paragon of beauty and wisdom, sat on the throne. Her reign was a delicate dance of justice and empathy, her commands woven with the elegance of a seasoned silvertongue. The Empress, despite her aristocratic roots, bore a heart that beat for every citizen, infusing her empire with a rare blend of prosperity and peace.
 
 Yet beneath Eveline's bleeding heart, Valaria's political landscape was threaded with more than just a single weave. The aristocracy, where Eveline hailed from, formed one strand, their influence running deep in the city's veins. They were custodians of wealth and tradition, their lineage as old as the city itself. 
