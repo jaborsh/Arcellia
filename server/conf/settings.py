@@ -23,9 +23,12 @@ If you want to share your game dir, including its settings, you can
 put secret game- or server-specific settings in secret_settings.py.
 
 """
+import os
 
 # Use the defaults from Evennia unless explicitly overridden
-from evennia.settings_default import *
+from evennia.settings_default import *  # noqa: F403
+
+from server.conf import secret_settings
 
 ######################################################################
 # Evennia base server config
@@ -37,25 +40,51 @@ SERVERNAME = "Arcellia"
 # on the website and could be used in online listings of your game etc.
 GAME_SLOGAN = None
 
-# open to the internet: 4000, 4001, 4002
-# closed to the internet (internal use): 4005, 4006
-TELNET_PORTS = [4000]
-WEBSOCKET_CLIENT_PORT = 4002
-WEBSERVER_PORTS = [(4001, 4005)]
-AMP_PORT = 4006
-
 # This needs to be set to your website address for django or you'll receive a
 # CSRF error when trying to log on to the web portal
-CSRF_TRUSTED_ORIGINS = ["https://arcellia.com"]
+CSRF_TRUSTED_ORIGINS = secret_settings.CSRF_TRUSTED_ORIGINS or ["https://arcellia.com"]
 
-# Optional - security measures limiting interface access
-# (don't set these before you know things work without them)
-# WEBSOCKET_CLIENT_INTERFACE = "127.0.0.1"
-# WEBSOCKET_CLIENT_URL = "wss://arcellia.com:4002/"
-# ALLOWED_HOSTS = [".arcellia.com"]
+# Interface addresses to listen to. If 0.0.0.0, listen to all. Use :: for IPv6.
+WEBSOCKET_CLIENT_INTERFACE = "127.0.0.1"
+# Actual URL for webclient component to reach the websocket. You only need
+# to set this if you know you need it, like using some sort of proxy setup.
+# If given it must be on the form "ws[s]://hostname[:port]". If left at None,
+# the client will itself figure out this url based on the server's hostname.
+# e.g. ws://external.example.com or wss://external.example.com:443
+WEBSOCKET_CLIENT_URL = (
+    secret_settings.WEBSOCKET_CLIENT_URL or "wss://arcellia.com:4002/"
+)
+# This is a security setting protecting against host poisoning
+# attacks.  It defaults to allowing all. In production, make
+# sure to change this to your actual host addresses/IPs.
+ALLOWED_HOSTS = secret_settings.ALLOWED_HOSTS or [".arcellia.com"]
 
 # uncomment if you want to lock the server down for maintenance.
 # LOCKDOWN_MODE = True
+
+# Place to put log files, how often to rotate the log and how big each log file
+# may become before rotating.
+LOG_DIR = os.path.join(GAME_DIR, "server", "logs")
+SERVER_LOG_FILE = os.path.join(LOG_DIR, "server", "server.log")
+PORTAL_LOG_FILE = os.path.join(LOG_DIR, "portal", "portal.log")
+HTTP_LOG_FILE = os.path.join(LOG_DIR, "http", "http_requests.log")
+LOCKWARNING_LOG_FILE = os.path.join(LOG_DIR, "lockwarning", "lockwarnings.log")
+ACCOUNT_LOG_DIR = os.path.join(LOG_DIR, "accounts")
+CHANNEL_LOG_DIR = os.path.join(LOG_DIR, "channels")
+CHARACTER_LOG_DIR = os.path.join(LOG_DIR, "characters")
+
+log_files = [
+    SERVER_LOG_FILE,
+    PORTAL_LOG_FILE,
+    HTTP_LOG_FILE,
+    LOCKWARNING_LOG_FILE,
+    ACCOUNT_LOG_DIR,
+    CHANNEL_LOG_DIR,
+    CHARACTER_LOG_DIR,
+]
+for log_file in log_files:
+    log_dir = os.path.dirname(log_file)
+    os.makedirs(log_dir, exist_ok=True)
 
 # Determine how many commands per second a given Session is allowed
 # to send to the Portal via a connected protocol. Too high rate will
@@ -145,14 +174,14 @@ MULTISESSION_MODE = 3
 # Whether we should create a character with the same name as the account when
 # a new account is created. Together with AUTO_PUPPET_ON_LOGIN, this mimics
 # a legacy MUD, where there is no difference between account and character.
-AUTO_CREATE_CHARACTER_WITH_ACCOUNT = False
+AUTO_CREATE_CHARACTER_WITH_ACCOUNT = True
 # Whether an account should auto-puppet the last puppeted puppet when logging in. This
 # will only work if the session/puppet combination can be determined (usually
 # MULTISESSION_MODE 0 or 1), otherwise, the player will end up OOC. Use
 # MULTISESSION_MODE=0, AUTO_CREATE_CHARACTER_WITH_ACCOUNT=True and this value to
 # mimic a legacy mud with minimal difference between Account and Character. Disable
 # this and AUTO_PUPPET to get a chargen/character select screen on login.
-AUTO_PUPPET_ON_LOGIN = False
+AUTO_PUPPET_ON_LOGIN = True
 # How many *different* characters an account can puppet *at the same time*. A value
 # above 1 only makes a difference together with MULTISESSION_MODE > 1.
 MAX_NR_SIMULTANEOUS_PUPPETS = None
@@ -235,7 +264,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"  # noqa: E501
     },
     # {
     #     "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
@@ -279,6 +308,6 @@ SERVER_SESSION_HANDLER_CLASS = "server.conf.sessionhandler.ServerSessionHandler"
 # Settings given in secret_settings.py override those in this file.
 ######################################################################
 try:
-    from server.conf.secret_settings import *
+    from server.conf.secret_settings import *  # noqa: F403
 except ImportError:
     print("secret_settings.py file not found or failed to import.")

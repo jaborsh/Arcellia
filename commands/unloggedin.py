@@ -7,6 +7,8 @@ from commands.command import Command
 
 _CONNECTION_SCREEN_MODULE = settings.CONNECTION_SCREEN_MODULE
 
+__all__ = ("CmdUnloggedinLook",)
+
 
 class CmdUnloggedinLook(Command):
     """

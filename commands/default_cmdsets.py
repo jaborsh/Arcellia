@@ -15,11 +15,30 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 """
 
 from evennia import default_cmds
-from evennia.commands.default import help as default_help
-from evennia.commands.default import system as default_system
-from evennia.contrib.utils.git_integration import git_integration as git
 
-from commands import account, admin, unloggedin
+from commands import (
+    account,
+    admin,
+    comms,
+    developer,
+    general,
+    git,
+    help,
+    system,
+    unloggedin,
+)
+from commands.building import building
+
+
+def add_modules(self, modules):
+    """
+    Add all commands from modules passed by argument.
+    """
+    for module_group in modules.values():
+        for module in module_group:
+            for cmd_name in module.__all__:
+                cmd_class = getattr(module, cmd_name)
+                self.add(cmd_class)
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):
@@ -36,34 +55,46 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         """
         Populates the cmdset
         """
-        # super().at_cmdset_creation()
+        modules = {
+            "Developer Modules": [developer, git],
+            "Admin Modules": [admin],
+            "Account Modules": [account],
+            "Comm Modules": [comms],
+            "Help Modules": [help],
+            "System Modules": [system],
+        }
+        add_modules(self, modules)
 
         # Developer Commands
-        self.add(default_system.CmdReload)
-        self.add(default_system.CmdReset)
-        self.add(default_system.CmdShutdown)
-        self.add(default_system.CmdPy)
-        self.add(git.CmdGit)
+        # self.add(admin.CmdQuell)
+        # self.add(default_admin.CmdPerm)
+        # self.add(default_system.CmdReload)
+        # self.add(default_system.CmdReset)
+        # self.add(default_system.CmdShutdown)
+        # self.add(default_system.CmdPy)
+        # self.add(git.CmdGit)
 
-        # Admin Commands
-        self.add(admin.CmdAnnounce)
-        self.add(admin.CmdEcho)
+        # # Admin Commands
+        # self.add(admin.CmdAnnounce)
+        # self.add(admin.CmdEcho)
+        # self.add(admin.CmdWatch)
 
-        # Account Commands
-        self.add(account.CmdConnect)
-        self.add(account.CmdCreate)
-        self.add(account.CmdDelete)
-        self.add(account.CmdDisconnect)
-        self.add(account.CmdOOCLook)
-        self.add(account.CmdOptions)
-        self.add(account.CmdPassword)
-        self.add(account.CmdSessions)
-        self.add(account.CmdQuell)
-        self.add(account.CmdQuit)
-        self.add(account.CmdWho)
+        # # Account Commands
+        # self.add(account.CmdCreate)
+        # self.add(account.CmdDelete)
+        # self.add(account.CmdDisconnect)
+        # self.add(account.CmdOOCLook)
+        # self.add(account.CmdOptions)
+        # self.add(account.CmdPassword)
+        # self.add(account.CmdPlay)
+        # self.add(account.CmdSessions)
+        # self.add(account.CmdSetMain)
 
-        # Help Command
-        self.add(default_help.CmdHelp)
+        # self.add(account.CmdQuit)
+        # self.add(account.CmdWho)
+
+        # # Help Command
+        # self.add(default_help.CmdHelp)
 
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
@@ -79,10 +110,8 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         """
         Populates the cmdset
         """
-        # super().at_cmdset_creation()
-        #
-        # any commands you add below will overload the default ones.
-        #
+        modules = {"Building Modules": [building], "General Modules": [general]}
+        add_modules(self, modules)
 
 
 class SessionCmdSet(default_cmds.SessionCmdSet):
@@ -101,10 +130,7 @@ class SessionCmdSet(default_cmds.SessionCmdSet):
         As and example we just add the empty base `Command` object.
         It prints some info.
         """
-        # super().at_cmdset_creation()
-        #
-        # any commands you add below will overload the default ones.
-        #
+        super().at_cmdset_creation()
 
 
 class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
@@ -119,8 +145,5 @@ class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
         """
         Populates the cmdset
         """
-        # super().at_cmdset_creation()
-        #
-        # any commands you add below will overload the default ones.
-        #
-        self.add(unloggedin.CmdUnloggedinLook())
+        modules = {"Unloggedin Modules": [unloggedin]}
+        add_modules(self, modules)
