@@ -3,17 +3,17 @@ import re
 from django.conf import settings
 from evennia import InterruptCommand
 from evennia.commands.default import building, system
-from evennia.contrib.base_systems import building_menu as building_contrib
 from evennia.locks.lockhandler import LockException
 from evennia.utils import class_from_module
-from evennia.utils.ansi import strip_ansi
 from evennia.utils.eveditor import EvEditor
 from evennia.utils.utils import inherits_from
+from parsing.colors import strip_ansi
 from server.conf import logger
 
 from commands.building import building_menu
 
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
+GOLD = "|#FFD700"
 
 __all__ = (
     "CmdBuild",
@@ -276,7 +276,7 @@ class CmdDestroy(building.CmdDestroy):
     key = "destroy"
 
 
-class CmdEdit(building_contrib.GenericBuildingCmd):
+class CmdEdit(COMMAND_DEFAULT_CLASS):
     """
     Syntax: edit <object>
 
@@ -296,6 +296,7 @@ class CmdEdit(building_contrib.GenericBuildingCmd):
     def func(self):
         caller = self.caller
         args = self.args.strip()
+
         if not args:
             obj = caller.location
         else:
@@ -305,9 +306,13 @@ class CmdEdit(building_contrib.GenericBuildingCmd):
             return
 
         if obj.typename == "Room":
-            menu = building_menu.RoomBuildingMenu(caller, obj)
+            width = self.client_width()
+            title = f"|w[Room Editor]{GOLD}--|n"
+            title = f"{GOLD}" + "-" * (width - len(strip_ansi(title))) + title
+            menu = building_menu.RoomBuildingMenu(caller, obj, title=title, width=width)
         else:
-            menu = building_menu.GenericBuildingMenu(caller, obj)
+            obj_name = obj.get_display_name(caller)
+            return self.msg(f"|r{obj_name} cannot be edited currently.|n")
 
         menu.open()
 
