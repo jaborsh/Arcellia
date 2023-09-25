@@ -291,6 +291,7 @@ class CmdEdit(COMMAND_DEFAULT_CLASS):
 
     key = "edit"
     aliases = ["redit"]
+    locks = "cmd:perm(edit) or perm(Builder)"
     help_category = "Building"
 
     def func(self):
