@@ -17,10 +17,10 @@ GOLD = "|#FFD700"
 
 __all__ = (
     "CmdBuild",
-    "CmdConnect",
     "CmdCopy",
     "CmdCpAttr",
     "CmdCreate",
+    "CmdCreateExit",
     "CmdDescribe",
     "CmdDestroy",
     "CmdEdit",  # building_menu
@@ -66,40 +66,6 @@ class CmdBuild(building.CmdDig):
 
     key = "build"
     aliases = ["dig"]
-
-
-class CmdConnect(building.CmdOpen):
-    """
-    Syntax: open <new exit>[;alias;alias..][:typeclass]
-            [ ,<return exit>[;alias;..][:typeclass]]] = <destination>
-
-    Handles the creation of exits. If a destination is given, the exit will
-    point there. The <return exist> argument sets up an exit at the destination
-    leading back to the current room. Destination name can be given both as a
-    #dbref and a name, if that name is globally unique.
-    """
-
-    key = "connect"
-
-    def parse(self):
-        super().parse()
-        self.location = self.caller.location
-        if not self.args or not self.rhs:
-            self.caller.msg(
-                "Syntax: connect <new exit>[;alias...][:typeclass]"
-                "[,<return exit>[;alias..][:typeclass]]] "
-                "= <destination>"
-            )
-            raise InterruptCommand
-        if not self.location:
-            self.caller.msg("You cannot create an exit from a None-location.")
-            raise InterruptCommand
-        self.destination = self.caller.search(self.rhs, global_search=True)
-        if not self.destination:
-            raise InterruptCommand
-        self.exit_name = self.lhs_objs[0]["name"]
-        self.exit_aliases = self.lhs_objs[0]["aliases"]
-        self.exit_typeclass = self.lhs_objs[0]["option"]
 
 
 class CmdCopy(building.CmdCopy):
@@ -158,6 +124,40 @@ class CmdCreate(building.CmdCreate):
     """
 
     key = "create"
+
+
+class CmdCreateExit(building.CmdOpen):
+    """
+    Syntax: createexit <new exit>[;alias;alias..][:typeclass]
+            [ ,<return exit>[;alias;..][:typeclass]]] = <destination>
+
+    Handles the creation of exits. If a destination is given, the exit will
+    point there. The <return exist> argument sets up an exit at the destination
+    leading back to the current room. Destination name can be given both as a
+    #dbref and a name, if that name is globally unique.
+    """
+
+    key = "createexit"
+
+    def parse(self):
+        super().parse()
+        self.location = self.caller.location
+        if not self.args or not self.rhs:
+            self.caller.msg(
+                "Syntax: open <new exit>[;alias...][:typeclass]"
+                "[,<return exit>[;alias..][:typeclass]]] "
+                "= <destination>"
+            )
+            raise InterruptCommand
+        if not self.location:
+            self.caller.msg("You cannot create an exit from a None-location.")
+            raise InterruptCommand
+        self.destination = self.caller.search(self.rhs, global_search=True)
+        if not self.destination:
+            raise InterruptCommand
+        self.exit_name = self.lhs_objs[0]["name"]
+        self.exit_aliases = self.lhs_objs[0]["aliases"]
+        self.exit_typeclass = self.lhs_objs[0]["option"]
 
 
 def _desc_load(caller):
