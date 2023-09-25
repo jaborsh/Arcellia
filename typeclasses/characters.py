@@ -15,6 +15,8 @@ from evennia.utils.utils import lazy_property, make_iter, to_str
 from parsing.text import grammarize
 from server.conf import logger
 
+from typeclasses import clothing
+
 from .objects import ObjectParent
 
 
@@ -369,3 +371,42 @@ class Character(ObjectParent, DefaultCharacter):
         watchers = self.ndb._watchers or []
         for watcher in watchers:
             watcher.msg(text=kwargs["text"])
+
+    def get_display_desc(self, looker, **kwargs):
+        """
+        Get the 'desc' component of the object description. Called by `return_appearance`.
+
+        Args:
+            looker (Object): Object doing the looking.
+            **kwargs: Arbitrary data for use when overriding.
+
+        Returns:
+            str: The desc display string.
+        """
+        desc = self.db.desc
+
+        outfit_list = []
+        # Append worn, uncovered clothing to the description
+        for garment in clothing.get_worn_clothes(self, exclude_covered=True):
+            wearstyle = garment.db.worn
+            if isinstance(wearstyle, str):
+                outfit_list.append(f"{garment.name}")  # ({wearstyle})")
+            else:
+                outfit_list.append(garment.name)
+
+        # Create outfit string
+        if outfit_list:
+            outfit = "Clothing: "
+            spacing = " " * len(outfit)
+            outfit += f"\n{spacing}".join(outfit_list)
+            # outfit = f"{self.get_display_name(looker, **kwargs)} is wearing {iter_to_str(outfit_list)}."
+        else:
+            outfit = f"{self.get_display_name(looker, **kwargs)} is wearing nothing."
+
+        # Add on to base description
+        if desc:
+            desc += f"\n\n{outfit}"
+        else:
+            desc = outfit
+
+        return desc

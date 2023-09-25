@@ -3,8 +3,15 @@ import re
 from django.conf import settings
 from evennia.commands.default import general, system
 from evennia.typeclasses.attributes import NickTemplateInvalid
-from evennia.utils import class_from_module, create, utils
+from evennia.utils import (
+    at_search_result,
+    class_from_module,
+    create,
+    inherits_from,
+    utils,
+)
 from server.conf import logger
+from typeclasses import clothing as clothing_typeclass
 
 from commands.command import Command
 
@@ -22,6 +29,7 @@ __all__ = [
     "CmdTell",
     "CmdTime",
     "CmdWhisper",
+    "CmdWear",
 ]
 
 
@@ -680,3 +688,92 @@ class CmdWhisper(Command):
         caller.at_say(
             whisper, msg_self=True, receivers=receivers or None, msg_type="whisper"
         )
+
+
+class CmdWear(Command):
+    """
+    Syntax: wear <obj> [wear style]
+
+    Examples:
+        wear red shirt
+        wear scarf wrapped loosely around the neck
+
+    All the clothes you are wearing appear in your description. If you provide
+    a style, the message you provide will be displayed after the clothing name.
+    """
+
+    key = "wear"
+    help_category = "General"
+
+    def func(self):
+        if not self.args:
+            self.caller.msg("Usage: wear <obj> [=] [wear style]")
+            return
+        if not self.rhs:
+            # check if the whole string is an object
+            clothing = self.caller.search(
+                self.lhs, candidates=self.caller.contents, quiet=True
+            )
+            if not clothing:
+                # split out the first word as the object and the rest as the wearstyle
+                argslist = self.lhs.split()
+                self.lhs = argslist[0]
+                self.rhs = " ".join(argslist[1:])
+                clothing = self.caller.search(self.lhs, candidates=self.caller.contents)
+            else:
+                # pass the result through the search-result hook
+                clothing = at_search_result(clothing, self.caller, self.lhs)
+
+        else:
+            # it had an explicit separator - just do a normal search for the lhs
+            clothing = self.caller.search(self.lhs, candidates=self.caller.contents)
+
+        if not clothing:
+            return
+        if not inherits_from(clothing, clothing_typeclass.Clothing):
+            self.caller.msg(f"{clothing.name} isn't something you can wear.")
+            return
+
+        if clothing.db.worn:
+            if not self.rhs:
+                # If no wearstyle was provided and the clothing is already being worn, do nothing
+                self.caller.msg(f"You're already wearing your {clothing.name}.")
+                return
+            elif len(self.rhs) > clothing_typeclass.WEARSTYLE_MAXLENGTH:
+                self.caller.msg(
+                    f"Please keep your wear style message to less than {clothing_typeclass.WEARSTYLE_MAXLENGTH} characters."
+                )
+                return
+            else:
+                # Adjust the wearstyle
+                clothing.db.worn = self.rhs
+                self.caller.location.msg_contents(
+                    f"$You() $conj(wear) {clothing.name} {self.rhs}.",
+                    from_obj=self.caller,
+                )
+                return
+
+        already_worn = clothing_typeclass.get_worn_clothes(self.caller)
+
+        # Enforce overall clothing limit.
+        if (
+            clothing_typeclass.CLOTHING_OVERALL_LIMIT
+            and len(already_worn) >= clothing_typeclass.CLOTHING_OVERALL_LIMIT
+        ):
+            self.caller.msg("You can't wear any more clothes.")
+            return
+
+        # Apply individual clothing type limits.
+        if clothing_type := clothing.db.type:
+            if clothing_type in clothing_typeclass.CLOTHING_TYPE_LIMIT:
+                type_count = clothing_typeclass.single_type_count(
+                    already_worn, clothing_type
+                )
+                if type_count >= clothing_typeclass.CLOTHING_TYPE_LIMIT[clothing_type]:
+                    self.caller.msg(
+                        "You can't wear any more clothes of the type '{clothing_type}'."
+                    )
+                    return
+
+        wearstyle = self.rhs or True
+        clothing.wear(self.caller, wearstyle)
