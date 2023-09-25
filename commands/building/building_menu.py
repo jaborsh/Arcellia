@@ -1,8 +1,11 @@
 from django.conf import settings
 from evennia.contrib.base_systems.building_menu import building_menu
 from parsing.colors import strip_ansi
+from server.conf import logger
 
 GOLD = "|#FFD700"
+
+width = settings.CLIENT_DEFAULT_WIDTH
 
 
 class BuildingMenuCmdSet(building_menu.BuildingMenuCmdSet):
@@ -198,6 +201,7 @@ class BuildingMenu(building_menu.BuildingMenu):
             if glance is None:
                 glance = "{obj." + attr + "}"
             if text is None:
+                global width
                 width = self.kwargs.get("width", settings.CLIENT_DEFAULT_WIDTH)
                 header_title = (
                     f"|w[{self.obj.key} {title.capitalize()} Editor]{GOLD}--|n"
@@ -283,8 +287,133 @@ class BuildingMenu(building_menu.BuildingMenu):
 
         self.caller.msg(text)
 
+    def open_submenu(self, submenu_class, submenu_obj, parent_keys=None):
+        """
+        Open a sub-menu, closing the current menu and opening the new one.
+
+        Args:
+            submenu_class (str): the submenu class as a Python path.
+            submenu_obj (Object): the object to give to the submenu.
+            parent_keys (list of str, optional): the parent keys when
+                    the submenu is closed.
+
+        Note:
+            When the user enters `@` in the submenu, she will go back to
+            the current menu, with the `parent_keys` set as its keys.
+            Therefore, you should set it on the keys of the choice that
+            should be opened when the user leaves the submenu.
+
+        Returns:
+            new_menu (BuildingMenu): the new building menu or None.
+
+        """
+        parent_keys = parent_keys or []
+        parents = list(self.parents)
+        parents.append(
+            (type(self).__module__ + "." + type(self).__name__, self.obj, parent_keys)
+        )
+        if self.caller.cmdset.has(BuildingMenuCmdSet):
+            self.caller.cmdset.remove(BuildingMenuCmdSet)
+
+        # Create the submenu
+        try:
+            building_menu = submenu_class(self.caller, submenu_obj, parents=parents)
+        except Exception:
+            logger.log_trace(
+                "An error occurred while creating building menu {}".format(
+                    repr(submenu_class)
+                )
+            )
+            return
+        else:
+            return building_menu.open()
+
 
 class RoomBuildingMenu(BuildingMenu):
     def init(self, room):
         self.add_choice("Key", "k", attr="key")
         self.add_choice_edit("description", key="d", attr="db.desc")
+        self.add_choice(
+            "exits", "e", glance=glance_exits, text=text_exits, on_nomatch=nomatch_exits
+        )
+
+
+# Menu functions
+def glance_exits(room):
+    """Show the room exits."""
+    if room.exits:
+        glance = ""
+        for exit in room.exits:
+            glance += f"\n  |y{exit.key}|n"
+
+        return glance
+
+    return "\n  |gNo exit yet|n"
+
+
+def text_exits(caller, room):
+    """Show the room exits in the choice itself."""
+    header = f"|w[Room Exit Editor]{GOLD}--|n"
+    header = f"{GOLD}" + "-" * (width - len(strip_ansi(header))) + header
+    text = header
+    text += "\n\nRoom exits:"
+    text += "\n Use |y@c|n to create a new exit."
+    text += "\n\nExisting exits:"
+    if room.exits:
+        for exit in room.exits:
+            text += f"\n  |y@e {exit.key}|n"
+            if exit.aliases.all():
+                text += " (|y{aliases}|n)".format(
+                    aliases="|n, |y".join(alias for alias in exit.aliases.all())
+                )
+            if exit.destination:
+                text += f" toward {exit.get_display_name(caller)}"
+        border = f"{GOLD}" + "-" * width + "|n"
+        text += "\n\n" + border + "\n"
+        text += "Select Edit Option [|y@|n to return]:"
+    else:
+        text += "\n\n |gNo exit has yet been defined.|n"
+
+    return text
+
+
+def nomatch_exits(menu, caller, room, string):
+    """
+    The user typed something in the list of exits.  Maybe an exit name?
+    """
+    string = string[3:]
+    exit = caller.search(string, candidates=room.exits)
+    if exit is None:
+        return
+
+    # Open a sub-menu, using nested keys
+    title = f"|w[{exit.key.capitalize()} Exit Editor]{GOLD}--|n"
+    border = f"{GOLD}" + "-" * (width - len(strip_ansi(title))) + title
+    caller.msg(f"{border}")
+    menu.open_submenu(ExitBuildingMenu, exit, parent_keys=["e"])
+    return False
+
+
+class ExitBuildingMenu(BuildingMenu):
+    """
+    Building menu to edit an exit.
+    """
+
+    def init(self, exit):
+        self.add_choice("key", key="k", attr="key", glance="{obj.key}")
+        self.add_choice_edit("description", "d")
+
+    def display(self):
+        """Display the entire menu or a single choice, depending on the keys."""
+        choice = self.current_choice
+        if self.keys and choice:
+            if choice.key == "q":
+                return
+            text = choice.format_text()
+        else:
+            text = "\n\n".join(
+                self.display_choice(choice) for choice in self.relevant_choices
+            )
+            text = f"\n{text}\n\n{self.footer}\nSelect Edit Option [|y@|n to return]: "
+
+        self.caller.msg(text)

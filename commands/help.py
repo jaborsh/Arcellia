@@ -144,7 +144,8 @@ class CmdHelp(default_help.CmdHelp):
         if cmd_grid and db_grid:
             help_index = f"{sep1}\n{cmd_grid}\n{sep2}\n{db_grid}"
         else:
-            help_index = f"{cmd_grid}{db_grid}{footer}"
+            print(cmd_grid)
+            help_index = f"{cmd_grid}{db_grid}\n{footer}"
 
         return help_index
 
