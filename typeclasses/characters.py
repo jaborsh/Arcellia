@@ -11,6 +11,7 @@ import os
 
 from django.conf import settings
 from evennia.objects.objects import DefaultCharacter
+from evennia.utils import iter_to_str
 from evennia.utils.utils import lazy_property, make_iter, to_str
 from parsing.text import grammarize
 from server.conf import logger
@@ -390,16 +391,16 @@ class Character(ObjectParent, DefaultCharacter):
         for garment in clothing.get_worn_clothes(self, exclude_covered=True):
             wearstyle = garment.db.worn
             if isinstance(wearstyle, str):
-                outfit_list.append(f"{garment.name}")  # ({wearstyle})")
+                outfit_list.append(f"{garment.name} {wearstyle}")
             else:
                 outfit_list.append(garment.name)
 
         # Create outfit string
         if outfit_list:
-            outfit = "Clothing: "
-            spacing = " " * len(outfit)
-            outfit += f"\n{spacing}".join(outfit_list)
-            # outfit = f"{self.get_display_name(looker, **kwargs)} is wearing {iter_to_str(outfit_list)}."
+            # outfit = "Clothing: "
+            # spacing = " " * len(outfit)
+            # outfit += f"\n{spacing}".join(outfit_list)
+            outfit = f"{self.get_display_name(looker, **kwargs)} is wearing {iter_to_str(outfit_list)}."
         else:
             outfit = f"{self.get_display_name(looker, **kwargs)} is wearing nothing."
 

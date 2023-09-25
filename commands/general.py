@@ -7,6 +7,7 @@ from evennia.utils import (
     at_search_result,
     class_from_module,
     create,
+    evtable,
     inherits_from,
     utils,
 )
@@ -452,12 +453,57 @@ class CmdGive(general.CmdGive):
             to_give.at_give(caller, target)
 
 
-class CmdInventory(general.CmdInventory):
+class CmdInventory(Command):
     """
-    Syntax: i
+    Syntax: inventory
 
     Shows your inventory.
     """
+
+    # Alternate version of the inventory command which separates
+    # worn and carried items.
+
+    key = "inventory"
+    aliases = ["inv", "i"]
+    locks = "cmd:all()"
+    arg_regex = r"$"
+
+    def func(self):
+        """check inventory"""
+        if not self.caller.contents:
+            self.caller.msg("You are not carrying or wearing anything.")
+            return
+
+        message_list = []
+
+        items = self.caller.contents
+
+        carry_table = evtable.EvTable(border="header")
+        wear_table = evtable.EvTable(border="header")
+
+        carried = [obj for obj in items if not obj.db.worn]
+        worn = [obj for obj in items if obj.db.worn]
+
+        message_list.append("|wYou are carrying:|n")
+        for item in carried:
+            carry_table.add_row(
+                item.get_display_name(self.caller), item.get_display_desc(self.caller)
+            )
+        if carry_table.nrows == 0:
+            carry_table.add_row("Nothing.", "")
+        message_list.append(str(carry_table))
+
+        message_list.append("|wYou are wearing:|n")
+        for item in worn:
+            item_name = item.get_display_name(self.caller)
+            if item.db.covered_by:
+                item_name += " (hidden)"
+            wear_table.add_row(item_name, item.get_display_desc(self.caller))
+        if wear_table.nrows == 0:
+            wear_table.add_row("Nothing.", "")
+        message_list.append(str(wear_table))
+
+        self.caller.msg("\n".join(message_list))
 
 
 class CmdLook(general.CmdLook):
@@ -467,6 +513,32 @@ class CmdLook(general.CmdLook):
 
     Observes your location or objects in your vicinity.
     """
+
+
+class CmdRemove(Command):
+    """
+    Syntax: remove <obj>
+
+    Removes an item of clothing you are wearing. You can't remove
+    clothes that are covered up by something else - you must take
+    off the covering item first.
+    """
+
+    key = "remove"
+    help_category = "clothing"
+
+    def func(self):
+        clothing = self.caller.search(self.args, candidates=self.caller.contents)
+        if not clothing:
+            self.caller.msg("You don't have anything like that.")
+            return
+        if not clothing.db.worn:
+            self.caller.msg("You're not wearing that!")
+            return
+        if covered := clothing.db.covered_by:
+            self.caller.msg(f"You have to take off {covered} first.")
+            return
+        clothing.remove(self.caller)
 
 
 class CmdSay(Command):
