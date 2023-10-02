@@ -843,6 +843,9 @@ class CmdTunnel(building.CmdTunnel):
     For more flexibility and power in creating rooms, use dig.
     """
 
+    key = "tunnel"
+    aliases = "tun"
+
     # store the direction, full name and its opposite
     directions = {
         "n": ("north", "s"),
