@@ -37,6 +37,10 @@ class ClothingHandler:
 
         self._load()
 
+    # Overloading the __call__ function so that .get() is the default call.
+    def __call__(self, exclude_covered=False):
+        return self.get(exclude_covered=exclude_covered)
+
     def _load(self):
         self.clothes = self.obj.attributes.get(
             "clothes", default=self.default, category="clothes"
@@ -51,16 +55,19 @@ class ClothingHandler:
         self._save()
 
     def get(self, exclude_covered=False):
-        clothing = [
-            value
-            for key, value in self.clothes.items()
-            if value and (not value.covered_by or not exclude_covered)
-        ]
+        # Flatten the list of clothing articles
+        flat_clothes = [item for sublist in self.clothes.values() for item in sublist]
 
-        clothing = sorted(
-            clothing, key=lambda x: CLOTHING_TYPE_ORDER.index(x.clothing_type)
+        # Optionally exclude covered clothes
+        if exclude_covered:
+            flat_clothes = [item for item in flat_clothes if not item.covered_by]
+
+        # Sort the clothes according to the defined order
+        sorted_clothes = sorted(
+            flat_clothes, key=lambda x: CLOTHING_TYPE_ORDER.index(x.clothing_type)
         )
-        return clothing
+
+        return sorted_clothes
 
     def remove(self, clothing):
         self.clothes[clothing.clothing_type].remove(clothing)
@@ -123,8 +130,8 @@ CLOTHING_TYPE_ORDER = [
 class Clothing(Object):
     def at_object_creation(self):
         super().at_object_creation()
-        self.db.clothing_type = None
-        self.db.covered_by = []
+        # self.db.clothing_type = None
+        # self.db.covered_by = []
 
     @property
     def clothing_type(self):
@@ -140,7 +147,11 @@ class Clothing(Object):
         """
         return self.attributes.get("covered_by", [])
 
-    def at_remove(self, wearer, quiet=False):
+    @covered_by.setter
+    def covered_by(self, value):
+        value.is_typeclass(Clothing)
+
+    def remove(self, wearer, quiet=False):
         """
         Removed worn clothes and optionally echoes to the room.
 
@@ -148,8 +159,25 @@ class Clothing(Object):
             wearer (obj): object wearing this clothing object.
             quiet (bool): if true, don't echo to the room.
         """
+        uncovered = []
 
-    def at_wear(self, wearer, wearstyle, quiet=False):
+        # Check to see if any other clothes are covered by this object.
+        for article in wearer.clothes.get():
+            if article.covered_by == self:
+                article.covered_by.remove(self)
+                uncovered.append(article)
+
+        # Remove the clothes from the wearer.
+        wearer.clothes.get().remove(self)
+
+        # Echo a message to the room
+        if not quiet:
+            remove_message = f"$You() $conj(remove) {self.name}"
+            if len(uncovered) > 0:
+                remove_message += f", revealing {iter_to_str(uncovered)}"
+            wearer.location.msg_contents(remove_message + ".", from_obj=wearer)
+
+    def wear(self, wearer, wearstyle, quiet=False):
         """
         Sets clothes to be worn and optionally echoes to the room.
 

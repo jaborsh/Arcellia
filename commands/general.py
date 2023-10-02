@@ -26,6 +26,7 @@ __all__ = [
     "CmdGive",
     "CmdInventory",
     "CmdLook",
+    "CmdRemove",
     "CmdSay",
     "CmdTell",
     "CmdTime",
@@ -481,8 +482,8 @@ class CmdInventory(Command):
         carry_table = evtable.EvTable(border="header")
         wear_table = evtable.EvTable(border="header")
 
-        carried = [obj for obj in items if not obj.db.worn]
-        worn = [obj for obj in items if obj.db.worn]
+        carried = [obj for obj in items if obj not in self.caller.clothes]
+        worn = [obj for obj in items if obj in self.caller.clothes]
 
         message_list.append("|wYou are carrying:|n")
         for item in carried:
@@ -532,11 +533,13 @@ class CmdRemove(Command):
         if not clothing:
             self.caller.msg("You don't have anything like that.")
             return
-        if not clothing.db.worn:
+        if clothing not in self.caller.clothes.get():
             self.caller.msg("You're not wearing that!")
             return
-        if covered := clothing.db.covered_by:
-            self.caller.msg(f"You have to take off {covered} first.")
+        if clothing.covered_by:
+            self.caller.msg(
+                f"You have to take off {', '.join(clothing.covered_by)} first."
+            )
             return
         clothing.remove(self.caller)
 
@@ -806,7 +809,7 @@ class CmdWear(Command):
             self.caller.msg(f"{clothing.name} isn't something you can wear.")
             return
 
-        if clothing.db.worn:
+        if clothing in self.caller.clothes.get():
             if not self.rhs:
                 # If no wearstyle was provided and the clothing is already being worn, do nothing
                 self.caller.msg(f"You're already wearing your {clothing.name}.")
