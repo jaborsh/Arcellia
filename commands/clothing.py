@@ -71,7 +71,7 @@ class CmdTailor(Command):
 
     def func(self):
         caller = self.caller
-        args = self.args.strip()
+        args = self.args.strip()[0].upper() + self.args.strip()[1:]
 
         if not args:
             caller.msg("What would you like to tailor?")
