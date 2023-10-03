@@ -89,11 +89,24 @@ class CmdTailor(Command):
         if aliases:
             aliases = [strip_ansi(alias.strip()) for alias in aliases.split(",")]
 
-        clothing_type = yield (f"What type of clothing is it?\n{self._type_list()}")
-        clothing_type = self.map_type(clothing_type)
-        if not clothing_type:
-            caller.msg("|rAborting|n: You must specify a valid clothing type.")
-            return
+        clothing_type = yield (
+            f"What type of clothing is it?\n{self._type_list()}\nClothing Type Selection: "
+        )
+
+        if isinstance(clothing_type, int):
+            # Try to parse the input as an index
+            idx = int(clothing_type) - 1
+            if idx >= 0 and idx < len(ClothingType):
+                clothing_type = list(ClothingType)[idx]
+            else:
+                caller.msg("|rAborting|n: Index out of range.")
+                return
+        else:
+            # Try to map the input to a clothing type
+            clothing_type = self.map_type(clothing_type)
+            if not clothing_type:
+                caller.msg("|rAborting|n: You must specify a valid clothing type.")
+                return
 
         lockstring = self.new_obj_lockstring.format(id=caller.id)
         clothing = create.create_object(
