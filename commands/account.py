@@ -563,9 +563,7 @@ class CmdWho(Command):
         header_string = f"{self.get_header(width)}\n"
         header_string += f"{self.get_time_display(width)}\n"
         header_string += f"{self.get_admin_display(width)}\n"
-        header_string += (
-            f"{self.format_admin('Jake - Developer', 'Jeanne - Writer', width)}\n"
-        )
+        header_string += f"{self.format_admin(['Jake', 'Jeanne', 'Shawn'], width)}\n"
         header_string += f"{self.get_player_display(width)}"
 
         return header_string
@@ -587,17 +585,34 @@ class CmdWho(Command):
             " |r[ Administrators ]|n ", width=width + 4, align="c", fillchar="-"
         )
 
-    def format_admin(self, name1, name2, width):
-        total_names_length = len(name1) + len(name2)
+    def format_admin(self, names, width):
+        # Calculate the total length of the names
+        total_names_length = sum(len(name) for name in names)
 
-        # Calculate the remaining space after placing the names
+        # Calculate the number of gaps between the names, and add 2 for the margins
+        num_gaps = len(names) - 1 + 2
+
+        # Calculate the total available space
         remaining_space = width - total_names_length
 
-        # Calculate the spaces for left, middle and right
-        left_right_space = remaining_space // 3
-        middle_space = remaining_space - (2 * left_right_space)
+        if remaining_space <= 0:
+            return " ".join(names)[:width]  # Truncate if it doesn't fit
 
-        formatted_string = " " * left_right_space + name1 + " " * middle_space + name2
+        # Calculate the gap size, which will also be the margin size
+        gap = remaining_space // num_gaps
+
+        # Calculate any extra spaces that can't be evenly distributed
+        extra_space = remaining_space % num_gaps
+
+        # Create the formatted string with the left margin
+        formatted_string = " " * gap + names[0]
+        for name in names[1:]:
+            this_gap = gap + (1 if extra_space > 0 else 0)
+            formatted_string += " " * this_gap + name
+            extra_space -= 1
+
+        # Add the right margin
+        formatted_string += " " * gap
 
         return formatted_string
 
