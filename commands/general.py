@@ -553,11 +553,6 @@ class CmdRemove(Command):
         if clothing not in caller.clothes.all():
             caller.msg("You're not wearing that!")
             return
-        if clothing.covered_by:
-            caller.msg(
-                f"You have to take off {', '.join(clothing.covered_by.get_display_name(caller))} first."
-            )
-            return
         clothing.remove(caller)
 
 
@@ -803,9 +798,11 @@ class CmdWear(Command):
             caller.msg("Usage: wear <obj>")
             return
 
-        clothing = caller.search(args, candidates=caller.contents, quiet=True)[0]
+        clothing = caller.search(args, candidates=caller.contents, quiet=True)
         if not clothing:
+            caller.msg("You don't have anything like that.")
             return
+        clothing = clothing[0]
 
         if not inherits_from(clothing, Clothing):
             caller.msg(

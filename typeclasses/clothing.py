@@ -1,6 +1,5 @@
 from enum import Enum
 
-from evennia.utils import iter_to_str
 from evennia.utils.utils import lazy_property
 
 from typeclasses.objects import Object
@@ -31,9 +30,10 @@ class ClothingHandler:
         if exclude_covered:
             clothes = [item for item in self.clothes if not item.covered_by]
 
-        # Sort the clothes according to the defined order
+        # Sort the clothes according to the defined order, accounting for potential None values
         sorted_clothes = sorted(
-            clothes, key=lambda x: CLOTHING_TYPE_ORDER.index(x.clothing_type)
+            [item for item in clothes if item is not None],
+            key=lambda x: CLOTHING_TYPE_ORDER.index(x.clothing_type),
         )
 
         return sorted_clothes
@@ -72,15 +72,25 @@ class ClothingType(Enum):
 
 # Articles that are automatically concealed by their key clothing type.
 CLOTHING_TYPE_COVER = {
+    ClothingType.HEADWEAR: [],
+    ClothingType.EYEWEAR: [],
+    ClothingType.EARRING: [],
+    ClothingType.NECKWEAR: [],
+    ClothingType.UNDERSHIRT: [],
+    ClothingType.TOP: [ClothingType.UNDERSHIRT],
     ClothingType.FULLBODY: [
         ClothingType.TOP,
         ClothingType.UNDERSHIRT,
         ClothingType.BELT,
         ClothingType.BOTTOM,
     ],
-    ClothingType.TOP: [ClothingType.UNDERSHIRT],
+    ClothingType.WRISTWEAR: [],
     ClothingType.HANDWEAR: [ClothingType.RING],
+    ClothingType.RING: [],
+    ClothingType.BELT: [],
+    ClothingType.UNDERWEAR: [],
     ClothingType.BOTTOM: [ClothingType.UNDERWEAR],
+    ClothingType.FOOTWEAR: [],
 }
 
 # The order in which clothing types appear on the description.
@@ -124,6 +134,10 @@ class Clothing(Object):
         """
         return self.attributes.get("covered_by", [])
 
+    @covered_by.setter
+    def covered_by(self, value: list):
+        self.db.covered_by = value
+
     @property
     def display_name(self):
         """
@@ -158,7 +172,7 @@ class Clothing(Object):
         }
         return position_map.get(self.clothing_type, "on body")
 
-    def remove(self, wearer, quiet=False):
+    def remove(self, wearer):
         """
         Removed worn clothes and optionally echoes to the room.
 
@@ -170,21 +184,23 @@ class Clothing(Object):
 
         # Check to see if any other clothes are covered by this object.
         for article in wearer.clothes.all():
-            if article.covered_by == self:
+            if self in article.covered_by:
                 article.covered_by.remove(self)
                 uncovered.append(article)
+
+        # Remove the clothes from the covered_by list.
+        self.covered_by = []
 
         # Remove the clothes from the wearer.
         wearer.clothes.remove(self)
 
-        # Echo a message to the room
-        if not quiet:
-            remove_message = f"$You() $conj(remove) {self.get_display_name(wearer)}"
-            if len(uncovered) > 0:
-                remove_message += f", revealing {iter_to_str(uncovered)}"
-            wearer.location.msg_contents(remove_message + ".", from_obj=wearer)
+        message = f"$You() $conj(remove) {self.get_display_name(wearer)}"
+        if len(uncovered) > 0:
+            message += f", revealing {', '.join([article.get_display_name(wearer) for article in uncovered])}"
 
-    def wear(self, wearer, quiet=False):
+        wearer.location.msg_contents(message + ".", from_obj=wearer)
+
+    def wear(self, wearer):
         """
         Sets clothes to be worn and optionally echoes to the room.
 
@@ -194,21 +210,20 @@ class Clothing(Object):
             quiet (bool): if true, don't echo to the room.
         """
 
-        wearer.clothes.wear(self)
-
         # Auto-cover appropriately
         covering = []
-        if self.clothing_type in CLOTHING_TYPE_COVER:
-            wearer_clothes = wearer.clothes.all()
-            for article in wearer_clothes:
-                if article.clothing_type in CLOTHING_TYPE_COVER[self.clothing_type]:
-                    article.covered_by.append(self)
-                    covering.append(article)
+        wearer_clothes = wearer.clothes.all()
+        for article in wearer_clothes:
+            if article.clothing_type in CLOTHING_TYPE_COVER[self.clothing_type]:
+                article.covered_by.append(self)
+                covering.append(article)
+            elif self.clothing_type in CLOTHING_TYPE_COVER[article.clothing_type]:
+                self.covered_by.append(article)
 
-        # Echo to the room.
-        if not quiet:
-            message = f"$You() $conj(wear) {self.get_display_name(wearer)}"
-            if covering:
-                message += f", covering {iter_to_str(covering)}"
+        wearer.clothes.wear(self)
 
-            wearer.location.msg_contents(message + ".", from_obj=wearer)
+        message = f"$You() $conj(wear) {self.get_display_name(wearer)}"
+        if covering:
+            message += f", covering {', '.join([article.get_display_name(wearer) for article in covering])}"
+
+        wearer.location.msg_contents(message + ".", from_obj=wearer)
