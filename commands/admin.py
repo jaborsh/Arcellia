@@ -382,6 +382,7 @@ class CmdWatch(Command):
             caller.ndb._watching.ndb._watchers.remove(caller)
             self.msg(f"You stop watching {caller.ndb._watching}.")
             caller.ndb._watching = None
+            return
         elif not self.args:
             self.msg("Syntax: watch <character>")
             return

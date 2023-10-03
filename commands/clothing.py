@@ -43,6 +43,11 @@ class CmdTailor(Command):
         "control:id({id}) or perm(Admin);delete:id({id}) or perm(Admin)"
     )
 
+    def _type_list(self):
+        return "\n ".join(
+            [f"{idx + 1}. {t.value}" for idx, t in enumerate(ClothingType)]
+        )
+
     def map_type(self, clothing_type):
         type_map = {
             "headwear": ClothingType.HEADWEAR,
