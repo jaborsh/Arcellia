@@ -425,7 +425,7 @@ class Character(objects.ObjectParent, DefaultCharacter):
                 except Exception:
                     text = repr(text)
 
-            if kwargs.get("wrap", "say"):
+            if kwargs.get("wrap") == "say":
                 msg = text[0]
                 pre_text = msg.split('"')[0] + '"'
                 msg = '"'.join(msg.split('"')[1:])
