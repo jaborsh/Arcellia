@@ -44,8 +44,8 @@ class CmdTailor(Command):
     )
 
     def _type_list(self):
-        return "\n ".join(
-            [f"{idx + 1}. {t.value}" for idx, t in enumerate(ClothingType)]
+        return "\n".join(
+            [f" {idx + 1}. {t.value}" for idx, t in enumerate(ClothingType)]
         )
 
     def map_type(self, clothing_type):
