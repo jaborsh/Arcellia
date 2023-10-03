@@ -37,7 +37,6 @@ class Character(objects.ObjectParent, DefaultCharacter):
     at_pre_puppet - Just before Account re-connects, retrieves the character's
                     pre_logout_location Attribute and move it back on the grid.
     at_post_puppet - Echoes "AccountName has entered the game" to the room.
-
     """  # noqa: E501
 
     #################

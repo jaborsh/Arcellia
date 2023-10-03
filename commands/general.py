@@ -4,7 +4,6 @@ from django.conf import settings
 from evennia.commands.default import general, system
 from evennia.typeclasses.attributes import NickTemplateInvalid
 from evennia.utils import (
-    at_search_result,
     class_from_module,
     create,
     evtable,
@@ -12,7 +11,7 @@ from evennia.utils import (
     utils,
 )
 from server.conf import logger
-from typeclasses import clothing as clothing_typeclass
+from typeclasses.clothing import CLOTHING_OVERALL_LIMIT, Clothing
 
 from commands.command import Command
 
@@ -471,40 +470,43 @@ class CmdInventory(Command):
 
     def func(self):
         """check inventory"""
-        if not self.caller.contents:
-            self.caller.msg("You are not carrying or wearing anything.")
+        caller = self.caller
+        if not caller.contents:
+            caller.msg("You are not carrying or wearing anything.")
             return
 
         message_list = []
 
-        items = self.caller.contents
+        # Worn Clothing
+        message_list.append("|wClothing:|n")
+        message_list.append(self.create_table(caller.clothes.all(), "worn"))
 
-        carry_table = evtable.EvTable(border="header")
-        wear_table = evtable.EvTable(border="header")
+        # Carried Items
+        message_list.append("\n|wCarrying:|n")
+        carried_items = [
+            obj for obj in caller.contents if obj not in caller.clothes.all()
+        ]
+        message_list.append(self.create_table(carried_items, "carried"))
 
-        carried = [obj for obj in items if obj not in self.caller.clothes]
-        worn = [obj for obj in items if obj in self.caller.clothes]
+        caller.msg("\n".join(message_list))
 
-        message_list.append("|wYou are carrying:|n")
-        for item in carried:
-            carry_table.add_row(
-                item.get_display_name(self.caller), item.get_display_desc(self.caller)
-            )
-        if carry_table.nrows == 0:
-            carry_table.add_row("Nothing.", "")
-        message_list.append(str(carry_table))
+    def create_table(self, items, item_type):
+        table = evtable.EvTable(border="header")
+        for item in items:
+            if item_type == "worn":
+                text = (
+                    f"|x<worn {item.position}>|n {item.get_display_name(self.caller)}"
+                )
+                if item.covered_by:
+                    text += " |x(hidden)|n"
+            else:
+                text = item.get_display_name(self.caller)
 
-        message_list.append("|wYou are wearing:|n")
-        for item in worn:
-            item_name = item.get_display_name(self.caller)
-            if item.db.covered_by:
-                item_name += " (hidden)"
-            wear_table.add_row(item_name, item.get_display_desc(self.caller))
-        if wear_table.nrows == 0:
-            wear_table.add_row("Nothing.", "")
-        message_list.append(str(wear_table))
+            table.add_row(text)
 
-        self.caller.msg("\n".join(message_list))
+        if table.nrows == 0:
+            table.add_row("Nothing.", "")
+        return str(table)
 
 
 class CmdLook(general.CmdLook):
@@ -526,22 +528,24 @@ class CmdRemove(Command):
     """
 
     key = "remove"
+    aliases = ["rem"]
     help_category = "clothing"
 
     def func(self):
-        clothing = self.caller.search(self.args, candidates=self.caller.contents)
+        caller = self.caller
+        clothing = caller.search(self.args, candidates=self.caller.contents)
         if not clothing:
-            self.caller.msg("You don't have anything like that.")
+            caller.msg("You don't have anything like that.")
             return
-        if clothing not in self.caller.clothes.get():
-            self.caller.msg("You're not wearing that!")
+        if clothing not in caller.clothes.all():
+            caller.msg("You're not wearing that!")
             return
         if clothing.covered_by:
-            self.caller.msg(
-                f"You have to take off {', '.join(clothing.covered_by)} first."
+            caller.msg(
+                f"You have to take off {', '.join(clothing.covered_by.get_display_name(caller))} first."
             )
             return
-        clothing.remove(self.caller)
+        clothing.remove(caller)
 
 
 class CmdSay(Command):
@@ -767,11 +771,10 @@ class CmdWhisper(Command):
 
 class CmdWear(Command):
     """
-    Syntax: wear <obj> [wear style]
+    Syntax: wear <obj>
 
     Examples:
         wear red shirt
-        wear scarf wrapped loosely around the neck
 
     All the clothes you are wearing appear in your description. If you provide
     a style, the message you provide will be displayed after the clothing name.
@@ -781,74 +784,31 @@ class CmdWear(Command):
     help_category = "General"
 
     def func(self):
-        if not self.args:
-            self.caller.msg("Usage: wear <obj> [=] [wear style]")
+        caller = self.caller
+        args = self.args.strip()
+
+        if not args:
+            caller.msg("Usage: wear <obj>")
             return
-        if not self.rhs:
-            # check if the whole string is an object
-            clothing = self.caller.search(
-                self.lhs, candidates=self.caller.contents, quiet=True
-            )
-            if not clothing:
-                # split out the first word as the object and the rest as the wearstyle
-                argslist = self.lhs.split()
-                self.lhs = argslist[0]
-                self.rhs = " ".join(argslist[1:])
-                clothing = self.caller.search(self.lhs, candidates=self.caller.contents)
-            else:
-                # pass the result through the search-result hook
-                clothing = at_search_result(clothing, self.caller, self.lhs)
 
-        else:
-            # it had an explicit separator - just do a normal search for the lhs
-            clothing = self.caller.search(self.lhs, candidates=self.caller.contents)
-
+        clothing = caller.search(args, candidates=caller.contents, quiet=True)[0]
         if not clothing:
             return
-        if not inherits_from(clothing, clothing_typeclass.Clothing):
-            self.caller.msg(f"{clothing.name} isn't something you can wear.")
+
+        if not inherits_from(clothing, Clothing):
+            caller.msg(
+                f"{clothing.get_display_name(caller)} isn't something you can wear."
+            )
             return
 
-        if clothing in self.caller.clothes.get():
-            if not self.rhs:
-                # If no wearstyle was provided and the clothing is already being worn, do nothing
-                self.caller.msg(f"You're already wearing your {clothing.name}.")
-                return
-            elif len(self.rhs) > clothing_typeclass.WEARSTYLE_MAXLENGTH:
-                self.caller.msg(
-                    f"Please keep your wear style message to less than {clothing_typeclass.WEARSTYLE_MAXLENGTH} characters."
-                )
-                return
-            else:
-                # Adjust the wearstyle
-                clothing.db.worn = self.rhs
-                self.caller.location.msg_contents(
-                    f"$You() $conj(wear) {clothing.name} {self.rhs}.",
-                    from_obj=self.caller,
-                )
-                return
+        clothes = caller.clothes.all()
 
-        already_worn = clothing_typeclass.get_worn_clothes(self.caller)
-
-        # Enforce overall clothing limit.
-        if (
-            clothing_typeclass.CLOTHING_OVERALL_LIMIT
-            and len(already_worn) >= clothing_typeclass.CLOTHING_OVERALL_LIMIT
-        ):
-            self.caller.msg("You can't wear any more clothes.")
+        if clothing in clothes:
+            caller.msg("You are already wearing that.")
             return
 
-        # Apply individual clothing type limits.
-        if clothing_type := clothing.db.type:
-            if clothing_type in clothing_typeclass.CLOTHING_TYPE_LIMIT:
-                type_count = clothing_typeclass.single_type_count(
-                    already_worn, clothing_type
-                )
-                if type_count >= clothing_typeclass.CLOTHING_TYPE_LIMIT[clothing_type]:
-                    self.caller.msg(
-                        "You can't wear any more clothes of the type '{clothing_type}'."
-                    )
-                    return
+        if CLOTHING_OVERALL_LIMIT and len(clothes) >= CLOTHING_OVERALL_LIMIT:
+            caller.msg("You can't wear any more clothes.")
+            return
 
-        wearstyle = self.rhs or True
-        clothing.wear(self.caller, wearstyle)
+        clothing.wear(caller)

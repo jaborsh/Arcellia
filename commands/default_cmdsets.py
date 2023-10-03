@@ -19,6 +19,7 @@ from evennia import default_cmds
 from commands import (
     account,
     admin,
+    clothing,
     comms,
     developer,
     general,
@@ -110,7 +111,10 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         """
         Populates the cmdset
         """
-        modules = {"Building Modules": [building], "General Modules": [general]}
+        modules = {
+            "Building Modules": [building],
+            "General Modules": [clothing, general],
+        }
         add_modules(self, modules)
 
 
