@@ -601,7 +601,7 @@ class CmdSay(Command):
         if not speech:
             return
 
-        caller.at_say(speech, msg_self=True, receivers=receivers or None)
+        caller.at_say(speech, msg_self=True, receivers=receivers or None, width=self.client_width())
 
 
 class CmdTell(Command):

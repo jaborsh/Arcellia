@@ -12,7 +12,7 @@ import os
 from django.conf import settings
 from evennia.objects.objects import DefaultCharacter
 from evennia.utils.utils import lazy_property, make_iter, to_str
-from parsing.text import grammarize
+from parsing.text import grammarize, wrap
 from server.conf import logger
 
 from typeclasses import objects
@@ -257,6 +257,8 @@ class Character(objects.ObjectParent, DefaultCharacter):
             self.msg(
                 text=(msg_self.format_map(self_mapping), {"type": msg_type}),
                 from_obj=self,
+                wrap="say",
+                width=kwargs.get("width", None),
             )
 
         def construct_receiver_messages(
@@ -281,6 +283,8 @@ class Character(objects.ObjectParent, DefaultCharacter):
                         {"type": msg_type},
                     ),
                     from_obj=self,
+                    wrap="say",
+                    width=kwargs.get("width", None),
                 )
 
         def construct_location_message(
@@ -318,6 +322,8 @@ class Character(objects.ObjectParent, DefaultCharacter):
                         {"type": msg_type},
                     ),
                     from_obj=self,
+                    wrap="say",
+                    width=kwargs.get("width", None),
                 )
 
         msg_type = kwargs.get("msg_type", "say")
@@ -389,6 +395,7 @@ class Character(objects.ObjectParent, DefaultCharacter):
             any (string or tuples): All kwarg keys not listed above
                 will be treated as send-command names and their arguments
                 (which can be a string or a tuple).
+            wrap (string): The type of wrap
 
         Notes:
             `at_msg_receive` will be called on this Object.
@@ -417,6 +424,13 @@ class Character(objects.ObjectParent, DefaultCharacter):
                     text = to_str(text)
                 except Exception:
                     text = repr(text)
+
+            if kwargs.get("wrap", "say"):
+                msg = text[0]
+                pre_text = msg.split('"')[0] + '"'
+                msg = '"'.join(msg.split('"')[1:])
+                msg = wrap(msg, text_width=kwargs.get("width", None), pre_text=pre_text)
+                text = msg
             kwargs["text"] = text
 
         # relay to session(s)
