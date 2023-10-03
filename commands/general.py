@@ -3,8 +3,15 @@ import re
 from django.conf import settings
 from evennia.commands.default import general, system
 from evennia.typeclasses.attributes import NickTemplateInvalid
-from evennia.utils import class_from_module, create, utils
+from evennia.utils import (
+    class_from_module,
+    create,
+    inherits_from,
+    utils,
+)
+from parsing.colors import strip_ansi
 from server.conf import logger
+from typeclasses.clothing import CLOTHING_OVERALL_LIMIT, Clothing
 
 from commands.command import Command
 
@@ -18,10 +25,12 @@ __all__ = [
     "CmdGive",
     "CmdInventory",
     "CmdLook",
+    "CmdRemove",
     "CmdSay",
     "CmdTell",
     "CmdTime",
     "CmdWhisper",
+    "CmdWear",
 ]
 
 
@@ -444,12 +453,74 @@ class CmdGive(general.CmdGive):
             to_give.at_give(caller, target)
 
 
-class CmdInventory(general.CmdInventory):
+class CmdInventory(Command):
     """
-    Syntax: i
+    Syntax: inventory
 
     Shows your inventory.
     """
+
+    # Alternate version of the inventory command which separates
+    # worn and carried items.
+
+    key = "inventory"
+    aliases = ["inv", "i"]
+    locks = "cmd:all()"
+    arg_regex = r"$"
+    max_length = 0
+
+    def func(self):
+        """check inventory"""
+        caller = self.caller
+        if not caller.contents:
+            caller.msg("You are not carrying or wearing anything.")
+            return
+
+        worn_table = self.create_table(caller.clothes.all(), "Clothing")
+        carried_items = [
+            obj for obj in caller.contents if obj not in caller.clothes.all()
+        ]
+        carried_table = self.create_table(carried_items, "Carrying")
+        header = self.create_header(caller)
+        footer = self.create_footer()
+
+        caller.msg(f"{header}{worn_table}{carried_table}{footer}")
+
+    def create_header(self, caller):
+        width = self.max_length
+        header = "|x" + "-" * width + "|n"
+        title = "|C" + "Inventory".center(width) + "|n"
+        weight_line = "|C" + "Weight: 0 / 0".center(width) + "|n"
+        item_count_line = (
+            "|C" + f"Number of Items: {len(caller.contents)}".center(width) + "|n"
+        )
+
+        return f"{header}\n{title}\n{weight_line}\n{item_count_line}\n{header}"
+
+    def create_table(self, items, item_type):
+        if not items:
+            return ""
+
+        output = [f"|w{item_type}:|n"]
+
+        if item_type == "Clothing":
+            max_position = max([len(item.position) for item in items]) + 8
+            for item in items:
+                spaces = " " * (max_position - len(f"<worn {item.position}>"))
+                line = f"|x<worn {item.position}>|n{spaces}{item.get_display_name(self.caller)}"
+                if item.covered_by:
+                    line += " |x(hidden)|n"
+                output.append(line)
+        else:
+            output.extend([item.get_display_name(self.caller) for item in items])
+
+        max_line_length = max([len(strip_ansi(line)) for line in output])
+        self.max_length = max(max_line_length, self.max_length) + 1
+
+        return "\n" + "\n ".join(output) + "\n"
+
+    def create_footer(self):
+        return "|x" + "-" * self.max_length + "|n"
 
 
 class CmdLook(general.CmdLook):
@@ -459,6 +530,35 @@ class CmdLook(general.CmdLook):
 
     Observes your location or objects in your vicinity.
     """
+
+
+class CmdRemove(Command):
+    """
+    Syntax: remove <obj>
+
+    Removes an item of clothing you are wearing. You can't remove
+    clothes that are covered up by something else - you must take
+    off the covering item first.
+    """
+
+    key = "remove"
+    aliases = ["rem"]
+
+    def func(self):
+        caller = self.caller
+        clothing = caller.search(self.args, candidates=self.caller.contents)
+        if not clothing:
+            caller.msg("You don't have anything like that.")
+            return
+        if clothing not in caller.clothes.all():
+            caller.msg("You're not wearing that!")
+            return
+        if clothing.covered_by:
+            caller.msg(
+                f"You have to take off {', '.join(clothing.covered_by.get_display_name(caller))} first."
+            )
+            return
+        clothing.remove(caller)
 
 
 class CmdSay(Command):
@@ -680,3 +780,47 @@ class CmdWhisper(Command):
         caller.at_say(
             whisper, msg_self=True, receivers=receivers or None, msg_type="whisper"
         )
+
+
+class CmdWear(Command):
+    """
+    Syntax: wear <obj>
+
+    Examples:
+        wear red shirt
+
+    All the clothes you are wearing appear in your description. If you provide
+    a style, the message you provide will be displayed after the clothing name.
+    """
+
+    key = "wear"
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+
+        if not args:
+            caller.msg("Usage: wear <obj>")
+            return
+
+        clothing = caller.search(args, candidates=caller.contents, quiet=True)[0]
+        if not clothing:
+            return
+
+        if not inherits_from(clothing, Clothing):
+            caller.msg(
+                f"{clothing.get_display_name(caller)} isn't something you can wear."
+            )
+            return
+
+        clothes = caller.clothes.all()
+
+        if clothing in clothes:
+            caller.msg("You are already wearing that.")
+            return
+
+        if CLOTHING_OVERALL_LIMIT and len(clothes) >= CLOTHING_OVERALL_LIMIT:
+            caller.msg("You can't wear any more clothes.")
+            return
+
+        clothing.wear(caller)

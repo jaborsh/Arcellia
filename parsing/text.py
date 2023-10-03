@@ -57,7 +57,7 @@ def grammarize(message):
     message = re.sub(r" ([.,;!?])", r"\1", message)
 
     # Add period if the message doesn't end with one
-    if not message.endswith("."):
+    if not message.endswith(("?", "!", ".", '"', "'")):
         message += "."
 
     # Capitalize the beginning of each sentence

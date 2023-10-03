@@ -15,10 +15,11 @@ from evennia.utils.utils import lazy_property, make_iter, to_str
 from parsing.text import grammarize
 from server.conf import logger
 
-from .objects import ObjectParent
+from typeclasses import objects
+from typeclasses.clothing import ClothingHandler
 
 
-class Character(ObjectParent, DefaultCharacter):
+class Character(objects.ObjectParent, DefaultCharacter):
     """
     The Character defaults to reimplementing some of base Object's hook methods with the
     following functionality:
@@ -36,9 +37,11 @@ class Character(ObjectParent, DefaultCharacter):
     at_pre_puppet - Just before Account re-connects, retrieves the character's
                     pre_logout_location Attribute and move it back on the grid.
     at_post_puppet - Echoes "AccountName has entered the game" to the room.
-
     """  # noqa: E501
 
+    #################
+    # Initial Setup #
+    #################
     def at_object_creation(self):
         self.create_log_folder()
         self.locks.add("msg:all()")
@@ -55,6 +58,13 @@ class Character(ObjectParent, DefaultCharacter):
     def log_folder(self):
         return self.attributes.get("_log_folder", f"characters/{self.key.lower()}/")
 
+    @lazy_property
+    def clothes(self):
+        return ClothingHandler(self)
+
+    #########
+    # Hooks #
+    #########
     def at_pre_emote(self, message, **kwargs):
         """
         Before the object emotes something.
