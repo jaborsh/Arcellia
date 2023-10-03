@@ -78,7 +78,7 @@ class CmdTailor(Command):
             f"|Y{caller} begins to tailor some clothing.|n", exclude=caller
         )
 
-        description = yield (f"Describe the {args}:")
+        description = yield (f"Describe the {args}|n:")
 
         aliases = yield ("Enter any aliases for the item separated by commas:")
         if aliases:
