@@ -39,6 +39,14 @@ class Character(objects.ObjectParent, DefaultCharacter):
     at_post_puppet - Echoes "AccountName has entered the game" to the room.
     """  # noqa: E501
 
+    appearance_template = """
+{name}
+
+{desc}
+
+{things}
+"""
+
     #################
     # Initial Setup #
     #################
@@ -62,9 +70,56 @@ class Character(objects.ObjectParent, DefaultCharacter):
     def clothes(self):
         return ClothingHandler(self)
 
-    #########
-    # Hooks #
-    #########
+    ###############
+    # Appearances #
+    ###############
+    def get_display_things(self, looker, **kwargs):
+        if not self.contents:
+            return ""
+
+        output = []
+        clothes = self.clothes.all()
+
+        if not clothes:
+            output.append("|wClothing: None|n")
+            return "\n ".join(output) + "\n"
+
+        output.append("|wClothing:|n")
+
+        # Use a conditional expression to handle empty 'clothes'
+        max_position = (
+            max([len(item.position) for item in clothes]) + 8 if clothes else 0
+        )
+
+        for item in clothes:
+            spaces = " " * (max_position - len(f" <worn {item.position}>"))
+            if item.covered_by and looker is not self:
+                continue
+            line = f"|x<worn {item.position}>|n{spaces} {item.get_display_name(looker)}"
+            if item.covered_by:
+                line += " |x(hidden)|n"
+            output.append(line)
+
+        return "\n ".join(output) + "\n"
+
+    def return_appearance(self, looker, **kwargs):
+        if not looker:
+            return ""
+
+        # populate the appearance_template string.
+        return self.format_appearance(
+            self.appearance_template.format(
+                name=self.get_display_name(looker, **kwargs),
+                desc=self.get_display_desc(looker, **kwargs),
+                things=self.get_display_things(looker, **kwargs),
+            ),
+            looker,
+            **kwargs,
+        )
+
+    #################
+    # Communication #
+    #################
     def at_pre_emote(self, message, **kwargs):
         """
         Before the object emotes something.
