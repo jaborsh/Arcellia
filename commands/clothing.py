@@ -73,11 +73,9 @@ class CmdTailor(Command):
             return
 
         key = strip_ansi(args)
-        # name = args
-
-        caller.msg("You begin to tailor some clothing...")
+        caller.msg("|YYou begin to tailor some clothing...|n")
         caller.location.msg_contents(
-            f"{caller} begins to tailor some clothing.", exclude=caller
+            f"|Y{caller} begins to tailor some clothing.|n", exclude=caller
         )
 
         description = yield (f"Describe the {args}:")
@@ -109,15 +107,15 @@ class CmdTailor(Command):
         clothing.clothing_type = clothing_type
 
         if description:
-            clothing.db.desc = description
+            clothing.db.desc = description + "|n"
         else:
             clothing.db.desc = "You see nothing special."
 
         clothing.display_name = args + "|n"
 
         caller.msg(
-            "With a final knot and snip, you stand back to admire your handiwork"
+            "|YYou tie off a final stitch and step back to admire your handiwork.|n"
         )
         caller.location.msg_contents(
-            f"{caller} ties off a final stitch and steps back.", exclude=caller
+            f"|Y{caller} ties off a final stitch and steps back.|n", exclude=caller
         )

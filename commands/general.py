@@ -6,10 +6,10 @@ from evennia.typeclasses.attributes import NickTemplateInvalid
 from evennia.utils import (
     class_from_module,
     create,
-    evtable,
     inherits_from,
     utils,
 )
+from parsing.colors import strip_ansi
 from server.conf import logger
 from typeclasses.clothing import CLOTHING_OVERALL_LIMIT, Clothing
 
@@ -467,6 +467,7 @@ class CmdInventory(Command):
     aliases = ["inv", "i"]
     locks = "cmd:all()"
     arg_regex = r"$"
+    max_length = 0
 
     def func(self):
         """check inventory"""
@@ -475,38 +476,51 @@ class CmdInventory(Command):
             caller.msg("You are not carrying or wearing anything.")
             return
 
-        message_list = []
-
-        # Worn Clothing
-        message_list.append("|wClothing:|n")
-        message_list.append(self.create_table(caller.clothes.all(), "worn"))
-
-        # Carried Items
-        message_list.append("\n|wCarrying:|n")
+        worn_table = self.create_table(caller.clothes.all(), "Clothing")
         carried_items = [
             obj for obj in caller.contents if obj not in caller.clothes.all()
         ]
-        message_list.append(self.create_table(carried_items, "carried"))
+        carried_table = self.create_table(carried_items, "Carrying")
+        header = self.create_header(caller)
+        footer = self.create_footer()
 
-        caller.msg("\n".join(message_list))
+        caller.msg(f"{header}{worn_table}{carried_table}{footer}")
+
+    def create_header(self, caller):
+        width = self.max_length
+        header = "|x" + "-" * width + "|n"
+        title = "|C" + "Inventory".center(width) + "|n"
+        weight_line = "|C" + "Weight: 0 / 0".center(width) + "|n"
+        item_count_line = (
+            "|C" + f"Number of Items: {len(caller.contents)}".center(width) + "|n"
+        )
+
+        return f"{header}\n{title}\n{weight_line}\n{item_count_line}\n{header}"
 
     def create_table(self, items, item_type):
-        table = evtable.EvTable(border="header")
-        for item in items:
-            if item_type == "worn":
-                text = (
-                    f"|x<worn {item.position}>|n {item.get_display_name(self.caller)}"
-                )
+        if not items:
+            return ""
+
+        output = [f"|w{item_type}:|n"]
+
+        if item_type == "Clothing":
+            max_position = max([len(item.position) for item in items]) + 8
+            for item in items:
+                spaces = " " * (max_position - len(f"<worn {item.position}>"))
+                line = f"|x<worn {item.position}>|n{spaces}{item.get_display_name(self.caller)}"
                 if item.covered_by:
-                    text += " |x(hidden)|n"
-            else:
-                text = item.get_display_name(self.caller)
+                    line += " |x(hidden)|n"
+                output.append(line)
+        else:
+            output.extend([item.get_display_name(self.caller) for item in items])
 
-            table.add_row(text)
+        max_line_length = max([len(strip_ansi(line)) for line in output])
+        self.max_length = max(max_line_length, self.max_length) + 1
 
-        if table.nrows == 0:
-            table.add_row("Nothing.", "")
-        return str(table)
+        return "\n" + "\n ".join(output) + "\n"
+
+    def create_footer(self):
+        return "|x" + "-" * self.max_length + "|n"
 
 
 class CmdLook(general.CmdLook):
@@ -529,7 +543,6 @@ class CmdRemove(Command):
 
     key = "remove"
     aliases = ["rem"]
-    help_category = "clothing"
 
     def func(self):
         caller = self.caller
@@ -781,7 +794,6 @@ class CmdWear(Command):
     """
 
     key = "wear"
-    help_category = "General"
 
     def func(self):
         caller = self.caller

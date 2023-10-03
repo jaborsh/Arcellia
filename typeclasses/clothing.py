@@ -1,6 +1,6 @@
 from enum import Enum
 
-from evennia.utils import dbserialize, iter_to_str
+from evennia.utils import iter_to_str
 from evennia.utils.utils import lazy_property
 
 from typeclasses.objects import Object
@@ -15,50 +15,38 @@ class ClothingHandler:
 
     def __init__(self, caller):
         self.caller = caller
-        self.slots = {}
-        self._load()
+        self.clothes = self.caller.attributes.get("clothes", category="clothing")
+        if not self.clothes:
+            self.caller.attributes.add("clothes", [], category="clothing")
+            self.clothes = self.caller.attributes.get("clothes", category="clothing")
 
-    def _load(self):
-        self.slots = self.caller.attributes.get("clothes", {}, category="clothing")
-
-    def _save(self):
-        # Remove potential None values from the list.
-        self.slots = {k: v for k, v in self.slots.items() if v}
-        self.caller.attributes.add("clothes", self.slots, category="clothing")
-        self._load()
+        # Remove potentially invalid clothing items
+        for item in self.clothes:
+            if not item:
+                self.clothes.remove(item)
 
     def all(self, exclude_covered=False):
-        # Flatten the list of clothing articles
-        flat_clothes = [item for sublist in self.slots.values() for item in sublist]
-
         # Optionally exclude covered clothes
+        clothes = self.clothes
         if exclude_covered:
-            flat_clothes = [item for item in flat_clothes if not item.covered_by]
+            clothes = [item for item in self.clothes if not item.covered_by]
 
         # Sort the clothes according to the defined order
         sorted_clothes = sorted(
-            flat_clothes, key=lambda x: CLOTHING_TYPE_ORDER.index(x.clothing_type)
+            clothes, key=lambda x: CLOTHING_TYPE_ORDER.index(x.clothing_type)
         )
 
         return sorted_clothes
 
     def remove(self, item):
-        self.slots[item.clothing_type].remove(item)
-        self._save()
+        self.clothes.remove(item)
 
     def wear(self, item):
-        slot = item.clothing_type
-
-        if len(self.slots.values()) > CLOTHING_OVERALL_LIMIT:
+        if len(self.clothes) > CLOTHING_OVERALL_LIMIT:
             self.caller.msg("You cannot wear more clothes.")
             return
 
-        if slot in self.slots:
-            self.slots[slot].append(item)
-        else:
-            self.slots[slot] = [item]
-
-        self._save()
+        self.clothes.append(item)
 
 
 class ClothingType(Enum):
@@ -116,7 +104,6 @@ CLOTHING_TYPE_ORDER = [
 
 class Clothing(Object):
     def at_object_creation(self):
-        self.owner = None
         self.db.covered_by = []
 
     @property
@@ -189,7 +176,6 @@ class Clothing(Object):
 
         # Remove the clothes from the wearer.
         wearer.clothes.remove(self)
-        self.owner = None  # dbserialize.dbunserialize(wearer)
 
         # Echo a message to the room
         if not quiet:
@@ -209,7 +195,6 @@ class Clothing(Object):
         """
 
         wearer.clothes.wear(self)
-        self.owner = dbserialize.dbserialize(wearer)
 
         # Auto-cover appropriately
         covering = []
