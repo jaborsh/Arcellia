@@ -90,7 +90,7 @@ class CmdTailor(Command):
             aliases = [strip_ansi(alias.strip()) for alias in aliases.split(",")]
 
         clothing_type = yield (
-            f"Clothing Types?\n{self._type_list()}\nClothing Type Selection: "
+            f"Clothing Types:\n{self._type_list()}\nClothing Type Selection: "
         )
 
         if isinstance(clothing_type, int):
