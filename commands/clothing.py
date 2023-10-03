@@ -89,7 +89,7 @@ class CmdTailor(Command):
         if aliases:
             aliases = [strip_ansi(alias.strip()) for alias in aliases.split(",")]
 
-        clothing_type = yield ("What type of clothing is it? (top, bottom, etc.)")
+        clothing_type = yield (f"What type of clothing is it?\n{self._type_list()}")
         clothing_type = self.map_type(clothing_type)
         if not clothing_type:
             caller.msg("|rAborting|n: You must specify a valid clothing type.")
