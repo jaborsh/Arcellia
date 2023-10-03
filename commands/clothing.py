@@ -90,7 +90,7 @@ class CmdTailor(Command):
             aliases = [strip_ansi(alias.strip()) for alias in aliases.split(",")]
 
         clothing_type = yield (
-            f"What type of clothing is it?\n{self._type_list()}\nClothing Type Selection: "
+            f"Clothing Types?\n{self._type_list()}\nClothing Type Selection: "
         )
 
         if isinstance(clothing_type, int):
@@ -131,9 +131,7 @@ class CmdTailor(Command):
 
         clothing.display_name = args + "|n"
 
-        caller.msg(
-            "|YYou tie off a final stitch and step back to admire your handiwork.|n"
-        )
+        caller.msg("|YYou finish your work and take a step back.|n")
         caller.location.msg_contents(
-            f"|Y{caller} ties off a final stitch and steps back.|n", exclude=caller
+            f"|Y{caller} their work and takes a step back.|n", exclude=caller
         )
