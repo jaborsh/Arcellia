@@ -74,17 +74,11 @@ class Character(objects.ObjectParent, DefaultCharacter):
     # Appearances #
     ###############
     def get_display_things(self, looker, **kwargs):
-        if not self.contents:
+        clothes = self.clothes.all()
+        if not clothes:
             return ""
 
-        output = []
-        clothes = self.clothes.all()
-
-        if not clothes:
-            output.append("|wClothing: None|n")
-            return "\n ".join(output) + "\n"
-
-        output.append("|wClothing:|n")
+        output = ["|wClothing:|n"]
 
         # Use a conditional expression to handle empty 'clothes'
         max_position = (
