@@ -527,9 +527,29 @@ class CmdLook(general.CmdLook):
     """
     Syntax: look
             look <obj>
+            look in <container>
 
     Observes your location or objects in your vicinity.
     """
+
+    rhs_split = (" in ",)
+
+    def func(self):
+        caller = self.caller
+
+        if not self.args:
+            target = caller.location
+            if not target:
+                self.msg("You have no location to look at!")
+                return
+
+        if self.rhs:
+            target = caller.search(self.rhs)
+            if not target:
+                return
+
+        desc = caller.at_look(target)
+        self.msg(text=(desc, {"type": "look"}), options=None)
 
 
 class CmdRemove(Command):
@@ -601,7 +621,12 @@ class CmdSay(Command):
         if not speech:
             return
 
-        caller.at_say(speech, msg_self=True, receivers=receivers or None, width=self.client_width())
+        caller.at_say(
+            speech,
+            msg_self=True,
+            receivers=receivers or None,
+            width=self.client_width(),
+        )
 
 
 class CmdTell(Command):

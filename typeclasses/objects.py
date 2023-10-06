@@ -182,6 +182,17 @@ class Object(ObjectParent, DefaultObject):
     def display_name(self, value: str):
         self.db.display_name = value
 
+    @property
+    def weight(self):
+        """
+        Return the weight of this object
+        """
+        return self.attributes.get("weight", default=0)
+
+    @weight.setter
+    def weight(self, value):
+        self.attributes.add("weight", value)
+
     def get_display_name(self, looker=None, **kwargs):
         """
         Displays the name of the object in a viewer-aware manner.
