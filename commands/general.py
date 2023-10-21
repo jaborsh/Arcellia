@@ -487,13 +487,12 @@ class CmdInventory(Command):
         caller.msg(f"{header}{worn_table}{carried_table}{footer}")
 
     def create_header(self, caller):
-        width = self.max_length
-        header = "|x" + "-" * width + "|n"
-        title = "|C" + "Inventory".center(width) + "|n"
-        weight_line = "|C" + "Weight: 0 / 0".center(width) + "|n"
-        item_count_line = (
-            "|C" + f"Number of Items: {len(caller.contents)}".center(width) + "|n"
-        )
+        item_count_line = "|C" + f"Number of Items: {len(caller.contents)}"
+        self.max_length = max(self.max_length, len(strip_ansi(item_count_line))) + 2
+        header = "|x" + "-" * self.max_length + "|n"
+        title = "|C" + "Inventory".center(self.max_length) + "|n"
+        weight_line = "|C" + "Weight: 0 / 0".center(self.max_length) + "|n"
+        item_count_line = item_count_line.center(self.max_length + 2) + "|n"
 
         return f"{header}\n{title}\n{weight_line}\n{item_count_line}\n{header}"
 
