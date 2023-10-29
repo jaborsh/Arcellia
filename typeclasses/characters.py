@@ -13,11 +13,11 @@ from django.conf import settings
 from evennia.objects.models import ObjectDB
 from evennia.objects.objects import DefaultCharacter
 from evennia.utils.utils import lazy_property, make_iter, to_str, variable_from_module
+from handlers.clothing import ClothingHandler
 from parsing.text import grammarize, wrap
 from server.conf import logger
 
 from typeclasses import objects
-from typeclasses.clothing import ClothingHandler
 
 _AT_SEARCH_RESULT = variable_from_module(*settings.SEARCH_AT_RESULT.rsplit(".", 1))
 
@@ -637,7 +637,7 @@ class Character(objects.ObjectParent, DefaultCharacter):
                 # a valid stack, return multiple results
                 return list(results)[:stacked]
         elif nresults > 1:
-           return list(results)[0]
+            return list(results)[0]
 
         if quiet:
             # don't auto-handle error messaging
