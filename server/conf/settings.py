@@ -124,7 +124,7 @@ MAX_CHAR_LIMIT_WARNING = (
 # the default parser expects this. It should also involve a number
 # starting from 1. When changing this you must also update
 # SEARCH_MULTIMATCH_TEMPLATE to properly describe the syntax.
-SEARCH_MULTIMATCH_REGEX = r"(?P<name>[^-]*) (?P<number>[0-9]+)(?P<args>.*)"
+# SEARCH_MULTIMATCH_REGEX = r"(?P<name>[^-]*) (?P<number>[0-9]+)(?P<args>.*)"
 # To display multimatch errors in various listings we must display
 # the syntax in a way that matches what SEARCH_MULTIMATCH_REGEX understand.
 # The template will be populated with data and expects the following markup:
@@ -132,7 +132,7 @@ SEARCH_MULTIMATCH_REGEX = r"(?P<name>[^-]*) (?P<number>[0-9]+)(?P<args>.*)"
 # name (key) of the multimatched entity; {aliases} - eventual
 # aliases for the entity; {info} - extra info like #dbrefs for staff. Don't
 # forget a line break if you want one match per line.
-SEARCH_MULTIMATCH_TEMPLATE = " {name} {number}{aliases}{info}\n"
+# SEARCH_MULTIMATCH_TEMPLATE = " {name} {number}{aliases}{info}\n"
 
 ######################################################################
 # Game Time setup
