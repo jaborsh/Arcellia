@@ -25,12 +25,13 @@ __all__ = [
     "CmdGive",
     "CmdInventory",
     "CmdLook",
+    "CmdPut",
     "CmdRemove",
     "CmdSay",
     "CmdTell",
     "CmdTime",
-    "CmdWhisper",
     "CmdWear",
+    "CmdWhisper",
 ]
 
 
@@ -395,9 +396,72 @@ class CmdEmote(Command):
 class CmdGet(general.CmdGet):
     """
     Syntax: get <obj>
+            get <obj> from <container>
 
-    Picks up an object from your location and puts it in your inventory.
+    Picks up an object from your location or a container in your inventory.
     """
+
+    rhs_split = (" from ",)
+
+    def _retrieve_obj(self, caller, obj, location):
+        if not obj:
+            return
+        if caller == obj:
+            return self.msg("You can't get yourself.")
+
+        if not obj.access(caller, "get") or not obj.at_pre_get(caller):
+            if obj.db.get_err_msg:
+                return self.msg(obj.db.get_err_msg)
+            return self.msg("You can't get that.")
+
+        if hasattr(location, "at_pre_get_from") and not location.at_pre_get_from(
+            caller, obj
+        ):
+            return self.msg("You can't get that.")
+
+        success = obj.move_to(caller, quiet=True, move_type="get")
+        if not success:
+            return self.msg("This can't be picked up.")
+
+        singular, _ = obj.get_numbered_name(1, caller)
+        if location == caller.location:
+            caller.location.msg_contents(
+                f"$You() $conj(pick) up {singular}.", from_obj=caller
+            )
+        else:
+            container_name, _ = location.get_numbered_name(1, caller)
+            caller.location.msg_contents(
+                f"$You() $conj(get) {singular} from {container_name}.", from_obj=caller
+            )
+
+        obj.at_get(caller)
+
+    def func(self):
+        caller = self.caller
+        location = caller.location
+
+        if not self.args:
+            return self.msg("Get what?")
+
+        if self.rhs:
+            location = caller.search(self.rhs)
+            if not location:
+                return
+
+            if not location.access(caller, "get_from"):
+                if location.db.get_from_err_msg:
+                    self.msg(location.db.get_from_err_msg)
+                else:
+                    self.msg("You can't get anything from that.")
+                return
+
+            if self.lhs == "all":
+                for obj in location.contents:
+                    self._retrieve_obj(caller, obj, location)
+                return
+
+            obj = caller.search(self.lhs, location=location)
+            self._retrieve_obj(caller, obj, location)
 
 
 class CmdGive(general.CmdGive):
@@ -539,16 +603,75 @@ class CmdLook(general.CmdLook):
         if not self.args:
             target = caller.location
             if not target:
-                self.msg("You have no location to look at!")
-                return
+                return self.msg("You have no location to look at!")
+        else:
+            target = caller.search(self.args)
 
-        if self.rhs:
-            target = caller.search(self.rhs)
-            if not target:
-                return
+        if not target:
+            return
 
         desc = caller.at_look(target)
         self.msg(text=(desc, {"type": "look"}), options=None)
+
+
+class CmdPut(general.CmdDrop):
+    """
+    Syntax: put <obj> in <container>
+
+    Put an object into a container.
+    """
+
+    key = "put"
+    rhs_split = (" in ",)
+
+    def _deposit_item(self, caller, obj, container):
+        pass
+
+    def func(self):
+        caller = self.caller
+        if not self.args:
+            return self.msg("Put what in where?")
+
+        if not self.rhs:
+            super().func()
+            return
+
+        obj = caller.search(
+            self.lhs,
+            location=caller,
+            nofound_string=f"You aren't carrying {self.args}.",
+            multimatch_string=f"You carry more than one {self.args}:",
+        )
+        if not obj:
+            return
+
+        container = caller.search(self.rhs)
+        if not container:
+            return
+
+        if not container.access(caller, "get_from"):
+            if container.db.put_err_msg:
+                return self.msg(container.db.put_err_msg)
+            return self.msg("You can't put things in that.")
+
+        if not obj.at_pre_drop(caller):
+            return self.msg("You can't put that down.")
+
+        if hasattr(container, "at_pre_put_in") and not container.at_pre_put_in(
+            caller, obj
+        ):
+            return self.msg("You can't put that there.")
+
+        success = obj.move_to(container, quiet=True, move_type="drop")
+        if not success:
+            return self.msg("This couldn't be dropped.")
+
+        obj_name, _ = obj.get_numbered_name(1, caller)
+        container_name, _ = container.get_numbered_name(1, caller)
+        caller.location.msg_contents(
+            f"$You() $conj(put) {obj_name} in {container_name}.", from_obj=caller
+        )
+        obj.at_drop(caller)
 
 
 class CmdRemove(Command):
@@ -761,46 +884,6 @@ class CmdTime(system.CmdTime):
     help_category = "General"
 
 
-class CmdWhisper(Command):
-    """
-    Syntax: whisper <character> <message>
-            whisper <character>,[[character],...] <message>
-
-    Speak privately to one or more characters in your current location without
-    others in the room being informed.
-    """
-
-    key = "whisper"
-    locks = "cmd:all()"
-
-    def func(self):
-        caller = self.caller
-        args = self.args.strip()
-        if not args:
-            caller.msg("Whisper what?")
-            return
-
-        args = args.split(" ", 1)
-        if len(args) == 1:
-            return caller.msg("What do you want to whisper?")
-
-        receivers, whisper = args[0].split(","), args[1] or None
-        receivers = [caller.search(target) for target in receivers] or []
-        if not receivers:
-            return caller.msg("Who do you want to whisper to?")
-        if not whisper:
-            return caller.msg("What do you want to whisper to them?")
-
-        whisper = caller.at_pre_say(whisper, whisper=True, receivers=receivers)
-
-        if not whisper:
-            return
-
-        caller.at_say(
-            whisper, msg_self=True, receivers=receivers or None, msg_type="whisper"
-        )
-
-
 class CmdWear(Command):
     """
     Syntax: wear <obj>
@@ -845,3 +928,43 @@ class CmdWear(Command):
             return
 
         clothing.wear(caller)
+
+
+class CmdWhisper(Command):
+    """
+    Syntax: whisper <character> <message>
+            whisper <character>,[[character],...] <message>
+
+    Speak privately to one or more characters in your current location without
+    others in the room being informed.
+    """
+
+    key = "whisper"
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+        if not args:
+            caller.msg("Whisper what?")
+            return
+
+        args = args.split(" ", 1)
+        if len(args) == 1:
+            return caller.msg("What do you want to whisper?")
+
+        receivers, whisper = args[0].split(","), args[1] or None
+        receivers = [caller.search(target) for target in receivers] or []
+        if not receivers:
+            return caller.msg("Who do you want to whisper to?")
+        if not whisper:
+            return caller.msg("What do you want to whisper to them?")
+
+        whisper = caller.at_pre_say(whisper, whisper=True, receivers=receivers)
+
+        if not whisper:
+            return
+
+        caller.at_say(
+            whisper, msg_self=True, receivers=receivers or None, msg_type="whisper"
+        )
