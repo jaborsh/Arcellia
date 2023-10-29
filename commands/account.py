@@ -556,6 +556,7 @@ class CmdWho(Command):
     """
 
     key = "who"
+    aliases = ["wh"]
     locks = "cmd:all()"
     help_category = "General"
 
