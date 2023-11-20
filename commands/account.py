@@ -564,7 +564,7 @@ class CmdWho(Command):
         header_string = f"{self.get_header(width)}\n"
         header_string += f"{self.get_time_display(width)}\n"
         header_string += f"{self.get_admin_display(width)}\n"
-        header_string += f"{self.format_admin(['Jake', 'Jeanne', 'Shawn'], width)}\n"
+        header_string += f"{self.format_admin(['Jake'], width)}\n"
         header_string += f"{self.get_player_display(width)}"
 
         return header_string
