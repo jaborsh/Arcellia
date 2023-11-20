@@ -21,7 +21,7 @@ class Assistant:
         self.thread = create_thread()
 
     def ask(self, query):
-        message = client.beta.threads.messages.create(
+        client.beta.threads.messages.create(
             thread_id=self.thread,
             role="user",
             content=query,
