@@ -66,37 +66,6 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         }
         add_modules(self, modules)
 
-        # Developer Commands
-        # self.add(admin.CmdQuell)
-        # self.add(default_admin.CmdPerm)
-        # self.add(default_system.CmdReload)
-        # self.add(default_system.CmdReset)
-        # self.add(default_system.CmdShutdown)
-        # self.add(default_system.CmdPy)
-        # self.add(git.CmdGit)
-
-        # # Admin Commands
-        # self.add(admin.CmdAnnounce)
-        # self.add(admin.CmdEcho)
-        # self.add(admin.CmdWatch)
-
-        # # Account Commands
-        # self.add(account.CmdCreate)
-        # self.add(account.CmdDelete)
-        # self.add(account.CmdDisconnect)
-        # self.add(account.CmdOOCLook)
-        # self.add(account.CmdOptions)
-        # self.add(account.CmdPassword)
-        # self.add(account.CmdPlay)
-        # self.add(account.CmdSessions)
-        # self.add(account.CmdSetMain)
-
-        # self.add(account.CmdQuit)
-        # self.add(account.CmdWho)
-
-        # # Help Command
-        # self.add(default_help.CmdHelp)
-
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
     """

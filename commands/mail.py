@@ -1,9 +1,9 @@
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from evennia import ObjectDB
 from evennia.comms.models import Msg
-from evennia.utils import create, make_iter
+from evennia.utils import create
 from evennia.utils.evmenu import EvMenu
 
 from commands.command import Command
@@ -26,58 +26,74 @@ class CmdMail(Command):
     help_category = "General"
 
     def func(self):
-        caller = self.caller
         args = self.args.strip()
         if not args:
-            # View Mail
-            mail = Msg.objects.get_by_tag(category="mail").filter(
-                db_receivers_objects=caller
-            )
-            if not mail:
-                caller.msg("You have no mail.")
-                return
-
-            caller.msg(
-                "You have the following letters:\n"
-                + "\n".join(
-                    [
-                        f"  |w{index + 1}|n: {letter.header.strip()}"
-                        for index, letter in enumerate(mail)
-                    ]
-                )
-            )
-
-            MailMenu(
-                caller,
-                "commands.mail",
-                startnode="view_mail",
-                cmdset_mergetype="Replace",
-                cmdset_priority=1,
-                auto_quit=True,
-                cmd_on_exit="look",
-                persistent=False,
-                inbox=mail,
-            )
+            self.view_mail()
         else:
-            namelist = [name.strip() for name in args.split(",")]
-            nameregex = r"|".join(
-                r"^%s$" % re.escape(name) for name in make_iter(namelist)
-            )
-            matches = ObjectDB.objects.filter(db_key__iregex=nameregex)
-            if not matches:
-                return caller.msg("No characters found by that name.")
+            self.compose_mail(args)
 
-            MailMenu(
-                caller,
-                "commands.mail",
-                startnode="subject_mail",
-                cmdset_mergetype="Replace",
-                cmdset_priority=1,
-                auto_quit=True,
-                cmd_on_exit="look",
-                persistent=False,
-                targets=matches,
-            )
+    def view_mail(self):
+        caller = self.caller
+        mail = Msg.objects.get_by_tag(category="mail").filter(
+            db_receivers_objects=caller
+        )
+        if not mail:
+            return caller.msg("You have no mail.")
+
+        mail_listing = self.format_mail_listing(mail)
+        caller.msg("You have the following letters:\n" + mail_listing)
+
+        MailMenu(
+            caller,
+            "commands.mail",
+            startnode="view_mail",
+            cmdset_mergetype="Replace",
+            cmdset_priority=1,
+            auto_quit=True,
+            cmd_on_exit=None,
+            persistent=False,
+            inbox=mail,
+        )
+
+    def format_mail_listing(self, mail):
+        # Calculating maximum widths for each category
+        max_sender_width = max(
+            len(", ".join(str(sender) for sender in letter.senders[0:2]))
+            for letter in mail
+        )
+        max_date_width = max(
+            len(str(letter.date_created).split(" ")[0]) for letter in mail
+        )
+        max_header_width = max(len(letter.header) for letter in mail)
+
+        # Formatting each mail entry
+        mail_entries = [
+            f" {index + 1}: {', '.join(str(sender) for sender in letter.senders):<{max_sender_width}} - "
+            f"{str(letter.date_created - timedelta(hours=5)).split(' ')[0]:<{max_date_width}} - "
+            f"{letter.header:<{max_header_width}}"
+            for index, letter in enumerate(mail)
+        ]
+        return "\n".join(mail_entries) + "\n"
+
+    def compose_mail(self, args):
+        caller = self.caller
+        namelist = [name.strip() for name in args.split(",")]
+        nameregex = r"|".join(r"^%s$" % re.escape(name) for name in namelist)
+        matches = ObjectDB.objects.filter(db_key__iregex=nameregex)
+        if not matches:
+            return caller.msg("No characters found by that name.")
+
+        MailMenu(
+            caller,
+            "commands.mail",
+            startnode="subject_mail",
+            cmdset_mergetype="Replace",
+            cmdset_priority=1,
+            auto_quit=True,
+            cmd_on_exit=None,
+            persistent=False,
+            targets=matches,
+        )
 
 
 def view_mail(caller, raw_input, **kwargs):
@@ -107,9 +123,26 @@ def read_mail(caller, raw_input, **kwargs):
     Read a letter.
     """
     try:
-        caller.msg(caller.ndb._evmenu.inbox[int(raw_input) - 1].message)
-    except Exception:
-        caller.msg("An error has occurred.")
+        letter_index = int(raw_input) - 1
+        letter = caller.ndb._evmenu.inbox[letter_index]
+
+        date_str = str(letter.date_created - timedelta(hours=5)).split(".")[0]
+        senders = ", ".join(str(sender) for sender in letter.senders)
+        receivers = ", ".join(str(receiver) for receiver in letter.receivers)
+
+        string = (
+            f"Letter #{raw_input.strip()}:\n"
+            f"Date: {date_str}\n"
+            f"From: {senders}\n"
+            f"To: {receivers}\n"
+            f"Subject: {letter.header}\n\n"
+            f"{letter.message}"
+        )
+        caller.msg(string)
+    except IndexError:
+        caller.msg("Invalid letter number.")
+    except ValueError:
+        caller.msg("Please enter a valid number.")
     return "view_mail"
 
 
@@ -134,39 +167,67 @@ def confirm_delete(caller, raw_input, **kwargs):
     Perform deletion
     """
     try:
-        # Parsing the input
-        indices_to_delete = set()
-        for part in raw_input.split(","):
-            if "-" in part:
-                start, end = map(int, part.split("-"))
-                indices_to_delete.update(range(start, end + 1))
-            else:
-                indices_to_delete.add(int(part))
-
-        # Adjusting indices to 0-based and performing deletion
-        inbox = caller.ndb._evmenu.inbox
-        for index in sorted(indices_to_delete, reverse=True):
-            # Adjusting for 1-based input
-            if 1 <= index <= len(inbox):
-                inbox[index - 1].delete()
-
-        # Update the inbox and notify the caller
-        caller.ndb._evmenu.inbox = Msg.objects.get_by_tag(category="mail").filter(
-            db_receivers_objects=caller
-        )
-        caller.msg(
-            "You have the following letters:\n"
-            + "\n".join(
-                f"  |w{index + 1}|n: {letter.header.strip()}"
-                for index, letter in enumerate(caller.ndb._evmenu.inbox)
-            )
-        )
+        indices_to_delete = parse_indices(raw_input)
+        delete_letters(caller, indices_to_delete)
+        if not update_and_display_inbox(caller):
+            return "node_quit"
         return "view_mail"
-    except ValueError:
-        caller.msg(
-            "Invalid input. Please specify letter numbers to delete, separated by commas or a range with a hyphen."
-        )
-        return "view_mail"
+    except ValueError as e:
+        caller.msg(f"Error: {e}")
+        return "node_quit"
+
+
+def parse_indices(input_str):
+    """
+    Parse input string to extract indices for deletion.
+    """
+    indices = set()
+    for part in input_str.split(","):
+        if "-" in part:
+            start, end = map(int, part.split("-"))
+            indices.update(range(start, end + 1))
+        else:
+            indices.add(int(part))
+    return indices
+
+
+def delete_letters(caller, indices_to_delete):
+    # Adjusting indices to 0-based and performing deletion
+    inbox = caller.ndb._evmenu.inbox
+    for index in sorted(indices_to_delete, reverse=True):
+        # Adjusting for 1-based input
+        if 1 <= index <= len(inbox):
+            inbox[index - 1].delete()
+
+
+def update_and_display_inbox(caller):
+    caller.ndb._evmenu.inbox = Msg.objects.get_by_tag(category="mail").filter(
+        db_receivers_objects=caller
+    )
+    inbox = caller.ndb._evmenu.inbox
+    if len(inbox) == 0:
+        caller.msg("You have no mail.")
+        return False
+
+    # Calculating maximum widths for each category
+    max_sender_width = max(
+        len(", ".join(str(sender) for sender in letter.senders[0:2]))
+        for letter in inbox
+    )
+    max_date_width = max(
+        len(str(letter.date_created).split(" ")[0]) for letter in inbox
+    )
+    max_header_width = max(len(letter.header) for letter in inbox)
+
+    # Formatting each mail entry
+    mail_entries = [
+        f" {index + 1}: {', '.join(str(sender) for sender in letter.senders):<{max_sender_width}} - "
+        f"{str(letter.date_created - timedelta(hours=5)).split(' ')[0]:<{max_date_width}} - "
+        f"{letter.header:<{max_header_width}}"
+        for index, letter in enumerate(inbox)
+    ]
+    caller.msg("You have the following letters:\n" + "\n".join(mail_entries) + "\n")
+    return True
 
 
 def subject_mail(caller, raw_input, **kwargs):
@@ -215,7 +276,7 @@ def continue_mail(caller, raw_input, **kwargs):
     """
     caller.ndb._evmenu.letter += raw_input
     caller.ndb._evmenu.lines += 1
-    text = str(caller.ndb._evmenu.lines) + "| " + raw_input.strip()
+    text = f"{caller.ndb._evmenu.lines}| {raw_input.strip()}"
     options = (
         {
             "key": "_default",
@@ -304,7 +365,7 @@ def send_letter(caller, raw_input, **kwargs):
 
 
 def node_quit(caller, raw_input, **kwargs):
-    return "", None
+    return "> ", None
 
 
 class MailMenu(EvMenu):
