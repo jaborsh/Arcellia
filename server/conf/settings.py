@@ -135,6 +135,11 @@ MAX_CHAR_LIMIT_WARNING = (
 # SEARCH_MULTIMATCH_TEMPLATE = " {name} {number}{aliases}{info}\n"
 
 ######################################################################
+# Default command sets and commands
+######################################################################
+COMMAND_DEFAULT_CLASS = "commands.command.Command"
+
+######################################################################
 # Game Time setup
 ######################################################################
 

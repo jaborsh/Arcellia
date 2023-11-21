@@ -4,13 +4,10 @@ Commands
 Commands describe the input the account can do to the game.
 
 """
-from django.conf import settings
-from evennia.utils import utils
-
-COMMAND_DEFAULT_CLASS = utils.class_from_module(settings.COMMAND_DEFAULT_CLASS)
+from evennia.commands.default.muxcommand import MuxCommand
 
 
-class Command(COMMAND_DEFAULT_CLASS):
+class Command(MuxCommand):
     """
     Base command (you may see this if a child command had no help text defined)
 
@@ -30,7 +27,13 @@ class Command(COMMAND_DEFAULT_CLASS):
     #     - at_post_cmd(): Extra actions, often things done after
     #         every command, like prompts.
     #
-    pass
+
+    def at_post_cmd(self):
+        """
+        This hook is called after the command has finished executing
+        (after self.func()).
+        """
+        self.msg(prompt="> ")
 
 
 # -------------------------------------------------------------
