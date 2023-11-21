@@ -1,11 +1,11 @@
 import re
 
 from django.conf import settings
+from evennia.contrib.grid.xyzgrid import commands as xyzcommands
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import class_from_module
 from evennia.utils.utils import inherits_from
 from parsing.text import wrap
-from server.conf import logger
 from server.conf.settings import SERVERNAME
 
 from commands.auto.auto_menu import AutoMenu
@@ -264,74 +264,39 @@ class CmdHome(COMMAND_DEFAULT_CLASS):
             caller.move_to(home, move_type="teleport")
 
 
-class CmdTeleport(COMMAND_DEFAULT_CLASS):
+class CmdTeleport(xyzcommands.CmdXYZTeleport):
     """
-    Syntax: tel[/switch] <target>
-            goto[/switch] <target>
-
-    Switches:
-        quiet    - don't echo leave/arrive messages to the source/target
-                   locations for the move.
-        intoexit - if target is an exit, teleport INTO the exit object
-                   instead of to its destination.
+    Syntax: tel/switch [<object> to||=] <target location>
+            tel/switch [<object> to||=] (X,Y[,Z])
 
     Examples:
-        tel Limbo
-        tel/quiet Limbo
+      tel Limbo
+      tel/quiet box = Limbo
+      tel/tonone box
+      tel (3, 3, the small cave)
+      tel (4, 1)   # on the same map
+      tel/map Z | mapname
+
+    Switches:
+      quiet  - don't echo leave/arrive messages to the source/target
+               locations for the move.
+      intoexit - if target is an exit, teleport INTO
+                 the exit object instead of to its destination
+      tonone - if set, teleport the object to a None-location. If this
+               switch is set, <target location> is ignored.
+               Note that the only way to retrieve
+               an object from a None location is by direct #dbref
+               reference. A puppeted object cannot be moved to None.
+      loc - teleport object to the target's location instead of its contents
+      map - show coordinate map of given Zcoord/mapname.
 
     Teleports an object somewhere. If no object is given, you yourself are
-    teleported to the target location.
-
-    To lock an object from being teleported, set its `teleport` lock, it will
-    be checked with the caller. To block a destination from being teleported
-    to, set the destination's `teleport_here` lock - it will be checked with
-    the thing being teleported. Admins and higher permissions can always
-    teleport.
+    teleported to the target location. If (X,Y) or (X,Y,Z) coordinates
+    are given, the target is a location on the XYZGrid.
     """
 
     key = "teleport"
-    aliases = ["tel", "goto"]
-    switch_options = ("quiet", "intoexit")
-    locks = "cmd:perm(Admin)"
-    help_category = "Admin"
-
-    def func(self):
-        caller = self.caller
-
-        if not self.args:
-            caller.msg("Syntax: tel[/switch] <target>")
-            return
-
-        destination = self.args.strip()
-        destination = caller.search(destination, global_search=True)
-
-        if not destination:
-            return
-
-        if "intoexit" in self.switches and not destination.destination:
-            caller.msg("You cannot teleport INTO a non-exit object.")
-            return
-
-        if inherits_from(destination, "typeclasses.characters.Character"):
-            log_msg = f"{caller} teleported to {destination}."
-        destination = destination.location if destination.location else destination
-
-        if caller.location == destination:
-            caller.msg("You are already here.")
-            return
-
-        if caller.move_to(
-            destination,
-            quiet="quiet" in self.switches,
-            emit_to_obj=caller,
-            use_destination="intoexit" not in self.switches,
-            move_type="teleport",
-        ):
-            caller.msg(f"You teleport to {destination}.")
-            if log_msg:
-                logger.log_sec(log_msg)
-        else:
-            caller.msg(f"You fail to teleport to {destination}.")
+    aliases = ["goto", "tel"]
 
 
 class CmdTransfer(COMMAND_DEFAULT_CLASS):

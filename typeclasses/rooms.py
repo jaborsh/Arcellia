@@ -10,13 +10,24 @@ import re
 from collections import deque
 from textwrap import dedent
 
+from django.conf import settings
 from django.db.models import Q
 from evennia import FuncParser, gametime
+from evennia.contrib.grid.xyzgrid import xyzroom
 from evennia.objects.objects import DefaultRoom
 from evennia.typeclasses.attributes import AttributeProperty
 from evennia.utils.utils import iter_to_str, repeat
 
 from .objects import ObjectParent
+
+CLIENT_DEFAULT_WIDTH = settings.CLIENT_DEFAULT_WIDTH
+MAP_X_TAG_CATEGORY = "room_x_coordinate"
+MAP_Y_TAG_CATEGORY = "room_y_coordinate"
+MAP_Z_TAG_CATEGORY = "room_z_coordinate"
+
+MAP_XDEST_TAG_CATEGORY = "exit_dest_x_coordinate"
+MAP_YDEST_TAG_CATEGORY = "exit_dest_y_coordinate"
+MAP_ZDEST_TAG_CATEGORY = "exit_dest_z_coordinate"
 
 
 def func_state(roomstate, *args, looker=None, room=None, **kwargs):
@@ -668,3 +679,28 @@ class Room(ObjectParent, DefaultRoom):
         )
 
     pass
+
+
+class XYRoom(xyzroom.XYZRoom, Room):
+    """
+    A game location aware of its XYZ-position.
+
+    Special properties:
+        map_display (bool): If the return_appearance of the room should
+            show the map or not.
+        map_mode (str): One of 'nodes' or 'scan'. See `return_apperance`
+            for examples of how they differ.
+        map_visual_range (int): How far on the map one can see. This is a
+            fixed value here, but could also be dynamic based on skills,
+            light etc.
+        map_character_symbol (str): The character symbol to use to show
+            the character position. Can contain color info. Default is
+            the @-character.
+        map_area_client (bool): If True, map area will always fill the entire
+            client width. If False, the map area's width will vary with the
+            width of the currently displayed location description.
+        map_fill_all (bool): I the map area should fill the client width or not.
+        map_separator_char (str): The char to use to separate the map area from
+            the room description.
+
+    """

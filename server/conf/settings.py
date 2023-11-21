@@ -134,6 +134,10 @@ MAX_CHAR_LIMIT_WARNING = (
 # forget a line break if you want one match per line.
 # SEARCH_MULTIMATCH_TEMPLATE = " {name} {number}{aliases}{info}\n"
 
+EXTRA_LAUNCHER_COMMANDS["xyzgrid"] = "evennia.contrib.grid.xyzgrid.launchcmd.xyzcommand"
+PROTOTYPE_MODULES += ["evennia.contrib.grid.xyzgrid.prototypes"]
+XYZROOM_PROTOTYPE_OVERRIDE = {"typeclass": "typeclasses.rooms.XYRoom"}
+
 ######################################################################
 # Default command sets and commands
 ######################################################################
