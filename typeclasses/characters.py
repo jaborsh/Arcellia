@@ -17,7 +17,7 @@ from django.conf import settings
 from evennia.objects.models import ObjectDB
 from evennia.objects.objects import DefaultCharacter
 from evennia.utils.utils import lazy_property, make_iter, to_str, variable_from_module
-from handlers import clothing, cooldowns, mail
+from handlers import clothing, cooldowns
 from parsing.text import grammarize, wrap
 from server.conf import logger
 
@@ -90,10 +90,6 @@ You see a {gender} {name},
     @lazy_property
     def cooldowns(self):
         return cooldowns.CooldownHandler(self)
-
-    @lazy_property
-    def mail(self):
-        return mail.MailHandler(self)
 
     ##############
     # Properties #
