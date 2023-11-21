@@ -24,6 +24,17 @@ class Room(ObjectParent, DefaultRoom):
     properties and methods available on all Objects.
     """
 
+    @property
+    def display_name(self):
+        """
+        Return a potentially fanciful name
+        """
+        return self.attributes.get("display_name", self.name)
+
+    @display_name.setter
+    def display_name(self, value: str):
+        self.db.display_name = value
+
     # populated by `return_appearance`
     appearance_template = dedent(
         """
@@ -38,6 +49,30 @@ class Room(ObjectParent, DefaultRoom):
         {things}
         """
     )
+
+    def get_display_name(self, looker=None, **kwargs):
+        """
+        Displays the name of the object in a viewer-aware manner.
+
+        Args:
+            looker (TypedObject): The object or account that is looking
+                at/getting inforamtion for this object. If not given, `.name` will be
+                returned, which can in turn be used to display colored data.
+
+        Returns:
+            str: A name to display for this object. This can contain color codes and may
+                be customized based on `looker`. By default this contains the `.key` of the object,
+                followed by the DBREF if this user is privileged to control said object.
+
+        Notes:
+            This function could be extended to change how object names appear to users in character,
+            but be wary. This function does not change an object's keys or aliases when searching,
+            and is expected to produce something useful for builders.
+
+        """
+        if looker and self.locks.check_lockstring(looker, "perm(Builder)"):
+            return "{}(#{})".format(self.display_name, self.id)
+        return self.display_name
 
     def get_display_exits(self, looker, **kwargs):
         """

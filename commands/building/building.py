@@ -540,25 +540,29 @@ class CmdMvAttr(building.CmdMvAttr):
 
 class CmdRename(building.ObjManipCommand):
     """
-    Syntax: rename <obj> <newname>[;alias,alias,...]
+    Syntax: rename [*]<obj> <new name>[;alias,alias,...]
 
     Rename an object to something new. Use *obj to rename an account.
+
+    Note: What is written as the 'new name' will be the object's new display
+          string. Any aliases provided will not be shown visibly, but can be
+          used to reference the item.
     """
 
     key = "rename"
-    locks = "cmd:perm(rename) or perm(Builder)"
+    locks = "perm(Builder)"
 
     def func(self):
         caller = self.caller
         args = self.args.strip().split(" ", 1)
         if len(args) < 2:
-            caller.msg("Syntax: rename <obj> <newname>[;alias,alias,...]")
+            caller.msg("Syntax: rename <obj> <new name>[;alias,alias,...]")
             return
 
         obj_name, rest = args
         if ";" in rest:
             new_name, aliases = rest.split(";", 1)
-            aliases = [alias.strip() for alias in aliases.split(",")]
+            aliases = [strip_ansi(alias.strip()) for alias in aliases.split(",")]
         else:
             new_name = rest
             aliases = None
@@ -567,7 +571,10 @@ class CmdRename(building.ObjManipCommand):
             caller.msg("No new name given.")
             return
 
-        new_name = strip_ansi(new_name).capitalize()
+        if new_name.startswith("|") and not new_name.endswith("|n"):
+            new_name += "|n"
+
+        new_key = strip_ansi(new_name)
         if obj_name.startswith("*"):
             # rename an account
             obj = caller.account.search(obj_name.lstrip("*"))
@@ -583,10 +590,10 @@ class CmdRename(building.ObjManipCommand):
                 return
 
             logger.log_sec(
-                f"Rename: {caller} renamed {obj.username} to {new_name} (Account)."
+                f"Rename: {caller} renamed {obj.username} to {new_key} (Account)."
             )
-            caller.msg(f"Account {obj.username} renamed to {new_name}.")
-            obj.username = new_name
+            caller.msg(f"Account {obj.username} renamed to {new_key}.")
+            obj.username = new_key
             obj.save()
             obj.msg(f"Your account was renamed to {obj.username}.")
         else:
@@ -605,7 +612,8 @@ class CmdRename(building.ObjManipCommand):
                     f"Rename: {caller} renamed {obj.name} to {new_name} (Character)."
                 )
 
-            obj.key = new_name
+            obj.key = new_key
+            obj.display_name = new_name
             astring = ""
             if aliases:
                 obj.aliases.clear()
@@ -616,7 +624,7 @@ class CmdRename(building.ObjManipCommand):
                 obj.flush_from_cache(force=True)
 
             type = obj.typeclass_path.split(".")[-1] or "Object"
-            caller.msg(f"{type} {obj.name} renamed to {new_name}{astring}.")
+            caller.msg(f"{type} {obj_name} renamed to {new_name}{astring}.")
             obj.msg(f"You've been renamed to {new_name}{astring}.")
 
 
