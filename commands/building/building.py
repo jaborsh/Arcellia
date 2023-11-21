@@ -362,6 +362,9 @@ class CmdDescribe(COMMAND_DEFAULT_CLASS):
             if not roomstates or not hasattr(target, "add_desc"):
                 # normal description
                 target.db.desc = desc
+                caller.msg(
+                    f"The description was set on {target.get_display_name(caller)}."
+                )
             elif roomstates:
                 for roomstate in roomstates:
                     if self.delete_mode:
