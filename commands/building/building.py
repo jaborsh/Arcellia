@@ -6,7 +6,7 @@ from evennia.commands.default import building, system
 from evennia.locks.lockhandler import LockException
 from evennia.utils import class_from_module
 from evennia.utils.eveditor import EvEditor
-from evennia.utils.utils import inherits_from
+from evennia.utils.utils import inherits_from, list_to_string
 from parsing.colors import strip_ansi
 from server.conf import logger
 
@@ -24,6 +24,7 @@ __all__ = (
     "CmdCreateExit",
     "CmdDescribe",
     "CmdDestroy",
+    "CmdDetail",
     "CmdEdit",  # building_menu
     "CmdExamine",
     "CmdFind",
@@ -32,6 +33,7 @@ __all__ = (
     "CmdLockstring",
     "CmdMvAttr",
     "CmdRename",
+    "CmdRoomState",
     "CmdSetAlias",
     "CmdSetAttribute",
     "CmdSetHome",
@@ -183,27 +185,61 @@ def _desc_quit(caller):
 
 class CmdDescribe(COMMAND_DEFAULT_CLASS):
     """
-    Syntax: desc [<obj>] <description>
+    Syntax: desc[/switch] [<obj> =] <description>
 
     Switches:
       edit - Open up a line editor for more advanced editing.
+      del - Delete the description of an object. If another state is given, its
+            description will be deleted.
+      spring | summer | autumn | winter - room description to use in respective
+                                          in-game season
+      <other> - room description to use with an arbitrary room state.
 
-    Sets the "desc" attribute on an object. If an object is not given,
-    describe the current room.
+    Sets the description an object. If an object is not given,
+    describe the current room, potentially showing any additional stateful
+    descriptions. The room states only work with rooms.
+
+    Examples:
+        desc/winter A cold winter scene.
+        desc/edit/summer
+        desc/burning This room is burning!
+        desc A normal room with no state.
+        desc/del/burning
+
+    Rooms will automatically change season as the in-game time changes. You can
+    set a specific room-state with the |wroomstate|n command.
+
     """
 
     key = "describe"
     aliases = ["desc"]
+    switch_options = None
     locks = "cmd:perm(desc) or perm(Builder)"
     help_category = "Building"
 
+    def parse(self):
+        super().parse()
+
+        self.delete_mode = "del" in self.switches
+        self.edit_mode = not self.delete_mode and "edit" in self.switches
+
+        self.object_mode = "=" in self.args
+
+        # all other switches are names of room-states
+        self.roomstates = [
+            state for state in self.switches if state not in ("edit", "del")
+        ]
+
     def edit_handler(self):
-        obj_name = self.args.strip()
-        if obj_name:
-            obj = self.caller.search(obj_name)
+        if self.rhs:
+            self.msg(
+                "|rYou may specify a value, or use the edit switch, but not both.|n"
+            )
+            return
+        if self.args:
+            obj = self.caller.search(self.args)
         else:
             obj = self.caller.location or self.msg("|rYou can't describe oblivion.|n")
-
         if not obj:
             return
 
@@ -213,7 +249,8 @@ class CmdDescribe(COMMAND_DEFAULT_CLASS):
             )
             return
 
-        self.caller.db.evmenu_target = obj
+        self.caller.db.eveditor_target = obj
+        self.caller.db.eveditor_roomstates = self.roomstates
         # launch the editor
         EvEditor(
             self.caller,
@@ -225,34 +262,92 @@ class CmdDescribe(COMMAND_DEFAULT_CLASS):
         )
         return
 
+    def show_stateful_descriptions(self):
+        location = self.caller.location
+        room_states = location.room_states
+        season = location.get_season()
+        time_of_day = location.get_time_of_day()
+        stateful_descs = location.all_desc()
+
+        output = [
+            f"Room {location.get_display_name(self.caller)} "
+            f"Season: {season}. Time: {time_of_day}. "
+            f"States: {', '.join(room_states) if room_states else 'None'}"
+        ]
+        other_active = False
+        for state, desc in stateful_descs.items():
+            if state is None:
+                continue
+            if state == season or state in room_states:
+                output.append(f"Room state |w{state}|n |g(active)|n:\n{desc}")
+                other_active = True
+            else:
+                output.append(f"Room state |w{state}|n:\n{desc}")
+
+        active = " |g(active)|n" if not other_active else ""
+        output.append(f"Room state |w(default)|n{active}:\n{location.db.desc}")
+
+        sep = "\n" + "-" * 78 + "\n"
+        self.caller.msg(sep.join(output))
+
     def func(self):
         caller = self.caller
-        if not self.args and "edit" not in self.switches:
-            caller.msg("Syntax: desc [<obj>] <description>")
-            return
+        if not self.args and "edit" not in self.switches and "del" not in self.switches:
+            if caller.location:
+                # show stateful descs on the room
+                self.show_stateful_descriptions()
+                return
+            else:
+                caller.msg("You have no location to describe!")
+                return
 
-        if "edit" in self.switches:
+        if self.edit_mode:
             self.edit_handler()
             return
 
-        args = self.args.split(" ", 1)
-        if len(args) == 1:
-            self.msg("You must supply a description.")
-            return
+        if self.object_mode:
+            # We are describing an object
+            target = caller.search(self.lhs)
+            if not target:
+                return
+            desc = self.rhs or ""
+        else:
+            # we are describing the current room
+            target = caller.location or self.msg(
+                "|rYou don't have a location to describe.|n"
+            )
+            if not target:
+                return
+            desc = self.args
 
-        obj = caller.search(args[0])
-
-        if not obj:
-            return
-
-        if obj.access(caller, "control") or obj.access(caller, "edit"):
-            obj.db.desc = args[1]
-            caller.msg(f"The description was set on {obj.get_display_name(caller)}.")
+        roomstates = self.roomstates
+        if target.access(self.caller, "control") or target.access(self.caller, "edit"):
+            if not roomstates or not hasattr(target, "add_desc"):
+                # normal description
+                target.db.desc = desc
+            elif roomstates:
+                for roomstate in roomstates:
+                    if self.delete_mode:
+                        target.remove_desc(roomstate)
+                        caller.msg(
+                            f"The {roomstate}-description was deleted, if it existed."
+                        )
+                    else:
+                        target.add_desc(desc, room_state=roomstate)
+                        caller.msg(
+                            f"The {roomstate}-description was set on"
+                            f" {target.get_display_name(caller)}."
+                        )
+            else:
+                target.db.desc = desc
+                caller.msg(
+                    f"The description was set on {target.get_display_name(caller)}."
+                )
         else:
             caller.msg(
-                f"You don't have permission to edit the description of {obj.key}."
+                "You don't have permission to edit the description "
+                f"of {target.get_display_name(caller)}."
             )
-            return
 
 
 class CmdDestroy(building.CmdDestroy):
@@ -276,6 +371,73 @@ class CmdDestroy(building.CmdDestroy):
     """
 
     key = "destroy"
+
+
+class CmdDetail(Command):
+    """
+    sets a detail on a room
+
+    Usage:
+        detail[/del] <key> [= <description>]
+        detail <key>;<alias>;... = description
+
+    Example:
+        detail
+        detail walls = The walls are covered in ...
+        detail castle;ruin;tower = The distant ruin ...
+        detail/del wall
+        detail/del castle;ruin;tower
+
+    This command allows to show the current room details if you enter it
+    without any argument.  Otherwise, sets or deletes a detail on the current
+    room, if this room supports details like an extended room. To add new
+    detail, just use the @detail command, specifying the key, an equal sign
+    and the description.  You can assign the same description to several
+    details using the alias syntax (replace key by alias1;alias2;alias3;...).
+    To remove one or several details, use the @detail/del switch.
+
+    """
+
+    key = "detail"
+    locks = "cmd:perm(Builder)"
+    help_category = "Building"
+
+    def func(self):
+        location = self.caller.location
+        if not self.args:
+            details = location.db.details
+            if not details:
+                self.msg(
+                    f"|rThe room {location.get_display_name(self.caller)} doesn't have any"
+                    " details.|n"
+                )
+            else:
+                details = sorted(
+                    ["|y{}|n: {}".format(key, desc) for key, desc in details.items()]
+                )
+                self.msg("Details on Room:\n" + "\n".join(details))
+            return
+
+        if not self.rhs and "del" not in self.switches:
+            detail = location.return_detail(self.lhs)
+            if detail:
+                self.msg("Detail '|y{}|n' on Room:\n{}".format(self.lhs, detail))
+            else:
+                self.msg("Detail '{}' not found.".format(self.lhs))
+            return
+
+        method = "add_detail" if "del" not in self.switches else "remove_detail"
+        if not hasattr(location, method):
+            self.caller.msg("Details cannot be set on %s." % location)
+            return
+        for key in self.lhs.split(";"):
+            # loop over all aliases, if any (if not, this will just be
+            # the one key to loop over)
+            getattr(location, method)(key, self.rhs)
+        if "del" in self.switches:
+            self.caller.msg(f"Deleted detail '{self.lhs}', if it existed.")
+        else:
+            self.caller.msg(f"Set detail '{self.lhs}': '{self.rhs}'")
 
 
 class CmdEdit(COMMAND_DEFAULT_CLASS):
@@ -628,6 +790,64 @@ class CmdRename(building.ObjManipCommand):
             type = obj.typeclass_path.split(".")[-1] or "Object"
             caller.msg(f"{type} {obj_name} renamed to {new_name}{astring}.")
             obj.msg(f"You've been renamed to {new_name}{astring}.")
+
+
+class CmdRoomState(Command):
+    """
+    Toggle and view room state for the current room.
+
+    Usage:
+        roomstate [<roomstate>]
+
+    Examples:
+        roomstate spring
+        roomstate burning
+        roomstate burning      (a second time toggles it off)
+
+    If the roomstate was already set, it will be disabled. Use
+    without arguments to see the roomstates on the current room.
+
+    """
+
+    key = "roomstate"
+    locks = "cmd:perm(Builder)"
+    help_category = "Building"
+
+    def parse(self):
+        super().parse()
+        self.room = self.caller.location
+        if not self.room or not hasattr(self.room, "room_states"):
+            self.caller.msg(
+                "You have no current location, or it doesn't support room states."
+            )
+            raise InterruptCommand()
+
+        self.room_state = self.args.strip().lower()
+
+    def func(self):
+        caller = self.caller
+        room = self.room
+        room_state = self.room_state
+
+        if room_state:
+            # toggle room state
+            if room_state in room.room_states:
+                room.remove_room_state(room_state)
+                caller.msg(f"Cleared room state '{room_state}' from this room.")
+            else:
+                room.add_room_state(room_state)
+                caller.msg(f"Added room state '{room_state}' to this room.")
+        else:
+            # view room states
+            room_states = list_to_string(
+                [f"'{state}'" for state in room.room_states]
+                if room.room_states
+                else ("None",)
+            )
+            caller.msg(
+                "Room states (not counting automatic time/season) on"
+                f" {room.get_display_name(caller)}:\n {room_states}"
+            )
 
 
 class CmdSetAlias(building.CmdSetObjAlias):

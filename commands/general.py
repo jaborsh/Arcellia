@@ -1,6 +1,7 @@
 import re
 
 from django.conf import settings
+from evennia import InterruptCommand
 from evennia.commands.default import general, system
 from evennia.typeclasses.attributes import NickTemplateInvalid
 from evennia.utils import (
@@ -15,6 +16,9 @@ from typeclasses.clothing import CLOTHING_OVERALL_LIMIT, Clothing
 
 from commands.command import Command
 
+_AT_SEARCH_RESULT = utils.variable_from_module(
+    *settings.SEARCH_AT_RESULT.rsplit(".", 1)
+)
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 __all__ = [
     "CmdAlias",
@@ -597,20 +601,49 @@ class CmdLook(general.CmdLook):
 
     rhs_split = (" in ",)
 
-    def func(self):
+    def look_detail(self):
+        """
+        Look for detail on room.
+        """
         caller = self.caller
+        if hasattr(self.caller.location, "get_detail"):
+            detail = self.caller.location.get_detail(self.args, looker=self.caller)
+            if detail:
+                caller.location.msg_contents(
+                    f"$You() $conj(look) closely at {self.args}.\n",
+                    from_obj=caller,
+                    exclude=caller,
+                )
+                caller.msg(detail)
+                return True
+        return False
 
+    def func(self):
+        """
+        Handle the looking.
+        """
+        caller = self.caller
         if not self.args:
             target = caller.location
             if not target:
-                return self.msg("You have no location to look at!")
+                caller.msg("You have no location to look at!")
+                return
         else:
-            target = caller.search(self.args)
-
-        if not target:
-            return
-
+            # search, waiting to return errors so we can also check details
+            target = caller.search(self.args, quiet=True)
+            # if there's no target, check details
+            if not target:
+                # no target AND no detail means run the normal no-results message
+                if not self.look_detail():
+                    _AT_SEARCH_RESULT(target, caller, self.args, quiet=False)
+                return
+            # otherwise, run normal search result handling
+            target = _AT_SEARCH_RESULT(target, caller, self.args, quiet=False)
+            if not target:
+                return
         desc = caller.at_look(target)
+        # add the type=look to the outputfunc to make it
+        # easy to separate this output in client.
         self.msg(text=(desc, {"type": "look"}), options=None)
 
 
@@ -874,14 +907,32 @@ class CmdTime(system.CmdTime):
     """
     Syntax: time
 
-    List Server time statistics such as uptime
-    and the current time stamp.
+    Shows the current in-game time and season.
     """
 
     key = "time"
-    aliases = "uptime"
     locks = "cmd:all()"
     help_category = "General"
+
+    def parse(self):
+        location = self.caller.location
+        if (
+            not location
+            or not hasattr(location, "get_time_of_day")
+            or not hasattr(location, "get_season")
+        ):
+            self.caller.msg("No location available - you are outside time.")
+            raise InterruptCommand()
+        self.location = location
+
+    def func(self):
+        location = self.location
+
+        season = location.get_season()
+        timeslot = location.get_time_of_day()
+
+        prep = "an" if season == "autumn" else "a"
+        self.caller.msg(f"It's {prep} {season} day, in the {timeslot}.")
 
 
 class CmdWear(Command):
