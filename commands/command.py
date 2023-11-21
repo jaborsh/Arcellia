@@ -33,7 +33,11 @@ class Command(MuxCommand):
         This hook is called after the command has finished executing
         (after self.func()).
         """
-        self.msg(prompt="> ")
+
+        try:
+            self.msg(prompt="> ")
+        except Exception:
+            pass
 
 
 # -------------------------------------------------------------

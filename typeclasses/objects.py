@@ -173,9 +173,6 @@ class Object(ObjectParent, DefaultObject):
 
     @property
     def display_name(self):
-        """
-        Return a potentially fanciful name
-        """
         return self.attributes.get("display_name", self.name)
 
     @display_name.setter

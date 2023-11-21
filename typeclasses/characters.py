@@ -8,6 +8,7 @@ creation commands.
 
 """
 import os
+import re
 
 from django.conf import settings
 from evennia.objects.models import ObjectDB
@@ -20,6 +21,13 @@ from server.conf import logger
 from typeclasses import objects
 
 _AT_SEARCH_RESULT = variable_from_module(*settings.SEARCH_AT_RESULT.rsplit(".", 1))
+_GENDER_PRONOUN_MAP = {
+    "male": {"s": "he", "o": "him", "p": "his", "a": "his"},
+    "female": {"s": "she", "o": "her", "p": "her", "a": "hers"},
+    "neutral": {"s": "it", "o": "it", "p": "its", "a": "its"},
+    "ambiguous": {"s": "they", "o": "them", "p": "their", "a": "theirs"},
+}
+_RE_GENDER_PRONOUN = re.compile(r"(?<!\|)\|(?!\|)[sSoOpPaA]")
 
 
 class Character(objects.ObjectParent, DefaultCharacter):
@@ -43,7 +51,7 @@ class Character(objects.ObjectParent, DefaultCharacter):
     """  # noqa: E501
 
     appearance_template = """
-{name}
+You see a {gender} {name},
 
 {desc}
 
@@ -69,6 +77,9 @@ class Character(objects.ObjectParent, DefaultCharacter):
     def log_folder(self):
         return self.attributes.get("_log_folder", f"characters/{self.key.lower()}/")
 
+    ############
+    # Handlers #
+    ############
     @lazy_property
     def clothes(self):
         return clothing.ClothingHandler(self)
@@ -76,6 +87,25 @@ class Character(objects.ObjectParent, DefaultCharacter):
     @lazy_property
     def cooldowns(self):
         return cooldowns.CooldownHandler(self, db_attribute="cooldowns")
+
+    ##############
+    # Properties #
+    ##############
+    @property
+    def gender(self):
+        return self.attributes.get("gender", "ambiguous")
+
+    @gender.setter
+    def gender(self, value: str):
+        self.db.gender = value
+
+    @property
+    def display_name(self):
+        return self.attributes.get("display_name", self.name)
+
+    @display_name.setter
+    def display_name(self, value: str):
+        self.db.display_name = value
 
     ###############
     # Appearances #
@@ -103,6 +133,27 @@ class Character(objects.ObjectParent, DefaultCharacter):
 
         return "\n ".join(output) + "\n"
 
+    def get_pronoun(self, regex_match):
+        """
+        Get pronoun from the pronoun marker in the text. This is used as
+        the callable for the re.sub function.
+
+        Args:
+            regex_match (MatchObject): the regular expression match.
+
+        Notes:
+            - `|s`, `|S`: Subjective form: he, she, it, He, She, It, They
+            - `|o`, `|O`: Objective form: him, her, it, Him, Her, It, Them
+            - `|p`, `|P`: Possessive form: his, her, its, His, Her, Its, Their
+            - `|a`, `|A`: Absolute Possessive form: his, hers, its, His, Hers, Its, Theirs
+
+        """
+        typ = regex_match.group()[1]  # "s", "O" etc
+        gender = self.attributes.get("gender", default="ambiguous")
+        gender = gender if gender in ("male", "female", "neutral") else "ambiguous"
+        pronoun = _GENDER_PRONOUN_MAP[gender][typ.lower()]
+        return pronoun.capitalize() if typ.isupper() else pronoun
+
     def return_appearance(self, looker, **kwargs):
         if not looker:
             return ""
@@ -110,6 +161,7 @@ class Character(objects.ObjectParent, DefaultCharacter):
         # populate the appearance_template string.
         return self.format_appearance(
             self.appearance_template.format(
+                gender=self.gender,
                 name=self.get_display_name(looker, **kwargs),
                 desc=self.get_display_desc(looker, **kwargs),
                 things=self.get_display_things(looker, **kwargs),
@@ -431,6 +483,11 @@ class Character(objects.ObjectParent, DefaultCharacter):
                     text = to_str(text)
                 except Exception:
                     text = repr(text)
+
+            if text and isinstance(text, tuple):
+                text = (_RE_GENDER_PRONOUN.sub(self.get_pronoun, text[0]), *text[1:])
+            else:
+                text = _RE_GENDER_PRONOUN.sub(self.get_pronoun, text)
 
             if kwargs.get("wrap") == "say":
                 msg = text[0]
