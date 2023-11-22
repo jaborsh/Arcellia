@@ -14,6 +14,8 @@ does what you expect it to.
 
 """
 
+from evennia.contrib.grid.xyzgrid.launchcmd import _option_init
+
 
 def at_initial_setup():
-    pass
+    _option_init()  # xyzgrid init

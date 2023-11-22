@@ -702,5 +702,6 @@ class XYRoom(xyzroom.XYZRoom, Room):
         map_fill_all (bool): I the map area should fill the client width or not.
         map_separator_char (str): The char to use to separate the map area from
             the room description.
-
     """
+
+    map_display = False

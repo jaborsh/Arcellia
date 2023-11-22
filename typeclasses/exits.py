@@ -6,6 +6,7 @@ set and has a single command defined on itself with the same name as its key,
 for allowing Characters to traverse the exit to its destination.
 
 """
+from evennia.contrib.grid.xyzgrid import xyzroom
 from evennia.objects.objects import DefaultExit
 
 from .objects import ObjectParent
@@ -38,3 +39,9 @@ class Exit(ObjectParent, DefaultExit):
     """
 
     pass
+
+
+class XYExit(xyzroom.XYZExit):
+    """
+    An exit that is aware of the XYZ coordinate system.
+    """
