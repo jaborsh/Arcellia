@@ -33,7 +33,7 @@ _GENDER_PRONOUN_MAP = {
 _RE_GENDER_PRONOUN = re.compile(r"(?<!\|)\|(?!\|)[sSoOpPaA]")
 
 
-class Character(objects.ObjectParent, DefaultCharacter):
+class Character(objects.Object, DefaultCharacter):
     """
     The Character defaults to reimplementing some of base Object's hook methods with the
     following functionality:

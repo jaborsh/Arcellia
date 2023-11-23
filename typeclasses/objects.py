@@ -10,6 +10,7 @@ the other types, you can do so by adding this as a multiple
 inheritance.
 
 """
+from django.utils.translation import gettext as _
 from evennia.objects.objects import DefaultObject
 
 
@@ -213,3 +214,101 @@ class Object(ObjectParent, DefaultObject):
         if looker and self.locks.check_lockstring(looker, "perm(Builder)"):
             return "{}(#{})".format(self.display_name, self.id)
         return self.display_name
+
+    def announce_move_to(
+        self, source_location, msg=None, mapping=None, move_type="move", **kwargs
+    ):
+        """
+        Called after the move if the move was not quiet. At this point
+        we are standing in the new location.
+        """
+
+        if not source_location and self.location.has_account:
+            # [Existing comment]
+            string = _("You now have {name} in your possession.").format(
+                name=self.get_display_name(self.location)
+            )
+            self.location.msg(string)
+            return
+
+        origin = source_location
+        destination = self.location
+        exits = []
+        if origin:
+            exits = [
+                o
+                for o in destination.contents
+                if o.location is destination and o.destination is origin
+            ]
+
+        # Update message string based on whether an exit was traversed
+        if exits:
+            exit_traversed = exits[0].get_display_name(self.location)
+            string = _("{object} arrives from the {exit_traversed}.")
+        elif origin:
+            string = _("{object} arrives from {origin}.")
+        else:
+            string = _("{object} arrives to {destination}.")
+
+        if not mapping:
+            mapping = {}
+
+        mapping.update(
+            {
+                "object": self,
+                "exit_traversed": exit_traversed if exits else "somewhere",
+                "origin": origin or "nowhere",
+                "destination": destination or "nowhere",
+            }
+        )
+
+        destination.msg_contents(
+            (string, {"type": move_type}),
+            exclude=(self,),
+            from_obj=self,
+            mapping=mapping,
+        )
+
+    def announce_move_from(
+        self, destination, msg=None, mapping=None, move_type="move", **kwargs
+    ):
+        """
+        Called if the move is to be announced. This is
+        called while we are still standing in the old
+        location.
+        """
+        if not self.location:
+            return
+        if msg:
+            string = msg
+        else:
+            # Updated to include 'exit traversed' in the message
+            string = "{object} is leaving through the {exit_traversed}, heading for {destination}."
+
+        location = self.location
+        exits = [
+            o
+            for o in location.contents
+            if o.location is location and o.destination is destination
+        ]
+
+        if not mapping:
+            mapping = {}
+
+        mapping.update(
+            {
+                "object": self,
+                "exit_traversed": exits[0].get_display_name(self.location)
+                if exits
+                else "an unknown exit",
+                "origin": location or "nowhere",
+                "destination": destination or "nowhere",
+            }
+        )
+
+        location.msg_contents(
+            (string, {"type": move_type}),
+            exclude=(self,),
+            from_obj=self,
+            mapping=mapping,
+        )
