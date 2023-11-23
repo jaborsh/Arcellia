@@ -138,14 +138,14 @@ PROTOTYPES_FLOOR1 = {
         # Sound: A gentle creaking of the wooden shelves under the weight of tomes accompanies the soft rustle of pages turned by an unseen scholar's hand.
         # Taste: The air carries the faint taste of dust mixed with the enduring tang of black ink.
     },
-    (5, 1): {
+    (5, 0): {
         "key": "Castle Valaria - Storage Closet",
         "desc": "Tucked away, forgotten. The air is stale, laden with the musky fragrance of mildew and the pungent odor of rust. Dust-laden shelves bow under the weight of miscellaneous items once deemed valuable but now relegated to the shadows: chipped vases missing their once resplendent blooms, a plethora of candles rendered shapeless by time and disuse, and moth-eaten tapestries whose forgotten splendor is suggested only by the ghostly remnants of vibrant threads. Cobwebs festoon corners like tattered banners, while motes of dust hang suspended in the slivers of light that dare to pierce the small, grimy window pane. An assortment of decrepit trunks lies haphazardly strewn, their contents a mystery swathed in layers of time, the locks tarnished and keys long since lost. Amidst the clutter, the past lingers, stubborn and forlorn, while the present scarcely intrudes upon this sanctum of neglect.",
         # Smell: The unmistakable scent of old leather mixes with a dank earthiness that seeps from the cold stone walls.
         # Sound: The faint scurrying of unseen creatures provides a soft counterpoint to the silence that blankets the chamber.
         # Taste: Each breath tastes like forgotten years, a dusty blend of decay and abandonment that clings to the tongue.
     },
-    (5, 0): {
+    (5, 1): {
         "key": "Castle Valaria - Small Library",
         "desc": "Nestled within the confines of the castle, a small library awaits, a jewel box of knowledge and narrative. It is a cozy alcove where walls are lined with walnut bookcases that reach up towards the timbered ceiling. Here, the shelves are laden with books of all sizes, their well-worn covers imbued with the dignity of age; they lean into one another as old friends might in quiet conversation. Ivory pages, edged with gold, peek out from their ranks, inviting the touch of those who seek their secrets. A grand, oriel window at the library's end creates a nook bathed in natural light, a solitary cushioned bench beneath it offering a perfect haven for the daydreamer or the devoted reader alike.<morning> The morning sun slips through the glass, brushing each tome with a gentle kiss, as if awakening them from their slumber.</morning><afternoon> The afternoon light streams through paneled glass, casting a patchwork of warmth that dances upon the floors and walls as the day progresses.</afternoon> Across the room, a small hearth waits patiently, surrounded by a pair of high-backed chairs upholstered in velvet, their cushions worn from many an hour of repose. A narrow table hovers near, its surface a tableau of reading glasses and leather bookmarks lying in haphazard repose. <night>|/|/    |#6A5ACDSlivers of lavender and twilight blue from a stained glass window filter through the library, dappling the interior with tranquil hues.</night>",
         # Smell: The scent of aged paper combines with the faint aroma of beeswax polish, used lovingly on the woodwork.
