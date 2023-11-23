@@ -283,7 +283,7 @@ class Object(ObjectParent, DefaultObject):
             string = msg
         else:
             # Updated to include 'exit traversed' in the message
-            string = "{object} is leaving through the {exit_traversed}, heading for {destination}."
+            string = "{object} leaves {exit_traversed}."
 
         location = self.location
         exits = [
@@ -301,8 +301,6 @@ class Object(ObjectParent, DefaultObject):
                 "exit_traversed": exits[0].get_display_name(self.location)
                 if exits
                 else "an unknown exit",
-                "origin": location or "nowhere",
-                "destination": destination or "nowhere",
             }
         )
 
