@@ -28,10 +28,13 @@ __all__ = [
     "CmdGet",
     "CmdGive",
     "CmdInventory",
+    "CmdListen",
     "CmdLook",
     "CmdPut",
     "CmdRemove",
     "CmdSay",
+    "CmdSmell",
+    "CmdTaste",
     "CmdTell",
     "CmdTime",
     "CmdWear",
@@ -590,6 +593,29 @@ class CmdInventory(Command):
         return "|x" + "-" * self.max_length + "|n"
 
 
+class CmdListen(Command):
+    """
+    Syntax: listen
+
+    Listen to your surroundings.
+    """
+
+    key = "listen"
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+
+        caller.location.msg_contents(
+            "$You() $conj(listen) to the surroundings.", from_obj=caller, exclude=caller
+        )
+
+        if not caller.location.db.sound:
+            return caller.msg("You hear nothing interesting.")
+
+        return caller.msg(caller.location.db.sound)
+
+
 class CmdLook(general.CmdLook):
     """
     Syntax: look
@@ -782,6 +808,80 @@ class CmdSay(Command):
             receivers=receivers or None,
             width=self.client_width(),
         )
+
+
+class CmdSmell(Command):
+    """
+    Syntax: smell
+            smell <obj>
+
+    Smell your surroundings or a specific object.
+    """
+
+    key = "smell"
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+
+        if not args:
+            caller.location.msg_contents(
+                "$You() $conj(sniff) the air.", from_obj=caller, exclude=caller
+            )
+            return caller.msg(caller.location.db.smell)
+
+        obj = caller.search(args)
+        if not obj:
+            return
+
+        caller.location.msg_contents(
+            "$You() $conj(sniff) %s." % obj.get_display_name(caller),
+            from_obj=caller,
+            exclude=caller,
+        )
+
+        if not obj.db.smell:
+            return caller.msg("You smell nothing interesting.")
+
+        caller.msg(obj.db.smell)
+
+
+class CmdTaste(Command):
+    """
+    Syntax: taste
+            taste <obj>
+
+    Taste your surroundings or a specific object.
+    """
+
+    key = "taste"
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+
+        if not args:
+            caller.location.msg_contents(
+                "$You() $conj(taste) the air.", from_obj=caller, exclude=caller
+            )
+            return caller.msg(caller.location.db.taste)
+
+        obj = caller.search(args)
+        if not obj:
+            return
+
+        caller.location.msg_contents(
+            "$You() $conj(taste) %s." % obj.get_display_name(caller),
+            from_obj=caller,
+            exclude=caller,
+        )
+
+        if not obj.db.taste:
+            return caller.msg("You taste nothing interesting.")
+
+        caller.msg(obj.db.taste)
 
 
 class CmdTell(Command):
