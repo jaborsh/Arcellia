@@ -4,6 +4,8 @@ from evennia.contrib.grid.xyzgrid import xymap_legend
 def assign_parents(prototypes):
     for key, prot in prototypes.items():
         if len(key) == 2:
+            if prot.get("typeclass") == "world.valaria.castle.rooms.ThroneRoom":
+                prot["prototype_parent"] = THRONE_ROOM
             prot["prototype_parent"] = ROOM_PARENT
         else:
             prot["prototype_parent"] = EXIT_PARENT
@@ -11,6 +13,9 @@ def assign_parents(prototypes):
 
 ROOM_PARENT = {
     "typeclass": "world.valaria.castle.rooms.CastleRoom",
+}
+THRONE_ROOM = {
+    "typeclass": "world.valaria.castle.rooms.ThroneRoom",
 }
 EXIT_PARENT = {
     "typeclass": "typeclasses.exits.XYExit",
@@ -360,6 +365,7 @@ PROTOTYPES_FLOOR1 = {
             "throne": "The throne itself, a formidable masterpiece, rises with an elegance that commands respect, its surface a saga of triumph, cast in precious materials that catch the light in homage.",
             "ceiling fresco": "Above, the vast fresco sprawls across the ceiling, a silent witness to the room's grandeur, its mythic figures captured mid-gesture in scenes of divine and mortal entwine.",
         },
+        "typeclass": "world.valaria.castle.rooms.ThroneRoom",
     },
     ("*", "*"): {},
     ("*", "*", "*"): {},

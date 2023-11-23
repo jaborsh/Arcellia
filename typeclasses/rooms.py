@@ -16,6 +16,7 @@ from evennia import FuncParser, gametime
 from evennia.contrib.grid.xyzgrid import xyzroom
 from evennia.objects.objects import DefaultRoom
 from evennia.typeclasses.attributes import AttributeProperty
+from evennia.utils import create
 from evennia.utils.utils import iter_to_str, repeat
 
 from .objects import Object
@@ -686,14 +687,32 @@ class Room(Object, DefaultRoom):
         """
 
         def _filter_visible(obj_list):
-            return (
+            return [
                 obj for obj in obj_list if obj != looker and obj.access(looker, "view")
-            )
+            ]
 
         mobs = _filter_visible(self.contents_get(content_type="mob"))
-        mob_names = iter_to_str(mob.get_display_name(looker, **kwargs) for mob in mobs)
 
-        return f"\n{mob_names}\n" if mob_names else ""
+        # Convert the mobs array into a dictionary of mobs where mobs with the same key
+        # are grouped together and given a count number.
+        grouped_mobs = defaultdict(list)
+        for mob in mobs:
+            grouped_mobs[mob.get_display_name(looker, **kwargs)].append(mob)
+
+        mob_names = []
+        for mobname, moblist in sorted(grouped_mobs.items()):
+            nmobs = len(moblist)
+            mob = moblist[0]
+            singular, plural = mob.get_numbered_name(nmobs, looker, key=mobname)
+            mob_names.append(
+                mob.get_display_name(looker, **kwargs)
+                if nmobs == 1
+                else plural[0].upper() + plural[1:]
+            )
+
+        mob_names = "\n".join(reversed(mob_names))
+
+        return mob_names
 
     def get_display_things(self, looker, **kwargs):
         """
@@ -772,6 +791,19 @@ class Room(Object, DefaultRoom):
             looker,
             **kwargs,
         )
+
+    def create_mobs(self, typeclass, key, aliases=[], count=1):
+        mobs = []
+        for _ in range(count):
+            new_mob = create.create_object(
+                typeclass=typeclass,
+                key=key,
+                aliases=aliases,
+                location=self,
+            )
+            mobs.append(new_mob)
+
+        return mobs
 
 
 class XYRoom(xyzroom.XYZRoom, Room):
