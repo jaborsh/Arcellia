@@ -504,6 +504,9 @@ class CmdGet(general.CmdGet):
 
             obj = caller.search(self.lhs, location=location)
             self._retrieve_obj(caller, obj, location)
+        else:
+            obj = caller.search(self.args)
+            self._retrieve_obj(caller, obj, caller.location)
 
 
 class CmdGive(general.CmdGive):

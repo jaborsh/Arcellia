@@ -14,8 +14,15 @@ does what you expect it to.
 
 """
 
-from evennia.contrib.grid.xyzgrid.launchcmd import _option_init
+from evennia.contrib.grid.xyzgrid.launchcmd import (
+    _option_add,
+    _option_init,
+)
+from evennia.contrib.grid.xyzgrid.xyzgrid import get_xyzgrid
 
 
 def at_initial_setup():
     _option_init()  # xyzgrid init
+    _option_add("world.valaria.castle.map")
+    grid = get_xyzgrid()
+    grid.spawn(xyz=("*", "*", "*"))

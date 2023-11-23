@@ -38,10 +38,16 @@ class Exit(ObjectParent, DefaultExit):
                                         defined, in which case that will simply be echoed.
     """
 
-    pass
+    @property
+    def display_name(self):
+        return self.attributes.get("display_name", self.name)
+
+    @display_name.setter
+    def display_name(self, value: str):
+        self.db.display_name = value
 
 
-class XYExit(xyzroom.XYZExit):
+class XYExit(xyzroom.XYZExit, Exit):
     """
     An exit that is aware of the XYZ coordinate system.
     """

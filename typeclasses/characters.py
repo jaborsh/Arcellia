@@ -173,9 +173,9 @@ You see a {gender} {name},
             **kwargs,
         )
 
-    #################
-    # Communication #
-    #################
+    #########
+    # Hooks #
+    #########
     def at_pre_emote(self, message, **kwargs):
         """
         Before the object emotes something.
@@ -434,6 +434,9 @@ You see a {gender} {name},
                 custom_mapping,
             )
 
+    ###########
+    # Methods #
+    ###########
     def msg(self, text=None, from_obj=None, session=None, options=None, **kwargs):
         """
         Emits something to a session attached to the object.
@@ -510,9 +513,6 @@ You see a {gender} {name},
         for watcher in watchers:
             watcher.msg(text=kwargs["text"])
 
-    ###########
-    # Methods #
-    ###########
     def search(
         self,
         searchdata,

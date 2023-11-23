@@ -7,7 +7,7 @@ Rooms are simple containers that has no location of their own.
 import datetime
 import random
 import re
-from collections import deque
+from collections import defaultdict, deque
 from textwrap import dedent
 
 from django.conf import settings
@@ -556,9 +556,7 @@ class Room(Object, DefaultRoom):
             {desc}
 
             {exits}
-        {characters}
-        
-        {things}
+            {characters}{mobs}{things}
         """
     )
 
@@ -598,23 +596,114 @@ class Room(Object, DefaultRoom):
             str: The desc display string.
 
         """
-        # get the current description based on the roomstate
         desc = self.get_stateful_desc()
-        # parse for legacy <morning>...</morning> markers
         desc = self.replace_legacy_time_of_day_markup(desc)
-        # apply funcparser
         desc = self._get_funcparser(looker).parse(desc, **kwargs)
         return desc
 
     def get_display_exits(self, looker, **kwargs):
         """
-        Get the 'exits' component of the object description. Called by `return_appearance`.
+        Get the 'exits' component of the object description, ordered as per the 'ordered_exits' list.
+        Other exits not in the list are appended after the predefined ones.
+
+        Args:
+            looker (Object): Object doing the looking.
+            **kwargs: Arbitrary data for use when overriding.
+
+        Returns:
+            str: The exits display data, ordered by 'ordered_exits'.
+        """
+
+        ordered_exits = [
+            "north",
+            "west",
+            "south",
+            "east",
+            "northwest",
+            "northeast",
+            "southwest",
+            "southeast",
+            "up",
+            "down",
+        ]
+
+        def exit_sort_key(exit):
+            try:
+                return ordered_exits.index(exit.display_name)
+            except ValueError:
+                return len(ordered_exits)
+
+        def _filter_visible(obj_list):
+            return (
+                obj for obj in obj_list if obj != looker and obj.access(looker, "view")
+            )
+
+        exits = sorted(
+            _filter_visible(self.contents_get(content_type="exit")), key=exit_sort_key
+        )
+        exit_names = iter_to_str(exit.display_name for exit in exits)
+
+        return (
+            f"|wObvious Exits: {exit_names}|n"
+            if exit_names
+            else "|wObvious Exits: None|n"
+        )
+
+    def get_display_characters(self, looker, **kwargs):
+        """
+        Get the 'characters' component of the object description. Called by `return_appearance`.
+
+        Args:
+            looker (Object): Object doing the looking.
+            **kwargs: Arbitrary data for use when overriding.
+
+        Returns:
+            str: The character display data.
+        """
+
+        def _filter_visible(obj_list):
+            return (
+                obj for obj in obj_list if obj != looker and obj.access(looker, "view")
+            )
+
+        characters = _filter_visible(self.contents_get(content_type="character"))
+        character_names = iter_to_str(
+            char.get_display_name(looker, **kwargs) for char in characters
+        )
+
+        return f"\n{character_names}\n" if character_names else ""
+
+    def get_display_mobs(self, looker, **kwargs):
+        """
+        Get the 'mobs' component of the object description. Called by `return_appearance`.
+
+        Args:
+            looker (Object): Object doing the looking.
+            **kwargs: Arbitrary data for use when overriding.
+
+        Returns:
+            str: The character display data.
+        """
+
+        def _filter_visible(obj_list):
+            return (
+                obj for obj in obj_list if obj != looker and obj.access(looker, "view")
+            )
+
+        mobs = _filter_visible(self.contents_get(content_type="mob"))
+        mob_names = iter_to_str(mob.get_display_name(looker, **kwargs) for mob in mobs)
+
+        return f"\n{mob_names}\n" if mob_names else ""
+
+    def get_display_things(self, looker, **kwargs):
+        """
+        Get the 'things' component of the object description. Called by `return_appearance`.
 
         Args:
             looker (Object): Object doing the looking.
             **kwargs: Arbitrary data for use when overriding.
         Returns:
-            str: The exits display data.
+            str: The things display data.
 
         """
 
@@ -623,16 +712,21 @@ class Room(Object, DefaultRoom):
                 obj for obj in obj_list if obj != looker and obj.access(looker, "view")
             )
 
-        exits = _filter_visible(self.contents_get(content_type="exit"))
-        exit_names = iter_to_str(
-            exit.get_display_name(looker, **kwargs) for exit in exits
-        )
+        # sort and handle same-named things
+        things = _filter_visible(self.contents_get(content_type="object"))
 
-        return (
-            f"|wObvious Exits: {exit_names}"
-            if exit_names
-            else "|wObvious Exits: None|n"
-        )
+        grouped_things = defaultdict(list)
+        for thing in things:
+            grouped_things[thing.get_display_name(looker, **kwargs)].append(thing)
+
+        thing_names = []
+        for thingname, thinglist in sorted(grouped_things.items()):
+            nthings = len(thinglist)
+            thing = thinglist[0]
+            singular, plural = thing.get_numbered_name(nthings, looker, key=thingname)
+            thing_names.append(singular if nthings == 1 else plural)
+        thing_names = iter_to_str(thing_names)
+        return f"\n{thing_names}" if thing_names else ""
 
     def return_appearance(self, looker, **kwargs):
         """
@@ -672,13 +766,12 @@ class Room(Object, DefaultRoom):
                 desc=self.get_display_desc(looker, **kwargs),
                 exits=self.get_display_exits(looker, **kwargs),
                 characters=self.get_display_characters(looker, **kwargs),
+                mobs=self.get_display_mobs(looker, **kwargs),
                 things=self.get_display_things(looker, **kwargs),
             ),
             looker,
             **kwargs,
         )
-
-    pass
 
 
 class XYRoom(xyzroom.XYZRoom, Room):
