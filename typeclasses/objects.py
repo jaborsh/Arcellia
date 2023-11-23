@@ -243,7 +243,7 @@ class Object(ObjectParent, DefaultObject):
 
         # Update message string based on whether an exit was traversed
         if exits:
-            if exits[0] in [
+            if exits[0].get_display_name(self.location) in [
                 "north",
                 "west",
                 "south",
@@ -254,9 +254,9 @@ class Object(ObjectParent, DefaultObject):
                 "southeast",
             ]:
                 exit_traversed = f"the {exits[0].get_display_name(self.location)}"
-            elif exits[0] in ["up"]:
+            elif exits[0].get_display_name(self.location) in ["up"]:
                 exit_traversed = "above"
-            elif exits[0] in ["down"]:
+            elif exits[0].get_display_name(self.location) in ["down"]:
                 exit_traversed = "below"
             else:
                 exit_traversed = f"{exits[0].get_display_name(self.location)}"
