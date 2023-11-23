@@ -1,22 +1,7 @@
 from evennia.contrib.grid.xyzgrid import xymap_legend
 
-
-def assign_parents(prototypes):
-    for key, prot in prototypes.items():
-        if len(key) == 2:
-            if prot.get("typeclass") == "world.valaria.castle.rooms.ThroneRoom":
-                prot["prototype_parent"] = THRONE_ROOM
-            prot["prototype_parent"] = ROOM_PARENT
-        else:
-            prot["prototype_parent"] = EXIT_PARENT
-
-
-ROOM_PARENT = {
-    "typeclass": "world.valaria.castle.rooms.CastleRoom",
-}
-THRONE_ROOM = {
-    "typeclass": "world.valaria.castle.rooms.ThroneRoom",
-}
+ROOM_PARENT = {"typeclass": "world.valaria.castle.rooms.CastleRoom"}
+ARMORY = {"typeclass": "world.valaria.castle.rooms.CastleArmory"}
 EXIT_PARENT = {
     "typeclass": "typeclasses.exits.XYExit",
 }
@@ -166,7 +151,14 @@ PROTOTYPES_FLOOR0 = {
     ("*", "*", "*"): {},
 }
 
-assign_parents(PROTOTYPES_FLOOR0)
+for key, prot in PROTOTYPES_FLOOR0.items():
+    if len(key) == 2:
+        if key == (4, 3):
+            prot["prototype_parent"] = ARMORY
+        else:
+            prot["prototype_parent"] = ROOM_PARENT
+    else:
+        prot["prototype_parent"] = EXIT_PARENT
 
 XYMAP_DATA_FLOOR0 = {
     "zcoord": "castle_floor0",
@@ -365,13 +357,37 @@ PROTOTYPES_FLOOR1 = {
             "throne": "The throne itself, a formidable masterpiece, rises with an elegance that commands respect, its surface a saga of triumph, cast in precious materials that catch the light in homage.",
             "ceiling fresco": "Above, the vast fresco sprawls across the ceiling, a silent witness to the room's grandeur, its mythic figures captured mid-gesture in scenes of divine and mortal entwine.",
         },
-        "typeclass": "world.valaria.castle.rooms.ThroneRoom",
     },
     ("*", "*"): {},
     ("*", "*", "*"): {},
 }
 
-assign_parents(PROTOTYPES_FLOOR1)
+
+ROUNDTABLE = {"typeclass": "world.valaria.castle.rooms.RoundtableLobby"}
+UPPER_EAST = {"typeclass": "world.valaria.castle.rooms.UpperEasternWing"}
+STUDY_ROOM = {"typeclass": "world.valaria.castle.rooms.CastleStudy"}
+SMALL_LIBRARY = {"typeclass": "world.valaria.castle.rooms.CastleLibrary"}
+BEDROOM = {"typeclass": "world.valaria.castle.rooms.RoyalBedchamber"}
+THRONE_ROOM = {"typeclass": "world.valaria.castle.rooms.ThroneRoom"}
+
+for key, prot in PROTOTYPES_FLOOR1.items():
+    if len(key) == 2:
+        if key == (3, 2):
+            prot["prototype_parent"] = ROUNDTABLE
+        elif key == (5, 2):
+            prot["prototype_parent"] = UPPER_EAST
+        elif key == (6, 2):
+            prot["prototype_parent"] = STUDY_ROOM
+        elif key == (5, 1):
+            prot["prototype_parent"] = SMALL_LIBRARY
+        elif key == (0, 2):
+            prot["prototype_parent"] = BEDROOM
+        elif key == (3, 3):
+            prot["prototype_parent"] = THRONE_ROOM
+        else:
+            prot["prototype_parent"] = ROOM_PARENT
+    else:
+        prot["prototype_parent"] = EXIT_PARENT
 
 XYMAP_DATA_FLOOR1 = {
     "zcoord": "castle_floor1",

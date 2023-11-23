@@ -1,3 +1,4 @@
+from evennia.utils import create
 from typeclasses import rooms
 
 
@@ -7,55 +8,130 @@ class CastleRoom(rooms.XYRoom):
     """
 
     def at_init(self):
-        if not self.db.mobs:
-            self.initialize_mobs()
-
-    def initialize_mobs(self):
+        super().at_init()
         if not self.db.mobs:
             self.db.mobs = []
-            self.add_guards()
+            self.initialize_mobs()
         else:
             self.update_mob_locations()
 
+    def initialize_mobs(self):
+        self.add_guards()
+
+    def update_mob_locations(self):
+        for mob in self.db.mobs:
+            if mob.location != self:
+                mob.move_to(self)
+
+    def create_mobs(self, typeclass, key, aliases=[], count=1):
+        for _ in range(count):
+            mob = create.create_object(typeclass=typeclass, key=key, aliases=aliases)
+            mob.location = self
+            mob.home = self
+            self.db.mobs.append(mob)
+
     def add_guards(self, count=1):
-        self.db.mobs += self.create_mobs(
+        self.create_mobs(
             typeclass="world.valaria.castle.mobs.ValarianCastleGuard",
             key="Valarian Castle Guard",
             count=count,
         )
 
-    def update_mob_locations(self):
-        for mob in self.db.mobs:
-            if mob.location != self:
-                mob.move_to(self)
-
-    def at_object_delete(self):
-        for mob in self.db.mobs:
-            mob.delete()
-
-        return True
-
 
 class ThroneRoom(CastleRoom):
-    def at_init(self):
-        self.initialize_mobs()
-
     def initialize_mobs(self):
-        if not self.db.mobs:
-            self.db.mobs = []
-            self.add_queen()
-            self.add_guards(2)
-        else:
-            self.update_mob_locations()
-
-    def add_queen(self):
-        self.db.mobs += self.create_mobs(
+        self.create_mobs(
             typeclass="world.valaria.castle.mobs.QueenEveline",
             key="Queen Eveline",
             aliases=["queen", "eveline"],
         )
+        self.create_mobs(
+            "world.valaria.castle.mobs.IsoldeNightshade",
+            "Isolde Nightshade",
+            ["isolde", "nightshade"],
+        )
+        self.add_guards(count=2)
 
-    def update_mob_locations(self):
-        for mob in self.db.mobs:
-            if mob.location != self:
-                mob.move_to(self)
+
+class CastleStudy(CastleRoom):
+    def initialize_mobs(self):
+        self.create_mobs(
+            typeclass="world.valaria.castle.mobs.CedricSterling",
+            key="Cedric Sterling",
+            aliases=["cedric", "sterling"],
+        )
+
+
+class RoundtableLobby(CastleRoom):
+    def initialize_mobs(self):
+        self.create_mobs(
+            typeclass="world.valaria.castle.mobs.SeraphinaLightbringer",
+            key="Seraphina Lightbringer",
+            aliases=["seraphina", "lightbringer"],
+        )
+        self.create_mobs(
+            "world.valaria.castle.mobs.ReginaldArundel",
+            "Reginald Arundel",
+            ["reginald", "arundel"],
+        )
+        self.create_mobs(
+            "world.valaria.castle.mobs.AriaWhisperwind",
+            "Aria Whisperwind",
+            ["aria", "whisperwind"],
+        )
+        self.create_mobs(
+            "world.valaria.castle.mobs.EzekielGrimblade",
+            "Ezekiel Grimblade",
+            ["ezekiel", "grimblade"],
+        )
+        self.create_mobs(
+            "world.valaria.castle.mobs.EldricShadowweaver",
+            "Eldric Shadowweaver",
+            ["eldric", "shadowweaver"],
+        )
+
+
+class CastleArmory(CastleRoom):
+    def initialize_mobs(self):
+        self.create_mobs(
+            "world.valaria.castle.mobs.ThornIronforge",
+            "Thorn Ironforge",
+            ["thorn", "ironforge"],
+        )
+
+
+class RoyalBedchamber(CastleRoom):
+    def initialize_mobs(self):
+        self.create_mobs(
+            "world.valaria.castle.mobs.EvelynGraceworn",
+            "Evelyn Graceworn",
+            ["evelyn", "graceworn"],
+        )
+
+
+class UpperEasternWing(CastleRoom):
+    def initialize_mobs(self):
+        self.create_mobs(
+            "world.valaria.castle.mobs.SilasShadowsteel",
+            "Silas Shadowsteel",
+            ["silas", "shadowsteel"],
+        )
+        self.create_mobs(
+            "world.valaria.castle.mobs.LoreleiStormrider",
+            "Lorelei Stormrider",
+            ["lorelei", "stormrider"],
+        )
+
+
+class CastleLibrary(CastleRoom):
+    def initialize_mobs(self):
+        self.create_mobs(
+            "world.valaria.castle.mobs.BrynnMarketwell",
+            "Brynn Marketwell",
+            ["brynn", "marketwell"],
+        )
+        self.create_mobs(
+            "world.valaria.castle.mobs.SableBlackthorn",
+            "Sable Blackthorn",
+            ["sable", "blackthorn"],
+        )

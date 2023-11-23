@@ -16,7 +16,6 @@ from evennia import FuncParser, gametime
 from evennia.contrib.grid.xyzgrid import xyzroom
 from evennia.objects.objects import DefaultRoom
 from evennia.typeclasses.attributes import AttributeProperty
-from evennia.utils import create
 from evennia.utils.utils import iter_to_str, repeat
 
 from .objects import Object
@@ -174,6 +173,11 @@ class Room(Object, DefaultRoom):
     def at_init(self):
         """Evennia hook. Start up repeating function whenever object loads into memory."""
         self._start_broadcast_repeat_task()
+
+    def at_object_delete(self):
+        for mob in self.db.mobs:
+            mob.delete()
+        return True
 
     def start_repeat_broadcast_messages(self):
         """
@@ -556,8 +560,7 @@ class Room(Object, DefaultRoom):
 
             {desc}
 
-            {exits}
-            {characters}{mobs}{things}
+            {exits}{characters}{mobs}{things}
         """
     )
 
@@ -645,9 +648,9 @@ class Room(Object, DefaultRoom):
         exit_names = iter_to_str(exit.display_name for exit in exits)
 
         return (
-            f"|wObvious Exits: {exit_names}|n"
+            f"|wObvious Exits: {exit_names}|n\n"
             if exit_names
-            else "|wObvious Exits: None|n"
+            else "|wObvious Exits: None|n\n"
         )
 
     def get_display_characters(self, looker, **kwargs):
@@ -672,7 +675,7 @@ class Room(Object, DefaultRoom):
             char.get_display_name(looker, **kwargs) for char in characters
         )
 
-        return f"\n{character_names}\n" if character_names else ""
+        return f"\n{character_names}\n" if character_names else "\n"
 
     def get_display_mobs(self, looker, **kwargs):
         """
@@ -791,19 +794,6 @@ class Room(Object, DefaultRoom):
             looker,
             **kwargs,
         )
-
-    def create_mobs(self, typeclass, key, aliases=[], count=1):
-        mobs = []
-        for _ in range(count):
-            new_mob = create.create_object(
-                typeclass=typeclass,
-                key=key,
-                aliases=aliases,
-                location=self,
-            )
-            mobs.append(new_mob)
-
-        return mobs
 
 
 class XYRoom(xyzroom.XYZRoom, Room):
