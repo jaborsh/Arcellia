@@ -181,42 +181,31 @@ class Object(ObjectParent, DefaultObject):
         self.db.display_name = value
 
     @property
-    def smell(self):
-        return self.attributes.get("smell", "You smell nothing interesting.")
+    def senses(self):
+        return self.attributes.get("senses", {})
 
-    @smell.setter
-    def smell(self, value: str):
-        self.db.smell = value
-
-    @property
-    def sound(self):
-        return self.attributes.get("sound", "You hear nothing interesting.")
-
-    @sound.setter
-    def sound(self, value: str):
-        self.db.sound = value
+    @senses.setter
+    def senses(self, sense: str, value: str):
+        self.db.senses[sense] = value
 
     @property
     def feel(self):
-        return self.attributes.get("feel", "You feel nothing interesting.")
+        return self.senses.get("feel", "You feel nothing interesting.")
 
-    @feel.setter
-    def feel(self, value: str):
-        self.db.feel = value
+    @property
+    def smell(self):
+        return self.senses.get("smell", "You smell nothing interesting.")
+
+    @property
+    def sound(self):
+        return self.senses.get("sound", "You hear nothing interesting.")
 
     @property
     def taste(self):
-        return self.attributes.get("taste", "You taste nothing interesting.")
-
-    @taste.setter
-    def taste(self, value: str):
-        self.db.taste = value
+        return self.senses.get("taste", "You taste nothing interesting.")
 
     @property
     def weight(self):
-        """
-        Return the weight of this object
-        """
         return self.attributes.get("weight", default=0)
 
     @weight.setter
@@ -256,7 +245,6 @@ class Object(ObjectParent, DefaultObject):
         """
 
         if not source_location and self.location.has_account:
-            # [Existing comment]
             string = _("You now have {name} in your possession.").format(
                 name=self.get_display_name(self.location)
             )
@@ -273,7 +261,6 @@ class Object(ObjectParent, DefaultObject):
                 if o.location is destination and o.destination is origin
             ]
 
-        # Update message string based on whether an exit was traversed
         if exits:
             if exits[0].get_display_name(self.location) in [
                 "north",
@@ -330,7 +317,6 @@ class Object(ObjectParent, DefaultObject):
         if msg:
             string = msg
         else:
-            # Updated to include 'exit traversed' in the message
             string = "{object} leaves {exit_traversed}."
 
         location = self.location
