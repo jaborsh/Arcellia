@@ -18,7 +18,7 @@ from evennia.objects.objects import DefaultRoom
 from evennia.typeclasses.attributes import AttributeProperty
 from evennia.utils.utils import iter_to_str, repeat
 
-from .objects import ObjectParent
+from .objects import Object
 
 CLIENT_DEFAULT_WIDTH = settings.CLIENT_DEFAULT_WIDTH
 MAP_X_TAG_CATEGORY = "room_x_coordinate"
@@ -77,7 +77,7 @@ def func_state(roomstate, *args, looker=None, room=None, **kwargs):
     return ""
 
 
-class Room(ObjectParent, DefaultRoom):
+class Room(Object, DefaultRoom):
     """
     Modified Extended Room (Griatch)
 

@@ -25,6 +25,7 @@ __all__ = [
     "CmdBlock",
     "CmdDrop",
     "CmdEmote",
+    "CmdFeel",
     "CmdGet",
     "CmdGive",
     "CmdInventory",
@@ -400,6 +401,40 @@ class CmdEmote(Command):
         )
 
 
+class CmdFeel(Command):
+    """
+    Syntax: feel
+            feel <obj>
+
+    feel your surroundings or a specific object.
+    """
+
+    key = "feel"
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+
+        if not args:
+            caller.location.msg_contents(
+                "$You() $conj(feel) the air.", from_obj=caller, exclude=caller
+            )
+            return caller.msg(caller.location.feel)
+
+        obj = caller.search(args)
+        if not obj:
+            return
+
+        caller.location.msg_contents(
+            "$You() $conj(feel) %s." % obj.display_name,
+            from_obj=caller,
+            exclude=caller,
+        )
+
+        caller.msg(obj.feel)
+
+
 class CmdGet(general.CmdGet):
     """
     Syntax: get <obj>
@@ -610,10 +645,7 @@ class CmdListen(Command):
             "$You() $conj(listen) to the surroundings.", from_obj=caller, exclude=caller
         )
 
-        if not caller.location.db.sound:
-            return caller.msg("You hear nothing interesting.")
-
-        return caller.msg(caller.location.db.sound)
+        caller.msg(caller.location.sound)
 
 
 class CmdLook(general.CmdLook):
@@ -827,24 +859,21 @@ class CmdSmell(Command):
 
         if not args:
             caller.location.msg_contents(
-                "$You() $conj(sniff) the air.", from_obj=caller, exclude=caller
+                "$You() $conj(smell) the air.", from_obj=caller, exclude=caller
             )
-            return caller.msg(caller.location.db.smell)
+            return caller.msg(caller.location.smell)
 
         obj = caller.search(args)
         if not obj:
             return
 
         caller.location.msg_contents(
-            "$You() $conj(sniff) %s." % obj.get_display_name(caller),
+            "$You() $conj(smell) %s." % obj.display_name,
             from_obj=caller,
             exclude=caller,
         )
 
-        if not obj.db.smell:
-            return caller.msg("You smell nothing interesting.")
-
-        caller.msg(obj.db.smell)
+        caller.msg(obj.smell)
 
 
 class CmdTaste(Command):
@@ -866,22 +895,19 @@ class CmdTaste(Command):
             caller.location.msg_contents(
                 "$You() $conj(taste) the air.", from_obj=caller, exclude=caller
             )
-            return caller.msg(caller.location.db.taste)
+            return caller.msg(caller.location.taste)
 
         obj = caller.search(args)
         if not obj:
             return
 
         caller.location.msg_contents(
-            "$You() $conj(taste) %s." % obj.get_display_name(caller),
+            "$You() $conj(taste) %s." % obj.display_name,
             from_obj=caller,
             exclude=caller,
         )
 
-        if not obj.db.taste:
-            return caller.msg("You taste nothing interesting.")
-
-        caller.msg(obj.db.taste)
+        caller.msg(obj.taste)
 
 
 class CmdTell(Command):

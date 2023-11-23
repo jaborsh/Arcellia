@@ -181,6 +181,38 @@ class Object(ObjectParent, DefaultObject):
         self.db.display_name = value
 
     @property
+    def smell(self):
+        return self.attributes.get("smell", "You smell nothing interesting.")
+
+    @smell.setter
+    def smell(self, value: str):
+        self.db.smell = value
+
+    @property
+    def sound(self):
+        return self.attributes.get("sound", "You hear nothing interesting.")
+
+    @sound.setter
+    def sound(self, value: str):
+        self.db.sound = value
+
+    @property
+    def feel(self):
+        return self.attributes.get("feel", "You feel nothing interesting.")
+
+    @feel.setter
+    def feel(self, value: str):
+        self.db.feel = value
+
+    @property
+    def taste(self):
+        return self.attributes.get("taste", "You taste nothing interesting.")
+
+    @taste.setter
+    def taste(self, value: str):
+        self.db.taste = value
+
+    @property
     def weight(self):
         """
         Return the weight of this object
