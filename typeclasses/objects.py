@@ -243,8 +243,24 @@ class Object(ObjectParent, DefaultObject):
 
         # Update message string based on whether an exit was traversed
         if exits:
-            exit_traversed = exits[0].get_display_name(self.location)
-            string = _("{object} arrives from the {exit_traversed}.")
+            if exits in [
+                "north",
+                "west",
+                "south",
+                "east",
+                "northeast",
+                "northwest",
+                "southwest",
+                "southeast",
+            ]:
+                exit_traversed = f"The {exits[0].get_display_name(self.location)}"
+            elif exits in ["up"]:
+                exit_traversed = "above"
+            elif exits in ["down"]:
+                exit_traversed = "below"
+            else:
+                exit_traversed = f"{exits[0].get_display_name(self.location)}"
+            string = _("{object} arrives from {exit_traversed}.")
         elif origin:
             string = _("{object} arrives from {origin}.")
         else:
@@ -256,7 +272,7 @@ class Object(ObjectParent, DefaultObject):
         mapping.update(
             {
                 "object": self,
-                "exit_traversed": exit_traversed if exits else "somewhere",
+                "exit_traversed": exit_traversed if exits else "nowhere",
                 "origin": origin or "nowhere",
                 "destination": destination or "nowhere",
             }
