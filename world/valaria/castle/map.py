@@ -1,10 +1,5 @@
 from evennia.contrib.grid.xyzgrid import xymap_legend
-
-ROOM_PARENT = {"typeclass": "world.valaria.castle.rooms.CastleRoom"}
-ARMORY = {"typeclass": "world.valaria.castle.rooms.CastleArmory"}
-EXIT_PARENT = {
-    "typeclass": "typeclasses.exits.XYExit",
-}
+from world.valaria.castle.rooms import CastleValariaExitType, CastleValariaRoomType
 
 CASTLE_FLOOR0 = r"""
  + 0 1 2 3 4
@@ -154,11 +149,11 @@ PROTOTYPES_FLOOR0 = {
 for key, prot in PROTOTYPES_FLOOR0.items():
     if len(key) == 2:
         if key == (4, 3):
-            prot["prototype_parent"] = ARMORY
+            prot["prototype_parent"] = CastleValariaRoomType.ARMORY
         else:
-            prot["prototype_parent"] = ROOM_PARENT
+            prot["prototype_parent"] = CastleValariaRoomType.ROOM_PARENT
     else:
-        prot["prototype_parent"] = EXIT_PARENT
+        prot["prototype_parent"] = CastleValariaExitType.EXIT_PARENT
 
 XYMAP_DATA_FLOOR0 = {
     "zcoord": "castle_floor0",
@@ -362,32 +357,24 @@ PROTOTYPES_FLOOR1 = {
     ("*", "*", "*"): {},
 }
 
-
-ROUNDTABLE = {"typeclass": "world.valaria.castle.rooms.RoundtableLobby"}
-UPPER_EAST = {"typeclass": "world.valaria.castle.rooms.UpperEasternWing"}
-STUDY_ROOM = {"typeclass": "world.valaria.castle.rooms.CastleStudy"}
-SMALL_LIBRARY = {"typeclass": "world.valaria.castle.rooms.CastleLibrary"}
-BEDROOM = {"typeclass": "world.valaria.castle.rooms.RoyalBedchamber"}
-THRONE_ROOM = {"typeclass": "world.valaria.castle.rooms.ThroneRoom"}
-
 for key, prot in PROTOTYPES_FLOOR1.items():
     if len(key) == 2:
         if key == (3, 2):
-            prot["prototype_parent"] = ROUNDTABLE
+            prot["prototype_parent"] = CastleValariaRoomType.ROUNDTABLE
         elif key == (5, 2):
-            prot["prototype_parent"] = UPPER_EAST
+            prot["prototype_parent"] = CastleValariaRoomType.UPPER_EAST
         elif key == (6, 2):
-            prot["prototype_parent"] = STUDY_ROOM
+            prot["prototype_parent"] = CastleValariaRoomType.STUDY
         elif key == (5, 1):
-            prot["prototype_parent"] = SMALL_LIBRARY
+            prot["prototype_parent"] = CastleValariaRoomType.LIBRARY
         elif key == (0, 2):
-            prot["prototype_parent"] = BEDROOM
+            prot["prototype_parent"] = CastleValariaRoomType.BEDROOM
         elif key == (3, 3):
-            prot["prototype_parent"] = THRONE_ROOM
+            prot["prototype_parent"] = CastleValariaRoomType.THRONE
         else:
-            prot["prototype_parent"] = ROOM_PARENT
+            prot["prototype_parent"] = CastleValariaRoomType.ROOM_PARENT
     else:
-        prot["prototype_parent"] = EXIT_PARENT
+        prot["prototype_parent"] = CastleValariaExitType.EXIT_PARENT
 
 XYMAP_DATA_FLOOR1 = {
     "zcoord": "castle_floor1",

@@ -31,7 +31,7 @@ class CedricSterling(mobs.Mob):
 class SeraphinaLightbringer(mobs.Mob):
     # Priestess
     def at_object_creation(self):
-        self.db.display_name = "|#FFFFFFSister Seraphina Lightbringer|n"
+        self.db.display_name = "|#FFFFFFSeraphina Lightbringer|n"
         self.db.desc = "The holy practitioner, a shepherdess of the faith, moves with a quiet grace, her vestments speaking of long-held traditions and devout meditations. Fabric of the gentlest blue, suggestive of the firmament, falls in soft folds around her, edged with the silver of celestial purity—each wave and weave sanctified and purposeful. A pendant of her devotion rests gently upon her chest, a talisman aglow with the light of her beliefs, its touch upon her skin a reminder of the eternal and the ethereal. Her features carry the calm of one who has looked beyond the veil and communed with the divine, her eyes pools of compassionate wisdom. The touch of her hands, when offered in blessing or solace, is a balm to troubled spirits, her very presence a sanctum of solace and an invocation of inner sanctity."
         self.db.senses = {
             "feel": "A profound serenity emanates from her, a tranquility that enwraps one in the comfort of a faith deep and unshaken.",
@@ -196,7 +196,7 @@ class SableBlackthorn(mobs.Mob):
         self.home = self.location
 
 
-class ValarianCastleGuard(mobs.Mob):
+class CastleValariaGuard(mobs.Mob):
     def at_object_creation(self):
         self.db.desc = "Clad in the colors of the kingdom, the castle guard stands as an embodiment of vigilance and duty. Upon his broad shoulders rests a cape that flutters gently with every vigilant turn. Armor of interlocking steel, polished to a mirror's sheen, envelops him, accented by a surcoat bearing the royal crest, vivid against the metallic backdrop. A helm forged with expert care shadows his eyes, the visor a slit through which the world is both guarded and observed. At his side, a sword hangs in patient repose, its hilt a craftsmanship's labor, the blade an extension of the guard's sworn oath. His presence, both seen and unseen, is woven into the very fabric of the castle - a silent sentry who breathes life into the stone and timber of the ramparts he so steadfastly protects."
         self.db.senses = {
