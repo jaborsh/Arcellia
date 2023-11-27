@@ -8,7 +8,6 @@ from evennia.utils.utils import inherits_from
 from parsing.text import wrap
 from server.conf.settings import SERVERNAME
 
-from commands.auto.auto_menu import AutoMenu
 from commands.command import Command
 
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
@@ -16,7 +15,6 @@ COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 __all__ = (
     "CmdAccess",
     "CmdAnnounce",
-    "CmdAuto",
     "CmdEcho",
     "CmdForce",
     "CmdHome",
@@ -92,30 +90,6 @@ class CmdAnnounce(Command):
         )
 
         SESSIONS.announce_all(string)
-
-
-class CmdAuto(Command):
-    """
-    Syntax: auto
-
-    Make use of Arcellia's AI assistants.
-    """
-
-    key = "auto"
-    locks = "cmd:perm(Admin)"
-    help_category = "Admin"
-
-    def func(self):
-        AutoMenu(
-            self.caller,
-            "commands.auto.auto_menu",
-            startnode="node_start",
-            cmdset_mergetype="Replace",
-            cmdset_priority=1,
-            auto_quit=True,
-            cmd_on_exit="look",
-            persistent=False,
-        )
 
 
 class CmdEcho(COMMAND_DEFAULT_CLASS):
