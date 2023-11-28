@@ -54,3 +54,4 @@ nosetests.xml
 .idea
 
 # Arcellia
+.DS_Store
