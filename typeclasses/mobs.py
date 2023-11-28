@@ -1,3 +1,5 @@
+from commands.default_cmdsets import MobCmdSet
+
 from typeclasses import objects
 
 
@@ -8,6 +10,13 @@ class Mob(objects.Object):
     """
 
     _content_types = ("mob",)
+
+    def at_object_creation(self):
+        """
+        Called the first time the object is created. We set up the base
+        properties and flags here.
+        """
+        self.cmdset.add(MobCmdSet, persistent=True)
 
     def basetype_setup(self):
         """

@@ -1,24 +1,5 @@
-from enum import Enum
-
 from evennia.utils import create
 from typeclasses import rooms
-
-
-class CastleValariaRoomType(Enum):
-    ARMORY = {"typeclass": "world.valaria.castle.rooms.CastleValariaArmory"}
-    ROUNDTABLE = {"typeclass": "world.valaria.castle.rooms.CastleValariaRoundtable"}
-    UPPER_EAST = {
-        "typeclass": "world.valaria.castle.rooms.CastleValariaUpperEasternWing"
-    }
-    STUDY = {"typeclass": "world.valaria.castle.rooms.CastleValariaStudy"}
-    LIBRARY = {"typeclass": "world.valaria.castle.rooms.CastleValariaLibrary"}
-    BEDROOM = {"typeclass": "world.valaria.castle.rooms.CastleValariaRoyalBedchamber"}
-    THRONE = {"typeclass": "world.valaria.castle.rooms.CastleValariaThroneRoom"}
-    ROOM_PARENT = {"typeclass": "world.valaria.castle.rooms.CastleValariaRoom"}
-
-
-class CastleValariaExitType(Enum):
-    EXIT_PARENT = {"typeclass": "typeclasses.exits.XYExit"}
 
 
 class CastleValariaRoom(rooms.XYRoom):

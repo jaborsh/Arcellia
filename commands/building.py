@@ -13,7 +13,7 @@ from parsing.colors import strip_ansi
 from server.conf import logger
 
 # from typeclasses.rooms import XYZRoom
-from commands.building import building_menu
+from commands import building_menu
 from commands.command import Command
 
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
@@ -732,6 +732,9 @@ class CmdMap(xyzcommands.CmdMap):
     Show a map of an area.
     """
 
+    locks = "cmd:perm(Builder)"
+    help_category = "Building"
+
 
 class CmdMvAttr(building.CmdMvAttr):
     """
@@ -764,6 +767,7 @@ class CmdRename(building.ObjManipCommand):
 
     key = "rename"
     locks = "perm(Builder)"
+    help_category = "Building"
 
     def func(self):
         caller = self.caller
