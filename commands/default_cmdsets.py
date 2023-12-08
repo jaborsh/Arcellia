@@ -83,6 +83,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         """
         modules = {
             "General Modules": [general],
+            "Clothing Modules": [clothing],
         }
         add_modules(self, modules)
 
