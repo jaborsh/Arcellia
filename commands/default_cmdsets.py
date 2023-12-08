@@ -14,7 +14,7 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 
 """
 
-from evennia import default_cmds
+from evennia import CmdSet, default_cmds
 
 from commands import (
     account,
@@ -28,7 +28,6 @@ from commands import (
     system,
     unloggedin,
 )
-from commands.building import building
 
 
 def add_modules(self, modules):
@@ -60,6 +59,7 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
             "Developer Modules": [developer, git],
             "Admin Modules": [admin],
             "Account Modules": [account],
+            "Building Modules": [building],
             "Comm Modules": [comms],
             "Help Modules": [help],
             "System Modules": [system],
@@ -81,7 +81,21 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         Populates the cmdset
         """
         modules = {
-            "Building Modules": [building],
+            "General Modules": [general],
+        }
+        add_modules(self, modules)
+
+
+class MobCmdSet(CmdSet):
+    """
+    The `MobCmdSet` contains default commands for mobs. These will closely
+    mirror the basic commands available to characters.
+    """
+
+    key = "DefaultMob"
+
+    def at_cmdset_creation(self):
+        modules = {
             "General Modules": [general],
             "Merchant Modules": [clothing],
         }
