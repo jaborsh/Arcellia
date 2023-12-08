@@ -31,6 +31,7 @@ __all__ = [
     "CmdInventory",
     "CmdListen",
     "CmdLook",
+    "CmdNod",
     "CmdPut",
     "CmdRemove",
     "CmdSay",
@@ -41,6 +42,20 @@ __all__ = [
     "CmdWear",
     "CmdWhisper",
 ]
+
+
+class CmdNod(Command):
+    """
+    Nod.
+    """
+
+    key = "nod"
+
+    def func(self):
+        caller = self.caller
+        caller.location.msg_contents(
+            "$You() $conj(nod).", from_obj=caller, exclude=caller
+        )
 
 
 class CmdAlias(general.CmdNick):
