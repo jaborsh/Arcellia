@@ -23,6 +23,6 @@ from evennia.contrib.grid.xyzgrid.xyzgrid import get_xyzgrid
 
 def at_initial_setup():
     _option_init()  # xyzgrid init
-    _option_add("world.zones.valaria.castle.map")
+    _option_add("world.valaria.castle.map")
     grid = get_xyzgrid()
     grid.spawn(xyz=("*", "*", "*"))
