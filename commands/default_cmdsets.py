@@ -19,6 +19,7 @@ from evennia import CmdSet, default_cmds
 from commands import (
     account,
     admin,
+    building,
     clothing,
     comms,
     developer,
