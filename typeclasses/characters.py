@@ -684,6 +684,10 @@ You see a {gender} {name},
                 x for x in list(results) if x.access(self, "search", default=True)
             ]
 
+        if quiet:
+            # don't auto-handle error messaging
+            return list(results)
+
         nresults = len(results)
         if stacked > 0 and nresults > 1:
             # handle stacks, disable multimatch errors
@@ -705,10 +709,6 @@ You see a {gender} {name},
                 return list(results)[:stacked]
         elif nresults > 1:
             return list(results)[0]
-
-        if quiet:
-            # don't auto-handle error messaging
-            return list(results)
 
         # handle error messages
         return _AT_SEARCH_RESULT(
