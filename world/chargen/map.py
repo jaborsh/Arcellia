@@ -1,15 +1,5 @@
 CHARGEN_MAP = r"""
  + 0
-
- 5 #
-
- 4 #
-
- 3 #
-
- 2 #
-
- 1 #
    
  0 #
 
@@ -80,37 +70,11 @@ PROTOTYPES = {
 }
 
 CREATION_ROOM_PARENT = {"typeclass": "typeclasses.chargen.rooms.CreationRoom"}
-CREATION_ROOM_INTRO = {"typeclass": "typeclasses.chargen.rooms.CreationRoomIntro"}
-CREATION_ROOM_RACE = {"typeclass": "typeclasses.chargen.rooms.CreationRoomRace"}
-CREATION_ROOM_CLASS = {"typeclass": "typeclasses.chargen.rooms.CreationRoomClass"}
-CREATION_ROOM_BACKGROUND = {
-    "typeclass": "typeclasses.chargen.rooms.CreationRoomBackground"
-}
-CREATION_ROOM_APPEARANCE = {
-    "typeclass": "typeclasses.chargen.rooms.CreationRoomAppearance"
-}
-CREATION_ROOM_ATTRIBUTES = {
-    "typeclass": "typeclasses.chargen.rooms.CreationRoomAttributes"
-}
-
 CREATION_EXIT_PARENT = {"typeclass": "typeclasses.exits.XYExit"}
 
 for key, prot in PROTOTYPES.items():
     if len(key) == 2:
-        if key == (0, 0):
-            prot["prototype_parent"] = CREATION_ROOM_INTRO
-        elif key == (0, 1):
-            prot["prototype_parent"] = CREATION_ROOM_RACE
-        elif key == (0, 2):
-            prot["prototype_parent"] = CREATION_ROOM_CLASS
-        elif key == (0, 3):
-            prot["prototype_parent"] = CREATION_ROOM_BACKGROUND
-        elif key == (0, 4):
-            prot["prototype_parent"] = CREATION_ROOM_APPEARANCE
-        elif key == (0, 5):
-            prot["prototype_parent"] = CREATION_ROOM_ATTRIBUTES
-        else:
-            prot["prototype_parent"] = CREATION_ROOM_PARENT
+        prot["prototype_parent"] = CREATION_ROOM_PARENT
     else:
         prot["prototype_parent"] = CREATION_EXIT_PARENT
 

@@ -2,23 +2,23 @@ import time
 from datetime import datetime
 
 from django.conf import settings
+from parsing.text import wrap
+from server.conf import logger
+
+from commands.command import Command
 from evennia.commands.default import account
 from evennia.objects.models import ObjectDB
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import create, search, utils
 from evennia.utils.ansi import strip_ansi
-from evennia.utils.evmenu import get_input
-from parsing.text import wrap
-from server.conf import logger
-
-from commands.command import Command
+from evennia.utils.evmenu import EvMenu, get_input
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
 _AUTO_PUPPET_ON_LOGIN = settings.AUTO_PUPPET_ON_LOGIN
 
 # limit symbol import for  API
 __all__ = (
-    "CmdCreate",
+    "CmdCharCreate",
     "CmdDelete",
     "CmdDisconnect",
     "CmdOOCLook",
@@ -32,15 +32,15 @@ __all__ = (
 )
 
 
-class CmdCreate(Command):
+class CmdCharCreate(Command):
     """
-    Syntax: create <name>
+    Syntax: charcreate <name>
 
     Create a new character. Names will automatically capitalize. Follow the
     provided rules when creating a new character.
     """
 
-    key = "create"
+    key = "charcreate"
     locks = "cmd:is_ooc() and pperm(Player)"
     help_category = "General"
     account_caller = True
@@ -143,6 +143,14 @@ class CmdCreate(Command):
                     f"{new_character} fails to enter the game (Account: {account})."
                     # f"IP: {self.session.address})."
                 )
+                return
+
+            EvMenu(
+                self.session,
+                "world.chargen.menu",
+                startnode="chargen_welcome",
+                cmd_on_exit=None,
+            )
 
         prompt = f"Did you enter '|w{key}|n' correctly and does this name comply with the rules? |r[Y/n]|n"  # noqa: E501
         get_input(account, prompt, _callback)

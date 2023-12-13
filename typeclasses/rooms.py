@@ -12,6 +12,7 @@ from textwrap import dedent
 
 from django.conf import settings
 from django.db.models import Q
+
 from evennia import FuncParser, gametime
 from evennia.contrib.grid.xyzgrid import xyzroom
 from evennia.objects.objects import DefaultRoom
@@ -175,8 +176,9 @@ class Room(Object, DefaultRoom):
         self._start_broadcast_repeat_task()
 
     def at_object_delete(self):
-        for mob in self.db.mobs:
-            mob.delete()
+        if self.db.mobs:
+            for mob in self.db.mobs:
+                mob.delete()
         return True
 
     def start_repeat_broadcast_messages(self):

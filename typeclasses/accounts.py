@@ -25,12 +25,13 @@ import os
 
 from django.conf import settings
 from django.utils.translation import gettext as _
+from server.conf import logger
+
 from evennia.accounts.accounts import DefaultAccount, DefaultGuest
 from evennia.objects.models import ObjectDB
 from evennia.server.signals import SIGNAL_OBJECT_POST_PUPPET
 from evennia.utils import class_from_module
 from evennia.utils.utils import is_iter
-from server.conf import logger
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
 _MAX_NR_SIMULTANEOUS_PUPPETS = settings.MAX_NR_SIMULTANEOUS_PUPPETS
@@ -173,10 +174,10 @@ class Account(DefaultAccount):
             "\n"
             "{characters}\n\n"
             "|wCharacter Commands:|n\n"
-            "  |wcreate  <name>|n - Create a character.\n"
-            "  |wdelete  <name>|n - Delete a character.\n"
-            "  |wplay    [name]|n - Connect to a character.\n"
-            "  |wsetmain [name]|n - Set your main character.\n"
+            "  |wcharcreate  <name>|n - Create a character.\n"
+            "  |wdelete      <name>|n - Delete a character.\n"
+            "  |wplay        [name]|n - Connect to a character.\n"
+            "  |wsetmain     [name]|n - Set your main character.\n"
             "\n"
             "|wGeneral Commands:|n\n"
             "  |wlook|n          - Show this screen.\n"

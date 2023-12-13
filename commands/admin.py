@@ -1,18 +1,20 @@
 import re
 
 from django.conf import settings
-from evennia.contrib.grid.xyzgrid import commands as xyzcommands
-from evennia.server.sessionhandler import SESSIONS
-from evennia.utils import class_from_module
-from evennia.utils.utils import inherits_from
 from parsing.text import wrap
 from server.conf.settings import SERVERNAME
 
 from commands.command import Command
+from evennia.contrib.grid.xyzgrid import commands as xyzcommands
+from evennia.server.sessionhandler import SESSIONS
+from evennia.utils import class_from_module
+from evennia.utils.evmenu import EvMenu
+from evennia.utils.utils import inherits_from
 
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 
 __all__ = (
+    "CmdTest",
     "CmdAccess",
     "CmdAnnounce",
     "CmdEcho",
@@ -22,6 +24,19 @@ __all__ = (
     "CmdTransfer",
     "CmdWatch",
 )
+
+
+class CmdTest(Command):
+    key = "test"
+
+    def func(self):
+        EvMenu(
+            self.caller,
+            "world.chargen.menu",
+            startnode="chargen_welcome",
+            auto_look=False,
+            auto_help=False,
+        )
 
 
 class CmdAccess(COMMAND_DEFAULT_CLASS):
