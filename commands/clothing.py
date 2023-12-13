@@ -1,8 +1,8 @@
-from evennia.utils import create
 from parsing.colors import strip_ansi
 from typeclasses.clothing import Clothing, ClothingType
 
 from commands.command import Command
+from evennia.utils import create
 
 __all__ = ["CmdTailor"]
 
@@ -71,11 +71,13 @@ class CmdTailor(Command):
 
     def func(self):
         caller = self.caller
-        args = self.args.strip()[0].upper() + self.args.strip()[1:]
+        args = self.args
 
         if not args:
             caller.msg("What would you like to tailor?")
             return
+
+        args = self.args.strip()[0].upper() + self.args.strip()[1:]
 
         key = strip_ansi(args)
         caller.msg("|YYou begin to tailor some clothing...|n")
