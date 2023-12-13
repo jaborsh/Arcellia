@@ -1,23 +1,34 @@
 from evennia.utils import dedent
+from typeclasses.characters import GenderType
 
 _RACE_INFO_DICT = {
-    "human": "The most common face to see in Arcellia, known for their tenacity, creativity, and endless capacity for growth.",
-    "elf": "With an ethereal countenance and long lifespans, elves are at home with nature's power, flourishing in the light and dark alike.",
-    "drow": "Raised by cults, the drow extol the virtues of corruption and mercilessness. They're a result of an ancient schism with the elves. Treachery drove the drow into the depths of the world where they splintered into warring factions.",
+    "human": "An adaptable and diverse people. Their aspirations drive them to achieve greatness in the fields of art, science, magic, and war. With lifespans briefer than their elven or dwarven counterparts, humans pursue their legacies with zeal, their determination fueling the engine of societies both vast and intricate. From the verdant valleys of agrarian communities to the towering spires of metropolitan achievement, humans shape the world with their fervent pace of progress, ever-expanding the boundaries of their dominion and the scope of their ambition.",
+    "elf": "Elves of Arcellia embody an ageless grace, their histories etched into the very forests and rivers of the world. Ancient and wise, they live in harmonious synchrony with the natural tapestry that surrounds them, their lifelines stretching across eras like the boughs of the World Tree. With eyes that reflect the depth of the stars, elves harbor a mastery over magic few can rival, their arcane heritage as intrinsic as the wind's whisper. Bound by traditions woven through the fabric of time, they walk paths shadowed by lore, their existence a melody harmonizing with the ethereal song of eternity.",
+    "drow": "The drow emerge from Arcellia's underbelly: a society that flourishes in the echoes of deep caverns and shunned fortresses. Their skin, ashen and cool to the touch, shimmers faintly with the ghostly beauty of the subterranean glow. Revered for their martial prowess and feared for their cunning, the Nocturnes navigate the world in relentless pursuit of power and arcane knowledge. Descended from their surface-dwelling kin through an ancient rift seeped in betrayal, they weave their existence in darkness.",
+    "pyreling": "The Pyreling are descendents cloaked in myth, born of the mingling between mortal essence and the enigmatic energies of hell. They carry within them a flickering flame that manifests in eyes that glow like coals and skin in shades of smoldering dusk. Misunderstood by many, the Pyrelings wander through Arcellia bearing gifts of arcane affinity, as well as a propensity for the extraordinary, often leaving tales of fear and fascination in their wake.",
     "dwarf": "As durable and unyielding as their homes of stone, dwarves are some of the finest warriors, miners, and smiths in all of Arcellia. They're known for their confidence and keen intuition, valuing family, ritual, and fine craftsmanship. Many of their ancient kingdoms have been surrendered to goblins and other creatures of the deep.",
+    "halfling": "Halflings, with their diminutive stature, are a jovial folk whose stories are laced with luck and a penchant for the comfortable life, relishing in homely joys and a peaceful existence. Their nimble fingers and silent footfalls often steer their paths toward unexpected adventures.",
     "orc": "Orcs exhibit widely varying appearances. Creatures of intense emotion, the orcs are more inclined to act than contemplate - whether the rage burning their bodies compels them to fight, or the love of filling their hearts inspires acts of incredible kindness.",
-    "feline": "Felines are lithe and graceful, with a keen intellect and a strong sense of curiosity. They're known for their love of the hunt, and their ability to move with the shadows.",
-    "nymph": "Nymphs are ethereal beings, with a deep connection to the elements. They're known for their beauty and grace, but also their capriciousness.",
+    "nymph": "Nymphs are the beguiling offspring of the Arcellian elements, their spirits echoing with the whispers of the natural world. Born from the raw forces that shape land, water, air, fire, or something more hybrid, each nymph carries the essence of their elemental facet within them. Their appearance radiates the beauty of the fae; they move with an otherworldly grace that captivates beholders. Sensual and enchanting, nymphs possess an innate magnetism that mirrors the primal allure of the wilds. The complexity of their heritage weaves them into every crevice of Arcellia, where they venerate the profound powers of their elemental ancestors.",
+    "gnome": "Gnomes are diminutive, inquisitive inventors, their minds ever-ticking gears amidst a whirlwind of arcane intellect. They thrive on innovation, their lives a constant pursuit of knowledge, enchantment, and mechanical wonders that teeter on the brink of whimsy and genius.",
+    "lupine": "Canine-folk are social creatures with a robust code of honor. They walk with unmatched loyalty and fierce camaraderie. Equipped with acute senses and a formidable presence, the Lupines are revered as trackers and mediators, their howling sagas echoing under open skies and across wild expanses.",
+    "feline": "The feline people glide through Arcellia with a pounce of curiosity and a gait that whispers tales of distant lands. Cloaked in spotted or striped pelts that ripple with each measured move, these cat-like beings embody the very spirit of adventure. Felines collect stories and artifacts with a fervor as intense as their feral grace, with eyes alight with the gleam of the seeker. They are lore-weavers, nimble tricksters, and seekers of horizons, their lives a collection of tales and trinkets gathered from peaks unclimbed and paths untrodden. Their tales are as varied as their coats, each a patchwork of myriad experiences and encounters, chronicling the dance between wild instincts and thoughtful contemplation.",
+    "taurakin": "Taurakin stride through the diverse realms of Arcellia, their robust and commanding presence a sight to behold. These horn-rowned denizens, while not towering as giants, stand with an undeniable air of fortitude, often reaching the heights of ten feet. Their heritage is of labyrinthine ancestries and the vast, open skies over sprawling vistas. Known for the rich wisdom and respect for ancestral traditions, Taurakin culture is grounded in principles of courage, loyalty, and the pursuit of personal excellence. Their homes range from the heart of sun-kissed savannas to the architectural wonders of their own creation, echoing the sturdy and determined nature of the Taurakin spirit.",
 }
 
 
 def chargen_welcome(caller):
-    def _set_male(caller):
-        caller.db.gender = "male"
-        return "chargen_race"
+    def _set_gender(caller, choice):
+        choice = choice.strip().lower()[0]
+        if choice == "m":
+            caller.gender = GenderType.MALE
+        elif choice == "f":
+            caller.gender = GenderType.FEMALE
+        elif choice == "a":
+            caller.gender = GenderType.AMBIGUOUS
+        else:
+            return "chargen_welcome"
 
-    def _set_female(caller):
-        caller.db.gender = "female"
         return "chargen_race"
 
     text = dedent(
@@ -32,8 +43,9 @@ def chargen_welcome(caller):
 
     options = (
         {"key": "", "goto": "chargen_welcome"},
-        {"key": "male", "desc": "Become male", "goto": _set_male},
-        {"key": "female", "desc": "Become female", "goto": _set_female},
+        {"key": ("male", "m"), "desc": "Become male", "goto": _set_gender},
+        {"key": ("female", "f"), "desc": "Become female", "goto": _set_gender},
+        {"key": ("ambiguous", "a"), "desc": "Become ambiguous", "goto": _set_gender},
         {"key": "_default", "goto": "chargen_welcome"},
     )
 
@@ -47,31 +59,31 @@ def chargen_race(caller, raw_string, **kwargs):
         if selected_race
         else dedent(
             """
-        As your new being accepts its form, the figures that once stood as abstract representations melt away like wisps of morning mist succumbing to day's embrace. From the tranquil canvas of nothingness, contours of lands and realms begin to emerge, brief glimpses of the world beyond. Therein lies the flourish of diversity.
+        Majestic landscapes unfold around you, a canvas for ethnic identities roaming within the bounds of thought. Mighty mountainscapes craft silhouettes against the sky, where the kin of giants and dwarves could forge their legacies in stone and steel. Lush forests carpet the realms below, bearing the sagas of elves and faefolk, their lifespans entwined with the ageless trees. Vast plains stretch out, horizons unbroken, where the footsteps of nomadic tribes echo with the steadfast will of orcish clans. Deep waters shimmer, hiding the secretive abodes of merfolk and naiads, whose songs thread through the currents, weaving stories of depth and mystery.
 
-        A multitude of silhouettes coalesce, each bearing the unique visage of another kind of being. There is the diverse tapestry of Humanity, resilient and adaptable, wielding determination as their banner; the lofty elegance of the Elves, threaded with the ancient magics of the woods and stars; the steadfast stoicism of the Dwarves with their spirited etched in stone and song.
-        
-        And there are others, less known, perhaps more alluring for their rarity: the shadowy tie of the Drow to the night, moving like a whisper through darkness; the orcs, whose dual nature is a dance of the primal and the civilized; the lithe grace of the Felines, their feral nature tempered by keen intellect; and the ethereal beauty of the Nymphs, whose very essence is a bridge to the elements.
-
-        |wSelect: |whuman|n, |welf|n, |wdwarf|n, |wdrow|n, |worc|n, |wfeline|n, or |wnymph|n
+        Time teems on the brink of stillness, waiting for you to reach out and grasp the thread of existence calling to your spirit.
         """
         )
     )
 
-    options = []
-
     if selected_race:
-        options.append(
+        options = (
             {
-                "key": ("human", "confirm", "y", "yes"),
+                "key": "y",
                 "desc": f"Confirm {selected_race}",
                 "goto": "chargen_race",
-            }
+            },
+            {
+                "key": "n",
+                "desc": "Return",
+                "goto": ("chargen_race", {"selected_race": None}),
+            },
         )
-
-    for race in _RACE_INFO_DICT.keys():
-        if race != selected_race:
-            options.append(
-                {"key": race, "goto": ("chargen_race", {"selected_race": race})}
-            )
+    else:
+        options = []
+        for race in _RACE_INFO_DICT.keys():
+            if race != selected_race:
+                options.append(
+                    {"key": race, "goto": ("chargen_race", {"selected_race": race})}
+                )
     return text, options

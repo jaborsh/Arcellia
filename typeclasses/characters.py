@@ -12,15 +12,16 @@ Contributions:
 """
 import os
 import re
+from enum import Enum
 
 from django.conf import settings
+from evennia.objects.models import ObjectDB
+from evennia.objects.objects import DefaultCharacter
+from evennia.utils.utils import lazy_property, make_iter, to_str, variable_from_module
 from handlers import clothing, cooldowns
 from parsing.text import grammarize, wrap
 from server.conf import logger
 
-from evennia.objects.models import ObjectDB
-from evennia.objects.objects import DefaultCharacter
-from evennia.utils.utils import lazy_property, make_iter, to_str, variable_from_module
 from typeclasses import objects
 
 _AT_SEARCH_RESULT = variable_from_module(*settings.SEARCH_AT_RESULT.rsplit(".", 1))
@@ -31,6 +32,27 @@ _GENDER_PRONOUN_MAP = {
     "ambiguous": {"s": "they", "o": "them", "p": "their", "a": "theirs"},
 }
 _RE_GENDER_PRONOUN = re.compile(r"(?<!\|)\|(?!\|)[sSoOpPaA]")
+
+
+class GenderType(Enum):
+    MALE = "male"
+    FEMALE = "female"
+    AMBIGUOUS = "ambiguous"
+
+
+class RaceType(Enum):
+    HUMAN = "human"
+    ELF = "elf"
+    DROW = "drow"
+    PYRELING = "pyreling"
+    DWARF = "dwarf"
+    HALFLING = "halfling"
+    ORC = "orc"
+    NYMPH = "nymph"
+    GNOME = "gnome"
+    LUPINE = "lupine"
+    FELINE = "feline"
+    TAURAKIN = "taurakin"
 
 
 class Character(objects.Object, DefaultCharacter):
@@ -95,20 +117,28 @@ You see a {gender} {name},
     # Properties #
     ##############
     @property
-    def gender(self):
-        return self.attributes.get("gender", "ambiguous")
-
-    @gender.setter
-    def gender(self, value: str):
-        self.db.gender = value
-
-    @property
     def display_name(self):
         return self.attributes.get("display_name", self.name)
 
     @display_name.setter
     def display_name(self, value: str):
         self.db.display_name = value
+
+    @property
+    def gender(self):
+        return self.attributes.get("gender", GenderType.AMBIGUOUS)
+
+    @gender.setter
+    def gender(self, value: str):
+        self.db.gender = value
+
+    @property
+    def race(self):
+        return self.attributes.get("race", RaceType.HUMAN)
+
+    @race.setter
+    def race(self, value: str):
+        self.db.race = value
 
     ###############
     # Appearances #
@@ -152,7 +182,7 @@ You see a {gender} {name},
 
         """
         typ = regex_match.group()[1]  # "s", "O" etc
-        gender = self.attributes.get("gender", default="ambiguous")
+        gender = self.attributes.get("gender", default=GenderType.AMBIGUOUS).value
         gender = gender if gender in ("male", "female", "neutral") else "ambiguous"
         pronoun = _GENDER_PRONOUN_MAP[gender][typ.lower()]
         return pronoun.capitalize() if typ.isupper() else pronoun
