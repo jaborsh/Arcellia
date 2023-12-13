@@ -1,6 +1,12 @@
 import re
 
 from django.conf import settings
+from parsing.colors import strip_ansi
+from server.conf import logger
+
+# from typeclasses.rooms import XYZRoom
+from commands import building_menu
+from commands.command import Command
 from evennia import InterruptCommand
 from evennia.commands.default import building, system
 from evennia.contrib.grid.xyzgrid import commands as xyzcommands
@@ -9,12 +15,6 @@ from evennia.locks.lockhandler import LockException
 from evennia.utils import class_from_module
 from evennia.utils.eveditor import EvEditor
 from evennia.utils.utils import inherits_from, list_to_string
-from parsing.colors import strip_ansi
-from server.conf import logger
-
-# from typeclasses.rooms import XYZRoom
-from commands import building_menu
-from commands.command import Command
 
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 GOLD = "|#FFD700"
@@ -1254,11 +1254,11 @@ class CmdTunnel(building.CmdTunnel):
 class CmdTypeclass(building.CmdTypeclass):
     """
     Syntax: typeclass[/switch] <object> [= typeclass.path]
-           typeclass/prototype <object> = prototype_key
+            typeclass/prototype <object> = prototype_key
 
-           typeclasses or typeclass/list/show [typeclass.path]
-           swap - this is a shorthand for using /force/reset flags.
-           update - this is a shorthand for using the /force/reload flag.
+            typeclasses or typeclass/list/show [typeclass.path]
+            swap - this is a shorthand for using /force/reset flags.
+            update - this is a shorthand for using the /force/reload flag.
 
     Switch:
         show, examine - display the current typeclass of object (default) or,
