@@ -1,5 +1,6 @@
-from evennia.utils import create
 from typeclasses import rooms
+
+from evennia.utils import create
 
 
 class CastleValariaRoom(rooms.XYRoom):
@@ -32,7 +33,7 @@ class CastleValariaRoom(rooms.XYRoom):
 
     def add_guards(self, count=1):
         self.create_mobs(
-            "world.valaria.castle.mobs.CastleValariaGuard",
+            "typeclasses.valaria.castle.mobs.CastleValariaGuard",
             "Valarian Castle Guard",
             count=count,
         )
@@ -41,12 +42,12 @@ class CastleValariaRoom(rooms.XYRoom):
 class CastleValariaThroneRoom(CastleValariaRoom):
     def initialize_mobs(self):
         self.create_mobs(
-            "world.valaria.castle.mobs.QueenEveline",
+            "typeclasses.valaria.castle.mobs.QueenEveline",
             "Queen Eveline",
             ["queen", "eveline"],
         )
         self.create_mobs(
-            "world.valaria.castle.mobs.IsoldeNightshade",
+            "typeclasses.valaria.castle.mobs.IsoldeNightshade",
             "Isolde Nightshade",
             ["isolde", "nightshade"],
         )
@@ -56,7 +57,7 @@ class CastleValariaThroneRoom(CastleValariaRoom):
 class CastleValariaStudy(CastleValariaRoom):
     def initialize_mobs(self):
         self.create_mobs(
-            "world.valaria.castle.mobs.CedricSterling",
+            "typeclasses.valaria.castle.mobs.CedricSterling",
             "Cedric Sterling",
             ["cedric", "sterling"],
         )
@@ -65,27 +66,27 @@ class CastleValariaStudy(CastleValariaRoom):
 class CastleValariaRoundtable(CastleValariaRoom):
     def initialize_mobs(self):
         self.create_mobs(
-            "world.valaria.castle.mobs.SeraphinaLightbringer",
+            "typeclasses.valaria.castle.mobs.SeraphinaLightbringer",
             "Seraphina Lightbringer",
             ["seraphina", "lightbringer"],
         )
         self.create_mobs(
-            "world.valaria.castle.mobs.ReginaldArundel",
+            "typeclasses.valaria.castle.mobs.ReginaldArundel",
             "Reginald Arundel",
             ["reginald", "arundel"],
         )
         self.create_mobs(
-            "world.valaria.castle.mobs.AriaWhisperwind",
+            "typeclasses.valaria.castle.mobs.AriaWhisperwind",
             "Aria Whisperwind",
             ["aria", "whisperwind"],
         )
         self.create_mobs(
-            "world.valaria.castle.mobs.EzekielGrimblade",
+            "typeclasses.valaria.castle.mobs.EzekielGrimblade",
             "Ezekiel Grimblade",
             ["ezekiel", "grimblade"],
         )
         self.create_mobs(
-            "world.valaria.castle.mobs.EldricShadowweaver",
+            "typeclasses.valaria.castle.mobs.EldricShadowweaver",
             "Eldric Shadowweaver",
             ["eldric", "shadowweaver"],
         )
@@ -94,7 +95,7 @@ class CastleValariaRoundtable(CastleValariaRoom):
 class CastleValariaArmory(CastleValariaRoom):
     def initialize_mobs(self):
         self.create_mobs(
-            "world.valaria.castle.mobs.ThornIronforge",
+            "typeclasses.valaria.castle.mobs.ThornIronforge",
             "Thorn Ironforge",
             ["thorn", "ironforge"],
         )
@@ -103,7 +104,7 @@ class CastleValariaArmory(CastleValariaRoom):
 class CastleValariaRoyalBedchamber(CastleValariaRoom):
     def initialize_mobs(self):
         self.create_mobs(
-            "world.valaria.castle.mobs.EvelynGraceworn",
+            "typeclasses.valaria.castle.mobs.EvelynGraceworn",
             "Evelyn Graceworn",
             ["evelyn", "graceworn"],
         )
@@ -112,12 +113,12 @@ class CastleValariaRoyalBedchamber(CastleValariaRoom):
 class CastleValariaUpperEasternWing(CastleValariaRoom):
     def initialize_mobs(self):
         self.create_mobs(
-            "world.valaria.castle.mobs.SilasShadowsteel",
+            "typeclasses.valaria.castle.mobs.SilasShadowsteel",
             "Silas Shadowsteel",
             ["silas", "shadowsteel"],
         )
         self.create_mobs(
-            "world.valaria.castle.mobs.LoreleiStormrider",
+            "typeclasses.valaria.castle.mobs.LoreleiStormrider",
             "Lorelei Stormrider",
             ["lorelei", "stormrider"],
         )
@@ -126,12 +127,12 @@ class CastleValariaUpperEasternWing(CastleValariaRoom):
 class CastleValariaLibrary(CastleValariaRoom):
     def initialize_mobs(self):
         self.create_mobs(
-            "world.valaria.castle.mobs.BrynnMarketwell",
+            "typeclasses.valaria.castle.mobs.BrynnMarketwell",
             "Brynn Marketwell",
             ["brynn", "marketwell"],
         )
         self.create_mobs(
-            "world.valaria.castle.mobs.SableBlackthorn",
+            "typeclasses.valaria.castle.mobs.SableBlackthorn",
             "Sable Blackthorn",
             ["sable", "blackthorn"],
         )

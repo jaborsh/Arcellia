@@ -1,17 +1,23 @@
 from evennia.contrib.grid.xyzgrid import xymap_legend
 
-VALARIA_ARMORY = {"typeclass": "world.valaria.castle.rooms.CastleValariaArmory"}
-VALARIA_ROUNDTABLE = {"typeclass": "world.valaria.castle.rooms.CastleValariaRoundtable"}
+VALARIA_ARMORY = {"typeclass": "typeclasses.valaria.castle.rooms.CastleValariaArmory"}
+VALARIA_ROUNDTABLE = {
+    "typeclass": "typeclasses.valaria.castle.rooms.CastleValariaRoundtable"
+}
 VALARIA_UPPER_EAST = {
-    "typeclass": "world.valaria.castle.rooms.CastleValariaUpperEasternWing"
+    "typeclass": "typeclasses.valaria.castle.rooms.CastleValariaUpperEasternWing"
 }
-VALARIA_STUDY = {"typeclass": "world.valaria.castle.rooms.CastleValariaStudy"}
-VALARIA_LIBRARY = {"typeclass": "world.valaria.castle.rooms.CastleValariaLibrary"}
+VALARIA_STUDY = {"typeclass": "typeclasses.valaria.castle.rooms.CastleValariaStudy"}
+VALARIA_LIBRARY = {"typeclass": "typeclasses.valaria.castle.rooms.CastleValariaLibrary"}
 VALARIA_BEDROOM = {
-    "typeclass": "world.valaria.castle.rooms.CastleValariaRoyalBedchamber"
+    "typeclass": "typeclasses.valaria.castle.rooms.CastleValariaRoyalBedchamber"
 }
-VALARIA_THRONE = {"typeclass": "world.valaria.castle.rooms.CastleValariaThroneRoom"}
-VALARIA_ROOM_PARENT = {"typeclass": "world.valaria.castle.rooms.CastleValariaRoom"}
+VALARIA_THRONE = {
+    "typeclass": "typeclasses.valaria.castle.rooms.CastleValariaThroneRoom"
+}
+VALARIA_ROOM_PARENT = {
+    "typeclass": "typeclasses.valaria.castle.rooms.CastleValariaRoom"
+}
 VALARIA_EXIT_PARENT = {"typeclass": "typeclasses.exits.XYExit"}
 
 CASTLE_FLOOR0 = r"""
