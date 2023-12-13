@@ -87,6 +87,10 @@ class CmdTailor(Command):
 
         description = yield (f"Describe the {args}|n:")
 
+        if not description:
+            caller.msg("|rAborting|n: You must provide a description.")
+            return
+
         aliases = yield ("Enter any aliases for the item separated by commas:")
         if aliases:
             aliases = [strip_ansi(alias.strip()) for alias in aliases.split(",")]
@@ -103,11 +107,13 @@ class CmdTailor(Command):
                 clothing_type = list(ClothingType)[idx]
             else:
                 caller.msg("|rAborting|n: Index out of range.")
+                return
         except ValueError:
             # Try to map the input to a clothing type
             clothing_type = self.map_type(clothing_type)
             if not clothing_type:
                 caller.msg("|rAborting|n: You must specify a valid clothing type.")
+                return
         except Exception as e:
             caller.msg(f"|rAborting|n: Invalid input: {e}.")
             return
