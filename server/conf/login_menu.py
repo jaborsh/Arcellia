@@ -3,6 +3,8 @@ This changes the login menu to ask for the account name and password in
 sequence instead of requiring one to enter both at once.
 """
 from django.conf import settings
+
+from evennia.accounts.accounts import DefaultAccount
 from evennia.utils.evmenu import EvMenu
 from evennia.utils.utils import (
     class_from_module,
@@ -34,11 +36,13 @@ def node_enter_username(caller, raw_text, **kwargs):
         try:
             _ACCOUNT.objects.get(username__iexact=username)
         except _ACCOUNT.DoesNotExist:
-            new_user = True
-        else:
-            new_user = False
+            valid, errors = DefaultAccount.validate_username(username)
+            if not valid:
+                caller.msg("|r{}".format("\n".join(errors)))
+                return "node_enter_username", {}
+            return "node_enter_password", {"new_user": True, "username": username}
 
-        return "node_enter_password", {"new_user": new_user, "username": username}
+        return "node_enter_password", {"new_user": False, "username": username}
 
     text = "Enter your account name:"
 
