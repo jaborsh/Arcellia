@@ -1,6 +1,11 @@
 import re
 
 from django.conf import settings
+from parsing.colors import strip_ansi
+from server.conf import logger
+from typeclasses.clothing import CLOTHING_OVERALL_LIMIT, Clothing
+
+from commands.command import Command
 from evennia import InterruptCommand
 from evennia.commands.default import general, system
 from evennia.typeclasses.attributes import NickTemplateInvalid
@@ -10,11 +15,6 @@ from evennia.utils import (
     inherits_from,
     utils,
 )
-from parsing.colors import strip_ansi
-from server.conf import logger
-from typeclasses.clothing import CLOTHING_OVERALL_LIMIT, Clothing
-
-from commands.command import Command
 
 _AT_SEARCH_RESULT = utils.variable_from_module(
     *settings.SEARCH_AT_RESULT.rsplit(".", 1)
