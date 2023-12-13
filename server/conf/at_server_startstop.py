@@ -17,12 +17,18 @@ at_server_cold_stop()
 
 """
 
+from evennia.contrib.grid.xyzgrid.launchcmd import (
+    _option_add as xyzgrid_add,
+)
+from evennia.contrib.grid.xyzgrid.xyzgrid import get_xyzgrid
+
 
 def at_server_init():
     """
     This is called first as the server is starting up, regardless of how.
     """
-    pass
+    xyzgrid_add("world.chargen.map")
+    xyzgrid_add("world.valaria.castle.map")
 
 
 def at_server_start():
@@ -30,7 +36,8 @@ def at_server_start():
     This is called every time the server starts up, regardless of
     how it was shut down.
     """
-    pass
+    grid = get_xyzgrid()
+    grid.spawn(xyz=("*", "*", "*"))
 
 
 def at_server_stop():
