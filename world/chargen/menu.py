@@ -1,4 +1,4 @@
-from typeclasses.characters import GenderType, RaceType
+from typeclasses.characters import BackgroundType, ClassType, GenderType, RaceType
 
 from evennia.utils import dedent
 
@@ -47,6 +47,95 @@ _SUBRACE_INFO_DICT = {
     },
 }
 
+_RACE_SUBRACE_MAPPING = {
+    "human": RaceType.HUMAN,
+    "elf": {"high": RaceType.HIGH_ELF, "wood": RaceType.WOOD_ELF},
+    "half-elf": {"high": RaceType.HIGH_HALF_ELF, "wood": RaceType.WOOD_HALF_ELF},
+    "dwarf": {
+        "emberheart": RaceType.EMBERHEART_DWARF,
+        "stoneguard": RaceType.STONEGUARD_DWARF,
+        "ironvein": RaceType.IRONVEIN_DWARF,
+    },
+    "halfling": {
+        "swiftshadow": RaceType.SWIFTSHADOW_HALFLING,
+        "hearthstone": RaceType.HEARTHSTONE_HALFLING,
+    },
+    "gnome": {
+        "sylvan": RaceType.SYLVAN_GNOME,
+        "dusk": RaceType.DUSK_GNOME,
+        "hearth": RaceType.HEARTH_GNOME,
+    },
+    "nymph": RaceType.NYMPH,
+    "orc": RaceType.ORC,
+    "pyreling": {
+        "emberkin": RaceType.EMBERKIN_PYRELING,
+        "arcanist": RaceType.ARCANIST_PYRELING,
+        "warbrand": RaceType.WARBRAND_PYRELING,
+    },
+}
+
+_CLASS_INFO_DICT = {
+    "artisan": "In the dance of creation and the craftsmanship of worlds, the Aristan weaves innovation and artistry into every tangible form.",
+    "cleric": "Carrying a divine's mandate, the Cleric strides with purpose, a bastion of sacred power where faith's incandescent flame burns fiercely within.",
+    "druid": "Bound to the rhythms of nature's deepest chants, the Druid communes with the ancient spirits of the wild, embracing the ebb and flow of the living land.",
+    "fighter": "Forged in the crucible of combat, the Fighter stands undaunted, wielding martial prowess and unyielding bravery in the face of adversity.",
+    "monk": "A disciple of inner harmony and disciplined focus, the Monk seeks enlightenment upon a path paved by contemplative strength and kinetic grace.",
+    "paladin": "Sworn to uphold the confluence of valor and virtue, the Paladin wields both sword and piety with an unwavering resolve.",
+    "ranger": "A wayfarer of the untrodden landscapes, the Ranger is the master of the wilds, their arrows as true as their intimate kinship with nature's secrets.",
+    "rogue": "In the embrace of shadows and the subtlety of silence, the Rogue navigates a world unseen, where guild and finesse are the keys to survival and success.",
+    "sorcerer": "Born of innate magical essence, the Sorcerer channels the raw energies of the arcane, their very blood a conduit for reality-altering forces.",
+    "warlock": "Bound by pact to an eldritch entity, the Warlock wields otherwordly might, drawing upon forbidden secrets to manifest their dread patrons' will.",
+    "warrior": "The quintessential embodiment of battle's ire, the Warrior matches their unrelenting ferocity with a robust tenacity for the clamor and clash of war.",
+    "wizard": "A scholar of the esoteric and seeker of hidden truths, the Wizard commands the fabric of magic through meticulous study and unwavering discipline.",
+}
+
+_CLASS_MAPPING = {
+    "artisan": ClassType.ARTISAN,
+    "cleric": ClassType.CLERIC,
+    "druid": ClassType.DRUID,
+    "fighter": ClassType.FIGHTER,
+    "monk": ClassType.MONK,
+    "paladin": ClassType.PALADIN,
+    "ranger": ClassType.RANGER,
+    "rogue": ClassType.ROGUE,
+    "sorcerer": ClassType.SORCERER,
+    "warlock": ClassType.WARLOCK,
+    "warrior": ClassType.WARRIOR,
+    "wizard": ClassType.WIZARD,
+}
+
+_BACKGROUND_INFO_DICT = {
+    "acolyte": "You have spent your life in service to a temple, learning sacred rites and providing sacrifices to the god or gods you worship. Serving the gods and discovering their sacred works will guide you to greatness.",
+    "charlatan": "You're an expert in manipulation, prone to exaggeration, and more than happy to profit from it. Bending the truth and turning allies against each other will lead to greater success down the road.",
+    "criminal": "You have a history of breaking the law and survive by leveraging less-than-legal connections. Profiting from criminal enterprise will lead to greater opportunities in the future.",
+    "entertainer": "You live to sway and subvert your audience, engaging common crowds and high society alike. Preserving art and bringing joy to the hapless and downtrodden heightens your charismatic aura.",
+    "folkhero": "You're the champion of the common people, challenging tyrants and monsters to protect the helpless. Saving innocents in imminent danger will make your legend grow.",
+    "hermit": "You've lived in seclusion for years, away from society and the hardships of the world. Discovering hidden secrets and sharing them with others will bring you closer to the world.",
+    "merchant": "Your skill in a particular craft has earned you membership in a mercantile guild, offering privileges and protection while engaging in your art. Repairing and discovering rare crafts will bring new inspiration.",
+    "noble": "You were raised in a family among the social elite, accustomed to power and privilege. Accumulating renown, power, and loyalty will raise your status.",
+    "outlander": "You grew up in the wilds, learning to survive far from the comforts of civilization. Surviving unusual hazards of the wild will enhance your prowess and understanding.",
+    "sage": "You're curious and well-read, with an unending thirst for knowledge. Learning about rare lore of the world will inspire you to put this knowledge to greater purpose.",
+    "sailor": "You've spent your life on the sea, learning the ins and outs of sailing and navigation. Surviving storms and other hazards of the sea will enhance your prowess and understanding.",
+    "soldier": "You are trained in battlefield tactics and combat, having served in a militia, mercenary company, or officer corps. Show smart tactics and bravery on the battlefield to enhance your prowess.",
+    "urchin": "After surviving a poor and bleak childhood, you know how to make the most out of very little. Using your street smarts bolsters your spirit for the journey ahead.",
+}
+
+_BACKGROUND_MAPPING = {
+    "acolyte": BackgroundType.ACOLYTE,
+    "charlatan": BackgroundType.CHARLATAN,
+    "criminal": BackgroundType.CRIMINAL,
+    "entertainer": BackgroundType.ENTERTAINER,
+    "folkhero": BackgroundType.FOLK_HERO,
+    "hermit": BackgroundType.HERMIT,
+    "merchant": BackgroundType.MERCHANT,
+    "noble": BackgroundType.NOBLE,
+    "outlander": BackgroundType.OUTLANDER,
+    "sage": BackgroundType.SAGE,
+    "sailor": BackgroundType.SAILOR,
+    "soldier": BackgroundType.SOLDIER,
+    "urchin": BackgroundType.URCHIN,
+}
+
 
 def chargen_welcome(caller):
     def _set_gender(caller, choice):
@@ -92,46 +181,15 @@ def chargen_race(caller, raw_string, **kwargs):
             caller.msg("An error occurred. Contact an administrator.")
             return "chargen_welcome"
 
-        if race == "human":
-            caller.race = RaceType.HUMAN
-        elif race == "elf" and subrace == "high":
-            caller.race = RaceType.HIGH_ELF
-        elif race == "elf" and subrace == "wood":
-            caller.race = RaceType.WOOD_ELF
-        elif race == "half-elf" and subrace == "high":
-            caller.race = RaceType.HIGH_HALF_ELF
-        elif race == "half-elf" and subrace == "wood":
-            caller.race = RaceType.WOOD_HALF_ELF
-        elif race == "dwarf" and subrace == "emberheart":
-            caller.race = RaceType.EMBERHEART_DWARF
-        elif race == "dwarf" and subrace == "stoneguard":
-            caller.race = RaceType.STONEGUARD_DWARF
-        elif race == "dwarf" and subrace == "ironvein":
-            caller.race = RaceType.IRONVEIN_DWARF
-        elif race == "halfling" and subrace == "swiftshadow":
-            caller.race = RaceType.SWIFTSHADOW_HALFLING
-        elif race == "halfling" and subrace == "hearthstone":
-            caller.race = RaceType.HEARTHSTONE_HALFLING
-        elif race == "gnome" and subrace == "sylvan":
-            caller.race = RaceType.SYLVAN_GNOME
-        elif race == "gnome" and subrace == "dusk":
-            caller.race = RaceType.DUSK_GNOME
-        elif race == "gnome" and subrace == "hearth":
-            caller.race = RaceType.HEARTH_GNOME
-        elif race == "nymph":
-            caller.race = RaceType.NYMPH
-        elif race == "orc":
-            caller.race = RaceType.ORC
-        elif race == "pyreling" and subrace == "emberkin":
-            caller.race = RaceType.EMBERKIN_PYRELING
-        elif race == "pyreling" and subrace == "arcanist":
-            caller.race = RaceType.ARCANIST_PYRELING
-        elif race == "pyreling" and subrace == "warbrand":
-            caller.race = RaceType.WARBRAND_PYRELING
-        else:
+        race_type = _RACE_SUBRACE_MAPPING.get(race)
+        if isinstance(race_type, dict):
+            race_type = race_type.get(subrace, None)
+
+        if not race_type:
             caller.msg("An error occurred. Contact an administrator.")
             return "chargen_welcome"
 
+        caller.race = race_type
         return "chargen_class"
 
     selected_race = kwargs.get("selected_race", None)
@@ -197,3 +255,349 @@ def chargen_race(caller, raw_string, **kwargs):
         )
 
     return text, options
+
+
+def chargen_class(caller, raw_string, **kwargs):
+    def _set_class(caller, **kwargs):
+        selected_class = kwargs.get("selected_class", None)
+
+        if not selected_class:
+            caller.msg("An error occurred. Contact an administrator.")
+            return "chargen_welcome"
+
+        class_type = _CLASS_MAPPING.get(selected_class, None)
+        caller.class_ = class_type
+        return "chargen_background"
+
+    selected_class = kwargs.get("selected_class", None)
+    if selected_class:
+        text = _CLASS_INFO_DICT[selected_class]
+        options = (
+            {
+                "key": "y",
+                "desc": f"Confirm {selected_class}",
+                "goto": (_set_class, {"selected_class": selected_class}),
+            },
+            {
+                "key": "n",
+                "desc": "Return",
+                "goto": ("chargen_class", {"selected_class": None}),
+            },
+        )
+    else:
+        text = dedent(
+            """
+            The void breathes - an exhalation of nebulous beauty, and as it does, a dreamscape coalesces from the expanse of endless potential. Colors unhdread of and light unknown to the waking world begin to dance before your senses, sculpting not a figure but the essence of self. From the formless, limbs stretch forth, reaching into the vastness as though testing the fabric of reality. A face emerges, eyes closed as if in peaceful repose, soon to open upon your new existence. Your presence, once only a thought, gains substance.
+
+            Textures of the world write their legacy upon you. The softness of petals bestows a gentleness of touch, while the resilience of ancient bark imparts the steadfastness of soul. The dreamscape's water, pure and shimmering, caresses your form, granting fluidity to each nascent motion. Vibrations resonate through the intangible fibers of your being. Each note shapes a facet of character - courage, wisdom, and curiosity unfold like wings, preluding a flight into uncharted skies.
+
+            The essence of will emerges, a guiding force within your forming hand. Firm yet ethereal, an unseen marker of your intentions, the silent declaration of your unborn strengths. Promsie fills the void - a theater of dreams, of life in potentia - and wraps around you in an embrace. Soft as silk and yet unyielding.
+            """
+        )
+        options = []
+        for class_name in _CLASS_INFO_DICT.keys():
+            options.append(
+                {
+                    "key": class_name,
+                    "goto": ("chargen_class", {"selected_class": class_name}),
+                }
+            )
+
+    return text, options
+
+
+def chargen_background(caller, raw_string, **kwargs):
+    def _set_background(caller, **kwargs):
+        background = kwargs.get("selected_background", None)
+
+        if not background:
+            caller.msg("An error occurred. Contact an administrator.")
+            return "chargen_welcome"
+
+        background = _BACKGROUND_MAPPING.get(background, None)
+        caller.background = background
+        return "chargen_appearance"
+
+    selected_background = kwargs.get("selected_background", None)
+    if selected_background:
+        text = _BACKGROUND_INFO_DICT[selected_background]
+        options = (
+            {
+                "key": "y",
+                "desc": f"Confirm {selected_background}",
+                "goto": (_set_background, {"selected_background": selected_background}),
+            },
+            {
+                "key": "n",
+                "desc": "Return",
+                "goto": ("chargen_background", {"selected_background": None}),
+            },
+        )
+
+    else:
+        text = dedent(
+            """
+            Memories, intangible yet vivid, paint upon the canvas of the void. You witness the strokes of struggles and triumphs, fleeting moments of joy and sorrow without discernible form. Fragments of these narratives, like leaves carried upon an unseen stream, drift past you. Their origins and destinations obscured, yet they hint at the rich soil from which your being has sprung. Tales of kinship, loss, laughter, and hardship softly tumble around you, each a color, a texture, in the portrait of life.
+
+            Bright skies and storm clouds alike craft a backdrop without revealing the lands beneath. Echoes of past voices rise and fall in a quiet crescendo. Their words are muted, yet the emotions carried upon them resonate deeply, sculpting the contours of disposition and ethos.
+            """
+        )
+
+        options = []
+        for background in _BACKGROUND_INFO_DICT.keys():
+            options.append(
+                {
+                    "key": background,
+                    "goto": ("chargen_background", {"selected_background": background}),
+                }
+            )
+
+    return text, options
+
+
+def chargen_appearance(caller, raw_string, **kwargs):
+    def _set_appearance(caller, appearance, **kwargs):
+        appearance = appearance.strip()
+        caller.db.desc = appearance
+        return ("chargen_appearance", {"appearance": appearance})
+
+    if not kwargs.get("appearance", None):
+        text = dedent(
+            """
+            The void becomes a mirror of liquid silver. Your outline shimmers upon it, ephemeral and primed to accept the hues of existence. The dreamscape's palette brims with countless visages, eyes like polished gems, hair cascading in waves of imaginable textures and colors, skin tones capturing the spectrum of earthen clay to sun-kissed gold.
+            """
+        )
+
+        options = (
+            {"key": "", "goto": "chargen_appearance"},
+            {"key": "_default", "goto": _set_appearance},
+        )
+    else:
+        text = dedent(
+            """
+            The mirror of liquid silver reflects your appearance:
+            
+            {appearance}
+
+            Is this correct?
+            """.format(
+                appearance=kwargs.get("appearance", "")
+            )
+        )
+        options = (
+            {"key": "y", "desc": "Confirm appearance", "goto": "chargen_attributes"},
+            {
+                "key": "n",
+                "desc": "Return",
+                "goto": ("chargen_appearance", {"appearance": None}),
+            },
+        )
+
+    return text, options
+
+
+def chargen_attributes(caller, raw_string, **kwargs):
+    def _set_attributes(caller):
+        if caller.class_ == ClassType.ARTISAN:
+            caller.strength = 10
+            caller.dexterity = 10
+            caller.constitution = 10
+            caller.intelligence = 14
+            caller.wisdom = 14
+            caller.charisma = 16
+        elif caller.class_ == ClassType.CLERIC:
+            caller.strength = 10
+            caller.dexterity = 10
+            caller.constitution = 10
+            caller.intelligence = 14
+            caller.wisdom = 16
+            caller.charisma = 14
+        elif caller.class_ == ClassType.DRUID:
+            caller.strength = 10
+            caller.dexterity = 10
+            caller.constitution = 10
+            caller.intelligence = 14
+            caller.wisdom = 16
+            caller.charisma = 14
+        elif caller.class_ == ClassType.FIGHTER:
+            caller.strength = 16
+            caller.dexterity = 14
+            caller.constitution = 14
+            caller.intelligence = 10
+            caller.wisdom = 10
+            caller.charisma = 10
+        elif caller.class_ == ClassType.MONK:
+            caller.strength = 10
+            caller.dexterity = 16
+            caller.constitution = 14
+            caller.intelligence = 10
+            caller.wisdom = 14
+            caller.charisma = 10
+        elif caller.class_ == ClassType.PALADIN:
+            caller.strength = 16
+            caller.dexterity = 10
+            caller.constitution = 14
+            caller.intelligence = 10
+            caller.wisdom = 10
+            caller.charisma = 14
+        elif caller.class_ == ClassType.RANGER:
+            caller.strength = 14
+            caller.dexterity = 16
+            caller.constitution = 14
+            caller.intelligence = 10
+            caller.wisdom = 10
+            caller.charisma = 10
+        elif caller.class_ == ClassType.ROGUE:
+            caller.strength = 10
+            caller.dexterity = 16
+            caller.constitution = 12
+            caller.intelligence = 10
+            caller.wisdom = 10
+            caller.charisma = 16
+        elif caller.class_ == ClassType.SORCERER:
+            caller.strength = 10
+            caller.dexterity = 10
+            caller.constitution = 10
+            caller.intelligence = 14
+            caller.wisdom = 14
+            caller.charisma = 16
+        elif caller.class_ == ClassType.WARLOCK:
+            caller.strength = 10
+            caller.dexterity = 10
+            caller.constitution = 10
+            caller.intelligence = 14
+            caller.wisdom = 14
+            caller.charisma = 16
+        elif caller.class_ == ClassType.WARRIOR:
+            caller.strength = 16
+            caller.dexterity = 12
+            caller.constitution = 16
+            caller.intelligence = 10
+            caller.wisdom = 10
+            caller.charisma = 10
+        elif caller.class_ == ClassType.WIZARD:
+            caller.strength = 10
+            caller.dexterity = 10
+            caller.constitution = 10
+            caller.intelligence = 16
+            caller.wisdom = 16
+            caller.charisma = 12
+
+        return "chargen_finalize"
+
+    text = dedent(
+        """
+        As the final threads of your physical form intertwine, a new phase of creation yields, one that defines not the body, but the essence of your capabilities. It's a moment of introspection, a silent communion between you and the energies which animate the soul.
+
+        The dreamscape, now more a feeling than a place, aligns with the resonance of your inner voice. It hums with the frequency of unseen strengths, a melody that only you can hear - a harmony that beckons you to claim it as your own.
+        """
+    )
+
+    options = (
+        {"key": "", "goto": "chargen_attributes"},
+        # {
+        #    "key": "simple",
+        #    "desc": "Accept the default attributes for your class.",
+        #    "goto": _set_attributes,
+        # },
+        {
+            "key": "detailed",
+            "desc": "Choose your own attributes.",
+            "goto": "chargen_attributes_detailed",
+        },
+        {"key": "_default", "goto": "chargen_attributes"},
+    )
+
+    return text, options
+
+
+def chargen_attributes_detailed(caller, raw_string, **kwargs):
+    ATTRIBUTES = [
+        "strength",
+        "dexterity",
+        "constitution",
+        "intelligence",
+        "wisdom",
+        "charisma",
+    ]
+    TOTAL_POINTS = 75
+    MIN_ATTRIBUTE_VALUE = 8
+    MAX_ATTRIBUTE_VALUE = 16
+
+    def calculate_points_used(caller):
+        return sum(getattr(caller, attr, 0) for attr in ATTRIBUTES)
+
+    def _set_attribute(caller, allocation, **kwargs):
+        attribute, value = allocation.split(" ")
+        value = int(value.strip())
+
+        if attribute not in ATTRIBUTES:
+            caller.msg("An error occurred. Contact an administrator.")
+            return "chargen_attributes_detailed"
+
+        if not (MIN_ATTRIBUTE_VALUE <= value <= MAX_ATTRIBUTE_VALUE):
+            caller.msg(
+                f"Attribute values must be between {MIN_ATTRIBUTE_VALUE} and {MAX_ATTRIBUTE_VALUE}."
+            )
+            return "chargen_attributes_detailed"
+
+        current_value = getattr(caller, attribute, 0)
+        points_used = calculate_points_used(caller)
+        additional_points_needed = value - current_value
+
+        if points_used + additional_points_needed > TOTAL_POINTS:
+            caller.msg("You don't have enough points remaining.")
+            return "chargen_attributes_detailed"
+
+        setattr(caller, attribute, value)
+        return "chargen_attributes_detailed"
+
+    points_used = calculate_points_used(caller)
+    points_remaining = TOTAL_POINTS - points_used
+
+    help = dedent(
+        """
+        Strength: Enhances physical prowess in melee combat, improves carrying capacity, and augments certain physical actions.
+
+        Dexterity: Boosts precision and agility, influences armor effectiveness, and is crucial for avoiding certain hazards.
+
+        Constitution: Vital for overall health, resisting certain ailments, and enduring the effects of debilitating conditions. 
+
+        Intelligence: Governs the depth of knowledge and arcane mastery, affecting the capability to unravel mysteries, recall lesser-known lore, and is the key for magic wielded by more scholarly adventurers.
+
+        Wisdom: Reflects awareness and intuition, key to perceiving the world and its creatures, influencing survival and is primary for divine or nature-based adventurers.
+
+        Charisma: Represents personal magnetism and strength of character, crucial for those who rely on their personality to succeed, and impacts social interactions.
+        """
+    )
+    text = dedent(
+        """
+        Your attributes: STR: {strength}, DEX: {dexterity}, CON: {constitution}, INT: {intelligence}, WIS: {wisdom}, CHA: {charisma}
+
+        Points Remaining: {points_remaining}
+
+        Use the following command to set your attributes:
+                 <attribute> <value>
+        Example: strength 10. Value must be between 8 and 16.
+        """
+    ).format(
+        strength=caller.strength,
+        dexterity=caller.dexterity,
+        constitution=caller.constitution,
+        intelligence=caller.intelligence,
+        wisdom=caller.wisdom,
+        charisma=caller.charisma,
+        points_remaining=points_remaining,
+    )
+
+    options = (
+        {"key": "", "goto": "chargen_abilities_detailed"},
+        {"key": "y", "desc": "Confirm attributes", "goto": "chargen_finalize"},
+        {"key": "_default", "goto": _set_attribute},
+    )
+
+    return (text, help), options
+
+
+def chargen_finalize(caller, raw_string):
+    return "", ""

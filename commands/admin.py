@@ -34,8 +34,8 @@ class CmdTest(Command):
             self.caller,
             "world.chargen.menu",
             startnode="chargen_welcome",
-            auto_look=False,
-            auto_help=False,
+            auto_look=True,
+            auto_help=True,
         )
 
 

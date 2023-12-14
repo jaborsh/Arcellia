@@ -61,6 +61,40 @@ class RaceType(Enum):
     WARBRAND_PYRELING = "warbrand pyreling"
 
 
+class ClassType(Enum):
+    ADVENTURER = "adventurer"  # Default
+    ARTISAN = "artisan"
+    CLERIC = "cleric"
+    DRUID = "druid"
+    FIGHTER = "fighter"
+    MONK = "monk"
+    PALADIN = "paladin"
+    RANGER = "ranger"
+    ROGUE = "rogue"
+    SORCERER = "sorcerer"
+    WARLOCK = "warlock"
+    WARRIOR = "warrior"
+    WIZARD = "wizard"
+
+
+class BackgroundType(Enum):
+    ADVENTURER = "adventurer"  # Default
+    ACOLYTE = "acolyte"
+    CHARLATAN = "charlatan"
+    CRIMINAL = "criminal"
+    ENTERTAINER = "entertainer"
+    FOLK_HERO = "folk hero"
+    GUILD_ARTISAN = "guild artisan"
+    HERMIT = "hermit"
+    MERCHANT = "merchant"
+    NOBLE = "noble"
+    OUTLANDER = "outlander"
+    SAGE = "sage"
+    SAILOR = "sailor"
+    SOLDIER = "soldier"
+    URCHIN = "urchin"
+
+
 class Character(objects.Object, DefaultCharacter):
     """
     The Character defaults to reimplementing some of base Object's hook methods with the
@@ -131,6 +165,14 @@ You see {a} {gender} {race},
         self.db.display_name = value
 
     @property
+    def class_(self):
+        return self.attributes.get("class", ClassType.ADVENTURER).value
+
+    @class_.setter
+    def class_(self, value):
+        self.db.class_ = value
+
+    @property
     def gender(self):
         return self.attributes.get("gender", GenderType.AMBIGUOUS).value
 
@@ -145,6 +187,62 @@ You see {a} {gender} {race},
     @race.setter
     def race(self, value):
         self.db.race = value
+
+    @property
+    def background(self):
+        return self.attributes.get("background", BackgroundType.ADVENTURER).value
+
+    @background.setter
+    def background(self, value):
+        self.db.background = value
+
+    @property
+    def strength(self):
+        return self.attributes.get("strength", 8)
+
+    @strength.setter
+    def strength(self, value):
+        self.db.strength = value
+
+    @property
+    def dexterity(self):
+        return self.attributes.get("dexterity", 8)
+
+    @dexterity.setter
+    def dexterity(self, value):
+        self.db.dexterity = value
+
+    @property
+    def constitution(self):
+        return self.attributes.get("constitution", 8)
+
+    @constitution.setter
+    def constitution(self, value):
+        self.db.constitution = value
+
+    @property
+    def intelligence(self):
+        return self.attributes.get("intelligence", 8)
+
+    @intelligence.setter
+    def intelligence(self, value):
+        self.db.intelligence = value
+
+    @property
+    def wisdom(self):
+        return self.attributes.get("wisdom", 8)
+
+    @wisdom.setter
+    def wisdom(self, value):
+        self.db.wisdom = value
+
+    @property
+    def charisma(self):
+        return self.attributes.get("charisma", 8)
+
+    @charisma.setter
+    def charisma(self, value):
+        self.db.charisma = value
 
     ###############
     # Appearances #
