@@ -135,7 +135,7 @@ You see a {gender} {name},
         return self.attributes.get("gender", GenderType.AMBIGUOUS)
 
     @gender.setter
-    def gender(self, value: str):
+    def gender(self, value: Enum):
         self.db.gender = value
 
     @property
@@ -143,7 +143,7 @@ You see a {gender} {name},
         return self.attributes.get("race", RaceType.HUMAN)
 
     @race.setter
-    def race(self, value: str):
+    def race(self, value: Enum):
         self.db.race = value
 
     ###############
