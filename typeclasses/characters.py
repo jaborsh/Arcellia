@@ -82,7 +82,7 @@ class Character(objects.Object, DefaultCharacter):
     """  # noqa: E501
 
     appearance_template = """
-You see a {gender} {race},
+You see {a} {gender} {race},
 
 {desc}
 
@@ -200,6 +200,7 @@ You see a {gender} {race},
         # populate the appearance_template string.
         return self.format_appearance(
             self.appearance_template.format(
+                a="an" if self.gender[0] in "aeiou" else "a",
                 gender=self.gender,
                 race=self.race,
                 desc=self.get_display_desc(looker, **kwargs),
