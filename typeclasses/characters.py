@@ -82,7 +82,7 @@ class Character(objects.Object, DefaultCharacter):
     """  # noqa: E501
 
     appearance_template = """
-You see a {gender} {name},
+You see a {gender} {race},
 
 {desc}
 
@@ -132,7 +132,7 @@ You see a {gender} {name},
 
     @property
     def gender(self):
-        return self.attributes.get("gender", GenderType.AMBIGUOUS)
+        return self.attributes.get("gender", GenderType.AMBIGUOUS).value
 
     @gender.setter
     def gender(self, value: Enum):
@@ -140,7 +140,7 @@ You see a {gender} {name},
 
     @property
     def race(self):
-        return self.attributes.get("race", RaceType.HUMAN)
+        return self.attributes.get("race", RaceType.HUMAN).value
 
     @race.setter
     def race(self, value: Enum):
@@ -201,7 +201,7 @@ You see a {gender} {name},
         return self.format_appearance(
             self.appearance_template.format(
                 gender=self.gender,
-                name=self.get_display_name(looker, **kwargs),
+                race=self.race,
                 desc=self.get_display_desc(looker, **kwargs),
                 things=self.get_display_things(looker, **kwargs),
             ),
