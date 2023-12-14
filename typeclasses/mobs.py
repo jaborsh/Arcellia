@@ -28,7 +28,7 @@ class Mob(objects.Object):
         return self.attributes.get("gender", GenderType.AMBIGUOUS).value
 
     @gender.setter
-    def gender(self, value: Enum):
+    def gender(self, value):
         self.db.gender = value
 
     def at_object_creation(self):
