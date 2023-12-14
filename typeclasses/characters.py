@@ -15,13 +15,13 @@ import re
 from enum import Enum
 
 from django.conf import settings
-from evennia.objects.models import ObjectDB
-from evennia.objects.objects import DefaultCharacter
-from evennia.utils.utils import lazy_property, make_iter, to_str, variable_from_module
 from handlers import clothing, cooldowns
 from parsing.text import grammarize, wrap
 from server.conf import logger
 
+from evennia.objects.models import ObjectDB
+from evennia.objects.objects import DefaultCharacter
+from evennia.utils.utils import lazy_property, make_iter, to_str, variable_from_module
 from typeclasses import objects
 
 _AT_SEARCH_RESULT = variable_from_module(*settings.SEARCH_AT_RESULT.rsplit(".", 1))
@@ -42,17 +42,23 @@ class GenderType(Enum):
 
 class RaceType(Enum):
     HUMAN = "human"
-    ELF = "elf"
-    DROW = "drow"
-    PYRELING = "pyreling"
-    DWARF = "dwarf"
-    HALFLING = "halfling"
-    ORC = "orc"
+    HIGH_ELF = "high elf"
+    WOOD_ELF = "wood elf"
+    HIGH_HALF_ELF = "high half-elf"
+    WOOD_HALF_ELF = "wood half-elf"
+    EMBERHEART_DWARF = "emberheart dwarf"
+    STONEGUARD_DWARF = "stoneguard dwarf"
+    IRONVEIN_DWARF = "ironvein dwarf"
+    SWIFTSHADOW_HALFLING = "swiftshadow halfling"
+    HEARTHSTONE_HALFLING = "hearthstone halfling"
+    SYLVAN_GNOME = "sylvan gnome"
+    DUSK_GNOME = "dusk gnome"
+    HEARTH_GNOME = "hearth gnome"
     NYMPH = "nymph"
-    GNOME = "gnome"
-    LUPINE = "lupine"
-    FELINE = "feline"
-    TAURAKIN = "taurakin"
+    ORC = "orc"
+    EMBERKIN_PYRELING = "emberkin pyreling"
+    ARCANIST_PYRELING = "arcanist pyreling"
+    WARBRAND_PYRELING = "warbrand pyreling"
 
 
 class Character(objects.Object, DefaultCharacter):
@@ -180,7 +186,7 @@ You see a {gender} {name},
             - `|p`, `|P`: Possessive form: his, her, its, His, Her, Its, Their
             - `|a`, `|A`: Absolute Possessive form: his, hers, its, His, Hers, Its, Theirs
 
-        """
+        """  # noqa: E501
         typ = regex_match.group()[1]  # "s", "O" etc
         gender = self.attributes.get("gender", default=GenderType.AMBIGUOUS).value
         gender = gender if gender in ("male", "female", "neutral") else "ambiguous"
@@ -249,7 +255,7 @@ You see a {gender} {name},
         Returns:
             message (str): The (possibly modified) text to be spoken.
 
-        """
+        """  # noqa: E501
         return grammarize(message)
 
     def at_say(
@@ -643,7 +649,7 @@ You see a {gender} {name},
             error, return will be `None`). If `quiet=True`, the error
             messaging is assumed to be handled by the caller.
 
-        """
+        """  # noqa: E501
         is_string = isinstance(searchdata, str)
 
         if is_string:
