@@ -1,39 +1,27 @@
-from typeclasses.characters import BackgroundType, ClassType, GenderType, RaceType
-
 from evennia.utils import dedent
+
+from world.characters import backgrounds, classes, genders, races
 
 _RACE_INFO_DICT = {
     "human": "The most common face to see in Arcellia, humans are known for their tenacity, creativity, and endless capacity for growth.",  # noqa: E501
     "elf": "Elves of Arcellia embody an ageless grace, their histories etched into the very forests and rivers of the world. Ancient and wise, they live in harmonious synchrony with the natural tapestry that surrounds them, their lifelines stretching across eras like the boughs of the World Tree. With eyes that reflect the depth of the stars, elves harbor a mastery over magic few can rival, their arcane heritage as intrinsic as the wind's whisper. Bound by traditions woven through the fabric of time, they walk paths shadowed by lore, their existence a melody harmonizing with the ethereal song of eternity.",  # noqa: E501
-    "half-elf": "Half-Elves inherit blessings from both their parents, but at the price of never quite fitting in. Curious, ambitious, and versatile, half-elves are welcome everywhere, but struggle without a community to call their own.",  # noqa: E501
     "dwarf": "As durable and unyielding as their homes of stone, dwarves are some of the finest warriors, miners, and smiths in all of Arcellia. They're known for their confidence and keen intuition, valuing family, ritual, and fine craftsmanship. Many of their ancient kingdoms have been surrendered to goblins and other creatures of the deep.",  # noqa: E501
-    "halfling": "Halflings, with their diminutive stature, are a jovial folk whose stories are laced with luck and a penchant for the comfortable life, relishing in homely joys and a peaceful existence. Their nimble fingers and silent footfalls often steer their paths toward unexpected adventures.",  # noqa: E501
     "gnome": "Gnomes are diminutive, inquisitive inventors, their minds ever-ticking gears amidst a whirlwind of arcane intellect. They thrive on innovation, their lives a constant pursuit of knowledge, enchantment, and mechanical wonders that teeter on the brink of whimsy and genius.",  # noqa: E501
     "nymph": "Each Nymphkind bears an Elemental Allure, an innate charm that captures hearts as effortlessly as the elements wield their power. These beguiling beings breathe an otherworldly magnetism, entwining those who fall under their gaze with strands of lust, adoration, or sheer bewitchment. Like the ripples upon a still pond or the flickering dance of flames, their seductive powers manifest in various forms, reflecting the vast spectrum of their ancestral realm.",  # noqa: E501
     "orc": "Orcs exhibit widely varying appearances. Creatures of intense emotion, the orcs are more inclined to act than contemplate - whether the rage burning their bodies compels them to fight, or the love of filling their hearts inspires acts of incredible kindness.",  # noqa: E501
     "pyreling": "The Pyreling are descendents cloaked in myth, born of the mingling between mortal essence and the enigmatic energies of hell. They carry within them a flickering flame that manifests in eyes that glow like coals and skin in shades of smoldering dusk. Misunderstood by many, the Pyrelings wander through Arcellia bearing gifts of arcane affinity, as well as a propensity for the extraordinary, often leaving tales of fear and fascination in their wake.",  # noqa: E501
-    # "drow": "The drow emerge from Arcellia's underbelly: a society that flourishes in the echoes of deep caverns and shunned fortresses. Their skin, ashen and cool to the touch, shimmers faintly with the ghostly beauty of the subterranean glow. Revered for their martial prowess and feared for their cunning, the Nocturnes navigate the world in relentless pursuit of power and arcane knowledge. Descended from their surface-dwelling kin through an ancient rift seeped in betrayal, they weave their existence in darkness.",  # noqa: E501
-    # "lupine": "Canine-folk are social creatures with a robust code of honor. They walk with unmatched loyalty and fierce camaraderie. Equipped with acute senses and a formidable presence, the Lupines are revered as trackers and mediators, their howling sagas echoing under open skies and across wild expanses.",  # noqa: E501
-    # "feline": "The feline people glide through Arcellia with a pounce of curiosity and a gait that whispers tales of distant lands. Cloaked in spotted or striped pelts that ripple with each measured move, these cat-like beings embody the very spirit of adventure. Felines collect stories and artifacts with a fervor as intense as their feral grace, with eyes alight with the gleam of the seeker. They are lore-weavers, nimble tricksters, and seekers of horizons, their lives a collection of tales and trinkets gathered from peaks unclimbed and paths untrodden. Their tales are as varied as their coats, each a patchwork of myriad experiences and encounters, chronicling the dance between wild instincts and thoughtful contemplation.",  # noqa: E501
 }
 
 _SUBRACE_INFO_DICT = {
     "elf": {
         "high": "The High Elves, ethereal as the twilight heavens, draw their lineage from the stars. With minds sharp as the crescent moon, they are curators of arcane wisdom, their lives as elongated as the very eternities they study. Their enclaves, built where ley lines converge, resonate with the harmonious magic of the firmament, reflecting the astral glory of their heritage in every spell they weave and every blade they forge under the watchful eyes of the constellations.",  # noqa: E501
+        "night": "It was they who first delved deep into the arcane arts, their insatiable curiosity unraveling the fabric of reality nearly a millennia past. The night elves' unbridled use of sorcery summoned forth cataclysmic force that ignited a war of unspeakable devastation between mortals and entities of pure destruction. Only through immense sacrifice did the night elves drive back this ruinous presence, preserving the world at the dire cost of their own splendid realm, now lost beneath relentless tides.",
         "wood": "Beneath emerald canopies, where life thrums in every leaf and branch, dwell the Wood Elves. Their souls are the voice of the forest, as serene as still water and as wild as the untamed grove. These elves are guardians of the natural world, moving with a grace that matches the swaying boughs and flowing streams, their instincts finely honed to the rhythm of the wilderness. Bridging the material plane and the natural realm in harmonious co-existence, Wood Elves invoke the vitality of the woods in their tireless defense against those who would despoil their verdant home.",  # noqa: E501
-    },
-    "half-elf": {
-        "high": "High Half-Elves are the progeny of human aspiration and the sublime heritage of High Elves. They inherit an inncate arcane spark that illuminates their path, granting them access to the mystical arts that flow through their elvish bloodline. Walking the illuminated cooridors of ancient libraries as comfortably as the bustling human streets, they serve as conduits for the celestial wisdom of their elven ancestors, tempered by the practical innovation of their human side.",  # noqa: E501
-        "wood": "Born from the marriage of human tenacity and the Wood Elders' natural attunement, Wood Half-Elves stand as champions of the wild frontiers. They share in the Wood Elves' harmonious connection with nature, yet are bolstered by human resilience and resourcefulness. Their affinity for the woodland realm and its denizens enables them to navigate the thicket and thorns of life with an ease that belies their half-human heritage, ensuring that they are as formidable in the wild as they are within the myriad enclaves of humanity.",  # noqa: E501
     },
     "dwarf": {
         "emberheart": "The Emberheart Dwarves glow with an inner fire, their souls alight with consummate confidence and a sharp, unerring insight. Celebrated for their intricate craftsmanship and elaborate ceremonies, the Emberhearts dwell within the grand vocanic forges of the Molten Hold, where kinship and artistry burn brighter than the furnaces that warm their halls.",  # noqa: E501
         "stoneguard": "Bearing the weight of history upon their broad shoulders, Stoneguard Dwarves have weathered the collapse of their once-mighty bastions, stoically surrendering their dominion to the relentless advance of goblin hordes and orcish legions. With hearts like the bedrock they cleave, these Dwarves nurture a collective resilience, driven by a cynical yet unwavering resolve to reclaim the glory and the halls of their ancestors.",  # noqa: E501
         "ironvein": "Forged in the dark crucible of the world's underbelly, the Ironvein Dwarves trace their lineage through centuries spent in the eerie expanses of the deep. Exposed to mysteries that warp mind and matter, imbued with the arcane residue that pulses through their cavernous abyss, they have emerged with esoteric powers that are both a gift and a legacy of old tyrannies. Survival meant enduring cruel manipulation by aberrant overlords, and from such depths of despair rose the fortitude and psionic might that now courses through the veins of these steely-eyed survivors. Though the chains of the past have been cast off, the Ironveins have never forgotten the cold embrace of subjugation, nor the sweet taste of hard-won freedom.",  # noqa: E501
-    },
-    "halfling": {
-        "swiftshadow": "Swiftshadow Halflings, nimble and gregarious souls, flit through the realms of Arcellia with a wanderlust as light as their footsteps. Known for melding into shadows with a whispering grace, they traverse far and wide, tales woven into stores shared around hearth and marketplace. Despite their elusive nature, they foster bonds that cross continents, always eager to etch their names into the annals of adventure with their convivial spirit and artful stealth.",  # noqa: E501
-        "hearthstone": "Hearthstone Halflings, steadfast as the earth beneath them, boast a fortitude born of legend, rumored to be touched by the ancient vigor of dwarven ancestry. In the wake of adversity, they stand undaunted. With a quiet strength, Hearthstone Halflings carve their legacy into the heart of the community, enduring in the face of trial as any mountain stands against the tempest's siege.",  # noqa: E501
     },
     "gnome": {
         "sylvan": "Sylvan Gnomes, sprightly and secretive as the woodland sprites, dwell amidst the verdant groves and dappled glades of Arcellia's vast forests. Whispering to the trees and laughing with the brooks, they are unseen keepers of nature's most secluded riddles, guarding the sylvan sanctuaries against those who would dare disturb them. With an affinity for the woods, these Gnomes craft enchantments as delicate as cobwebs, and their laughter is as fleeting as the wind through the leaves.",  # noqa: E501
@@ -47,61 +35,17 @@ _SUBRACE_INFO_DICT = {
     },
 }
 
-_RACE_SUBRACE_MAPPING = {
-    "human": RaceType.HUMAN,
-    "elf": {"high": RaceType.HIGH_ELF, "wood": RaceType.WOOD_ELF},
-    "half-elf": {"high": RaceType.HIGH_HALF_ELF, "wood": RaceType.WOOD_HALF_ELF},
-    "dwarf": {
-        "emberheart": RaceType.EMBERHEART_DWARF,
-        "stoneguard": RaceType.STONEGUARD_DWARF,
-        "ironvein": RaceType.IRONVEIN_DWARF,
-    },
-    "halfling": {
-        "swiftshadow": RaceType.SWIFTSHADOW_HALFLING,
-        "hearthstone": RaceType.HEARTHSTONE_HALFLING,
-    },
-    "gnome": {
-        "sylvan": RaceType.SYLVAN_GNOME,
-        "dusk": RaceType.DUSK_GNOME,
-        "hearth": RaceType.HEARTH_GNOME,
-    },
-    "nymph": RaceType.NYMPH,
-    "orc": RaceType.ORC,
-    "pyreling": {
-        "emberkin": RaceType.EMBERKIN_PYRELING,
-        "arcanist": RaceType.ARCANIST_PYRELING,
-        "warbrand": RaceType.WARBRAND_PYRELING,
-    },
-}
-
 _CLASS_INFO_DICT = {
     "artisan": "In the dance of creation and the craftsmanship of worlds, the Aristan weaves innovation and artistry into every tangible form.",
     "cleric": "Carrying a divine's mandate, the Cleric strides with purpose, a bastion of sacred power where faith's incandescent flame burns fiercely within.",
-    "druid": "Bound to the rhythms of nature's deepest chants, the Druid communes with the ancient spirits of the wild, embracing the ebb and flow of the living land.",
-    "fighter": "Forged in the crucible of combat, the Fighter stands undaunted, wielding martial prowess and unyielding bravery in the face of adversity.",
-    "monk": "A disciple of inner harmony and disciplined focus, the Monk seeks enlightenment upon a path paved by contemplative strength and kinetic grace.",
+    "druid": "Keepers of the world and masters of nature, the Druid commands Arcellia's wrath, capable of a diverse range of environmental abilities.",
+    "hunter": "Deadly marksmen and skilled survivalists, the Hunter possesses a primal connection with beasts of all types, capable of training them as loyal companions.",
+    "mage": "A scholar of the esoteric and seeker of hidden truths, the Mage commands the fabric of magic through meticulous study and unwavering discipline.",
     "paladin": "Sworn to uphold the confluence of valor and virtue, the Paladin wields both sword and piety with an unwavering resolve.",
-    "ranger": "A wayfarer of the untrodden landscapes, the Ranger is the master of the wilds, their arrows as true as their intimate kinship with nature's secrets.",
     "rogue": "In the embrace of shadows and the subtlety of silence, the Rogue navigates a world unseen, where guild and finesse are the keys to survival and success.",
-    "sorcerer": "Born of innate magical essence, the Sorcerer channels the raw energies of the arcane, their very blood a conduit for reality-altering forces.",
+    "shaman": "The spiritual leaders of tribes and clans. The Shaman use their connection to the spirit world to unleash fury upon their foes.",
     "warlock": "Bound by pact to an eldritch entity, the Warlock wields otherwordly might, drawing upon forbidden secrets to manifest their dread patrons' will.",
     "warrior": "The quintessential embodiment of battle's ire, the Warrior matches their unrelenting ferocity with a robust tenacity for the clamor and clash of war.",
-    "wizard": "A scholar of the esoteric and seeker of hidden truths, the Wizard commands the fabric of magic through meticulous study and unwavering discipline.",
-}
-
-_CLASS_MAPPING = {
-    "artisan": ClassType.ARTISAN,
-    "cleric": ClassType.CLERIC,
-    "druid": ClassType.DRUID,
-    "fighter": ClassType.FIGHTER,
-    "monk": ClassType.MONK,
-    "paladin": ClassType.PALADIN,
-    "ranger": ClassType.RANGER,
-    "rogue": ClassType.ROGUE,
-    "sorcerer": ClassType.SORCERER,
-    "warlock": ClassType.WARLOCK,
-    "warrior": ClassType.WARRIOR,
-    "wizard": ClassType.WIZARD,
 }
 
 _BACKGROUND_INFO_DICT = {
@@ -120,32 +64,25 @@ _BACKGROUND_INFO_DICT = {
     "urchin": "After surviving a poor and bleak childhood, you know how to make the most out of very little. Using your street smarts bolsters your spirit for the journey ahead.",
 }
 
-_BACKGROUND_MAPPING = {
-    "acolyte": BackgroundType.ACOLYTE,
-    "charlatan": BackgroundType.CHARLATAN,
-    "criminal": BackgroundType.CRIMINAL,
-    "entertainer": BackgroundType.ENTERTAINER,
-    "folkhero": BackgroundType.FOLK_HERO,
-    "hermit": BackgroundType.HERMIT,
-    "merchant": BackgroundType.MERCHANT,
-    "noble": BackgroundType.NOBLE,
-    "outlander": BackgroundType.OUTLANDER,
-    "sage": BackgroundType.SAGE,
-    "sailor": BackgroundType.SAILOR,
-    "soldier": BackgroundType.SOLDIER,
-    "urchin": BackgroundType.URCHIN,
-}
-
 
 def chargen_welcome(caller):
     def _set_gender(caller, choice):
         choice = choice.strip().lower()[0]
         if choice == "m":
-            caller.gender = GenderType.MALE
+            caller.character.add(
+                "gender",
+                "Gender",
+                trait_type="trait",
+                value=genders.CharacterGender.MALE,
+            )
         elif choice == "f":
-            caller.gender = GenderType.FEMALE
+            caller.character.add(
+                "gender", "Gender", value=genders.CharacterGender.FEMALE
+            )
         elif choice == "a":
-            caller.gender = GenderType.AMBIGUOUS
+            caller.character.add(
+                "gender", "Gender", value=genders.CharacterGender.ANDROGYNOUS
+            )
         else:
             return "chargen_welcome"
 
@@ -163,9 +100,9 @@ def chargen_welcome(caller):
 
     options = (
         {"key": "", "goto": "chargen_welcome"},
-        {"key": ("male", "m"), "desc": "Become male", "goto": _set_gender},
-        {"key": ("female", "f"), "desc": "Become female", "goto": _set_gender},
-        {"key": ("ambiguous", "a"), "desc": "Become ambiguous", "goto": _set_gender},
+        {"key": ("male", "m"), "goto": _set_gender},
+        {"key": ("female", "f"), "goto": _set_gender},
+        {"key": ("androgynous", "a"), "goto": _set_gender},
         {"key": "_default", "goto": "chargen_welcome"},
     )
 
@@ -181,15 +118,18 @@ def chargen_race(caller, raw_string, **kwargs):
             caller.msg("An error occurred. Contact an administrator.")
             return "chargen_welcome"
 
-        race_type = _RACE_SUBRACE_MAPPING.get(race)
-        if isinstance(race_type, dict):
-            race_type = race_type.get(subrace, None)
+        if subrace:
+            race_type = f"{subrace} {race}"
+        else:
+            race_type = f"{race}"
+
+        race_type = races.race_registry.get(race_type)
 
         if not race_type:
             caller.msg("An error occurred. Contact an administrator.")
             return "chargen_welcome"
 
-        caller.race = race_type
+        caller.character.add("race", "Race", trait_type="trait", value=race_type)
         return "chargen_class"
 
     selected_race = kwargs.get("selected_race", None)
@@ -261,12 +201,15 @@ def chargen_class(caller, raw_string, **kwargs):
     def _set_class(caller, **kwargs):
         selected_class = kwargs.get("selected_class", None)
 
-        if not selected_class:
+        class_type = classes.class_registry.get(selected_class)
+
+        if not class_type:
             caller.msg("An error occurred. Contact an administrator.")
             return "chargen_welcome"
 
-        class_type = _CLASS_MAPPING.get(selected_class, None)
-        caller.class_ = class_type
+        caller.character.add(
+            "character_class", "Class", trait_type="trait", value=class_type
+        )
         return "chargen_background"
 
     selected_class = kwargs.get("selected_class", None)
@@ -309,13 +252,15 @@ def chargen_class(caller, raw_string, **kwargs):
 def chargen_background(caller, raw_string, **kwargs):
     def _set_background(caller, **kwargs):
         background = kwargs.get("selected_background", None)
+        background = backgrounds.background_registry.get(background)
 
         if not background:
             caller.msg("An error occurred. Contact an administrator.")
             return "chargen_welcome"
 
-        background = _BACKGROUND_MAPPING.get(background, None)
-        caller.background = background
+        caller.character.add(
+            "background", "Background", trait_type="trait", value=background
+        )
         return "chargen_appearance"
 
     selected_background = kwargs.get("selected_background", None)
@@ -385,7 +330,7 @@ def chargen_appearance(caller, raw_string, **kwargs):
             )
         )
         options = (
-            {"key": "y", "desc": "Confirm appearance", "goto": "chargen_attributes"},
+            {"key": "y", "desc": "Confirm appearance", "goto": "chargen_finalize"},
             {
                 "key": "n",
                 "desc": "Return",
@@ -394,209 +339,6 @@ def chargen_appearance(caller, raw_string, **kwargs):
         )
 
     return text, options
-
-
-def chargen_attributes(caller, raw_string, **kwargs):
-    def _set_attributes(caller):
-        if caller.class_ == ClassType.ARTISAN:
-            caller.strength = 10
-            caller.dexterity = 10
-            caller.constitution = 10
-            caller.intelligence = 14
-            caller.wisdom = 14
-            caller.charisma = 16
-        elif caller.class_ == ClassType.CLERIC:
-            caller.strength = 10
-            caller.dexterity = 10
-            caller.constitution = 10
-            caller.intelligence = 14
-            caller.wisdom = 16
-            caller.charisma = 14
-        elif caller.class_ == ClassType.DRUID:
-            caller.strength = 10
-            caller.dexterity = 10
-            caller.constitution = 10
-            caller.intelligence = 14
-            caller.wisdom = 16
-            caller.charisma = 14
-        elif caller.class_ == ClassType.FIGHTER:
-            caller.strength = 16
-            caller.dexterity = 14
-            caller.constitution = 14
-            caller.intelligence = 10
-            caller.wisdom = 10
-            caller.charisma = 10
-        elif caller.class_ == ClassType.MONK:
-            caller.strength = 10
-            caller.dexterity = 16
-            caller.constitution = 14
-            caller.intelligence = 10
-            caller.wisdom = 14
-            caller.charisma = 10
-        elif caller.class_ == ClassType.PALADIN:
-            caller.strength = 16
-            caller.dexterity = 10
-            caller.constitution = 14
-            caller.intelligence = 10
-            caller.wisdom = 10
-            caller.charisma = 14
-        elif caller.class_ == ClassType.RANGER:
-            caller.strength = 14
-            caller.dexterity = 16
-            caller.constitution = 14
-            caller.intelligence = 10
-            caller.wisdom = 10
-            caller.charisma = 10
-        elif caller.class_ == ClassType.ROGUE:
-            caller.strength = 10
-            caller.dexterity = 16
-            caller.constitution = 12
-            caller.intelligence = 10
-            caller.wisdom = 10
-            caller.charisma = 16
-        elif caller.class_ == ClassType.SORCERER:
-            caller.strength = 10
-            caller.dexterity = 10
-            caller.constitution = 10
-            caller.intelligence = 14
-            caller.wisdom = 14
-            caller.charisma = 16
-        elif caller.class_ == ClassType.WARLOCK:
-            caller.strength = 10
-            caller.dexterity = 10
-            caller.constitution = 10
-            caller.intelligence = 14
-            caller.wisdom = 14
-            caller.charisma = 16
-        elif caller.class_ == ClassType.WARRIOR:
-            caller.strength = 16
-            caller.dexterity = 12
-            caller.constitution = 16
-            caller.intelligence = 10
-            caller.wisdom = 10
-            caller.charisma = 10
-        elif caller.class_ == ClassType.WIZARD:
-            caller.strength = 10
-            caller.dexterity = 10
-            caller.constitution = 10
-            caller.intelligence = 16
-            caller.wisdom = 16
-            caller.charisma = 12
-
-        return "chargen_finalize"
-
-    text = dedent(
-        """
-        As the final threads of your physical form intertwine, a new phase of creation yields, one that defines not the body, but the essence of your capabilities. It's a moment of introspection, a silent communion between you and the energies which animate the soul.
-
-        The dreamscape, now more a feeling than a place, aligns with the resonance of your inner voice. It hums with the frequency of unseen strengths, a melody that only you can hear - a harmony that beckons you to claim it as your own.
-        """
-    )
-
-    options = (
-        {"key": "", "goto": "chargen_attributes"},
-        # {
-        #    "key": "simple",
-        #    "desc": "Accept the default attributes for your class.",
-        #    "goto": _set_attributes,
-        # },
-        {
-            "key": "detailed",
-            "desc": "Choose your own attributes.",
-            "goto": "chargen_attributes_detailed",
-        },
-        {"key": "_default", "goto": "chargen_attributes"},
-    )
-
-    return text, options
-
-
-def chargen_attributes_detailed(caller, raw_string, **kwargs):
-    ATTRIBUTES = [
-        "strength",
-        "dexterity",
-        "constitution",
-        "intelligence",
-        "wisdom",
-        "charisma",
-    ]
-    TOTAL_POINTS = 75
-    MIN_ATTRIBUTE_VALUE = 8
-    MAX_ATTRIBUTE_VALUE = 16
-
-    def calculate_points_used(caller):
-        return sum(getattr(caller, attr, 0) for attr in ATTRIBUTES)
-
-    def _set_attribute(caller, allocation, **kwargs):
-        attribute, value = allocation.split(" ")
-        value = int(value.strip())
-
-        if attribute not in ATTRIBUTES:
-            caller.msg("An error occurred. Contact an administrator.")
-            return "chargen_attributes_detailed"
-
-        if not (MIN_ATTRIBUTE_VALUE <= value <= MAX_ATTRIBUTE_VALUE):
-            caller.msg(
-                f"Attribute values must be between {MIN_ATTRIBUTE_VALUE} and {MAX_ATTRIBUTE_VALUE}."
-            )
-            return "chargen_attributes_detailed"
-
-        current_value = getattr(caller, attribute, 0)
-        points_used = calculate_points_used(caller)
-        additional_points_needed = value - current_value
-
-        if points_used + additional_points_needed > TOTAL_POINTS:
-            caller.msg("You don't have enough points remaining.")
-            return "chargen_attributes_detailed"
-
-        setattr(caller, attribute, value)
-        return "chargen_attributes_detailed"
-
-    points_used = calculate_points_used(caller)
-    points_remaining = TOTAL_POINTS - points_used
-
-    help = dedent(
-        """
-        Strength: Enhances physical prowess in melee combat, improves carrying capacity, and augments certain physical actions.
-
-        Dexterity: Boosts precision and agility, influences armor effectiveness, and is crucial for avoiding certain hazards.
-
-        Constitution: Vital for overall health, resisting certain ailments, and enduring the effects of debilitating conditions. 
-
-        Intelligence: Governs the depth of knowledge and arcane mastery, affecting the capability to unravel mysteries, recall lesser-known lore, and is the key for magic wielded by more scholarly adventurers.
-
-        Wisdom: Reflects awareness and intuition, key to perceiving the world and its creatures, influencing survival and is primary for divine or nature-based adventurers.
-
-        Charisma: Represents personal magnetism and strength of character, crucial for those who rely on their personality to succeed, and impacts social interactions.
-        """
-    )
-    text = dedent(
-        """
-        Your attributes: STR: {strength}, DEX: {dexterity}, CON: {constitution}, INT: {intelligence}, WIS: {wisdom}, CHA: {charisma}
-
-        Points Remaining: {points_remaining}
-
-        Use the following command to set your attributes:
-                 <attribute> <value>
-        Example: strength 10. Value must be between 8 and 16.
-        """
-    ).format(
-        strength=caller.strength,
-        dexterity=caller.dexterity,
-        constitution=caller.constitution,
-        intelligence=caller.intelligence,
-        wisdom=caller.wisdom,
-        charisma=caller.charisma,
-        points_remaining=points_remaining,
-    )
-
-    options = (
-        {"key": "", "goto": "chargen_abilities_detailed"},
-        {"key": "y", "desc": "Confirm attributes", "goto": "chargen_finalize"},
-        {"key": "_default", "goto": _set_attribute},
-    )
-
-    return (text, help), options
 
 
 def chargen_finalize(caller, raw_string):

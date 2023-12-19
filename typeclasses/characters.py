@@ -12,16 +12,16 @@ Contributions:
 """
 import os
 import re
-from enum import Enum
 
 from django.conf import settings
-from handlers import clothing, cooldowns
-from parsing.text import grammarize, wrap
-from server.conf import logger
-
 from evennia.objects.models import ObjectDB
 from evennia.objects.objects import DefaultCharacter
 from evennia.utils.utils import lazy_property, make_iter, to_str, variable_from_module
+from handlers import clothing, cooldowns, traits
+from parsing.text import grammarize, wrap
+from server.conf import logger
+from world.characters.genders import CharacterGender
+
 from typeclasses import objects
 
 _AT_SEARCH_RESULT = variable_from_module(*settings.SEARCH_AT_RESULT.rsplit(".", 1))
@@ -29,70 +29,9 @@ _GENDER_PRONOUN_MAP = {
     "male": {"s": "he", "o": "him", "p": "his", "a": "his"},
     "female": {"s": "she", "o": "her", "p": "her", "a": "hers"},
     "neutral": {"s": "it", "o": "it", "p": "its", "a": "its"},
-    "ambiguous": {"s": "they", "o": "them", "p": "their", "a": "theirs"},
+    "androgynous": {"s": "they", "o": "them", "p": "their", "a": "theirs"},
 }
 _RE_GENDER_PRONOUN = re.compile(r"(?<!\|)\|(?!\|)[sSoOpPaA]")
-
-
-class GenderType(Enum):
-    MALE = "male"
-    FEMALE = "female"
-    AMBIGUOUS = "ambiguous"
-
-
-class RaceType(Enum):
-    HUMAN = "human"
-    HIGH_ELF = "high elf"
-    WOOD_ELF = "wood elf"
-    HIGH_HALF_ELF = "high half-elf"
-    WOOD_HALF_ELF = "wood half-elf"
-    EMBERHEART_DWARF = "emberheart dwarf"
-    STONEGUARD_DWARF = "stoneguard dwarf"
-    IRONVEIN_DWARF = "ironvein dwarf"
-    SWIFTSHADOW_HALFLING = "swiftshadow halfling"
-    HEARTHSTONE_HALFLING = "hearthstone halfling"
-    SYLVAN_GNOME = "sylvan gnome"
-    DUSK_GNOME = "dusk gnome"
-    HEARTH_GNOME = "hearth gnome"
-    NYMPH = "nymph"
-    ORC = "orc"
-    EMBERKIN_PYRELING = "emberkin pyreling"
-    ARCANIST_PYRELING = "arcanist pyreling"
-    WARBRAND_PYRELING = "warbrand pyreling"
-
-
-class ClassType(Enum):
-    ADVENTURER = "adventurer"  # Default
-    ARTISAN = "artisan"
-    CLERIC = "cleric"
-    DRUID = "druid"
-    FIGHTER = "fighter"
-    MONK = "monk"
-    PALADIN = "paladin"
-    RANGER = "ranger"
-    ROGUE = "rogue"
-    SORCERER = "sorcerer"
-    WARLOCK = "warlock"
-    WARRIOR = "warrior"
-    WIZARD = "wizard"
-
-
-class BackgroundType(Enum):
-    ADVENTURER = "adventurer"  # Default
-    ACOLYTE = "acolyte"
-    CHARLATAN = "charlatan"
-    CRIMINAL = "criminal"
-    ENTERTAINER = "entertainer"
-    FOLK_HERO = "folk hero"
-    GUILD_ARTISAN = "guild artisan"
-    HERMIT = "hermit"
-    MERCHANT = "merchant"
-    NOBLE = "noble"
-    OUTLANDER = "outlander"
-    SAGE = "sage"
-    SAILOR = "sailor"
-    SOLDIER = "soldier"
-    URCHIN = "urchin"
 
 
 class Character(objects.Object, DefaultCharacter):
@@ -146,6 +85,10 @@ You see {a} {gender} {race},
     # Handlers #
     ############
     @lazy_property
+    def character(self):
+        return traits.TraitHandler(self, db_attribute_key="character")
+
+    @lazy_property
     def clothes(self):
         return clothing.ClothingHandler(self)
 
@@ -153,96 +96,56 @@ You see {a} {gender} {race},
     def cooldowns(self):
         return cooldowns.CooldownHandler(self)
 
+    @lazy_property
+    def stats(self):
+        return traits.TraitHandler(self, db_attribute_key="stats")
+
     ##############
     # Properties #
     ##############
     @property
     def display_name(self):
-        return self.attributes.get("display_name", self.name)
-
-    @display_name.setter
-    def display_name(self, value: str):
-        self.db.display_name = value
-
-    @property
-    def class_(self):
-        return self.attributes.get("class", ClassType.ADVENTURER).value
-
-    @class_.setter
-    def class_(self, value):
-        self.db.class_ = value
+        return self.character.get("display_name", self.name)
 
     @property
     def gender(self):
-        return self.attributes.get("gender", GenderType.AMBIGUOUS).value
+        return self.character.get("gender", CharacterGender.ANDROGYNOUS)
 
-    @gender.setter
-    def gender(self, value):
-        self.db.gender = value
+    @property
+    def character_class(self):
+        return self.character.get("character_class", None)
 
     @property
     def race(self):
-        return self.attributes.get("race", RaceType.HUMAN).value
-
-    @race.setter
-    def race(self, value):
-        self.db.race = value
+        return self.character.get("race", None)
 
     @property
     def background(self):
-        return self.attributes.get("background", BackgroundType.ADVENTURER).value
-
-    @background.setter
-    def background(self, value):
-        self.db.background = value
+        return self.character.get("background", None)
 
     @property
     def strength(self):
-        return self.attributes.get("strength", 8)
-
-    @strength.setter
-    def strength(self, value):
-        self.db.strength = value
+        return self.stats.get("strength", 10)
 
     @property
     def dexterity(self):
-        return self.attributes.get("dexterity", 8)
-
-    @dexterity.setter
-    def dexterity(self, value):
-        self.db.dexterity = value
+        return self.stats.get("dexterity", 10)
 
     @property
     def constitution(self):
-        return self.attributes.get("constitution", 8)
-
-    @constitution.setter
-    def constitution(self, value):
-        self.db.constitution = value
+        return self.stats.get("constitution", 10)
 
     @property
     def intelligence(self):
-        return self.attributes.get("intelligence", 8)
-
-    @intelligence.setter
-    def intelligence(self, value):
-        self.db.intelligence = value
+        return self.stats.get("intelligence", 10)
 
     @property
     def wisdom(self):
-        return self.attributes.get("wisdom", 8)
-
-    @wisdom.setter
-    def wisdom(self, value):
-        self.db.wisdom = value
+        return self.stats.get("wisdom", 10)
 
     @property
     def charisma(self):
-        return self.attributes.get("charisma", 8)
-
-    @charisma.setter
-    def charisma(self, value):
-        self.db.charisma = value
+        return self.stats.get("charisma", 10)
 
     ###############
     # Appearances #
