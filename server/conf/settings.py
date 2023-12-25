@@ -28,8 +28,6 @@ import os
 # Use the defaults from Evennia unless explicitly overridden
 from evennia.settings_default import *  # noqa: F403
 
-from server.conf import secret_settings
-
 ######################################################################
 # Evennia base server config
 ######################################################################
@@ -42,7 +40,7 @@ GAME_SLOGAN = None
 
 # This needs to be set to your website address for django or you'll receive a
 # CSRF error when trying to log on to the web portal
-CSRF_TRUSTED_ORIGINS = secret_settings.CSRF_TRUSTED_ORIGINS or ["https://arcellia.com"]
+# CSRF_TRUSTED_ORIGINS = secret_settings.CSRF_TRUSTED_ORIGINS or ["https://arcellia.com"]
 
 # Interface addresses to listen to. If 0.0.0.0, listen to all. Use :: for IPv6.
 WEBSOCKET_CLIENT_INTERFACE = "127.0.0.1"
@@ -51,13 +49,13 @@ WEBSOCKET_CLIENT_INTERFACE = "127.0.0.1"
 # If given it must be on the form "ws[s]://hostname[:port]". If left at None,
 # the client will itself figure out this url based on the server's hostname.
 # e.g. ws://external.example.com or wss://external.example.com:443
-WEBSOCKET_CLIENT_URL = (
-    secret_settings.WEBSOCKET_CLIENT_URL or "wss://arcellia.com:4002/"
-)
+# WEBSOCKET_CLIENT_URL = (
+#    secret_settings.WEBSOCKET_CLIENT_URL or "wss://arcellia.com:4002/"
+# )
 # This is a security setting protecting against host poisoning
 # attacks.  It defaults to allowing all. In production, make
 # sure to change this to your actual host addresses/IPs.
-ALLOWED_HOSTS = secret_settings.ALLOWED_HOSTS or [".arcellia.com"]
+# ALLOWED_HOSTS = secret_settings.ALLOWED_HOSTS or [".arcellia.com"]
 
 # uncomment if you want to lock the server down for maintenance.
 # LOCKDOWN_MODE = True
