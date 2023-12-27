@@ -13,11 +13,6 @@ class Adventurer(CharacterClass):
 
 
 @class_registry.register
-class Artisan(CharacterClass):
-    name = "artisan"
-
-
-@class_registry.register
 class Cleric(CharacterClass):
     name = "cleric"
 
@@ -35,6 +30,11 @@ class Hunter(CharacterClass):
 @class_registry.register
 class Mage(CharacterClass):
     name = "mage"
+
+
+@class_registry.register
+class Merchant(CharacterClass):
+    name = "merchant"
 
 
 @class_registry.register

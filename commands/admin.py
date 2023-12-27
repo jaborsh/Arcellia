@@ -6,10 +6,10 @@ from evennia.commands.default import building, muxcommand
 from evennia.contrib.grid.xyzgrid.xyzroom import XYZRoom
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import class_from_module
-from evennia.utils.evmenu import EvMenu
 from evennia.utils.utils import inherits_from
 from parsing.text import wrap
 from server.conf.settings import SERVERNAME
+from world.amenu import AMenu
 
 from commands.command import Command
 
@@ -32,7 +32,7 @@ class CmdTest(Command):
     key = "test"
 
     def func(self):
-        EvMenu(
+        AMenu(
             self.caller,
             "world.chargen.menu",
             startnode="chargen_welcome",

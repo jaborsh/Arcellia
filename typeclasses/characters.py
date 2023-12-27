@@ -20,6 +20,7 @@ from evennia.utils.utils import lazy_property, make_iter, to_str, variable_from_
 from handlers import clothing, cooldowns, traits
 from parsing.text import grammarize, wrap
 from server.conf import logger
+from world.characters import appearances
 from world.characters.genders import CharacterGender
 
 from typeclasses import objects
@@ -85,6 +86,10 @@ You see {a} {gender} {race},
     # Handlers #
     ############
     @lazy_property
+    def appearance(self):
+        return traits.TraitHandler(self, db_attribute_key="appearance")
+
+    @lazy_property
     def character(self):
         return traits.TraitHandler(self, db_attribute_key="character")
 
@@ -100,9 +105,56 @@ You see {a} {gender} {race},
     def stats(self):
         return traits.TraitHandler(self, db_attribute_key="stats")
 
-    ##############
-    # Properties #
-    ##############
+    #########################
+    # Appearance Properties #
+    #########################
+    @property
+    def body_type(self):
+        return self.appearance.get("body_type", appearances.CharacterBodyType.AVERAGE)
+
+    @property
+    def height(self):
+        return self.appearance.get("height", appearances.CharacterHeight.AVERAGE)
+
+    @property
+    def eye_color(self):
+        return self.appearance.get("eye_color", appearances.CharacterEyeColor.BLUE)
+
+    @property
+    def eye_type(self):
+        return self.appearance.get("eye_type", appearances.CharacterEyeType.ROUND)
+
+    @property
+    def hair_color(self):
+        return self.appearance.get("hair_color", appearances.CharacterHairColor.BLACK)
+
+    @property
+    def skin_type(self):
+        return self.appearance.get(
+            "skin_type", appearances.CharacterSkinType.UNBLEMISHED
+        )
+
+    @property
+    def nose_type(self):
+        return self.appearance.get("nose_type", appearances.CharacterNoseType.AQUILINE)
+
+    @property
+    def mouth_type(self):
+        return self.appearance.get("mouth_type", appearances.CharacterMouthType.FULL)
+
+    @property
+    def jaw_type(self):
+        return self.appearance.get("jaw_type", appearances.CharacterJawType.SQUARE)
+
+    @property
+    def eyebrow_type(self):
+        return self.appearance.get(
+            "eyebrow_type", appearances.CharacterEyebrowType.STRAIGHT
+        )
+
+    ########################
+    # Character Properties #
+    ########################
     @property
     def display_name(self):
         return self.character.get("display_name", self.name)
@@ -123,6 +175,9 @@ You see {a} {gender} {race},
     def background(self):
         return self.character.get("background", None)
 
+    ###################
+    # Stat Properties #
+    ###################
     @property
     def strength(self):
         return self.stats.get("strength", 10)
@@ -189,7 +244,7 @@ You see {a} {gender} {race},
 
         """  # noqa: E501
         typ = regex_match.group()[1]  # "s", "O" etc
-        gender = self.attributes.get("gender", default=GenderType.AMBIGUOUS).value
+        gender = self.attributes.get("gender", default=CharacterGender.AMBIGUOUS).value
         gender = gender if gender in ("male", "female", "neutral") else "ambiguous"
         pronoun = _GENDER_PRONOUN_MAP[gender][typ.lower()]
         return pronoun.capitalize() if typ.isupper() else pronoun
