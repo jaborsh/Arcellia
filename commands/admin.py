@@ -1,15 +1,17 @@
 import re
 
 from django.conf import settings
-from parsing.text import wrap
-from server.conf.settings import SERVERNAME
-
-from commands.command import Command
-from evennia.contrib.grid.xyzgrid import commands as xyzcommands
+from evennia import InterruptCommand
+from evennia.commands.default import building, muxcommand
+from evennia.contrib.grid.xyzgrid.xyzroom import XYZRoom
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import class_from_module
 from evennia.utils.evmenu import EvMenu
 from evennia.utils.utils import inherits_from
+from parsing.text import wrap
+from server.conf.settings import SERVERNAME
+
+from commands.command import Command
 
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 
@@ -253,7 +255,7 @@ class CmdHome(COMMAND_DEFAULT_CLASS):
             caller.move_to(home, move_type="teleport")
 
 
-class CmdTeleport(xyzcommands.CmdXYZTeleport):
+class CmdTeleport(building.CmdTeleport):
     """
     Syntax: tel/switch [<object> to||=] <target location>
             tel/switch [<object> to||=] (X,Y[,Z])
@@ -286,6 +288,55 @@ class CmdTeleport(xyzcommands.CmdXYZTeleport):
 
     key = "teleport"
     aliases = ["goto", "tel"]
+
+    def _search_by_xyz(self, inp):
+        inp = inp.strip("()")
+        X, Y, *Z = inp.split(",", 2)
+        if Z:
+            # Z was specified
+            Z = Z[0]
+        else:
+            # use current location's Z, if it exists
+            try:
+                xyz = self.caller.location.xyz
+            except AttributeError:
+                self.caller.msg(
+                    "Z-coordinate is also required since you are not currently "
+                    "in a room with a Z coordinate of its own."
+                )
+                raise InterruptCommand
+            else:
+                Z = xyz[2]
+        # search by coordinate
+        X, Y, Z = str(X).strip(), str(Y).strip(), str(Z).strip()
+        try:
+            self.destination = XYZRoom.objects.get_xyz(xyz=(X, Y, Z))
+        except XYZRoom.DoesNotExist:
+            self.caller.msg(f"Found no target XYZRoom at ({X},{Y},{Z}).")
+            raise InterruptCommand
+
+    def parse(self):
+        muxcommand.MuxCommand.parse(self)
+        self.obj_to_teleport = self.caller
+        self.destination = None
+
+        if self.rhs:
+            self.obj_to_teleport = self.caller.search(self.lhs, global_search=True)
+            if not self.obj_to_teleport:
+                self.caller.msg("Did not find object to teleport.")
+                raise InterruptCommand
+            if all(char in self.rhs for char in ("(", ")", ",")):
+                # search by (X,Y) or (X,Y,Z)
+                self._search_by_xyz(self.rhs)
+            else:
+                # fallback to regular search by name/alias
+                self.destination = self.caller.search(self.rhs, global_search=True)
+
+        elif self.lhs:
+            if all(char in self.lhs for char in ("(", ")", ",")):
+                self._search_by_xyz(self.lhs)
+            else:
+                self.destination = self.caller.search(self.lhs, global_search=True)
 
 
 class CmdTransfer(COMMAND_DEFAULT_CLASS):

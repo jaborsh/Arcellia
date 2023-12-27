@@ -14,10 +14,10 @@ does what you expect it to.
 
 """
 
-from evennia.contrib.grid.xyzgrid.launchcmd import (
-    _option_init as xyzgrid_init,
-)
-
 
 def at_initial_setup():
+    from evennia.contrib.grid.xyzgrid.launchcmd import (
+        _option_init as xyzgrid_init,
+    )
+
     xyzgrid_init()
