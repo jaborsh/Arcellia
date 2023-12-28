@@ -775,6 +775,190 @@ def appearance_eye_color(caller, raw_string, **kwargs):
     return text, options
 
 
+def appearance_hair_color(caller, raw_string, **kwargs):
+    def _set_hair_color(caller, **kwargs):
+        hair_color = kwargs.get("hair_color", None)
+        if hair_color == "auburn":
+            caller.appearance.add(
+                "hair_color",
+                "Hair Color",
+                trait_type="trait",
+                value=appearances.CharacterHairColor.AUBURN,
+            )
+        elif hair_color == "black":
+            caller.appearance.add(
+                "hair_color",
+                "Hair Color",
+                trait_type="trait",
+                value=appearances.CharacterHairColor.BLACK,
+            )
+        elif hair_color == "blonde":
+            caller.appearance.add(
+                "hair_color",
+                "Hair Color",
+                trait_type="trait",
+                value=appearances.CharacterHairColor.BLONDE,
+            )
+        elif hair_color == "brown":
+            caller.appearance.add(
+                "hair_color",
+                "Hair Color",
+                trait_type="trait",
+                value=appearances.CharacterHairColor.BROWN,
+            )
+        elif hair_color == "grey":
+            caller.appearance.add(
+                "hair_color",
+                "Hair Color",
+                trait_type="trait",
+                value=appearances.CharacterHairColor.GREY,
+            )
+        elif hair_color == "red":
+            caller.appearance.add(
+                "hair_color",
+                "Hair Color",
+                trait_type="trait",
+                value=appearances.CharacterHairColor.RED,
+            )
+        elif hair_color == "white":
+            caller.appearance.add(
+                "hair_color",
+                "Hair Color",
+                trait_type="trait",
+                value=appearances.CharacterHairColor.WHITE,
+            )
+        elif hair_color == "blue":
+            caller.appearance.add(
+                "hair_color",
+                "Hair Color",
+                trait_type="trait",
+                value=appearances.CharacterHairColor.BLUE,
+            )
+        elif hair_color == "green":
+            caller.appearance.add(
+                "hair_color",
+                "Hair Color",
+                trait_type="trait",
+                value=appearances.CharacterHairColor.GREEN,
+            )
+        elif hair_color == "pink":
+            caller.appearance.add(
+                "hair_color",
+                "Hair Color",
+                trait_type="trait",
+                value=appearances.CharacterHairColor.PINK,
+            )
+        elif hair_color == "purple":
+            caller.appearance.add(
+                "hair_color",
+                "Hair Color",
+                trait_type="trait",
+                value=appearances.CharacterHairColor.PURPLE,
+            )
+        elif hair_color == "silver":
+            caller.appearance.add(
+                "hair_color",
+                "Hair Color",
+                trait_type="trait",
+                value=appearances.CharacterHairColor.SILVER,
+            )
+        elif hair_color == "teal":
+            caller.appearance.add(
+                "hair_color",
+                "Hair Color",
+                trait_type="trait",
+                value=appearances.CharacterHairColor.TEAL,
+            )
+        elif hair_color == "yellow":
+            caller.appearance.add(
+                "hair_color",
+                "Hair Color",
+                trait_type="trait",
+                value=appearances.CharacterHairColor.YELLOW,
+            )
+        else:
+            return "chargen_appearance"
+
+        return "chargen_appearance"
+
+    text = "|CSelect your Hair Color|n:\n"
+    options = (
+        {"key": "", "goto": "appearance_hair_color"},
+        {
+            "key": ("1", "auburn", "a"),
+            "desc": "Auburn",
+            "goto": (_set_hair_color, {"hair_color": "auburn"}),
+        },
+        {
+            "key": ("2", "black", "bl"),
+            "desc": "Black",
+            "goto": (_set_hair_color, {"hair_color": "black"}),
+        },
+        {
+            "key": ("3", "blonde", "b"),
+            "desc": "Blonde",
+            "goto": (_set_hair_color, {"hair_color": "blonde"}),
+        },
+        {
+            "key": ("4", "brown", "br"),
+            "desc": "Brown",
+            "goto": (_set_hair_color, {"hair_color": "brown"}),
+        },
+        {
+            "key": ("5", "grey", "gr"),
+            "desc": "Grey",
+            "goto": (_set_hair_color, {"hair_color": "grey"}),
+        },
+        {
+            "key": ("6", "red", "r"),
+            "desc": "Red",
+            "goto": (_set_hair_color, {"hair_color": "red"}),
+        },
+        {
+            "key": ("7", "white", "w"),
+            "desc": "White",
+            "goto": (_set_hair_color, {"hair_color": "white"}),
+        },
+        {
+            "key": ("8", "blue", "bl"),
+            "desc": "Blue",
+            "goto": (_set_hair_color, {"hair_color": "blue"}),
+        },
+        {
+            "key": ("9", "green", "g"),
+            "desc": "Green",
+            "goto": (_set_hair_color, {"hair_color": "green"}),
+        },
+        {
+            "key": ("10", "pink", "p"),
+            "desc": "Pink",
+            "goto": (_set_hair_color, {"hair_color": "pink"}),
+        },
+        {
+            "key": ("11", "purple", "pu"),
+            "desc": "Purple",
+            "goto": (_set_hair_color, {"hair_color": "purple"}),
+        },
+        {
+            "key": ("12", "silver", "si"),
+            "desc": "Silver",
+            "goto": (_set_hair_color, {"hair_color": "silver"}),
+        },
+        {
+            "key": ("13", "teal", "t"),
+            "desc": "Teal",
+            "goto": (_set_hair_color, {"hair_color": "teal"}),
+        },
+        {
+            "key": ("14", "yellow", "y"),
+            "desc": "Yellow",
+            "goto": (_set_hair_color, {"hair_color": "yellow"}),
+        },
+    )
+
+    return text, options
+
+
 def appearance_skin_type(caller, raw_string, **kwargs):
     def _set_skin_type(caller, **kwargs):
         skin_type = kwargs.get("skin_type", None)
