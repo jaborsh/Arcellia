@@ -134,4 +134,4 @@ class AMenu(EvMenu):
             end = min(start + split, max_end)
             cols_list.append(EvColumn(*table[start:end]))
 
-        return "\n" + str(EvTable(table=cols_list, border="none"))
+        return "\n" + str(EvTable(table=cols_list, border="none")) + "\n"

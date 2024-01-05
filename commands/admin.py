@@ -38,6 +38,7 @@ class CmdTest(Command):
             startnode="chargen_welcome",
             auto_look=True,
             auto_help=True,
+            persistent=True,
         )
 
 
