@@ -115,7 +115,15 @@ class AMenu(EvMenu):
         ncols = 1 if ncols == 0 else ncols
 
         # minimum number of rows in a column
-        min_rows = 10
+        if self._session:
+            screenreader = self._session.protocol_flags.get("SCREENREADER", False)
+        else:
+            screenreader = False
+
+        if screenreader:
+            min_rows = 99
+        else:
+            min_rows = 10
 
         # split the items into columns
         split = max(min_rows, ceil(len(table) / ncols))
