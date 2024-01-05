@@ -1,3 +1,4 @@
+import evennia
 from evennia.server.portal import amp
 from evennia.server.sessionhandler import ServerSessionHandler as BaseSessionHandler
 from evennia.server.signals import (
@@ -49,7 +50,7 @@ class ServerSessionHandler(BaseSessionHandler):
             del self[sessid]
         if sync_portal:
             # inform portal that session should be closed.
-            self.server.amp_protocol.send_AdminServer2Portal(
+            evennia.EVENNIA_SERVER_SERVICE.amp_protocol.send_AdminServer2Portal(
                 session,
                 operation=amp.SDISCONN,
                 reason=reason if reason != "quit" else "",

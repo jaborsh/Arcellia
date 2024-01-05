@@ -1,6 +1,6 @@
 from evennia.utils import dedent
 
-from world.characters import appearances, backgrounds, classes, genders, races
+from world.characters import appearances, backgrounds, genders, races
 
 _RACE_INFO_DICT = {
     "human": "|YHumans|n:\n\nThe most common face to see in Arcellia, humans are known for their tenacity, creativity, and endless capacity for growth.",  # noqa: E501
@@ -35,19 +35,6 @@ _SUBRACE_INFO_DICT = {
     },
 }
 
-_CLASS_INFO_DICT = {
-    "cleric": "|wClerics|n:\n\nCarrying a divine's mandate, the Cleric strides with purpose, a bastion of sacred power where faith's incandescent flame burns fiercely within.",
-    "druid": "|gDruids|n:\n\nKeepers of the world and masters of nature, the Druid commands Arcellia's wrath, capable of a diverse range of environmental abilities.",
-    "hunter": "|GHunters|n:\n\nDeadly marksmen and skilled survivalists, the Hunter possesses a primal connection with beasts of all types, capable of training them as loyal companions.",
-    "mage": "|mMages|n:\n\nA scholar of the esoteric and seeker of hidden truths, the Mage commands the fabric of magic through meticulous study and unwavering discipline.",
-    "merchant": "|yMerchants|n:\n\nIn the dance of creation and the craftsmanship of worlds, the Merchant weaves innovation and artistry into every tangible form.",
-    "paladin": "|cPaladins|n:\n\nSworn to uphold the confluence of valor and virtue, the Paladin wields both sword and piety with an unwavering resolve.",
-    "rogue": "|xRogues|n:\n\nIn the embrace of shadows and the subtlety of silence, the Rogue navigates a world unseen, where guild and finesse are the keys to survival and success.",
-    "shaman": "|CShaman|n:\n\nThe spiritual leaders of tribes and clans. The Shaman use their connection to the spirit world to unleash fury upon their foes.",
-    "warlock": "|MWarlocks|n:\n\nBound by pact to an eldritch entity, the Warlock wields otherwordly might, drawing upon forbidden secrets to manifest their dread patrons' will.",
-    "warrior": "|rWarriors|n:\n\nThe quintessential embodiment of battle's ire, the Warrior matches their unrelenting ferocity with a robust tenacity for the clamor and clash of war.",
-}
-
 _BACKGROUND_INFO_DICT = {
     "acolyte": "|YAcolyte|n:\n\nYou have spent your life in service to a temple, learning sacred rites and providing sacrifices to the god or gods you worship. Serving the gods and discovering their sacred works will guide you to greatness.",
     "charlatan": "|YCharlatan|n:\n\nYou're an expert in manipulation, prone to exaggeration, and more than happy to profit from it. Bending the truth and turning allies against each other will lead to greater success down the road.",
@@ -66,6 +53,45 @@ _BACKGROUND_INFO_DICT = {
 
 
 def chargen_welcome(caller):
+    def _set_screenreader(caller, choice):
+        # saved_options = caller.account.attributes.get(
+        #    "_saved_protocol_flags", default={}
+        # )
+        # saved_options.update({"SCREENREADER": True})
+        # caller.account.attributes.add("_saved_protocol_flags", saved_options)
+        for session in caller.account.sessions.all():
+            session.protocol_flags["SCREENREADER"] = True
+            session.update_flags(screenreader=True)
+        return "chargen_gender"
+
+    text = dedent(
+        """\
+        This place is strange.
+
+        There is no light, no darkness. There is no hot or cold, no up or down, no life or death. This place is the absence of all things, and the sheer and utter silence of that nothingness covers the expanse like a thick blanket. Oblivion is peaceful. Yet amongst the muted gray tranquility, there is a discordant spark of chaos, the faintest heartbeat - a blip of existence.
+
+        It is you.
+
+        The thread of consciousness that could be you is tenuous and thin. Just a dream of a dream, the precursor of being. Many such threads fade back into the gray, but a few rare veins flicker to life. You could sink back into oblivion, where it is easy and quiet, or you could rise.
+
+        Do you use a screenreader?
+        """
+    )
+
+    options = (
+        {"key": "", "goto": "chargen_welcome"},
+        # {"key": ("1", "male", "m"), "desc": "Male", "goto": _set_gender},
+        # {"key": ("2", "female", "f"), "desc": "Female", "goto": _set_gender},
+        # {"key": ("3", "androgynous", "a"), "desc": "Androgynous", "goto": _set_gender},
+        {"key": ("yes", "y"), "desc": "Enable Screenreader", "goto": _set_screenreader},
+        {"key": ("no", "n"), "desc": " Disable Screenreader", "goto": "chargen_gender"},
+        {"key": "_default", "goto": "chargen_welcome"},
+    )
+
+    return text, options
+
+
+def chargen_gender(caller, raw_string, **kwargs):
     def _set_gender(caller, choice):
         choice = choice.strip().lower()[0]
         if choice in ("1", "m"):
@@ -97,8 +123,8 @@ def chargen_welcome(caller):
         In this moment, suspended between the not-yet-shaped and the eternal, a question crystallizes before your burgeoning self.
 
         |CSelect your Gender|n:
-        """  # noqa: E501
-    )
+        """
+    )  # noqa: E501
 
     options = (
         {"key": "", "goto": "chargen_welcome"},
@@ -132,7 +158,7 @@ def chargen_race(caller, raw_string, **kwargs):
             return "chargen_welcome"
 
         caller.character.add("race", "Race", trait_type="trait", value=race_type)
-        return "chargen_class"
+        return "chargen_background"
 
     selected_race = kwargs.get("selected_race", None)
     selected_subrace = kwargs.get("selected_subrace", "")
@@ -208,63 +234,6 @@ def chargen_race(caller, raw_string, **kwargs):
                 "goto": ("chargen_race", {"selected_race": None}),
             },
         )
-
-    return text, options
-
-
-def chargen_class(caller, raw_string, **kwargs):
-    def _set_class(caller, **kwargs):
-        selected_class = kwargs.get("selected_class", None)
-
-        class_type = classes.class_registry.get(selected_class)
-
-        if not class_type:
-            caller.msg("An error occurred. Contact an administrator.")
-            return "chargen_welcome"
-
-        caller.character.add(
-            "character_class", "Class", trait_type="trait", value=class_type
-        )
-        return "chargen_background"
-
-    selected_class = kwargs.get("selected_class", None)
-    if selected_class:
-        text = _CLASS_INFO_DICT[selected_class] + "\n\n|CConfirm your Class|n:"
-        options = (
-            {
-                "key": "y",
-                "desc": f"Confirm {selected_class}",
-                "goto": (_set_class, {"selected_class": selected_class}),
-            },
-            {
-                "key": "n",
-                "desc": "Return",
-                "goto": ("chargen_class", {"selected_class": None}),
-            },
-        )
-    else:
-        text = dedent(
-            """
-            The void breathes - an exhalation of nebulous beauty, and as it does, a dreamscape coalesces from the expanse of endless potential. Colors unhdread of and light unknown to the waking world begin to dance before your senses, sculpting not a figure but the essence of self. From the formless, limbs stretch forth, reaching into the vastness as though testing the fabric of reality. A face emerges, eyes closed as if in peaceful repose, soon to open upon your new existence. Your presence, once only a thought, gains substance.
-
-            Textures of the world write their legacy upon you. The softness of petals bestows a gentleness of touch, while the resilience of ancient bark imparts the steadfastness of soul. The dreamscape's water, pure and shimmering, caresses your form, granting fluidity to each nascent motion. Vibrations resonate through the intangible fibers of your being. Each note shapes a facet of character - courage, wisdom, and curiosity unfold like wings, preluding a flight into uncharted skies.
-
-            The essence of will emerges, a guiding force within your forming hand. Firm yet ethereal, an unseen marker of your intentions, the silent declaration of your unborn strengths. Promsie fills the void - a theater of dreams, of life in potentia - and wraps around you in an embrace. Soft as silk and yet unyielding.
-
-            |CSelect your Class|n:
-            """
-        )
-        options = []
-        i = 0
-        for class_name in _CLASS_INFO_DICT.keys():
-            i += 1
-            options.append(
-                {
-                    "key": (str(i), class_name),
-                    "desc": class_name.capitalize(),
-                    "goto": ("chargen_class", {"selected_class": class_name}),
-                }
-            )
 
     return text, options
 
