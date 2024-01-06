@@ -12,7 +12,6 @@ from textwrap import dedent
 
 from django.conf import settings
 from django.db.models import Q
-
 from evennia import FuncParser, gametime
 from evennia.contrib.grid.xyzgrid import xyzroom
 from evennia.objects.objects import DefaultRoom
@@ -435,18 +434,17 @@ class Room(Object, DefaultRoom):
 
         """
         desc = desc or ""
-        time_of_day = self.get_time_of_day()
+
+        current_time_of_day = self.get_time_of_day()
 
         # regexes for in-desc replacements (gets cached)
         if not hasattr(self, "legacy_timeofday_regex_map"):
             timeslots = deque()
-            for time_of_day in self.times_of_day:
+            for tod in self.times_of_day:
                 timeslots.append(
                     (
-                        time_of_day,
-                        re.compile(
-                            rf"<{time_of_day}>(.*?)</{time_of_day}>", re.IGNORECASE
-                        ),
+                        tod,
+                        re.compile(rf"<{tod}>(.*?)</{tod}>", re.IGNORECASE),
                     )
                 )
 
@@ -460,11 +458,10 @@ class Room(Object, DefaultRoom):
                 timeslots.rotate(-1)
 
         # do the replacement
-        regextuple = self.legacy_timeofday_regex_map[time_of_day]
-        desc = regextuple[0].sub(r"\1", desc)
-        desc = regextuple[1].sub("", desc)
-        desc = regextuple[2].sub("", desc)
-        return regextuple[3].sub("", desc)
+        regextuple = self.legacy_timeofday_regex_map[current_time_of_day]
+        for regex in regextuple:
+            desc = regex.sub(r"\1" if regex == regextuple[0] else "", desc)
+        return desc
 
     # manipulate details
 
@@ -821,4 +818,5 @@ class XYRoom(xyzroom.XYZRoom, Room):
             the room description.
     """
 
-    map_display = False
+    def return_appearance(self, looker, **kwargs):
+        return Room.return_appearance(self, looker, **kwargs)
