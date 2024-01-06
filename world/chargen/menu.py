@@ -11,8 +11,7 @@ _GENDER_INFO_DICT = {
 _RACE_INFO_DICT = {
     "human": "|YHumans|n:\n\nThey are creatures of passion and paradox, canvases of immeasurable depth painted with the vibrant hues of their experiences. In their eyes, one finds the glimmer of stars they have yet to chart, and in the steady rhythm of their hearts, the beat of the ancient drums that have long echoed through the corridors of time. Bound to the wheel of progress, humans traverse the breadth of their realm with insatiable curiosity. They are builders and dreamers, forging empires from the raw materials of nature, etching their histories into the stones of the world. With hands capable of both creation and destruction, they mold their destinies, leaving the echoes of their triumphs and tragedies in the whispers of the wind. Amongst them walk the valiant and the villainous, a spectrum of souls whose choices thread the fine line between heroism and infamy. Love is their greatest strength, and it is love that can be their undoing - such are the stark contrasts that define them. Every smile and tear, a note in the human spirit.",  # noqa: E501
     "elf": "|YElves|n:\n\nTall and regal, draped in the elegance of their rich culture, elves move with a grace that belies their formidable strength. Their features, sharp and delicately crafted, mirror the beauty of their surroundings, where each leaf and bud thrives under their tender care. Eyes that sparkle with the wisdom of ages seem to pierce through the veils of time, beholding the mysteries that lie hidden to the more fleeting gazes of other beings. Bound by ancient traditions and an unwavering respect for the balance of nature, these denizens cultivate a deep-seated magic that breathes in harmony with the world. The arcane whispers of the earth are their companions, a silent dialogue that has stretched unbroken since the dawn of time. In their hands, spells weave seamlessly, and the pulse of the land resonates through their songs and storied craftwork which reflects both the beauty of the natural world and the depth of their reverence for it.",  # noqa: E501
-    "dwarf": "|YDwarves|n:\n\nAs durable and unyielding as their homes of stone, dwarves are some of the finest warriors, miners, and smiths in all of Arcellia. They're known for their confidence and keen intuition, valuing family, ritual, and fine craftsmanship. Many of their ancient kingdoms have been surrendered to goblins and other creatures of the deep.",  # noqa: E501
-    "gnome": "|YGnomes|n:\n\nGnomes are diminutive, inquisitive inventors, their minds ever-ticking gears amidst a whirlwind of arcane intellect. They thrive on innovation, their lives a constant pursuit of knowledge, enchantment, and mechanical wonders that teeter on the brink of whimsy and genius.",  # noqa: E501
+    "dwarf": "|YDwarves|n:\n\nDeep in the bosom of Arcellia's mountains and hills, the dwarves carve their legacy into the very bones of the earth. These stout and stalwart folk are the unyielding stone of the fantasy realm, enduring as the crags they call home. With sinew and steel, they sculpt their existence from the rock, delving into the heart of the world to unearth its secrets and riches. Beneath a firmament of stone, in halls wrought by their own hands, the dwarves' society thrives. Their cities are marvels of engineering and craftsmanship, illuminated by the radiant glow of forge and gemstone. Their connection to the earth is palpable, a deep resonance with the ore and stone that forms the foundation of their culture. In every etched rune and every chiseled hallway, the narrative of their people echoes—a saga of determination and toil.",  # noqa: E501
     "nymph": "|YNymphs|n:\n\nEach Nymphkind bears an Elemental Allure, an innate charm that captures hearts as effortlessly as the elements wield their power. These beguiling beings breathe an otherworldly magnetism, entwining those who fall under their gaze with strands of lust, adoration, or sheer bewitchment. Like the ripples upon a still pond or the flickering dance of flames, their seductive powers manifest in various forms, reflecting the vast spectrum of their ancestral realm.",  # noqa: E501
     "orc": "|YOrcs|n:\n\nOrcs exhibit widely varying appearances. Creatures of intense emotion, the orcs are more inclined to act than contemplate - whether the rage burning their bodies compels them to fight, or the love of filling their hearts inspires acts of incredible kindness.",  # noqa: E501
     "pyreling": "|YPyrelings|n:\n\nThe Pyreling are descendents cloaked in myth, born of the mingling between mortal essence and the enigmatic energies of hell. They carry within them a flickering flame that manifests in eyes that glow like coals and skin in shades of smoldering dusk. Misunderstood by many, the Pyrelings wander through Arcellia bearing gifts of arcane affinity, as well as a propensity for the extraordinary, often leaving tales of fear and fascination in their wake.",  # noqa: E501
@@ -380,10 +379,11 @@ def chargen_appearance_template(caller, raw_string, **kwargs):
     def _set_appearance(caller, **kwargs):
         desc = dedent(
             """
-            {race} {gender}, standing with {height} stature, embodies the life they've lived through the form of their {body} physique. Their {skin} skin, a canvas of their heritage, captures and plays with the light, be it the golden touch of the sun or the moon's soft glow. {eye_type} eyes, rich in {eye_color}, reveal the depths of their experiences. Hair, in varying shades of {hair_color}, crowns their head, a well-proportioned {nose} finds harmony with a {mouth}, together sketching the visage of character.
+            {identity}, standing with {height} stature, embodies the life they've lived through the form of their {body} physique. Their {skin} skin, a canvas of their heritage, captures and plays with the light, be it the golden touch of the sun or the moon's soft glow. {eye_type} eyes, rich in {eye_color}, reveal the depths of their experiences. Hair, in varying shades of {hair_color}, crowns their head, a well-proportioned {nose} finds harmony with a {mouth}, together sketching the visage of character.
             """.format(
-                race=caller.race.value.name,
-                gender=caller.gender.value,
+                identity=f"{caller.race.value.name} {caller.gender.value.value}"
+                if caller.gender.value.value != "androgynous"
+                else f"{caller.gender.value.value} {caller.race.value.name}",
                 height=kwargs.get("height"),
                 body=kwargs.get("body"),
                 skin=kwargs.get("skin_type"),
@@ -392,13 +392,14 @@ def chargen_appearance_template(caller, raw_string, **kwargs):
                 hair_color=kwargs.get("hair_color"),
                 nose=kwargs.get("nose_type"),
                 mouth=kwargs.get("mouth_type"),
-            )
+            ).lstrip()
         )
 
+        print(desc[0])
         desc = (
-            "A " + desc.lstrip()
+            "A " + desc
             if desc[0].lower() not in ["a", "e", "i", "o", "u"]
-            else "An " + desc.lstrip()
+            else "An " + desc
         )
 
         caller.db.desc = desc.strip()
