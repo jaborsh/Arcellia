@@ -140,6 +140,8 @@ PROTOTYPE_MODULES += ["evennia.contrib.grid.xyzgrid.prototypes"]
 ######################################################################
 COMMAND_DEFAULT_CLASS = "commands.command.Command"
 
+# The start position for new characters. Default is Limbo (#2).
+START_LOCATION = "#3"
 ######################################################################
 # Game Time setup
 ######################################################################
@@ -180,7 +182,7 @@ MULTISESSION_MODE = 3
 # Whether we should create a character with the same name as the account when
 # a new account is created. Together with AUTO_PUPPET_ON_LOGIN, this mimics
 # a legacy MUD, where there is no difference between account and character.
-AUTO_CREATE_CHARACTER_WITH_ACCOUNT = True
+AUTO_CREATE_CHARACTER_WITH_ACCOUNT = False
 # Whether an account should auto-puppet the last puppeted puppet when logging in. This
 # will only work if the session/puppet combination can be determined (usually
 # MULTISESSION_MODE 0 or 1), otherwise, the player will end up OOC. Use
@@ -195,7 +197,7 @@ MAX_NR_SIMULTANEOUS_PUPPETS = None
 # char-creation command. This can be seen as how big of a 'stable' of characters
 # an account can have (not how many you can puppet at the same time). Set to
 # None for no limit.
-MAX_NR_CHARACTERS = 2
+MAX_NR_CHARACTERS = 3
 # The access hierarchy, in climbing order. A higher permission in the
 # hierarchy includes access of all levels below it. Used by the perm()/pperm()
 # lock functions, which accepts both plural and singular (Admin & Admins)

@@ -332,7 +332,7 @@ def chargen_appearance_template(caller, raw_string, **kwargs):
     def _set_appearance(caller, **kwargs):
         desc = dedent(
             """
-            {identity}, standing with {height} stature, embodies the life they've lived through the form of their {body} physique. Their {skin} skin, a canvas of their heritage, captures and plays with the light, be it the golden touch of the sun or the moon's soft glow. {eye_type} eyes, rich in {eye_color}, reveal the depths of their experiences. Hair, in varying shades of {hair_color}, crowns their head, a well-proportioned {nose} finds harmony with a {mouth}, together sketching the visage of character.
+            {identity}, standing with {height} stature, embodies the life they've lived through the form of their {body} physique. Their {skin} skin, a canvas of their heritage, captures and plays with the light, be it the golden touch of the sun or the moon's soft glow. {eye_type} eyes, rich in {eye_color}, reveal the depths of their experiences. Hair, in varying shades of {hair_color}, crowns their head, a well-proportioned {nose} nose finds harmony with a {mouth} mouth, together sketching the visage of character.
             """.format(
                 identity=f"{caller.race.value.name} {caller.gender.value.value}"
                 if caller.gender.value.value != "androgynous"
@@ -340,7 +340,7 @@ def chargen_appearance_template(caller, raw_string, **kwargs):
                 height=kwargs.get("height"),
                 body=kwargs.get("body"),
                 skin=kwargs.get("skin_type"),
-                eye_type=kwargs.get("eye_type"),
+                eye_type=kwargs.get("eye_type").capitalize(),
                 eye_color=kwargs.get("eye_color"),
                 hair_color=kwargs.get("hair_color"),
                 nose=kwargs.get("nose_type"),
@@ -850,4 +850,5 @@ def appearance_eyebrow_type(caller, raw_string, **kwargs):
 
 
 def chargen_finalize(caller, raw_string):
+    caller.move_to(caller.home, quiet=True)
     return "", ""

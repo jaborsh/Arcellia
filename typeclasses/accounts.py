@@ -25,13 +25,12 @@ import os
 
 from django.conf import settings
 from django.utils.translation import gettext as _
-from server.conf import logger
-
 from evennia.accounts.accounts import DefaultAccount, DefaultGuest
 from evennia.objects.models import ObjectDB
 from evennia.server.signals import SIGNAL_OBJECT_POST_PUPPET
 from evennia.utils import class_from_module
 from evennia.utils.utils import is_iter
+from server.conf import logger
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
 _MAX_NR_SIMULTANEOUS_PUPPETS = settings.MAX_NR_SIMULTANEOUS_PUPPETS
@@ -113,7 +112,7 @@ class Account(DefaultAccount):
                     else self.db._last_puppet,
                 )
             except RuntimeError:
-                self.msg(_("The Character does not exist."))
+                self.msg(self.at_look())
                 return
         else:
             # In this mode we don't auto-connect but by default end up at a character selection
@@ -175,7 +174,7 @@ class Account(DefaultAccount):
             "{characters}\n\n"
             "|wCharacter Commands:|n\n"
             "  |wcharcreate  <name>|n - Create a character.\n"
-            "  |wdelete      <name>|n - Delete a character.\n"
+            "  |wchardelete  <name>|n - Delete a character.\n"
             "  |wplay        [name]|n - Connect to a character.\n"
             "  |wsetmain     [name]|n - Set your main character.\n"
             "\n"
@@ -212,6 +211,7 @@ class Account(DefaultAccount):
 
         # sessions
         sess_strings = []
+        width = 56
         for isess, sess in enumerate(sessions):
             ip_addr = (
                 sess.address[0] if isinstance(sess.address, tuple) else sess.address

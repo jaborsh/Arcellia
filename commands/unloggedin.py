@@ -1,7 +1,7 @@
 from django.conf import settings
 from evennia import syscmdkeys
 from evennia.utils import utils
-from server.conf import login_menu
+from world.login import login_menu
 
 from commands.command import Command
 

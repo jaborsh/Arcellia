@@ -2,16 +2,17 @@ import time
 from datetime import datetime
 
 from django.conf import settings
-from parsing.text import wrap
-from server.conf import logger
-
-from commands.command import Command
 from evennia.commands.default import account
 from evennia.objects.models import ObjectDB
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import create, search, utils
 from evennia.utils.ansi import strip_ansi
-from evennia.utils.evmenu import EvMenu, get_input
+from evennia.utils.evmenu import get_input
+from parsing.text import wrap
+from server.conf import logger
+from world.amenu import AMenu
+
+from commands.command import Command
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
 _AUTO_PUPPET_ON_LOGIN = settings.AUTO_PUPPET_ON_LOGIN
@@ -19,7 +20,7 @@ _AUTO_PUPPET_ON_LOGIN = settings.AUTO_PUPPET_ON_LOGIN
 # limit symbol import for  API
 __all__ = (
     "CmdCharCreate",
-    "CmdDelete",
+    "CmdCharDelete",
     "CmdDisconnect",
     "CmdOOCLook",
     "CmdOptions",
@@ -145,25 +146,28 @@ class CmdCharCreate(Command):
                 )
                 return
 
-            EvMenu(
-                self.session,
+            AMenu(
+                new_character,
                 "world.chargen.menu",
                 startnode="chargen_welcome",
+                auto_look=True,
+                auto_help=True,
                 cmd_on_exit=None,
+                persistent=True,
             )
 
         prompt = f"Did you enter '|w{key}|n' correctly and does this name comply with the rules? |r[Y/n]|n"  # noqa: E501
         get_input(account, prompt, _callback)
 
 
-class CmdDelete(Command):
+class CmdCharDelete(Command):
     """
-    Syntax: delete <name>
+    Syntax: chardelete <name>
 
     Permanently delete one of your characters. This cannot be undone!
     """
 
-    key = "delete"
+    key = "chardelete"
     locks = "cmd:is_ooc() and pperm(Player)"
     help_category = "General"
     account_caller = True

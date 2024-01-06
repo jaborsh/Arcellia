@@ -10,8 +10,5 @@ class CreationRoom(rooms.XYRoom):
 
     appearance_template = dedent(
         """
-        {name}
-        
-            {desc}
         """
     )
