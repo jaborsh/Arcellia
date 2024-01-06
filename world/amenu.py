@@ -85,8 +85,6 @@ class AMenu(EvMenu):
         # column separation distance
         colsep = 4
 
-        nlist = len(optionlist)
-
         # get the widest option line in the table.
         table_width_max = -1
         table = []
@@ -106,7 +104,18 @@ class AMenu(EvMenu):
                 else:
                     # add a default white color to key
                     table.append(f" |lc{raw_key}|lt|w{key}|n|le{desc_string}")
-        ncols = _MAX_TEXT_WIDTH // table_width_max  # number of columns
+
+        # check if the caller is using a screenreader
+        screenreader_mode = False
+        if sessions := getattr(self.caller, "sessions", None):
+            screenreader_mode = any(
+                sess.protocol_flags.get("SCREENREADER") for sess in sessions.all()
+            )
+        # the caller doesn't have a session; check it directly
+        elif hasattr(self.caller, "protocol_flags"):
+            screenreader_mode = self.caller.protocol_flags.get("SCREENREADER")
+
+        ncols = 1 if screenreader_mode else _MAX_TEXT_WIDTH // table_width_max
 
         if ncols < 0:
             # no visible options at all
@@ -115,15 +124,7 @@ class AMenu(EvMenu):
         ncols = 1 if ncols == 0 else ncols
 
         # minimum number of rows in a column
-        if self._session:
-            screenreader = self._session.protocol_flags.get("SCREENREADER", False)
-        else:
-            screenreader = False
-
-        if screenreader:
-            min_rows = 99
-        else:
-            min_rows = 10
+        min_rows = 4
 
         # split the items into columns
         split = max(min_rows, ceil(len(table) / ncols))

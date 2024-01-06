@@ -20,8 +20,8 @@ from evennia.utils.utils import lazy_property, make_iter, to_str, variable_from_
 from handlers import clothing, cooldowns, traits
 from parsing.text import grammarize, wrap
 from server.conf import logger
-from world.characters import appearances
 from world.characters.genders import CharacterGender
+from world.characters.races import race_registry
 
 from typeclasses import objects
 
@@ -103,102 +103,55 @@ class Character(objects.Object, DefaultCharacter):
     def stats(self):
         return traits.TraitHandler(self, db_attribute_key="stats")
 
-    #########################
-    # Appearance Properties #
-    #########################
-    @property
-    def body_type(self):
-        return self.appearance.get("body_type", appearances.CharacterBodyType.AVERAGE)
-
-    @property
-    def height(self):
-        return self.appearance.get("height", appearances.CharacterHeight.AVERAGE)
-
-    @property
-    def eye_color(self):
-        return self.appearance.get("eye_color", appearances.CharacterEyeColor.BLUE)
-
-    @property
-    def eye_type(self):
-        return self.appearance.get("eye_type", appearances.CharacterEyeType.ROUND)
-
-    @property
-    def hair_color(self):
-        return self.appearance.get("hair_color", appearances.CharacterHairColor.BLACK)
-
-    @property
-    def skin_type(self):
-        return self.appearance.get(
-            "skin_type", appearances.CharacterSkinType.UNBLEMISHED
-        )
-
-    @property
-    def nose_type(self):
-        return self.appearance.get("nose_type", appearances.CharacterNoseType.AQUILINE)
-
-    @property
-    def mouth_type(self):
-        return self.appearance.get("mouth_type", appearances.CharacterMouthType.FULL)
-
-    @property
-    def jaw_type(self):
-        return self.appearance.get("jaw_type", appearances.CharacterJawType.SQUARE)
-
-    @property
-    def eyebrow_type(self):
-        return self.appearance.get(
-            "eyebrow_type", appearances.CharacterEyebrowType.STRAIGHT
-        )
-
     ########################
     # Character Properties #
     ########################
     @property
     def display_name(self):
-        return self.character.get("display_name", self.name)
+        return self.character.get("display_name") or self.name
 
     @property
     def gender(self):
-        return self.character.get("gender", CharacterGender.ANDROGYNOUS)
+        return self.character.get("gender") or CharacterGender.ANDROGYNOUS
 
-    @property
-    def character_class(self):
-        return self.character.get("character_class", None)
+    # @property
+    # def character_class(self):
+    #    return self.character.get("character_class")
 
     @property
     def race(self):
-        return self.character.get("race", None)
+        return self.character.get("race") or race_registry.get("human")
 
     @property
     def background(self):
-        return self.character.get("background", None)
+        return self.character.get("background") or None
 
     ###################
     # Stat Properties #
     ###################
     @property
     def strength(self):
-        return self.stats.get("strength", 10)
+        return self.stats.get("strength") or 10
 
     @property
     def dexterity(self):
-        return self.stats.get("dexterity", 10)
+        return self.stats.get("dexterity") or 10
 
     @property
     def constitution(self):
-        return self.stats.get("constitution", 10)
+        return self.stats.get("constitution") or 10
 
     @property
     def intelligence(self):
-        return self.stats.get("intelligence", 10)
+        return self.stats.get("intelligence") or 10
 
     @property
     def wisdom(self):
-        return self.stats.get("wisdom", 10)
+        return self.stats.get("wisdom") or 10
 
     @property
     def charisma(self):
-        return self.stats.get("charisma", 10)
+        return self.stats.get("charisma") or 10
 
     ###############
     # Appearances #
@@ -242,7 +195,9 @@ class Character(objects.Object, DefaultCharacter):
 
         """  # noqa: E501
         typ = regex_match.group()[1]  # "s", "O" etc
-        gender = self.attributes.get("gender", default=CharacterGender.AMBIGUOUS).value
+        gender = self.attributes.get(
+            "gender", default=CharacterGender.ANDROGYNOUS
+        ).value
         gender = gender if gender in ("male", "female", "neutral") else "ambiguous"
         pronoun = _GENDER_PRONOUN_MAP[gender][typ.lower()]
         return pronoun.capitalize() if typ.isupper() else pronoun

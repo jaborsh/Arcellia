@@ -652,7 +652,7 @@ class TraitHandler:
         """
         return list(self.trait_data.keys())
 
-    def get(self, trait_key, default=None):
+    def get(self, trait_key):
         """
         Args:
             trait_key (str): key from the traits dict containing config data.
@@ -669,9 +669,7 @@ class TraitHandler:
             trait = self._cache[trait_key] = trait_cls(
                 _GA(self, "trait_data")[trait_key]
             )
-            return trait
-
-        return default
+        return trait
 
     def add(
         self,

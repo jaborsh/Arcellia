@@ -1,6 +1,12 @@
 from evennia.utils import dedent
 
-from world.characters import appearances, backgrounds, genders, races
+from world.characters import backgrounds, genders, races
+
+_GENDER_INFO_DICT = {
+    "male": "Men in Arcellia come in many shapes and sizes, from many races and many backgrounds. Whether tall and muscular, or short and lean, they are often reputed to be sons of Adon, the First Man and God of the son. Typically known for their great passions, in love and in war, men are revered in the worlds of humans and orcs as the superior race, yet amongst elves, dwarves, and pyrelings, share equality with the rest. Adonites are the pinnacle of masculinity, a race of only men, and are the source of envy and resentment in many individuals across the world.",
+    "female": "The Gift of Hela onto the world, children of the moon and her divine right, women are known for their mystery and beauty alike. Whilst they may range in size, stature, and disposition, on truth remains - hell hath no fury like a woman scorned. Known for their exceptional wit and persuasion, they have no less found themselves in a more submissive society amongst some races. Yet, in others, they are known as leaders - the nymphs and the beastials revere their matriarchs and follow their wisdom, whilst the Helias commonly cloister themselves away, such that to see one might be a rarity to happen in a single lifetime. In fact, it is considered an ill omen when the Helias are seen in numbers, as if portents of the world's end.",
+    "androgynous": "For some, the world is not so easily viewed as day and night, as light or dark, as black or white - for many, it is the colors and forms in between which speak to their truth, and so is it said that Gan, the Ruler of the Twilight Realm, gifted mortality with the ability to choose. When a soul is beyond the scope, their form takes the shape of their choosing, as varied and unique as they themselves. In fact, it is said that the Twils, a race of individuals who dwell within the twilight, might change their shape at will, adapting to suit their heart's fancy, Gan's greatest gift to their beloved people.\n\nAndrogynous individuals are generally accepted in most societies, but some may have found their homes more accepting than others, or less willing to understand their dispositions. In main cities, it is considered very disrespectful, and sometimes illegal, to disregard an individual's identity.",
+}
 
 _RACE_INFO_DICT = {
     "human": "|YHumans|n:\n\nThe most common face to see in Arcellia, humans are known for their tenacity, creativity, and endless capacity for growth.",  # noqa: E501
@@ -53,12 +59,7 @@ _BACKGROUND_INFO_DICT = {
 
 
 def chargen_welcome(caller):
-    def _set_screenreader(caller, choice):
-        # saved_options = caller.account.attributes.get(
-        #    "_saved_protocol_flags", default={}
-        # )
-        # saved_options.update({"SCREENREADER": True})
-        # caller.account.attributes.add("_saved_protocol_flags", saved_options)
+    def _set_screenreader(caller):
         for session in caller.account.sessions.all():
             session.protocol_flags["SCREENREADER"] = True
             session.update_flags(screenreader=True)
@@ -66,22 +67,16 @@ def chargen_welcome(caller):
 
     text = dedent(
         """\
-        This place is strange.
+        Enveloped in a cocoon of primordial blackness, warmth wraps around the tiny essence of being, a lone conscience no more significant than a grain of malt in an endless expanse of darkness. It floats in this tranquil void, beyond the realms of obligation, where time and duty dissolve into an eternal, serene abyss. Thought and action meld into the nothingness; here one finds peace in the still, comforting promise of an existence unburdened by the need to do, to be, to strive - forevermore in an endless canvas of never ever.
 
-        There is no light, no darkness. There is no hot or cold, no up or down, no life or death. This place is the absence of all things, and the sheer and utter silence of that nothingness covers the expanse like a thick blanket. Oblivion is peaceful. Yet amongst the muted gray tranquility, there is a discordant spark of chaos, the faintest heartbeat - a blip of existence.
-
-        It is you.
-
-        The thread of consciousness that could be you is tenuous and thin. Just a dream of a dream, the precursor of being. Many such threads fade back into the gray, but a few rare veins flicker to life. You could sink back into oblivion, where it is easy and quiet, or you could rise.
-
-        Do you use a screenreader?
+        |CDo you use a screenreader?|n
         """
     )
 
     options = (
         {"key": "", "goto": "chargen_welcome"},
-        {"key": ("yes", "y"), "desc": "Enable Screenreader", "goto": _set_screenreader},
-        {"key": ("no", "n"), "desc": " Disable Screenreader", "goto": "chargen_gender"},
+        {"key": ("y", "yes"), "desc": "Enable Screenreader", "goto": _set_screenreader},
+        {"key": ("n", "no"), "desc": " Disable Screenreader", "goto": "chargen_gender"},
         {"key": "_default", "goto": "chargen_welcome"},
     )
 
@@ -89,20 +84,20 @@ def chargen_welcome(caller):
 
 
 def chargen_gender(caller, raw_string, **kwargs):
-    def _set_gender(caller, choice):
-        choice = choice.strip().lower()[0]
-        if choice in ("1", "m"):
+    def _set_gender(caller):
+        selected_gender = kwargs.get("selected_gender", None)
+        if selected_gender == "male":
             caller.character.add(
                 "gender",
                 "Gender",
                 trait_type="trait",
                 value=genders.CharacterGender.MALE,
             )
-        elif choice in ("2", "f"):
+        elif selected_gender == "female":
             caller.character.add(
                 "gender", "Gender", value=genders.CharacterGender.FEMALE
             )
-        elif choice in ("3", "a"):
+        elif selected_gender == "androgynous":
             caller.character.add(
                 "gender", "Gender", value=genders.CharacterGender.ANDROGYNOUS
             )
@@ -111,25 +106,52 @@ def chargen_gender(caller, raw_string, **kwargs):
 
         return "chargen_race"
 
-    text = dedent(
-        """\
-        You, the nascent traveler, float amidst this gentle void. A mere wisp of consciousness, you harbor the power to mold your very essence. Here in this prelude to adventure, the choice of one's very existence is the first dalliance with creation.
-        
-        At the center of this void, three figures emerge from the nebulous gray, standing as pillars of potentiality. The first, a male figure, basks in a soft radiance akin to the sun's embrace, his strength and grace woven in harmony. Beside him, a female figure exudes a gentle luminescence reminiscent of the moon's tender caress, her elegance dancing in union with resilience. Between them, an androgynous figure radiates an ethereal light, a fusion of sun and moon.
+    if selected_gender := kwargs.get("selected_gender", None):
+        text = _GENDER_INFO_DICT[selected_gender] + "\n\n|CConfirm your Gender|n:"
+        options = (
+            {"key": "", "goto": "chargen_welcome"},
+            {
+                "key": ("y", "yes"),
+                "desc": f"Confirm {selected_gender.capitalize()}",
+                "goto": (_set_gender, {"selected_gender": selected_gender}),
+            },
+            {
+                "key": ("n", "no"),
+                "desc": "Return to Gender Selection",
+                "goto": ("chargen_gender", {"selected_gender": None}),
+            },
+        )
 
-        In this moment, suspended between the not-yet-shaped and the eternal, a question crystallizes before your burgeoning self.
+    else:
+        text = dedent(
+            """\
+            As immeasurable time drifts by, untouched by the suffocating grasp of struggle, existence remains unfathomably tranquil. But in the midst of this hushed eternity, a whisper of consciousness begins to stir. Somewhere just beyond perception, shrouded in the unseen recesses of this void, a presence makes itself known. It festers, submerged in a vile, caustic broth that seeps into the edges of awareness. This entity envelops the serene conscience, injecting a sense of disquiet into the calm that once reigned.
 
-        |CSelect your Gender|n:
-        """
-    )  # noqa: E501
+            All at once, as if gasping for breath from beneath an ocean of nothingness, there is light and form upon the horizon. The chance to become, to be, to exist, dwells solely within your heart.
 
-    options = (
-        {"key": "", "goto": "chargen_welcome"},
-        {"key": ("1", "male", "m"), "desc": "Male", "goto": _set_gender},
-        {"key": ("2", "female", "f"), "desc": "Female", "goto": _set_gender},
-        {"key": ("3", "androgynous", "a"), "desc": "Androgynous", "goto": _set_gender},
-        {"key": "_default", "goto": "chargen_welcome"},
-    )
+            |CSelect your Gender|n:
+            """
+        )  # noqa: E501
+
+        options = (
+            {"key": "", "goto": "chargen_welcome"},
+            {
+                "key": ("1", "male", "m"),
+                "desc": "Male",
+                "goto": ("chargen_gender", {"selected_gender": "male"}),
+            },
+            {
+                "key": ("2", "female", "f"),
+                "desc": "Female",
+                "goto": ("chargen_gender", {"selected_gender": "female"}),
+            },
+            {
+                "key": ("3", "androgynous", "a"),
+                "desc": "Androgynous",
+                "goto": ("chargen_gender", {"selected_gender": "androgynous"}),
+            },
+            {"key": "_default", "goto": "chargen_gender"},
+        )
 
     return text, options
 
@@ -167,9 +189,11 @@ def chargen_race(caller, raw_string, **kwargs):
     else:
         text = dedent(
             """
-            Majestic landscapes unfold around you, a canvas for ethnic identities roaming within the bounds of thought. Mighty mountainscapes craft silhouettes against the sky, where the kin of giants and dwarves could forge their legacies in stone and steel. Lush forests carpet the realms below, bearing the sagas of elves and faefolk, their lifespans entwined with the ageless trees. Vast plains stretch out, horizons unbroken, where the footsteps of nomadic tribes echo with the steadfast will of orcish clans. Deep waters shimmer, hiding the secretive abodes of merfolk and naiads, whose songs thread through the currents, weaving stories of depth and mystery.
+            A notion unfurls within the stillness, one you might rather remain oblivious to. Consider the reason behind this self-imposed exile into nothingness. Perhaps there's a part of you, marinated in the excesses of your own actions, that recoils from such revelations. In eagerness, perhaps, you deluged yourself in oblivion, tipping the balance beyond a simple seasoning to a state of overwhelming saturation.
 
-            Time teems on the brink of stillness, waiting for you to reach out and grasp the thread of existence calling to your spirit.
+            Imagine, if you dare, a colossal sphere where malevolence brews. On this orb, simian creatures of nefarious intent wage an incessant war, a tableau of chaos underpinned by brutality. You are among them - no mere observer, but an active participant. This sphere is your arena, your world; the others, your kindred and adversaries.
+
+            They clash with savage fervor over scraps and dominance, a dance as old as time itself, couched in a rhetoric that seems all too familiar - a hollow phrase adopted from the ether to give a shade of meaning to the struggle. Take with you the grim axiom from this metaphorical panorama: in the contest for survival amongst your own, it is conquer or be conquered, to prevail in might or be reduced to insignificance.
 
             |CSelect your Race|n:
             """  # noqa: E501
@@ -271,9 +295,9 @@ def chargen_background(caller, raw_string, **kwargs):
     else:
         text = dedent(
             """
-            Memories, intangible yet vivid, paint upon the canvas of the void. You witness the strokes of struggles and triumphs, fleeting moments of joy and sorrow without discernible form. Fragments of these narratives, like leaves carried upon an unseen stream, drift past you. Their origins and destinations obscured, yet they hint at the rich soil from which your being has sprung. Tales of kinship, loss, laughter, and hardship softly tumble around you, each a color, a texture, in the portrait of life.
+            Drawn inexorably as if fated, your awareness adheres to a most disquieting realization, much like the unfortunate insect ensnared by a viscous trap. The fleshly construct you inhabit, a machine wrought of limbs, burdened with the intrinsic nature of life begins its laborious reawakening. This vessel, animated by a tumultuous spirit, yearns for the expanse of a world where purpose is the currency of existence, where desire is ever-present.
 
-            Bright skies and storm clouds alike craft a backdrop without revealing the lands beneath. Echoes of past voices rise and fall in a quiet crescendo. Their words are muted, yet the emotions carried upon them resonate deeply, sculpting the contours of disposition and ethos.
+            Suddenly, a searing lance of light pierces the tranquility that shrouds your mind, an invasive force intent on prying your eyes from their restful closure. Accompanying this intrusion is a sound, a sonorous peal that resonates with the very essence of perdition. It heralds an awakening, a clarion so powerful, it is as if the very gates of hell themselves were orchestrating your return to the waking world.
 
             |CSelect your Background|n:
             """
@@ -295,159 +319,25 @@ def chargen_background(caller, raw_string, **kwargs):
 
 
 def chargen_appearance(caller, raw_string, **kwargs):
-    def _set_appearance(caller, appearance, **kwargs):
-        appearance = appearance.strip()
-        caller.db.desc = appearance
-        return ("chargen_appearance", {"appearance": appearance})
+    text = dedent(
+        """
+        Suspended above a basin twisted and marred by neglect, a mirror holds court. From the damaged faucet, a jet of scalding water erupts, casting a shroud of steam across the glass, obscuring clarity. There, in the fogged reflection, only the barest hint of a figure can be discerned, a specter of self without detail or form. A startling epiphany cascades over you in that ill-defined moment; your own visage is a mystery, lost beneath the gentle veil of mist.
 
-    if not kwargs.get("appearance", None):
-        text = dedent(
-            """
-            The void becomes a mirror of liquid silver. Your outline shimmers upon it, ephemeral and primed to accept the hues of existence. The dreamscape's palette brims with countless visages, eyes like polished gems, hair cascading in waves of imaginable textures and colors, skin tones capturing the spectrum of earthen clay to sun-kissed gold.
+        |CSelect an Appearance Option|n:
+        """
+    )
 
-            |CWrite your appearance or select an option|n:
-            """
-        )
-
-        options = (
-            {"key": "", "goto": "chargen_appearance"},
-            {"key": ("1", "height"), "desc": "Height", "goto": "appearance_height"},
-            {
-                "key": ("2", "body", "body type"),
-                "desc": "Body Type",
-                "goto": "appearance_body",
-            },
-            {
-                "key": ("3", "eye color", "ec"),
-                "desc": "Eye Color",
-                "goto": "appearance_eye_color",
-            },
-            {
-                "key": ("4", "hair color", "hc"),
-                "desc": "Hair Color",
-                "goto": "appearance_hair_color",
-            },
-            {
-                "key": ("5", "skin type", "st"),
-                "desc": "Skin Type",
-                "goto": "appearance_skin_type",
-            },
-            {
-                "key": ("6", "eye type", "et"),
-                "desc": "Eye Type",
-                "goto": "appearance_eye_type",
-            },
-            {
-                "key": ("7", "nose type", "nt"),
-                "desc": "Nose Type",
-                "goto": "appearance_nose_type",
-            },
-            {
-                "key": ("8", "mouth type", "mt"),
-                "desc": "Mouth Type",
-                "goto": "appearance_mouth_type",
-            },
-            {
-                "key": ("9", "f", "finalize"),
-                "desc": "Finalize Appearance",
-                "goto": "chargen_finalize",
-            },
-            {"key": "_default", "goto": _set_appearance},
-        )
-    else:
-        text = dedent(
-            """
-            The mirror of liquid silver reflects your appearance:
-            
-            {appearance}
-
-            Is this correct?
-            """.format(
-                appearance=kwargs.get("appearance", "")
-            )
-        )
-        options = (
-            {"key": "y", "desc": "Confirm appearance", "goto": "chargen_finalize"},
-            {
-                "key": "n",
-                "desc": "Return",
-                "goto": ("chargen_appearance", {"appearance": None}),
-            },
-        )
-
-    return text, options
-
-
-def appearance_body(caller, raw_string, **kwargs):
-    def _set_body(caller, **kwargs):
-        body = kwargs.get("body", None)
-        if body == "petite":
-            caller.appearance.add(
-                "body_type",
-                "Body Type",
-                trait_type="trait",
-                value=appearances.CharacterBodyType.PETITE,
-            )
-        elif body == "slender":
-            caller.appearance.add(
-                "body_type",
-                "Body Type",
-                trait_type="trait",
-                value=appearances.CharacterBodyType.SLENDER,
-            )
-        elif body == "average":
-            caller.appearance.add(
-                "body_type",
-                "Body Type",
-                trait_type="trait",
-                value=appearances.CharacterBodyType.AVERAGE,
-            )
-        elif body == "athletic":
-            caller.appearance.add(
-                "body_type",
-                "Body Type",
-                trait_type="trait",
-                value=appearances.CharacterBodyType.ATHLETIC,
-            )
-        elif body == "robust":
-            caller.appearance.add(
-                "body_type",
-                "Body Type",
-                trait_type="trait",
-                value=appearances.CharacterBodyType.ROBUST,
-            )
-        else:
-            return "chargen_appearance"
-
-        return "chargen_appearance"
-
-    text = "|CSelect your Body Type|n:\n"
     options = (
-        {"key": "", "goto": "appearance_body"},
+        {"key": "", "goto": "chargen_appearance"},
         {
-            "key": ("1", "petite", "p"),
-            "desc": "Petite",
-            "goto": (_set_body, {"body": "petite"}),
+            "key": ("1", "detailed", "d"),
+            "desc": "Create a Customized Description",
+            "goto": "chargen_appearance_detailed",
         },
         {
-            "key": ("2", "slender", "s"),
-            "desc": "Slender",
-            "goto": (_set_body, {"body": "slender"}),
-        },
-        {
-            "key": ("3", "average", "av"),
-            "desc": "Average",
-            "goto": (_set_body, {"body": "average"}),
-        },
-        {
-            "key": ("4", "athletic", "at"),
-            "desc": "Athletic",
-            "goto": (_set_body, {"body": "athletic"}),
-        },
-        {
-            "key": ("5", "robust", "r"),
-            "desc": "Robust",
-            "goto": (_set_body, {"body": "robust"}),
+            "key": ("2", "template", "t"),
+            "desc": "Select Template Descriptors",
+            "goto": "chargen_appearance_template",
         },
         {"key": "_default", "goto": "chargen_appearance"},
     )
@@ -455,837 +345,552 @@ def appearance_body(caller, raw_string, **kwargs):
     return text, options
 
 
+def chargen_appearance_detailed(caller, raw_string, **kwargs):
+    def _set_appearance(caller, appearance, **kwargs):
+        caller.db.desc = appearance.strip()
+        return ("chargen_apperance_detailed", {"appearance": appearance.strip()})
+
+    if appearance := kwargs.get("appearance", None):
+        text = f"|CConfirm your Appearance|n:\n{appearance}"
+        options = (
+            {"key": "y", "desc": "Confirm Appearance", "goto": "chargen_finalize"},
+            {
+                "key": "n",
+                "desc": "Return",
+                "goto": ("chargen_appearance_detailed", {"appearance": None}),
+            },
+        )
+    else:
+        text = dedent(
+            """
+            The time has come: a defining instant that invites no delay, and fosters no escape. What lies beyond that soft and swirling vapor is a truth that must be faced. With a breath that is both anticipatory and anxious, the facade you're about to unveil comes with the peril of true self-revelation. Therein lies the precipice of identity - you stand poised to meet the eyes of the being you inhabit, to witness the countenance that is undeniably yours, irrespective of reverberations they might cause within the core of who you are.
+
+            |CWrite your Description|n:
+            """
+        )
+        options = (
+            {"key": "", "goto": "chargen_appearance_detailed"},
+            {"key": "_default", "goto": (_set_appearance, {"appearance": raw_string})},
+        )
+
+    return text, options
+
+
+def chargen_appearance_template(caller, raw_string, **kwargs):
+    def _set_appearance(caller, **kwargs):
+        desc = dedent(
+            """
+            {race} {gender}, standing with {height} stature, embodies the life they've lived through the form of their {body} physique. Their {skin} skin, a canvas of their heritage, captures and plays with the light, be it the golden touch of the sun or the moon's soft glow. {eye_type} eyes, rich in {eye_color}, reveal the depths of their experiences. Hair, in varying shades of {hair_color}, crowns their head, a well-proportioned {nose} finds harmony with a {mouth}, together sketching the visage of character.
+            """.format(
+                race=caller.race.value.name,
+                gender=caller.gender.value.value,
+                height=kwargs.get("height"),
+                body=kwargs.get("body"),
+                skin=kwargs.get("skin_type"),
+                eye_type=kwargs.get("eye_type"),
+                eye_color=kwargs.get("eye_color"),
+                hair_color=kwargs.get("hair_color"),
+                nose=kwargs.get("nose_type"),
+                mouth=kwargs.get("mouth_type"),
+            )
+        )
+
+        desc = (
+            "A " + desc.lstrip()
+            if desc[0].lower() not in ["a", "e", "i", "o", "u"]
+            else "An " + desc.lstrip()
+        )
+
+        caller.db.desc = desc.strip()
+        return "chargen_finalize"
+
+    text = dedent(
+        """
+        A figure stares back from the other side of the obscured mirror, its features hidden beneath the mist's caress. It exists there as an enigma, a stranger composed of familiar lines and curves, yet wholly unrecognizable. A shiver of alienation creeps along your spine - the realization dawns upon you that the entity reflected in the glass, this 'thing' that should be as known to you as the very beat of your heart, remains anonymous. It is as if you are gazing upon an intimate unknown, a specter of self that is both intimately close and unsettlingly foreign.
+
+        |CSelect an Appearance Option|n:
+        """
+    )
+
+    height = kwargs.get("height", "")
+    body = kwargs.get("body", "")
+    eye_color = kwargs.get("eye_color", "")
+    hair_color = kwargs.get("hair_color", "")
+    skin_type = kwargs.get("skin_type", "")
+    eye_type = kwargs.get("eye_type", "")
+    nose_type = kwargs.get("nose_type", "")
+    mouth_type = kwargs.get("mouth_type", "")
+
+    options = (
+        {"key": "", "goto": "chargen_appearance"},
+        {
+            "key": ("1", "height"),
+            "desc": f"Height ({height})",
+            "goto": ("appearance_height", kwargs),
+        },
+        {
+            "key": ("2", "body", "body type"),
+            "desc": f"Body Type ({body})",
+            "goto": ("appearance_body", kwargs),
+        },
+        {
+            "key": ("3", "eye color", "ec"),
+            "desc": f"Eye Color ({eye_color})",
+            "goto": ("appearance_eye_color", kwargs),
+        },
+        {
+            "key": ("4", "hair color", "hc"),
+            "desc": f"Hair Color ({hair_color})",
+            "goto": ("appearance_hair_color", kwargs),
+        },
+        {
+            "key": ("5", "skin type", "st"),
+            "desc": f"Skin Type ({skin_type})",
+            "goto": ("appearance_skin_type", kwargs),
+        },
+        {
+            "key": ("6", "eye type", "et"),
+            "desc": f"Eye Type ({eye_type})",
+            "goto": ("appearance_eye_type", kwargs),
+        },
+        {
+            "key": ("7", "nose type", "nt"),
+            "desc": f"Nose Type ({nose_type})",
+            "goto": ("appearance_nose_type", kwargs),
+        },
+        {
+            "key": ("8", "mouth type", "mt"),
+            "desc": f"Mouth Type ({mouth_type})",
+            "goto": ("appearance_mouth_type", kwargs),
+        },
+    )
+
+    if len(kwargs) == 9:
+        options += (
+            {
+                "key": ("9", "f", "finalize"),
+                "desc": "|CFinalize Appearance|n",
+                "goto": (_set_appearance, kwargs),
+            },
+        )
+
+    return text, options
+
+
 def appearance_height(caller, raw_string, **kwargs):
-    def _set_height(caller, **kwargs):
-        height = kwargs.get("height", None)
-        if height == "short":
-            caller.appearance.add(
-                "height",
-                "Height",
-                trait_type="trait",
-                value=appearances.CharacterHeight.SHORT,
-            )
-        elif height == "average":
-            caller.appearance.add(
-                "height",
-                "Height",
-                trait_type="trait",
-                value=appearances.CharacterHeight.AVERAGE,
-            )
-        elif height == "tall":
-            caller.appearance.add(
-                "height",
-                "Height",
-                trait_type="trait",
-                value=appearances.CharacterHeight.TALL,
-            )
-        else:
-            return "chargen_appearance"
-
-        return "chargen_appearance"
-
     text = "|CSelect your Height|n:\n"
     options = (
         {"key": "", "goto": "appearance_height"},
         {
             "key": ("1", "short", "sh"),
             "desc": "Short",
-            "goto": (_set_height, {"height": "short"}),
+            "goto": ("chargen_appearance_template", kwargs | {"height": "short"}),
         },
         {
             "key": ("2", "average", "av"),
             "desc": "Average",
-            "goto": (_set_height, {"height": "average"}),
+            "goto": ("chargen_appearance_template", kwargs | {"height": "average"}),
         },
         {
             "key": ("3", "tall", "t"),
             "desc": "Tall",
-            "goto": (_set_height, {"height": "tall"}),
+            "goto": ("chargen_appearance_template", kwargs | {"height": "tall"}),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": "chargen_appearance_template"},
+    )
+
+    return text, options
+
+
+def appearance_body(caller, raw_string, **kwargs):
+    text = "|CSelect your Body Type|n:\n"
+    options = (
+        {"key": "", "goto": "appearance_body"},
+        {
+            "key": ("1", "petite", "p"),
+            "desc": "Petite",
+            "goto": ("chargen_appearance_template", kwargs | {"body": "petite"}),
+        },
+        {
+            "key": ("2", "slender", "s"),
+            "desc": "Slender",
+            "goto": ("chargen_appearance_template", kwargs | {"body": "slender"}),
+        },
+        {
+            "key": ("3", "average", "av"),
+            "desc": "Average",
+            "goto": ("chargen_appearance_template", kwargs | {"body": "average"}),
+        },
+        {
+            "key": ("4", "athletic", "at"),
+            "desc": "Athletic",
+            "goto": ("chargen_appearance_template", kwargs | {"body": "athletic"}),
+        },
+        {
+            "key": ("5", "robust", "r"),
+            "desc": "Robust",
+            "goto": ("chargen_appearance_template", kwargs | {"body": "robust"}),
+        },
+        {"key": "_default", "goto": "chargen_appearance_template"},
     )
 
     return text, options
 
 
 def appearance_eye_color(caller, raw_string, **kwargs):
-    def _set_eye_color(caller, **kwargs):
-        eye_color = kwargs.get("eye_color", None)
-        if eye_color == "amber":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.AMBER,
-            )
-        elif eye_color == "blue":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.BLUE,
-            )
-        elif eye_color == "brown":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.BROWN,
-            )
-        elif eye_color == "green":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.GREEN,
-            )
-        elif eye_color == "grey":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.GREY,
-            )
-        elif eye_color == "hazel":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.HAZEL,
-            )
-        elif eye_color == "black":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.BLACK,
-            )
-        elif eye_color == "copper":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.COPPER,
-            )
-        elif eye_color == "crimson":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.CRIMSON,
-            )
-        elif eye_color == "emerald":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.EMERALD,
-            )
-        elif eye_color == "gold":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.GOLD,
-            )
-        elif eye_color == "opal":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.OPAL,
-            )
-        elif eye_color == "onyx":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.ONYX,
-            )
-        elif eye_color == "red":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.RED,
-            )
-        elif eye_color == "sapphire":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.SAPPHIRE,
-            )
-        elif eye_color == "silver":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.SILVER,
-            )
-        elif eye_color == "violet":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.VIOLET,
-            )
-        elif eye_color == "white":
-            caller.appearance.add(
-                "eye_color",
-                "Eye Color",
-                trait_type="trait",
-                value=appearances.CharacterEyeColor.WHITE,
-            )
-        else:
-            return "chargen_appearance"
-
-        return "chargen_appearance"
-
     text = "|CSelect your Eye Color|n:\n"
     options = (
         {"key": "", "goto": "appearance_eye_color"},
         {
             "key": ("1", "amber", "a"),
             "desc": "Amber",
-            "goto": (_set_eye_color, {"eye_color": "amber"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "amber"}),
         },
         {
             "key": ("2", "blue", "b"),
             "desc": "Blue",
-            "goto": (_set_eye_color, {"eye_color": "blue"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "blue"}),
         },
         {
             "key": ("3", "brown", "br"),
             "desc": "Brown",
-            "goto": (_set_eye_color, {"eye_color": "brown"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "brown"}),
         },
         {
             "key": ("4", "green", "g"),
             "desc": "Green",
-            "goto": (_set_eye_color, {"eye_color": "green"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "green"}),
         },
         {
             "key": ("5", "grey", "gr"),
             "desc": "Grey",
-            "goto": (_set_eye_color, {"eye_color": "grey"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "grey"}),
         },
         {
             "key": ("6", "hazel", "h"),
             "desc": "Hazel",
-            "goto": (_set_eye_color, {"eye_color": "hazel"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "hazel"}),
         },
         {
             "key": ("7", "black", "bl"),
             "desc": "Black",
-            "goto": (_set_eye_color, {"eye_color": "black"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "black"}),
         },
         {
             "key": ("8", "copper", "c"),
             "desc": "Copper",
-            "goto": (_set_eye_color, {"eye_color": "copper"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "copper"}),
         },
         {
             "key": ("9", "crimson", "cr"),
             "desc": "Crimson",
-            "goto": (_set_eye_color, {"eye_color": "crimson"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "crimson"}),
         },
         {
             "key": ("10", "emerald", "e"),
             "desc": "Emerald",
-            "goto": (_set_eye_color, {"eye_color": "emerald"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "emerald"}),
         },
         {
             "key": ("11", "gold", "go"),
             "desc": "Gold",
-            "goto": (_set_eye_color, {"eye_color": "gold"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "gold"}),
         },
         {
             "key": ("12", "opal", "o"),
             "desc": "Opal",
-            "goto": (_set_eye_color, {"eye_color": "opal"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "opal"}),
         },
         {
             "key": ("13", "onyx", "on"),
             "desc": "Onyx",
-            "goto": (_set_eye_color, {"eye_color": "onyx"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "onyx"}),
         },
         {
             "key": ("14", "red", "r"),
             "desc": "Red",
-            "goto": (_set_eye_color, {"eye_color": "red"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "red"}),
         },
         {
             "key": ("15", "sapphire", "sa"),
             "desc": "Sapphire",
-            "goto": (_set_eye_color, {"eye_color": "sapphire"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "sapphire"}),
         },
         {
             "key": ("16", "silver", "si"),
             "desc": "Silver",
-            "goto": (_set_eye_color, {"eye_color": "silver"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "silver"}),
         },
         {
             "key": ("17", "violet", "v"),
             "desc": "Violet",
-            "goto": (_set_eye_color, {"eye_color": "violet"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "violet"}),
         },
         {
             "key": ("18", "white", "w"),
             "desc": "White",
-            "goto": (_set_eye_color, {"eye_color": "white"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "white"}),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": "chargen_appearance_template"},
     )
 
     return text, options
 
 
 def appearance_hair_color(caller, raw_string, **kwargs):
-    def _set_hair_color(caller, **kwargs):
-        hair_color = kwargs.get("hair_color", None)
-        if hair_color == "auburn":
-            caller.appearance.add(
-                "hair_color",
-                "Hair Color",
-                trait_type="trait",
-                value=appearances.CharacterHairColor.AUBURN,
-            )
-        elif hair_color == "black":
-            caller.appearance.add(
-                "hair_color",
-                "Hair Color",
-                trait_type="trait",
-                value=appearances.CharacterHairColor.BLACK,
-            )
-        elif hair_color == "blonde":
-            caller.appearance.add(
-                "hair_color",
-                "Hair Color",
-                trait_type="trait",
-                value=appearances.CharacterHairColor.BLONDE,
-            )
-        elif hair_color == "brown":
-            caller.appearance.add(
-                "hair_color",
-                "Hair Color",
-                trait_type="trait",
-                value=appearances.CharacterHairColor.BROWN,
-            )
-        elif hair_color == "grey":
-            caller.appearance.add(
-                "hair_color",
-                "Hair Color",
-                trait_type="trait",
-                value=appearances.CharacterHairColor.GREY,
-            )
-        elif hair_color == "red":
-            caller.appearance.add(
-                "hair_color",
-                "Hair Color",
-                trait_type="trait",
-                value=appearances.CharacterHairColor.RED,
-            )
-        elif hair_color == "white":
-            caller.appearance.add(
-                "hair_color",
-                "Hair Color",
-                trait_type="trait",
-                value=appearances.CharacterHairColor.WHITE,
-            )
-        elif hair_color == "blue":
-            caller.appearance.add(
-                "hair_color",
-                "Hair Color",
-                trait_type="trait",
-                value=appearances.CharacterHairColor.BLUE,
-            )
-        elif hair_color == "green":
-            caller.appearance.add(
-                "hair_color",
-                "Hair Color",
-                trait_type="trait",
-                value=appearances.CharacterHairColor.GREEN,
-            )
-        elif hair_color == "pink":
-            caller.appearance.add(
-                "hair_color",
-                "Hair Color",
-                trait_type="trait",
-                value=appearances.CharacterHairColor.PINK,
-            )
-        elif hair_color == "purple":
-            caller.appearance.add(
-                "hair_color",
-                "Hair Color",
-                trait_type="trait",
-                value=appearances.CharacterHairColor.PURPLE,
-            )
-        elif hair_color == "silver":
-            caller.appearance.add(
-                "hair_color",
-                "Hair Color",
-                trait_type="trait",
-                value=appearances.CharacterHairColor.SILVER,
-            )
-        elif hair_color == "teal":
-            caller.appearance.add(
-                "hair_color",
-                "Hair Color",
-                trait_type="trait",
-                value=appearances.CharacterHairColor.TEAL,
-            )
-        elif hair_color == "yellow":
-            caller.appearance.add(
-                "hair_color",
-                "Hair Color",
-                trait_type="trait",
-                value=appearances.CharacterHairColor.YELLOW,
-            )
-        else:
-            return "chargen_appearance"
-
-        return "chargen_appearance"
-
     text = "|CSelect your Hair Color|n:\n"
     options = (
         {"key": "", "goto": "appearance_hair_color"},
         {
             "key": ("1", "auburn", "a"),
             "desc": "Auburn",
-            "goto": (_set_hair_color, {"hair_color": "auburn"}),
+            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "auburn"}),
         },
         {
             "key": ("2", "black", "bl"),
             "desc": "Black",
-            "goto": (_set_hair_color, {"hair_color": "black"}),
+            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "black"}),
         },
         {
             "key": ("3", "blonde", "b"),
             "desc": "Blonde",
-            "goto": (_set_hair_color, {"hair_color": "blonde"}),
+            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "blonde"}),
         },
         {
             "key": ("4", "brown", "br"),
             "desc": "Brown",
-            "goto": (_set_hair_color, {"hair_color": "brown"}),
+            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "brown"}),
         },
         {
             "key": ("5", "grey", "gr"),
             "desc": "Grey",
-            "goto": (_set_hair_color, {"hair_color": "grey"}),
+            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "grey"}),
         },
         {
             "key": ("6", "red", "r"),
             "desc": "Red",
-            "goto": (_set_hair_color, {"hair_color": "red"}),
+            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "red"}),
         },
         {
             "key": ("7", "white", "w"),
             "desc": "White",
-            "goto": (_set_hair_color, {"hair_color": "white"}),
+            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "white"}),
         },
         {
             "key": ("8", "blue", "bl"),
             "desc": "Blue",
-            "goto": (_set_hair_color, {"hair_color": "blue"}),
+            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "blue"}),
         },
         {
             "key": ("9", "green", "g"),
             "desc": "Green",
-            "goto": (_set_hair_color, {"hair_color": "green"}),
+            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "green"}),
         },
         {
             "key": ("10", "pink", "p"),
             "desc": "Pink",
-            "goto": (_set_hair_color, {"hair_color": "pink"}),
+            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "pink"}),
         },
         {
             "key": ("11", "purple", "pu"),
             "desc": "Purple",
-            "goto": (_set_hair_color, {"hair_color": "purple"}),
+            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "purple"}),
         },
         {
             "key": ("12", "silver", "si"),
             "desc": "Silver",
-            "goto": (_set_hair_color, {"hair_color": "silver"}),
+            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "silver"}),
         },
         {
             "key": ("13", "teal", "t"),
             "desc": "Teal",
-            "goto": (_set_hair_color, {"hair_color": "teal"}),
+            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "teal"}),
         },
         {
             "key": ("14", "yellow", "y"),
             "desc": "Yellow",
-            "goto": (_set_hair_color, {"hair_color": "yellow"}),
+            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "yellow"}),
         },
+        {"key": "_default", "goto": "chargen_appearance_template"},
     )
 
     return text, options
 
 
 def appearance_skin_type(caller, raw_string, **kwargs):
-    def _set_skin_type(caller, **kwargs):
-        skin_type = kwargs.get("skin_type", None)
-        if skin_type == "freckled":
-            caller.appearance.add(
-                "skin_type",
-                "Skin Type",
-                trait_type="trait",
-                value=appearances.CharacterSkinType.FRECKLED,
-            )
-        elif skin_type == "scarred":
-            caller.appearance.add(
-                "skin_type",
-                "Skin Type",
-                trait_type="trait",
-                value=appearances.CharacterSkinType.SCARRED,
-            )
-        elif skin_type == "wrinkled":
-            caller.appearance.add(
-                "skin_type",
-                "Skin Type",
-                trait_type="trait",
-                value=appearances.CharacterSkinType.WRINKLED,
-            )
-        elif skin_type == "unblemished":
-            caller.appearance.add(
-                "skin_type",
-                "Skin Type",
-                trait_type="trait",
-                value=appearances.CharacterSkinType.UNBLEMISHED,
-            )
-        else:
-            return "chargen_appearance"
-
-        return "chargen_appearance"
-
     text = "|CSelect your Skin Type|n:\n"
     options = (
         {"key": "", "goto": "appearance_skin_type"},
         {
             "key": ("1", "freckled", "f"),
             "desc": "Freckled",
-            "goto": (_set_skin_type, {"skin_type": "freckled"}),
+            "goto": ("chargen_appearance_template", kwargs | {"skin_type": "freckled"}),
         },
         {
             "key": ("2", "scarred", "sc"),
             "desc": "Scarred",
-            "goto": (_set_skin_type, {"skin_type": "scarred"}),
+            "goto": ("chargen_appearance_template", kwargs | {"skin_type": "scarred"}),
         },
         {
             "key": ("3", "wrinkled", "w"),
             "desc": "Wrinkled",
-            "goto": (_set_skin_type, {"skin_type": "wrinkled"}),
+            "goto": ("chargen_appearance_template", kwargs | {"skin_type": "wrinkled"}),
         },
         {
             "key": ("4", "unblemished", "u"),
             "desc": "Unblemished",
-            "goto": (_set_skin_type, {"skin_type": "unblemished"}),
+            "goto": (
+                "chargen_appearance_template",
+                kwargs | {"skin_type": "unblemished"},
+            ),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": "chargen_appearance_template"},
     )
 
     return text, options
 
 
 def appearance_eye_type(caller, raw_string, **kwargs):
-    def _set_eye_type(caller, **kwargs):
-        eye_type = kwargs.get("eye_type", None)
-        if eye_type == "almond":
-            caller.appearance.add(
-                "eye_type",
-                "Eye Type",
-                trait_type="trait",
-                value=appearances.CharacterEyeType.ALMOND,
-            )
-        elif eye_type == "hooded":
-            caller.appearance.add(
-                "eye_type",
-                "Eye Type",
-                trait_type="trait",
-                value=appearances.CharacterEyeType.HOODED,
-            )
-        elif eye_type == "round":
-            caller.appearance.add(
-                "eye_type",
-                "Eye Type",
-                trait_type="trait",
-                value=appearances.CharacterEyeType.ROUND,
-            )
-        else:
-            return "chargen_appearance"
-
-        return "chargen_appearance"
-
     text = "|CSelect your Eye Type|n:\n"
     options = (
         {"key": "", "goto": "appearance_eye_type"},
         {
             "key": ("1", "almond", "a"),
             "desc": "Almond",
-            "goto": (_set_eye_type, {"eye_type": "almond"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_type": "almond"}),
         },
         {
             "key": ("2", "hooded", "h"),
             "desc": "Hooded",
-            "goto": (_set_eye_type, {"eye_type": "hooded"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_type": "hooded"}),
         },
         {
             "key": ("3", "round", "r"),
             "desc": "Round",
-            "goto": (_set_eye_type, {"eye_type": "round"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eye_type": "round"}),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": "chargen_appearance_template"},
     )
 
     return text, options
 
 
 def appearance_nose_type(caller, raw_string, **kwargs):
-    def _set_nose_type(caller, **kwargs):
-        nose_type = kwargs.get("nose_type", None)
-        if nose_type == "aquiline":
-            caller.appearance.add(
-                "nose_type",
-                "Nose Type",
-                trait_type="trait",
-                value=appearances.CharacterNoseType.AQUILINE,
-            )
-        elif nose_type == "button":
-            caller.appearance.add(
-                "nose_type",
-                "Nose Type",
-                trait_type="trait",
-                value=appearances.CharacterNoseType.BUTTON,
-            )
-        elif nose_type == "flat":
-            caller.appearance.add(
-                "nose_type",
-                "Nose Type",
-                trait_type="trait",
-                value=appearances.CharacterNoseType.FLAT,
-            )
-        elif nose_type == "wide":
-            caller.appearance.add(
-                "nose_type",
-                "Nose Type",
-                trait_type="trait",
-                value=appearances.CharacterNoseType.WIDE,
-            )
-        else:
-            return "chargen_appearance"
-
-        return "chargen_appearance"
-
     text = "|CSelect your Nose Type|n:\n"
     options = (
         {"key": "", "goto": "appearance_nose_type"},
         {
             "key": ("1", "aquiline", "a"),
             "desc": "Aquiline",
-            "goto": (_set_nose_type, {"nose_type": "aquiline"}),
+            "goto": ("chargen_appearance_template", kwargs | {"nose_type": "aquiline"}),
         },
         {
             "key": ("2", "button", "b"),
             "desc": "Button",
-            "goto": (_set_nose_type, {"nose_type": "button"}),
+            "goto": ("chargen_appearance_template", kwargs | {"nose_type": "button"}),
         },
         {
             "key": ("3", "flat", "f"),
             "desc": "Flat",
-            "goto": (_set_nose_type, {"nose_type": "flat"}),
+            "goto": ("chargen_appearance_template", kwargs | {"nose_type": "flat"}),
         },
         {
             "key": ("4", "wide", "w"),
             "desc": "Wide",
-            "goto": (_set_nose_type, {"nose_type": "wide"}),
+            "goto": ("chargen_appearance_template", kwargs | {"nose_type": "wide"}),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": "chargen_appearance_template"},
     )
 
     return text, options
 
 
 def appearance_mouth_type(caller, raw_string, **kwargs):
-    def _set_mouth_type(caller, **kwargs):
-        mouth_type = kwargs.get("mouth_type", None)
-        if mouth_type == "full":
-            caller.appearance.add(
-                "mouth_type",
-                "Mouth Type",
-                trait_type="trait",
-                value=appearances.CharacterMouthType.FULL,
-            )
-        elif mouth_type == "small":
-            caller.appearance.add(
-                "mouth_type",
-                "Mouth Type",
-                trait_type="trait",
-                value=appearances.CharacterMouthType.SMALL,
-            )
-        elif mouth_type == "thin":
-            caller.appearance.add(
-                "mouth_type",
-                "Mouth Type",
-                trait_type="trait",
-                value=appearances.CharacterMouthType.THIN,
-            )
-        elif mouth_type == "wide":
-            caller.appearance.add(
-                "mouth_type",
-                "Mouth Type",
-                trait_type="trait",
-                value=appearances.CharacterMouthType.WIDE,
-            )
-        else:
-            return "chargen_appearance"
-
-        return "chargen_appearance"
-
     text = "|CSelect your Mouth Type|n:\n"
     options = (
         {"key": "", "goto": "appearance_mouth_type"},
         {
             "key": ("1", "full", "f"),
             "desc": "Full",
-            "goto": (_set_mouth_type, {"mouth_type": "full"}),
+            "goto": ("chargen_appearance_template", kwargs | {"mouth_type": "full"}),
         },
         {
             "key": ("2", "small", "s"),
             "desc": "Small",
-            "goto": (_set_mouth_type, {"mouth_type": "small"}),
+            "goto": ("chargen_appearance_template", kwargs | {"mouth_type": "small"}),
         },
         {
             "key": ("3", "thin", "t"),
             "desc": "Thin",
-            "goto": (_set_mouth_type, {"mouth_type": "thin"}),
+            "goto": ("chargen_appearance_template", kwargs | {"mouth_type": "thin"}),
         },
         {
             "key": ("4", "wide", "w"),
             "desc": "Wide",
-            "goto": (_set_mouth_type, {"mouth_type": "wide"}),
+            "goto": ("chargen_appearance_template", kwargs | {"mouth_type": "wide"}),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": "chargen_appearance_template"},
     )
 
     return text, options
 
 
 def appearance_jaw_type(caller, raw_string, **kwargs):
-    def _set_jaw_type(caller, **kwargs):
-        jaw_type = kwargs.get("jaw_type", None)
-        if jaw_type == "pointed":
-            caller.appearance.add(
-                "jaw_type",
-                "Jaw Type",
-                trait_type="trait",
-                value=appearances.CharacterJawType.POINTED,
-            )
-        elif jaw_type == "round":
-            caller.appearance.add(
-                "jaw_type",
-                "Jaw Type",
-                trait_type="trait",
-                value=appearances.CharacterJawType.ROUND,
-            )
-        elif jaw_type == "square":
-            caller.appearance.add(
-                "jaw_type",
-                "Jaw Type",
-                trait_type="trait",
-                value=appearances.CharacterJawType.SQUARE,
-            )
-        else:
-            return "chargen_appearance"
-
-        return "chargen_appearance"
-
     text = "|CSelect your Jaw Type|n:\n"
     options = (
         {"key": "", "goto": "appearance_jaw_type"},
         {
             "key": ("1", "pointed", "p"),
             "desc": "Pointed",
-            "goto": (_set_jaw_type, {"jaw_type": "pointed"}),
+            "goto": ("chargen_appearance_template", kwargs | {"jaw_type": "pointed"}),
         },
         {
             "key": ("2", "round", "r"),
             "desc": "Round",
-            "goto": (_set_jaw_type, {"jaw_type": "round"}),
+            "goto": ("chargen_appearance_template", kwargs | {"jaw_type": "round"}),
         },
         {
             "key": ("3", "square", "s"),
             "desc": "Square",
-            "goto": (_set_jaw_type, {"jaw_type": "square"}),
+            "goto": ("chargen_appearance_template", kwargs | {"jaw_type": "square"}),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": "chargen_appearance_template"},
     )
 
     return text, options
 
 
 def appearance_eyebrow_type(caller, raw_string, **kwargs):
-    def _set_eyebrow_type(caller, **kwargs):
-        eyebrow_type = kwargs.get("eyebrow_type", None)
-        if eyebrow_type == "arched":
-            caller.appearance.add(
-                "eyebrow_type",
-                "Eyebrow Type",
-                trait_type="trait",
-                value=appearances.CharacterEyebrowType.ARCHED,
-            )
-        elif eyebrow_type == "straight":
-            caller.appearance.add(
-                "eyebrow_type",
-                "Eyebrow Type",
-                trait_type="trait",
-                value=appearances.CharacterEyebrowType.STRAIGHT,
-            )
-        elif eyebrow_type == "thick":
-            caller.appearance.add(
-                "eyebrow_type",
-                "Eyebrow Type",
-                trait_type="trait",
-                value=appearances.CharacterEyebrowType.THICK,
-            )
-        elif eyebrow_type == "thin":
-            caller.appearance.add(
-                "eyebrow_type",
-                "Eyebrow Type",
-                trait_type="trait",
-                value=appearances.CharacterEyebrowType.THIN,
-            )
-        else:
-            return "chargen_appearance"
-
-        return "chargen_appearance"
-
     text = "|CSelect your Eyebrow Type|n:\n"
     options = (
         {"key": "", "goto": "appearance_eyebrow_type"},
         {
             "key": ("1", "arched", "a"),
             "desc": "Arched",
-            "goto": (_set_eyebrow_type, {"eyebrow_type": "arched"}),
+            "goto": (
+                "chargen_appearance_template",
+                kwargs | {"eyebrow_type": "arched"},
+            ),
         },
         {
             "key": ("2", "straight", "s"),
             "desc": "Straight",
-            "goto": (_set_eyebrow_type, {"eyebrow_type": "straight"}),
+            "goto": (
+                "chargen_appearance_template",
+                kwargs | {"eyebrow_type": "straight"},
+            ),
         },
         {
             "key": ("3", "thick", "t"),
             "desc": "Thick",
-            "goto": (_set_eyebrow_type, {"eyebrow_type": "thick"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eyebrow_type": "thick"}),
         },
         {
             "key": ("4", "thin", "th"),
             "desc": "Thin",
-            "goto": (_set_eyebrow_type, {"eyebrow_type": "thin"}),
+            "goto": ("chargen_appearance_template", kwargs | {"eyebrow_type": "thin"}),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": "chargen_appearance_template"},
     )
 
     return text, options
