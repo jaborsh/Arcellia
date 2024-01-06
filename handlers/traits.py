@@ -515,7 +515,7 @@ _SA = object.__setattr__
 _DA = object.__delattr__
 
 # this is the default we offer in TraitHandler.add
-DEFAULT_TRAIT_TYPE = "static"
+DEFAULT_TRAIT_TYPE = "trait"
 
 
 class TraitException(RuntimeError):
