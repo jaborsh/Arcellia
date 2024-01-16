@@ -1,10 +1,11 @@
 from math import ceil
 
 from django.conf import settings
+from parsing.colors import strip_ansi
+
 from evennia.utils.evmenu import EvMenu
 from evennia.utils.evtable import EvColumn, EvTable
 from evennia.utils.utils import dedent, m_len
-from parsing.colors import strip_ansi
 
 _MAX_TEXT_WIDTH = settings.CLIENT_DEFAULT_WIDTH
 
@@ -124,7 +125,7 @@ class AMenu(EvMenu):
         ncols = 1 if ncols == 0 else ncols
 
         # minimum number of rows in a column
-        min_rows = 4
+        min_rows = 5
 
         # split the items into columns
         split = max(min_rows, ceil(len(table) / ncols))
