@@ -749,8 +749,6 @@ class Room(Object, DefaultRoom):
             nthings = len(thinglist)
             thing = thinglist[0]
             singular, plural = thing.get_numbered_name(nthings, looker, key=thingname)
-            print(singular)
-            print(plural)
             thing_names.append(singular if nthings == 1 else plural)
         thing_names = iter_to_str(thing_names)
         return f"\n{thing_names}" if thing_names else ""
