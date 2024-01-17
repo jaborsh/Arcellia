@@ -1,17 +1,17 @@
 import re
 
 from django.conf import settings
+from parsing.text import wrap
+from server.conf.settings import SERVERNAME
+from world.amenu import AMenu
+
+from commands.command import Command
 from evennia import InterruptCommand
 from evennia.commands.default import building, muxcommand
 from evennia.contrib.grid.xyzgrid.xyzroom import XYZRoom
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import class_from_module
 from evennia.utils.utils import inherits_from
-from parsing.text import wrap
-from server.conf.settings import SERVERNAME
-from world.amenu import AMenu
-
-from commands.command import Command
 
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 
@@ -34,11 +34,12 @@ class CmdTest(Command):
     def func(self):
         AMenu(
             self.caller,
-            "world.chargen.menu",
-            startnode="chargen_welcome",
+            "world.tutorial.interactions.nautilus_brain",
+            startnode="node_start",
             auto_look=True,
             auto_help=True,
             persistent=True,
+            cmd_on_exit=None,
         )
 
 

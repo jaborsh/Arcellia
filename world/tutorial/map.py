@@ -1,4 +1,5 @@
-ROOM_PARENT = {"typeclass": "typeclasses.rooms.XYRoom"}
+ROOM_PARENT = {"typeclass": "world.tutorial.rooms.NautilusRoom"}
+MAP_ROOM = {"typeclass": "world.tutorial.rooms.NautilusMapRoom"}
 EXIT_PARENT = {"typeclass": "typeclasses.exits.XYExit"}
 
 TUTORIAL_MAP = r"""
@@ -195,7 +196,10 @@ PROTOTYPES = {
 
 for key, prot in PROTOTYPES.items():
     if len(key) == 2:
-        prot["prototype_parent"] = ROOM_PARENT
+        if key == (1, 2):
+            prot["prototype_parent"] = MAP_ROOM
+        else:
+            prot["prototype_parent"] = ROOM_PARENT
     else:
         prot["prototype_parent"] = EXIT_PARENT
 

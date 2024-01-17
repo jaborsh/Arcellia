@@ -4,6 +4,7 @@ from django.conf import settings
 from parsing.colors import strip_ansi
 from server.conf import logger
 from typeclasses.clothing import CLOTHING_OVERALL_LIMIT, Clothing
+from world.amenu import AMenu
 
 from commands.command import Command
 from evennia import InterruptCommand
@@ -28,10 +29,10 @@ __all__ = [
     "CmdFeel",
     "CmdGet",
     "CmdGive",
+    "CmdInteract",
     "CmdInventory",
     "CmdListen",
     "CmdLook",
-    "CmdNod",
     "CmdPut",
     "CmdRemove",
     "CmdSay",
@@ -42,20 +43,6 @@ __all__ = [
     "CmdWear",
     "CmdWhisper",
 ]
-
-
-class CmdNod(Command):
-    """
-    Nod.
-    """
-
-    key = "nod"
-
-    def func(self):
-        caller = self.caller
-        caller.location.msg_contents(
-            "$You() $conj(nod).", from_obj=caller, exclude=caller
-        )
 
 
 class CmdAlias(general.CmdNick):
@@ -575,6 +562,45 @@ class CmdGive(general.CmdGive):
             target.msg(f"{caller.key} gives you {singular}.")
             # Call the object script's at_give() method.
             to_give.at_give(caller, target)
+
+
+class CmdInteract(Command):
+    """
+    Syntax: interact
+            interact <target>
+
+    This command allows the player to interact with the specified target.
+    """
+
+    key = "interact"
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+
+        if not args:
+            if not (interaction := caller.location.db.interaction):
+                return caller.msg("Interact with what?")
+        else:
+            target = caller.search(args)
+            if not target:
+                return
+
+            if not (interaction := target.db.interaction):
+                return caller.msg(
+                    f"{target.get_display_name(caller)} is not interactive."
+                )
+
+        AMenu(
+            caller,
+            interaction,
+            startnode="node_start",
+            auto_look=True,
+            auto_help=True,
+            persistent=True,
+            cmd_on_exit=None,
+        )
 
 
 class CmdInventory(Command):

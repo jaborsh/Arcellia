@@ -12,6 +12,7 @@ from textwrap import dedent
 
 from django.conf import settings
 from django.db.models import Q
+
 from evennia import FuncParser, gametime
 from evennia.contrib.grid.xyzgrid import xyzroom
 from evennia.objects.objects import DefaultRoom
@@ -173,6 +174,9 @@ class Room(Object, DefaultRoom):
     def at_init(self):
         """Evennia hook. Start up repeating function whenever object loads into memory."""
         self._start_broadcast_repeat_task()
+
+    def at_object_creation(self):
+        self.db.mobs = []
 
     def at_object_delete(self):
         if self.db.mobs:

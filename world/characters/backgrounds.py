@@ -1,6 +1,6 @@
 from class_registry import ClassRegistry
 
-background_registry = ClassRegistry("name")
+BackgroundRegistry = ClassRegistry("background")
 
 BACKGROUND_INFO_DICT = {
     "acolyte": "|YAcolyte|n:\n\nHere, in the cloistered recesses of a sanctified monastery, a young acolyte finds solace, the air imbued with currents of piety and the scent of incense. Devoted from a tender age, with incandescent hope kindling a fire within, the acolyte learns the lore of the celestial beings and the cryptic cadence of sacred chants. Anointed into service, chosen by fate or divine whim, the acolyte's spirit entwines with the arcane and the prophetic. Vows uttered in reverent tones bind this pupil to a life of devout study, shaping the essence of being, refining body and soul for the pious battle against the encroaching shades of malevolence.",
@@ -23,76 +23,76 @@ class CharacterBackground:
     pass
 
 
-@background_registry.register
+@BackgroundRegistry.register
 class Adventurer(CharacterBackground):
-    name = "adventurer"
+    background = "adventurer"
 
 
-@background_registry.register
+@BackgroundRegistry.register
 class Acolyte(CharacterBackground):
-    name = "acolyte"
+    background = "acolyte"
 
 
-@background_registry.register
+@BackgroundRegistry.register
 class Charlatan(CharacterBackground):
-    name = "charlatan"
+    background = "charlatan"
 
 
-@background_registry.register
+@BackgroundRegistry.register
 class Criminal(CharacterBackground):
-    name = "criminal"
+    background = "criminal"
 
 
-@background_registry.register
+@BackgroundRegistry.register
 class Entertainer(CharacterBackground):
-    name = "entertainer"
+    background = "entertainer"
 
 
-@background_registry.register
+@BackgroundRegistry.register
 class FolkHero(CharacterBackground):
-    name = "folk hero"
+    background = "folk hero"
 
 
-@background_registry.register
+@BackgroundRegistry.register
 class GuildArtisan(CharacterBackground):
-    name = "guild artisan"
+    background = "guild artisan"
 
 
-@background_registry.register
+@BackgroundRegistry.register
 class Hermit(CharacterBackground):
-    name = "hermit"
+    background = "hermit"
 
 
-@background_registry.register
+@BackgroundRegistry.register
 class Merchant(CharacterBackground):
-    name = "merchant"
+    background = "merchant"
 
 
-@background_registry.register
+@BackgroundRegistry.register
 class Noble(CharacterBackground):
-    name = "noble"
+    background = "noble"
 
 
-@background_registry.register
+@BackgroundRegistry.register
 class Outlander(CharacterBackground):
-    name = "outlander"
+    background = "outlander"
 
 
-@background_registry.register
+@BackgroundRegistry.register
 class Sage(CharacterBackground):
-    name = "sage"
+    background = "sage"
 
 
-@background_registry.register
+@BackgroundRegistry.register
 class Sailor(CharacterBackground):
-    name = "sailor"
+    background = "sailor"
 
 
-@background_registry.register
+@BackgroundRegistry.register
 class Soldier(CharacterBackground):
-    name = "soldier"
+    background = "soldier"
 
 
-@background_registry.register
+@BackgroundRegistry.register
 class Urchin(CharacterBackground):
-    name = "urchin"
+    background = "urchin"

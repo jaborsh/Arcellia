@@ -1,6 +1,6 @@
 from class_registry import ClassRegistry
 
-race_registry = ClassRegistry("name")
+RaceRegistry = ClassRegistry("race")
 
 RACE_INFO_DICT = {
     "human": "|YHumans|n:\n\nThey are creatures of passion and paradox, canvases of immeasurable depth painted with the vibrant hues of their experiences. In their eyes, one finds the glimmer of stars they have yet to chart, and in the steady rhythm of their hearts, the beat of the ancient drums that have long echoed through the corridors of time. Bound to the wheel of progress, humans traverse the breadth of their realm with insatiable curiosity. They are builders and dreamers, forging empires from the raw materials of nature, etching their histories into the stones of the world. With hands capable of both creation and destruction, they mold their destinies, leaving the legacies of their triumphs and tragedies. Amongst them walk the valiant and the villainous, a spectrum of souls whose choices thread the fine line between heroism and infamy. Love is their greatest strength, and it is love that can be their undoing - such are the stark contrasts that define them. Every smile and tear, a note in the human spirit.",  # noqa: E501
@@ -40,96 +40,96 @@ class CharacterRace:
     pass
 
 
-@race_registry.register
+@RaceRegistry.register
 class Human(CharacterRace):
-    name = "human"
+    race = "human"
 
 
-@race_registry.register
+@RaceRegistry.register
 class Elf(CharacterRace):
-    name = "elf"
+    race = "elf"
 
 
-@race_registry.register
+@RaceRegistry.register
 class HighElf(Elf):
-    name = "high elf"
+    race = "high elf"
 
 
-@race_registry.register
+@RaceRegistry.register
 class NightElf(Elf):
-    name = "night elf"
+    race = "night elf"
 
 
-@race_registry.register
+@RaceRegistry.register
 class WoodElf(Elf):
-    name = "wood elf"
+    race = "wood elf"
 
 
-@race_registry.register
+@RaceRegistry.register
 class Dwarf(CharacterRace):
-    name = "dwarf"
+    race = "dwarf"
 
 
-@race_registry.register
+@RaceRegistry.register
 class EmberheartDwarf(Dwarf):
-    name = "emberheart dwarf"
+    race = "emberheart dwarf"
 
 
-@race_registry.register
+@RaceRegistry.register
 class StoneguardDwarf(Dwarf):
-    name = "stoneguard dwarf"
+    race = "stoneguard dwarf"
 
 
-@race_registry.register
+@RaceRegistry.register
 class IronveinDwarf(Dwarf):
-    name = "ironvein dwarf"
+    race = "ironvein dwarf"
 
 
-@race_registry.register
+@RaceRegistry.register
 class Gnome(CharacterRace):
-    name = "gnome"
+    race = "gnome"
 
 
-@race_registry.register
+@RaceRegistry.register
 class DuskGnome(Gnome):
-    name = "dusk gnome"
+    race = "dusk gnome"
 
 
-@race_registry.register
+@RaceRegistry.register
 class HearthGnome(Gnome):
-    name = "hearth gnome"
+    race = "hearth gnome"
 
 
-@race_registry.register
+@RaceRegistry.register
 class SylvanGnome(Gnome):
-    name = "sylvan gnome"
+    race = "sylvan gnome"
 
 
-@race_registry.register
+@RaceRegistry.register
 class Nymph(CharacterRace):
-    name = "nymph"
+    race = "nymph"
 
 
-@race_registry.register
+@RaceRegistry.register
 class Orc(CharacterRace):
-    name = "orc"
+    race = "orc"
 
 
-@race_registry.register
+@RaceRegistry.register
 class Pyreling(CharacterRace):
-    name = "pyreling"
+    race = "pyreling"
 
 
-@race_registry.register
+@RaceRegistry.register
 class ArcanistPyreling(Pyreling):
-    name = "arcanist pyreling"
+    race = "arcanist pyreling"
 
 
-@race_registry.register
+@RaceRegistry.register
 class EmberkinPyreling(Pyreling):
-    name = "emberkin pyreling"
+    race = "emberkin pyreling"
 
 
-@race_registry.register
+@RaceRegistry.register
 class WarbrandPyreling(Pyreling):
-    name = "warbrand pyreling"
+    race = "warbrand pyreling"
