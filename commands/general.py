@@ -684,12 +684,27 @@ class CmdListen(Command):
 
     def func(self):
         caller = self.caller
+        args = self.args.strip()
+
+        if not args:
+            caller.location.msg_contents(
+                "$You() $conj(listen) to the surroundings.",
+                from_obj=caller,
+                exclude=caller,
+            )
+            return caller.msg(caller.location.smell)
+
+        obj = caller.search(args)
+        if not obj:
+            return
 
         caller.location.msg_contents(
-            "$You() $conj(listen) to the surroundings.", from_obj=caller, exclude=caller
+            "$You() $conj(listen) to %s." % obj.display_name,
+            from_obj=caller,
+            exclude=caller,
         )
 
-        caller.msg(caller.location.sound)
+        caller.msg(obj.sound)
 
 
 class CmdLook(general.CmdLook):
