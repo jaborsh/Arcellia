@@ -1,6 +1,5 @@
 from evennia.utils import dedent
 from world.characters import backgrounds, genders, races
-from world.registries import BackgroundRegistry, RaceRegistry
 
 _BACKGROUND_INFO_DICT = backgrounds.BACKGROUND_INFO_DICT
 
@@ -122,7 +121,7 @@ def chargen_race(caller, raw_string, **kwargs):
         else:
             race_type = f"{race}"
 
-        race_type = RaceRegistry.get(race_type)
+        race_type = races.RaceRegistry.get(race_type)
 
         if not race_type:
             caller.msg("An error occurred. Contact an administrator.")
@@ -214,7 +213,7 @@ def chargen_race(caller, raw_string, **kwargs):
 def chargen_background(caller, raw_string, **kwargs):
     def _set_background(caller, **kwargs):
         background = kwargs.get("selected_background", None)
-        background = BackgroundRegistry.get(background)
+        background = backgrounds.BackgroundRegistry.get(background)
 
         if not background:
             caller.msg("An error occurred. Contact an administrator.")
