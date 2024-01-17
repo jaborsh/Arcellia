@@ -1,3 +1,6 @@
+ROOM_PARENT = {"typeclass": "typeclasses.rooms.XYRoom"}
+EXIT_PARENT = {"typeclass": "typeclasses.exits.XYExit"}
+
 TUTORIAL_MAP = r"""
  + 0 1 2 3 4
 
@@ -53,8 +56,7 @@ PROTOTYPES = {
         "details": {
             "locket": "The locket, its once lustrous surface now dulled to a somber silver, lies open, reveleaing a miniature painted portrait protected by a thin sheet of cloudy glass. Weathered by both time and tide, the likeness within gazes out with colors that struggle against the encroachment of decay, their vibrancy a faint whisper of past affections.",
             "compass": "The compass, encased in a copper shell turned verdigris at the edges, sits heavy and immobile. Its face still gleams faintly when caught by stray shafts of light, the cardinal points etched deeply into the medal as a lasting declaration of direction in a world on the waves.",
-            "coins": "Surrounding the other artifacts, coils spill across the chest, their diversity a small treasure trove of tales from afar but ultimately foreign and useless to you. Each disc, whether gilt or silvery or possessing the burnished warmth of copper, carries upon it the countenance of a soverign or the sigil of a distant land, the raised details catching the dim light as if holding one last time to the days above the deep."
-            # "chest": "Upon closer inspection, the chest's surface reveals intricate handwork; each etched creature seems to swim across the wood grain, caught mid-leap amidst a silent, siren's call.",
+            "coins": "Surrounding the other artifacts, coils spill across the chest, their diversity a small treasure trove of tales from afar but ultimately foreign and useless to you. Each disc, whether gilt or silvery or possessing the burnished warmth of copper, carries upon it the countenance of a soverign or the sigil of a distant land, the raised details catching the dim light as if holding one last time to the days above the deep.",
         },
     },
     (2, 1): {
@@ -94,10 +96,8 @@ PROTOTYPES = {
             "taste": "There's a subtle flavor to the air, as if one can taste the myriad climates and terrains spoken of within the tome, each page a new environment.",
         },
         "details": {
-            (
-                "volume",
-                "tome",
-            ): "The tome's spine creaks with the weight of its contents, the gilt lettering proclaiming it as a chronicle of epic proportions - a compendium of a millennia - spanning tales of humanoid kinship and strife. Elves, dwarves, humans, and countless others fill its pages with their triumphs and tribulations, the densely penned text at times giving way to intricate illustrations that leap from the pages as if alive with their own ancient essence."
+            "volume": "The tome's spine creaks with the weight of its contents, the gilt lettering proclaiming it as a chronicle of epic proportions - a compendium of a millennia - spanning tales of humanoid kinship and strife. Elves, dwarves, humans, and countless others fill its pages with their triumphs and tribulations, the densely penned text at times giving way to intricate illustrations that leap from the pages as if alive with their own ancient essence.",
+            "tome": "The tome's spine creaks with the weight of its contents, the gilt lettering proclaiming it as a chronicle of epic proportions - a compendium of a millennia - spanning tales of humanoid kinship and strife. Elves, dwarves, humans, and countless others fill its pages with their triumphs and tribulations, the densely penned text at times giving way to intricate illustrations that leap from the pages as if alive with their own ancient essence.",
         },
     },
     (2, 2): {
@@ -189,4 +189,20 @@ PROTOTYPES = {
             "windows": "The arched windows encompass the room's forward wall, crafted to withstand the ocean's wrath. They offer a portal to the vast theater of the sea, framing the ever-changing view that is part sailor's dream, part navigator's challenge.",
         },
     },
+    ("*", "*"): {},
+    ("*", "*", "*"): {},
 }
+
+for key, prot in PROTOTYPES.items():
+    if len(key) == 2:
+        prot["prototype_parent"] = ROOM_PARENT
+    else:
+        prot["prototype_parent"] = EXIT_PARENT
+
+XYMAP_DATA_TUTORIAL = {
+    "zcoord": "nautilus",
+    "map": TUTORIAL_MAP,
+    "prototypes": PROTOTYPES,
+}
+
+XYMAP_DATA_LIST = [XYMAP_DATA_TUTORIAL]
