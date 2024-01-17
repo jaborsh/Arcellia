@@ -298,8 +298,8 @@ def chargen_appearance(caller, raw_string, **kwargs):
 
 
 def chargen_appearance_detailed(caller, raw_string, **kwargs):
-    def _set_appearance(caller, appearance, **kwargs):
-        caller.db.desc = appearance.strip()
+    def _set_appearance(caller, **kwargs):
+        caller.db.desc = kwargs.get("appearance").strip()
         return ("chargen_apperance_detailed", {"appearance": appearance.strip()})
 
     if appearance := kwargs.get("appearance", None):
