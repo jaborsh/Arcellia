@@ -298,12 +298,12 @@ def chargen_appearance(caller, raw_string, **kwargs):
 
 
 def chargen_appearance_detailed(caller, raw_string, **kwargs):
-    def _set_appearance(caller, **kwargs):
-        caller.db.desc = kwargs.get("appearance").strip()
-        return ("chargen_apperance_detailed", {"appearance": appearance.strip()})
+    def _set_appearance(caller, raw_string, **kwargs):
+        caller.db.desc = raw_string.strip()
+        return ("chargen_appearance_detailed", {"appearance": caller.db.desc})
 
     if appearance := kwargs.get("appearance", None):
-        text = f"|CConfirm your Appearance|n:\n{appearance}"
+        text = f"\n{appearance}\n\n|CConfirm your Appearance|n:"
         options = (
             {"key": "y", "desc": "Confirm Appearance", "goto": "chargen_finalize"},
             {
@@ -322,7 +322,7 @@ def chargen_appearance_detailed(caller, raw_string, **kwargs):
         )
         options = (
             {"key": "", "goto": "chargen_appearance_detailed"},
-            {"key": "_default", "goto": (_set_appearance, {"appearance": raw_string})},
+            {"key": "_default", "goto": _set_appearance},
         )
 
     return text, options
