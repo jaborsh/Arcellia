@@ -678,7 +678,7 @@ class Room(Object, DefaultRoom):
             char.get_display_name(looker, **kwargs) for char in characters
         )
 
-        return f"\n{character_names}\n" if character_names else "\n"
+        return f"\n{character_names}\n" if character_names else ""
 
     def get_display_mobs(self, looker, **kwargs):
         """
@@ -749,6 +749,8 @@ class Room(Object, DefaultRoom):
             nthings = len(thinglist)
             thing = thinglist[0]
             singular, plural = thing.get_numbered_name(nthings, looker, key=thingname)
+            print(singular)
+            print(plural)
             thing_names.append(singular if nthings == 1 else plural)
         thing_names = iter_to_str(thing_names)
         return f"\n{thing_names}" if thing_names else ""
