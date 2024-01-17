@@ -13,7 +13,7 @@ PROTOTYPES = {
     },
 }
 
-CREATION_ROOM_PARENT = {"typeclass": "typeclasses.chargen.rooms.CreationRoom"}
+CREATION_ROOM_PARENT = {"typeclass": "world.chargen.rooms.CreationRoom"}
 CREATION_EXIT_PARENT = {"typeclass": "typeclasses.exits.XYExit"}
 
 for key, prot in PROTOTYPES.items():
