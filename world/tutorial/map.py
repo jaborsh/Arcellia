@@ -6,8 +6,8 @@ TUTORIAL_MAP = r"""
  3   #---+-#
      |   | |
  2 #-#-# #-#
-     |     |
- 1 #-#-#   #
+     |     
+ 1 #-#-#   
      |
  0   #
 
@@ -148,8 +148,45 @@ PROTOTYPES = {
             "lanterns": "The lanterns, their light extinguished, are sheathed in the accumulated grime of a tragedy silent and unseen, the faint outlines of their form barely discernible in the cloaking darkness.",
         },
     },
-    (4, 2): {},
-    (4, 1): {},
-    (3, 2): {},
-    (3, 4): {},
+    (4, 2): {
+        "key": "|CThe Nautilus - Morphosis Room|n",
+        "desc": "Enclosed by walls etched with a menacing lexicon of rooms, the chamber harbors an air of imminent darkness. A viscous, scarlet gleam emanates from the cryptic symbols, casting the room in a ghastly tableau as if illuminated by the very essence of malice. Fresh gore adheres to the surface of the floor, its viscosity narrating a grim chronicle of ritual and sacrifice. At the heart lies a shadowed altar, crafted from somber stone, besieged by a horde of unsanitary instruments and blood-stained blades. The atmosphere vibrates with eldritch energy, a palpable presence that imbues the sinister sigils with a pulsating life, as though on the verge of birthing some abhorrent sentience.",
+        "senses": {
+            "feel": "A sweltering heat envelops the chamber, the warmth of spilt life force and abhorrent ceremonies suffusing every corner.",
+            "smell": "An ironclad odor clings to the air, permeated by the stench of smoldering incense and the undeclared scents of dark conjurations.",
+            "sound": "An eerie resonance pervades the stillness, the whisper of otherworldly entities caressing the edges of reality, drawn forth by the chamber's bloodied inscriptions.",
+            "taste": "The foul essence of blood and brimstone lingers on the tongue, an unsettling reminder of the chamber's vile purpose.",
+        },
+        "details": {
+            "altar": "Centrally placed, the altar is a slab of darkness, its surface a canvas of arcane imagery weeping with the freshness of scarlet offerings."
+        },
+    },
+    (3, 2): {
+        "key": "|CThe Nautilus - Entrance to the Helm|n",
+        "desc": "An ornate door stands as the silent guardian to the vessel's command center, a threshold that separates the chaos of the sea from the calculated order required to navigate it. Resilient oak panels, bound by bands of deep bronze, are adorned with carvings that depict roiling waves and mythic creatures of the deep. Above, the transom is inlaid with stained glass of cobalt and khaki, depicting a compass rose that filters the ambient light into a map of colors on the floor. Heavy iron hinges strain silently, patinated by salt and spray.",
+        "senses": {
+            "feel": "An aura of anticipation brushes against those who approach, the air charged with the import of countless decisions made just beyond.",
+            "smell": "The scent of aged wood and a tinge of metal polish rise from the door, mingling with the omnipresent brine of the ocean.",
+            "sound": "Each movement near the entryway seems to carry an echo, as if the very air anticipates the creak of the hinges and the subsequent orders that will steer the ship's course.",
+            "taste": "There is a crispness here, as if one can taste the threshold between the tumult of outside elements and the stability that command necessitates.",
+        },
+    },
+    (3, 4): {
+        "key": "|CThe Nautilus - Helm|n",
+        "desc": "Arrayed with instruments of navigation and control, this chamber exudes an air of mastery over the unyielding sea. A large wheel, polished by years of seafaring hands, commands the space, its spokes reaching out like the rays of a maritime sun. Panels of brass fittings and gauges cluster in stations where maps lay sprawled, their meticulous details eager to be charted. Taut rope and varnished wooden planks lie beneath wide windows which arch across the forward wall, offering an unobstructed vista of the ocean's vast canvas, where the play of light and shadow dares the hopeful and the wary to peer into the abyss.|/|/    <morning>|#ffd700Sunrise ushers a golden radiance that bathes the room in hope, casting long shadows behind the helm's many contours and glinting off brass instruments with a dawning new day.|n</morning><afternoon>|#ffa500The high afternoon sun pours in, its brilliance sharp and clear, rendering the room a theater of light; every tool and surface reflects its strong, unwavering course across the sky.|n</afternoon><evening>|#dc143cAs dusk falls, the room is cloaked in amber hues of twilight, the gauges and maps thrown into soft relief while the wheel stands silhouetted against the shifting of night.|n</evening><night>|xUnder the cloak of night, the chamber assumes a subdued, mysterious aspect, the moon's silvered light tracing paths across the dashboard, a keeper of vigil in the unending obsidian expanse.|n</night>",
+        "senses": {
+            "feel": "The room confers a sense of hushed power, where the thrill of conquest over nature's wildest domain palpably shivers through the air.",
+            "smell": "A melange of polished wood, the oil of machinery, and a hint of saltwater creates a unique bouquet that is both invigorating and comforting.",
+            "sound": "Muted ticks and the gentle clinks of the navigator's tools provide a rhythmic accompaniment to the distant thrum of the sea against the hull.",
+            "taste": "The air carries with it the flavor of adventure, a hint of excitement and trepidation that combines with the essence of an ocean breeze.",
+        },
+        "details": {
+            "wheel": "The ship's wheel, an emblem of control, stands resolute. Its smooth, polished wood bears the indents of countless grasps, and the brass hub at its center gleams with the care befitting the helm's heart.",
+            "instruments": "Brass instruments, each one a marvel of maritime engineering, dot the space. Gauges measure depth and speed, their needles poised to jump at the ship's command, while astrolabes and compasses stand ready to navigate through the stars and the seas alike.",
+            "maps": "Sprawled across the tables, the maps portray a world of possibility. Inked coastlines and sketched terrain wait silently for the navigator's mark, the paper edges worn soft from the touch of pondering fingers.",
+            "rope": "Coils of rope, sinewy and strong, hang from their pegs. Each thread is woven tight, a testament to the strength and reliability demanded by the unpredictable waters that the ship charts.",
+            "wood": "The varnished beams and panels of the room exude a warmth only aged timber can. The grain patterns tell a tale of winds and waters weathered, the sheen a result of careful maintenance in the face of saline assaults.",
+            "windows": "The arched windows encompass the room's forward wall, crafted to withstand the ocean's wrath. They offer a portal to the vast theater of the sea, framing the ever-changing view that is part sailor's dream, part navigator's challenge.",
+        },
+    },
 }
