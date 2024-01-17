@@ -28,7 +28,7 @@ PROTOTYPES = {
             "taste": "The air bears the faint brine of tears unwept, a taste of salt upon the tongue.",
         },
         "details": {
-            "bunk": "A singular bunk stands apart, of furnishing sparse and unadorned; it is here the sole waking soul finds themselves, untethered from death's silent banquet."
+            "bunks": "A singular bunk stands apart, of furnishing sparse and unadorned; it is here the sole waking soul finds themselves, untethered from death's silent banquet."
         },
     },
     (0, 1): {
@@ -56,7 +56,7 @@ PROTOTYPES = {
         "details": {
             "locket": "The locket, its once lustrous surface now dulled to a somber silver, lies open, reveleaing a miniature painted portrait protected by a thin sheet of cloudy glass. Weathered by both time and tide, the likeness within gazes out with colors that struggle against the encroachment of decay, their vibrancy a faint whisper of past affections.",
             "compass": "The compass, encased in a copper shell turned verdigris at the edges, sits heavy and immobile. Its face still gleams faintly when caught by stray shafts of light, the cardinal points etched deeply into the medal as a lasting declaration of direction in a world on the waves.",
-            "coins": "Surrounding the other artifacts, coils spill across the chest, their diversity a small treasure trove of tales from afar but ultimately foreign and useless to you. Each disc, whether gilt or silvery or possessing the burnished warmth of copper, carries upon it the countenance of a soverign or the sigil of a distant land, the raised details catching the dim light as if holding one last time to the days above the deep.",
+            "coins": "Surrounding the other artifacts, coins spill across the chest, their diversity a small treasure trove of tales from afar but ultimately foreign and useless to you. Each disc, whether gilt or silvery or possessing the burnished warmth of copper, carries upon it the countenance of a soverign or the sigil of a distant land, the raised details catching the dim light as if holding one last time to the days above the deep.",
         },
     },
     (2, 1): {
@@ -119,7 +119,7 @@ PROTOTYPES = {
         "desc": "Beyond a jagged breach, the walls give way to the main deck, a sprawling expanse beneath the oppressive weight of the ocean's gaze. The planks groan under the pressure of unseen currents, the sound of a steady chorus of the ship's unrest. Masts stripped of their sails stand as barren pillars, watching over a deck strewn with the detrius of calamity - ropes lie in tangled heaps like serpents turned to stone, and broken barrels mingle with the remnants of the ship's once busy life.|/|/    <morning>|#ffd700The nascent glow of morning filters softly through the waters, hinting at a new day out of the reach in the somber deep.|n</morning><afternoon>|#ffa500An elusive warmth suggests afternoon's peak, the sun's rays striving vainly to penetrate the entombing depths.|n</afternoon><evening>|#dc143cThe vestiges of evening play across the watery expanse, casting wane, fading hues upon the derelict scene.|n</evening><night>|xIn the shroud of night, all remnants of day succumb to the undisturbed shadow that dances with the rhythm of the tides.|n</night>",
         "senses": {
             "feel": "An uneasy energy pervades the deck, a perversion of sea breezes now laden with the silent testimony of disaster.",
-            "smell": "The bracing scent of brine is here too, suffused with the acrid bite of seaweed decay and the must of waterlogged wood.",
+            "smell": "The bracing scent of brine is here too, suffused with the acrid bite of seaweed decay and the musk of waterlogged wood.",
             "sound": "The creak of the timeworn deck combines with the muffled, repetitive knocking of loose fittings against the ship's side, a forlorn rhythm in this underwater requiem.",
             "taste": "The taste of dampness and ruin clings to the tongue, hinting at the desolation that has enveloped this place of once well-trodden paths and shouted commands.",
         },
@@ -133,7 +133,7 @@ PROTOTYPES = {
     },
     (4, 3): {
         "key": "|CThe Nautilus - Inner Hold|n",
-        "desc": "Shrouded in insidious darkness, the hold below betrays its purpose with an unyielding grimness. Corrosion grips the iron lattice of cell doors, the once unwavering barriers succumbing to a relentless siege by salt and moisure. Narrow confines serve as punitive chambers - stark, unfurnished save for the barest necessities of a cot bolted firmly to the wall, a hard wooden bench, and a chamber pot. The air hangs thick with a stagnant heaviness as if suffused with the muted laments of souls once held within these oppressive walls. Extinct lanterns, spaced methodically along the corridor, offer no relief from the pervasive umbrage, their glassy eyes mirroring the void where hope's light has long since dwindled.",
+        "desc": "Shrouded in insidious darkness, the hold below betrays its purpose with an unyielding grimness. Corrosion grips the iron lattice of cell doors, the once unwavering barriers succumbing to a relentless siege by salt and moisture. Narrow confines serve as punitive chambers - stark, unfurnished save for the barest necessities of a cot bolted firmly to the wall, a hard wooden bench, and a chamber pot. The air hangs thick with a stagnant heaviness as if suffused with the muted laments of souls once held within these oppressive walls. Long-dead lanterns spaced methodically along the corridor offer no relief from the pervasive umbrage, their glassy eyes mirroring the void where hope's light has long since dwindled.",
         "senses": {
             "feel": "The chilling air within the hold clings to the skin, a damp shroud that seems to seep into the marrow.",
             "smell": "An odor of mildew and the ghost of brine-soaked wood combines with a pungent, iron tang of rust.",
@@ -150,7 +150,7 @@ PROTOTYPES = {
     },
     (4, 2): {
         "key": "|CThe Nautilus - Morphosis Room|n",
-        "desc": "Enclosed by walls etched with a menacing lexicon of rooms, the chamber harbors an air of imminent darkness. A viscous, scarlet gleam emanates from the cryptic symbols, casting the room in a ghastly tableau as if illuminated by the very essence of malice. Fresh gore adheres to the surface of the floor, its viscosity narrating a grim chronicle of ritual and sacrifice. At the heart lies a shadowed altar, crafted from somber stone, besieged by a horde of unsanitary instruments and blood-stained blades. The atmosphere vibrates with eldritch energy, a palpable presence that imbues the sinister sigils with a pulsating life, as though on the verge of birthing some abhorrent sentience.",
+        "desc": "Enclosed by walls etched with a menacing lexicon of runes, the chamber harbors an air of imminent darkness. A viscous, scarlet gleam emanates from the cryptic symbols, casting the room in a ghastly tableau as if illuminated by the very essence of malice. Fresh gore adheres to the surface of the floor, its viscosity narrating a grim chronicle of ritual and sacrifice. At the heart lies a shadowed altar, crafted from somber stone, besieged by a horde of unsanitary instruments and blood-stained blades. The atmosphere vibrates with eldritch energy, a palpable presence that imbues the sinister sigils with a pulsating life, as though on the verge of birthing some abhorrent sentience.",
         "senses": {
             "feel": "A sweltering heat envelops the chamber, the warmth of spilt life force and abhorrent ceremonies suffusing every corner.",
             "smell": "An ironclad odor clings to the air, permeated by the stench of smoldering incense and the undeclared scents of dark conjurations.",
@@ -158,7 +158,7 @@ PROTOTYPES = {
             "taste": "The foul essence of blood and brimstone lingers on the tongue, an unsettling reminder of the chamber's vile purpose.",
         },
         "details": {
-            "altar": "Centrally placed, the altar is a slab of darkness, its surface a canvas of arcane imagery weeping with the freshness of scarlet offerings."
+            "altar": "Centrally placed, the altar is a slab of darkness, its surface a canvas of arcane imagery weeping with the freshness of sanguine offerings."
         },
     },
     (3, 2): {
