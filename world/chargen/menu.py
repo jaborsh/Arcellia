@@ -1,3 +1,4 @@
+from evennia.contrib.grid.xyzgrid.xyzroom import XYZRoom
 from evennia.utils import dedent
 from world.characters import backgrounds, genders, races
 
@@ -849,5 +850,5 @@ def appearance_eyebrow_type(caller, raw_string, **kwargs):
 
 
 def chargen_finalize(caller, raw_string):
-    caller.move_to(caller.home, quiet=True)
+    caller.move_to(XYZRoom.objects.get_xyz(xyz=("1", "1", "nautilus")), quiet=True)
     return "", ""
