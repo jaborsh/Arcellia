@@ -4,7 +4,7 @@ from django.conf import settings
 from parsing.colors import strip_ansi
 from server.conf import logger
 from typeclasses.clothing import CLOTHING_OVERALL_LIMIT, Clothing
-from world.amenu import AMenu
+from typeclasses.menus import InteractionMenu
 
 from commands.command import Command
 from evennia import InterruptCommand
@@ -30,6 +30,7 @@ __all__ = [
     "CmdGet",
     "CmdGive",
     "CmdInteract",
+    "CmdInteractions",
     "CmdInventory",
     "CmdListen",
     "CmdLook",
@@ -592,15 +593,41 @@ class CmdInteract(Command):
                     f"{target.get_display_name(caller)} is not interactive."
                 )
 
-        AMenu(
+        InteractionMenu(
             caller,
             interaction,
             startnode="node_start",
             auto_look=True,
             auto_help=True,
             persistent=True,
-            cmd_on_exit=None,
         )
+
+
+class CmdInteractions(Command):
+    """
+    Syntax: interactions
+
+    View all the available interactions in your current location.
+    """
+
+    key = "interactions"
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+
+        interactions = [
+            item.get_display_name(caller)
+            for item in caller.location.contents
+            if item.db.interaction
+        ]
+
+        if not interactions:
+            return caller.msg("There are no interactions here.")
+
+        string = "Interactions:\n - "
+        string += "\n - ".join(interactions)
+        caller.msg(string)
 
 
 class CmdInventory(Command):

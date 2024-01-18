@@ -8,6 +8,15 @@ class NautilusRoom(rooms.XYRoom):
     This is a Tutorial room.
     """
 
+    def at_object_creation(self):
+        self.initialize_objects()
+
+    def initialize_objects(self):
+        pass
+
+    def initialize_mobs(self):
+        pass
+
 
 class NautilusMapRoom(NautilusRoom):
     """
@@ -17,15 +26,10 @@ class NautilusMapRoom(NautilusRoom):
     taken to feeding on the person.
     """
 
-    def at_object_creation(self):
-        self.db.interaction = "world.tutorial.interactions.nautilus_brain"
-        self.initialize_objects()
-
     def initialize_objects(self):
         create_object(
-            typeclass="world.tutorial.objects.ScalplessPerson",
-            key="person",
+            typeclass="world.tutorial.objects.BrokenBody",
+            key="body",
             location=self,
             home=self,
-            aliases=["corpse", "body"],
         )

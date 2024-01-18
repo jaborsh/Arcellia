@@ -3,7 +3,7 @@ import re
 from django.conf import settings
 from parsing.text import wrap
 from server.conf.settings import SERVERNAME
-from world.amenu import AMenu
+from typeclasses.menus import AMenu
 
 from commands.command import Command
 from evennia import InterruptCommand
