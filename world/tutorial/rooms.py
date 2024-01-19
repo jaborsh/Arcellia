@@ -18,6 +18,23 @@ class NautilusRoom(rooms.XYRoom):
         pass
 
 
+class NautilusSouthBerthing(NautilusRoom):
+    def initialize_objects(self):
+        chest = create_object(
+            typeclass="world.tutorial.objects.WoodenChest",
+            key="chest",
+            location=self,
+            home=self,
+        )
+
+        create_object(
+            typeclass="world.items.miscellaneous.gems.Onyx",
+            key="onyx",
+            location=chest,
+            home=chest,
+        )
+
+
 class NautilusMapRoom(NautilusRoom):
     """
     This is the Map Room with the open-skull body. When you interact with the
