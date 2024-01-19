@@ -1,40 +1,51 @@
 import random
 
 from evennia.utils import dedent
+from world.tutorial.quest import TutorialQuest
 
 
 def node_start(caller):
+    if not (quest := caller.quests.get("Tutorial")):
+        caller.quests.add(TutorialQuest)
+
+    caller.ndb._evmenu.quest = caller.quests.get("Tutorial")
+
     text = dedent(
         """\
         The navigator, easily identified by the tattered remnants of a seafarer's uniform, possesses hands forever stilled, their grip weaked around a set of charts, their lines and symbols no longer prescribed paths but rather a map of lost potential.
         """
     )
 
-    options = (
-        {"desc": "Investigate the Corpse", "goto": "node_investigate"},
-        {"desc": "Assess the Damage", "goto": "node_assessment"},
-        {"desc": "Leave", "goto": "node_quit"},
-    )
+    options = [{"desc": "Investigate the Corpse", "goto": "node_investigate"}]
+
+    if quest.stage == 0:
+        options.append({"desc": "Assess the Damage", "goto": "node_assessment"})
+
+    options.append({"desc": "Leave", "goto": "node_quit"})
 
     return text, options
 
 
-def node_investigate(caller):
+def node_investigate(caller, **kwargs):
     text = dedent(
         """\
         The scene before you burns with a haunting clarity despite the haze that shrouds your vision, as if mists of the mind seek to shield you from the starkness of reality. Yet there, in the midst of shadows and half-light, the figure of a man presents itself, its mortal journey concluded, yet within those sightless eyes a narrative seems to linger: a tale suspended in the glass of death's own gaze.|/|/A shiver winds its way down your spine. The heart aches, whether from the chill that grips the air or from the specter of a story left untold, and you find yourself beckoned by those dead eyes to peer into the abyss and comprehend the truths that lie within their ever-still watch.
         """
     )
 
-    options = (
-        {"desc": "Assess the Damage", "goto": "node_assessment"},
-        {"desc": "Leave", "goto": "node_quit"},
-    )
+    options = []
+
+    if caller.ndb._evmenu.quest.stage == 0:
+        options.append({"desc": "Assess the Damage", "goto": "node_assessment"})
+
+    options.append({"desc": "Leave", "goto": "node_quit"})
 
     return text, options
 
 
 def node_assessment(caller):
+    caller.quests.get("Tutorial").stage = 1
+
     if random.randint(1, 2) == 1:
         text = dedent(
             """\
@@ -80,7 +91,7 @@ def node_assessment_2(caller):
 def node_assessment_3(caller):
     text = dedent(
         """
-        A critical eye casts over the grim scene, taking in every detail with forensic precision. The absence of detritus near the fallen man, the lack of splintered remains one might expect to find had there been a forceful withdrawal, suggests a certain clealiness to the violent act. A silence hangs over the probable method of dispatch, as if the very air hesitates to confirm your suspicions.
+        A critical eye casts over the grim scene, taking in every detail with forensic precision. The absence of detritus near the fallen man, the lack of splintered remains one might expect to find had there been a forceful withdrawal, suggests a certain cleanliness to the violent act. A silence hangs over the probable method of dispatch, as if the very air hesitates to confirm your suspicions.
 
         The remnants of the scene intimate at a conclusion delivered swiftly from a distance - the hallmark of a projectile's lethal kiss. Not a blade or blunt instrument wielded by hand, which would have left a telltale trace of its passage back to the aggressor. A spell, perhaps.
         """
@@ -92,4 +103,4 @@ def node_assessment_3(caller):
 
 
 def node_quit(caller, raw_string, **kwargs):
-    return "", ""
+    return "You step away from the body.", ""

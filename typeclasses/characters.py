@@ -14,7 +14,7 @@ import os
 import re
 
 from django.conf import settings
-from handlers import clothing, cooldowns, traits
+from handlers import clothing, cooldowns, quests, traits
 from parsing.text import grammarize, wrap
 from server.conf import logger
 from world.characters.genders import CharacterGender
@@ -100,6 +100,10 @@ class Character(objects.Object, DefaultCharacter):
         return cooldowns.CooldownHandler(self)
 
     @lazy_property
+    def quests(self):
+        return quests.QuestHandler(self)
+
+    @lazy_property
     def stats(self):
         return traits.TraitHandler(self, db_attribute_key="stats")
 
@@ -113,10 +117,6 @@ class Character(objects.Object, DefaultCharacter):
     @property
     def gender(self):
         return self.character.get("gender") or CharacterGender.ANDROGYNOUS
-
-    # @property
-    # def character_class(self):
-    #    return self.character.get("character_class")
 
     @property
     def race(self):

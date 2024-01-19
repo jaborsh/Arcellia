@@ -9,7 +9,7 @@ class BrokenBody(Object):  # (1,2)
             "feel": "A visceral discomfort arises at the sight, a tension that coils in the pit of one's being, as if in the presence of nature's uncanny aberration.",
             "smell": "The metallic pungency of blood intermingles with the sterile scent of exposed cerebral matter.",
             "sound": "An unsettling silence emanates from the figure, their breaths having long since yielded to the quietude that now claims the air.",
-            "taste": "Climically bitter, the mind's flesh exudes an intangible flavor that speaks to innermost sanctums violated.",
+            "taste": "Clinically bitter, the mind's flesh exudes an intangible flavor that speaks to innermost sanctums violated.",
         }
         self.db.interaction = "world.tutorial.interactions.broken_body"
 
