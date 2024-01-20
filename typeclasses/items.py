@@ -6,24 +6,29 @@ from typeclasses.objects import Object
 
 
 class Item(Object):
+    def at_object_creation(self):
+        self.traits.add("price", "Price", trait_type="static", base=0)
+        self.traits.add("rarity", "Rarity", trait_type="trait", value=ItemRarity.COMMON)
+        self.traits.add("weight", "Weight", trait_type="static", base=0)
+
     @lazy_property
     def traits(self):
         return traits.TraitHandler(self, db_attribute_key="traits")
 
     @property
     def price(self):
-        return self.traits.get("price") or 0
+        return self.traits.get("price")
 
     @price.setter
     def price(self, value):
         if not isinstance(value, int):
             raise ValueError("Invalid price value.")
 
-        self.traits.add("price", value)
+        self.traits.price.base = value
 
     @property
     def rarity(self):
-        return self.traits.get("rarity") or ItemRarity.COMMON
+        return self.traits.get("rarity")
 
     @rarity.setter
     def rarity(self, value):
@@ -41,15 +46,15 @@ class Item(Object):
         elif not isinstance(value, ItemRarity):
             raise ValueError("Invalid rarity value.")
 
-        self.traits.add("rarity", value)
+        self.traits.rarity.value = value
 
     @property
     def weight(self):
-        return self.traits.get("weight") or 0
+        return self.traits.weight
 
     @weight.setter
     def weight(self, value):
         if not (isinstance(value, int) or isinstance(value, float)):
             raise ValueError("Invalid weight value.")
 
-        self.traits.add("weight", value)
+        self.traits.weight.base = value

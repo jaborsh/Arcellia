@@ -18,7 +18,7 @@ class NautilusRoom(rooms.XYRoom):
         pass
 
 
-class NautilusSouthBerthing(NautilusRoom):
+class NautilusBerthingSouth(NautilusRoom):
     def initialize_objects(self):
         chest = create_object(
             typeclass="world.tutorial.objects.WoodenChest",

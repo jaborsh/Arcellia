@@ -1,4 +1,5 @@
 ROOM_PARENT = {"typeclass": "world.tutorial.rooms.NautilusRoom"}
+BERTHING_SOUTH = {"typeclass": "world.tutorial.rooms.NautilusBerthingSouth"}
 MAP_ROOM = {"typeclass": "world.tutorial.rooms.NautilusMapRoom"}
 EXIT_PARENT = {"typeclass": "typeclasses.exits.XYExit"}
 
@@ -196,6 +197,8 @@ PROTOTYPES = {
 
 for key, prot in PROTOTYPES.items():
     if len(key) == 2:
+        if key == (1, 0):
+            prot["prototype_parent"] = BERTHING_SOUTH
         if key == (1, 2):
             prot["prototype_parent"] = MAP_ROOM
         else:

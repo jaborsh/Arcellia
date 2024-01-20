@@ -4,6 +4,7 @@ from world.items.rarity import ItemRarity
 
 class Onyx(Item):
     def at_object_creation(self):
+        super().at_object_creation()
         self.db.display_name = "|xOnyx|n"
         self.db.desc = "As rich as the velvety cloak of twilight, each facet captures a fragment of midnight, keeping it prisoner within its glossy, opaque prison."
         self.db.senses = {
