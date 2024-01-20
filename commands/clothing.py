@@ -1,8 +1,8 @@
+from evennia.utils import create
 from parsing.colors import strip_ansi
 from typeclasses.clothing import Clothing, ClothingType
 
 from commands.command import Command
-from evennia.utils import create
 
 __all__ = ["CmdTailor"]
 
@@ -33,7 +33,6 @@ class CmdTailor(Command):
         - underwear (worn on hips)
         - bottom (worn on legs)
         - footwear (worn on feet)
-
     """
 
     key = "tailor"
