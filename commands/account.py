@@ -2,17 +2,17 @@ import time
 from datetime import datetime
 
 from django.conf import settings
-from parsing.text import wrap
-from server.conf import logger
-from typeclasses.menus import AMenu
-
-from commands.command import Command
 from evennia.commands.default import account
 from evennia.objects.models import ObjectDB
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import create, search, utils
 from evennia.utils.ansi import strip_ansi
 from evennia.utils.evmenu import get_input
+from parsing.text import wrap
+from server.conf import logger
+from typeclasses.menus import AMenu
+
+from commands.command import Command
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
 _AUTO_PUPPET_ON_LOGIN = settings.AUTO_PUPPET_ON_LOGIN
@@ -35,10 +35,22 @@ __all__ = (
 
 class CmdCharCreate(Command):
     """
+    Command for creating a new character.
+
     Syntax: charcreate <name>
 
-    Create a new character. Names will automatically capitalize. Follow the
-    provided rules when creating a new character.
+    This command allows a player to create a new character. The name of the
+    character should be provided as an argument. The command checks if the
+    character name is valid and if it already exists. If the name is valid
+    and available, a new character object is created and associated with the
+    player's account. The player then enters the game as the newly created
+    character.
+
+    The command also enforces certain rules for character names, which are
+    displayed to the player before the character creation process begins.
+
+    Note: This command requires the player to be out-of-character (OOC) and
+    have the appropriate permissions to create a character.
     """
 
     key = "charcreate"
@@ -162,9 +174,16 @@ class CmdCharCreate(Command):
 
 class CmdCharDelete(Command):
     """
+    Command to delete a character associated with an account.
+
     Syntax: chardelete <name>
 
-    Permanently delete one of your characters. This cannot be undone!
+    This command allows an account to delete one of its playable characters.
+    The character to be deleted is specified by its name. Once deleted, the
+    character cannot be recovered.
+
+    Example:
+        chardelete JohnDoe
     """
 
     key = "chardelete"
@@ -225,9 +244,15 @@ class CmdCharDelete(Command):
 # move this to characters eventually
 class CmdDisconnect(account.CmdOOC):
     """
-    Syntax: disconnect
+    Command to disconnect a character from the game and go out-of-character
+    (OOC).
 
-    Go out-of-character (OOC)
+    Usage: disconnect
+
+    This command allows a player to disconnect their character from the game
+    and go out-of-character. If the character is already OOC, a message will
+    be displayed indicating that. The command also logs the disconnection
+    and provides additional instructions if certain conditions are met.
     """
 
     key = "disconnect"
@@ -280,11 +305,20 @@ class CmdDisconnect(account.CmdOOC):
 # and has the .playable property.
 class CmdOOCLook(account.MuxAccountLookCommand):
     """
+    Command to look around while out-of-character (OOC).
+
     Syntax: look
 
-    This is an OOC version of the look command. Since an account doesn't have
-    an in-game existence, there is no concept of location or "self". If we are
-    controlling a character, the IC version of look takes over.
+    This command allows a player to look around the game world while
+    out-of-character. If the player is currently puppeting a character, this
+    command will display a message indicating that the character has no
+    ability to look around. If the player is not puppeting a character and
+    there is only one character available and allowed, a simplified message
+    will be displayed instructing the player to use the 'ic' command to get
+    back into the game. Otherwise, the command will call the on-account look
+    helper method to display the current surroundings.
+
+    Note: This command is only available while out-of-character (OOC).
     """
 
     key = "look"
@@ -321,9 +355,8 @@ class CmdOptions(account.CmdOption):
     """
     Syntax: options[/switch] [name = value]
 
-    Switches:
-      save - Save the current option setting for future logins.
-      clear - Clear the saved options.
+    Switches: save - Save the current option setting for future logins.
+              clear - Clear the saved options.
 
     This command allows viewing and setting client interface settinggs. Note
     that saved options may not be able to be used if later connecting with
@@ -336,9 +369,22 @@ class CmdOptions(account.CmdOption):
 
 class CmdPassword(Command):
     """
+    Command for changing the password of an account.
+
     Syntax: password
 
-    Change your password. Make sure to pick a safe one!
+    This command allows the player to change their account password.
+    The player will be prompted to enter their current password, and
+    then their new password. The new password will be validated
+    according to the account's password requirements. If the password
+    change is successful, the account's password will be updated and
+    saved.
+
+    Example:
+        > password
+        Enter your password: ********
+        Enter your new password: ********
+        Password changed.
     """
 
     key = "password"
@@ -377,9 +423,14 @@ class CmdPassword(Command):
 
 class CmdPlay(Command):
     """
-    Syntax: play <character>
+    Command to puppet a character and enter the game.
 
-    Play (IC) as a given character.
+    Usage:
+        play <character>
+
+    This command allows a player to puppet a character and enter the game
+    world. The character must be a valid choice from the playable characters
+    list.
     """
 
     key = "play"
@@ -504,11 +555,15 @@ class CmdSessions(account.CmdSessions):
 
 class CmdSetMain(Command):
     """
-    Syntax: setmain [character]
+    Set the main character for the account.
 
-    This command is responsible for setting your main character which will
-    establish them as the character that you automatically log into upon
-    connection.
+    Syntax: setmain
+            setmain <character>
+
+    If no arguments are provided, display the current main character.
+    If the argument is "none", set the main character to None.
+    If the argument matches multiple characters, display a list of the matching characters.
+    If the argument matches a single character, set it as the main character.
     """
 
     key = "setmain"
@@ -562,9 +617,14 @@ class CmdSetMain(Command):
 
 class CmdWho(Command):
     """
-    Syntax: who
+    Command to display a list of connected players and administrators.
 
-    This command lists all players.
+    Usage: syntax
+
+    This command displays a formatted table showing the currently connected
+    players and administrators. Administrators are displayed at the top,
+    followed by the list of players. The table is dynamically adjusted to
+    fit the width of the client's screen.
     """
 
     key = "who"
