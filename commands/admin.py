@@ -28,10 +28,13 @@ __all__ = (
 
 class CmdAccess(COMMAND_DEFAULT_CLASS):
     """
+    Command to load the permission groups and display the caller's access.
+
     Syntax: access
 
-    This command shows you the permission hierarchy and which permission groups
-    you are a member of.
+    This command displays the permission hierarchy and the caller's access
+    levels for both their character and account. Superusers have full access
+    and are indicated as "<Superuser>".
     """
 
     key = "access"
@@ -41,7 +44,7 @@ class CmdAccess(COMMAND_DEFAULT_CLASS):
     arg_regex = r"$"
 
     def func(self):
-        """Load the permission groups"""
+        """Load the permission groups and display the caller's access"""
 
         caller = self.caller
         hierarchy_full = settings.PERMISSION_HIERARCHY
@@ -65,10 +68,18 @@ class CmdAccess(COMMAND_DEFAULT_CLASS):
 
 class CmdAnnounce(Command):
     """
+    Command for announcing a message to all players.
+
     Syntax: announce <message>
 
-    Announces a message to all connected sessions including all currently
-    disconnected.
+    This command allows administrators to send an announcement message to all players
+    currently connected to the game. The message should be provided as an argument
+    after the command.
+
+    Example:
+        > announce Welcome to the game!
+
+    This will send the message 'Welcome to the game!' to all connected players.
     """
 
     key = "announce"
@@ -189,9 +200,18 @@ class CmdEcho(COMMAND_DEFAULT_CLASS):
 
 class CmdForce(Command):
     """
-    Syntax: force <object> <command>
+    This command allows an admin to force an object to execute a command.
 
-    Forces an object to execute a command.
+    Syntax: force <object> <command>
+    Example: force player1 look
+
+    Args:
+        object (str): The name or ID of the object to force.
+        command (str): The command to be executed by the object.
+
+    Notes:
+        - The object can be a player character, non-player character, or any other in-game object.
+        - The command will be executed by the object as if it was entered by the object itself.
     """
 
     key = "force"
@@ -217,9 +237,14 @@ class CmdForce(Command):
 
 class CmdHome(COMMAND_DEFAULT_CLASS):
     """
+    Teleports you to your home location.
+
     Syntax: home
 
-    Teleports you to your home location.
+    This command allows the player to teleport to their designated home location.
+    If the player has no home, they will receive a message indicating so.
+    If the player is already at their home location, they will receive a message indicating so.
+    Otherwise, the player will be teleported to their home location.
     """
 
     key = "home"
@@ -254,17 +279,11 @@ class CmdTeleport(building.CmdTeleport):
       tel/map Z | mapname
 
     Switches:
-      quiet  - don't echo leave/arrive messages to the source/target
-               locations for the move.
-      intoexit - if target is an exit, teleport INTO
-                 the exit object instead of to its destination
-      tonone - if set, teleport the object to a None-location. If this
-               switch is set, <target location> is ignored.
-               Note that the only way to retrieve
-               an object from a None location is by direct #dbref
-               reference. A puppeted object cannot be moved to None.
-      loc - teleport object to the target's location instead of its contents
-      map - show coordinate map of given Zcoord/mapname.
+      quiet    - don't echo leave/arrive messages to the source/target
+      intoexit - if target is an exit, teleport INTO the exit object
+      tonone   - teleport the object to a none-location
+      loc      - teleport object to the target's location
+      map      - show coordinate map of given Zcoord/mapname.
 
     Teleports an object somewhere. If no object is given, you yourself are
     teleported to the target location. If (X,Y) or (X,Y,Z) coordinates
@@ -326,9 +345,14 @@ class CmdTeleport(building.CmdTeleport):
 
 class CmdTransfer(COMMAND_DEFAULT_CLASS):
     """
+    Command to transfer an object to a different location.
+
     Syntax: transfer <object>
 
-    Transfers an object to your current location.
+    This command allows an admin to transfer an object to a different location.
+    The object can be any non-room and non-exit object that the admin has control over.
+    The command checks for various conditions such as object availability, permissions,
+    and location restrictions before performing the transfer.
     """
 
     key = "transfer"
@@ -379,11 +403,12 @@ class CmdTransfer(COMMAND_DEFAULT_CLASS):
 
 class CmdWatch(Command):
     """
+    Command to watch another character.
+
     Syntax: watch <character>
 
-    When called, the admin will start watching the actions of the specified character.
-    If the admin is already watching a character, calling watch again will stop the
-    current watch and start a new one on the specified character.
+    This command allows an admin to watch another character. When watching a character,
+    the admin will receive updates about the character's actions and events.
     """
 
     key = "watch"
