@@ -407,8 +407,9 @@ class CmdWatch(Command):
 
     Syntax: watch <character>
 
-    This command allows an admin to watch another character. When watching a character,
-    the admin will receive updates about the character's actions and events.
+    This command allows an admin to watch another character. When watching a
+    character, the admin will receive updates about the character's actions
+    and events.
     """
 
     key = "watch"
