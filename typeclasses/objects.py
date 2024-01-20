@@ -265,12 +265,11 @@ class Object(ObjectParent, DefaultObject):
                 including the count.
 
         Examples:
-            ::
-                obj.get_numbered_name(3, looker, key="foo") -> ("a foo", "three foos")
+            obj.get_numbered_name(3, looker, key="foo") -> ("a foo", "three foos")
         """
 
         plural_category = "plural_key"
-        key = kwargs.get("key", self.name)
+        key = kwargs.get("key", self.display_name)
 
         # Regular expression for color codes
         color_code_pattern = (

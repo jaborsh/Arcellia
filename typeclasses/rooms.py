@@ -750,8 +750,8 @@ class Room(Object, DefaultRoom):
             thing = thinglist[0]
             singular, plural = thing.get_numbered_name(nthings, looker, key=thingname)
             thing_names.append(singular if nthings == 1 else plural)
-        thing_names = iter_to_str(thing_names)
-        return f"\n{thing_names}" if thing_names else ""
+        thing_names = "\n".join(thing_names)
+        return "\n" + thing_names
 
     def return_appearance(self, looker, **kwargs):
         """

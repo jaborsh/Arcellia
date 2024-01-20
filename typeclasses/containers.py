@@ -10,8 +10,7 @@ class Container(Object):
 
     appearance_template = """
 {desc}
-{name} contains:
-{things}
+{contains}
     """
 
     @property
@@ -118,8 +117,12 @@ class Container(Object):
         return self.format_appearance(
             self.appearance_template.format(
                 desc=self.get_display_desc(looker, **kwargs),
-                name=self.get_display_name(looker, **kwargs),
-                things=self.get_display_things(looker, **kwargs),
+                contains="\n"
+                + self.get_display_name(looker, **kwargs)
+                + " contains:\n"
+                + self.get_display_things(looker, **kwargs)
+                if self.contents
+                else "",
             ),
             looker,
             **kwargs,

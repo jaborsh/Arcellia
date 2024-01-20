@@ -29,3 +29,4 @@ class WoodenChest(Container):
             "sound": "A soft creak accompanies the lifting of the lid.",
             "taste": "The air around it is laced with the faint, tannic flavor of bark and the earthiness of fallen leaves.",
         }
+        self.locks.add("get:false()")

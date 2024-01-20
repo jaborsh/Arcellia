@@ -198,7 +198,7 @@ class Character(objects.Object, DefaultCharacter):
         gender = self.attributes.get(
             "gender", default=CharacterGender.ANDROGYNOUS
         ).value
-        gender = gender if gender in ("male", "female", "neutral") else "ambiguous"
+        gender = gender if gender in ("male", "female", "neutral") else "androgynous"
         pronoun = _GENDER_PRONOUN_MAP[gender][typ.lower()]
         return pronoun.capitalize() if typ.isupper() else pronoun
 
