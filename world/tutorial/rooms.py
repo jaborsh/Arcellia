@@ -1,21 +1,11 @@
-from typeclasses import rooms
-
 from evennia.utils.create import create_object
+from typeclasses import rooms
 
 
 class NautilusRoom(rooms.XYRoom):
     """
     This is a Tutorial room.
     """
-
-    def at_object_creation(self):
-        self.initialize_objects()
-
-    def initialize_objects(self):
-        pass
-
-    def initialize_mobs(self):
-        pass
 
 
 class NautilusBerthingSouth(NautilusRoom):

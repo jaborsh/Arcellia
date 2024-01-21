@@ -1,6 +1,6 @@
+from world.tutorial.prototypes import containers, interactives
+
 ROOM_PARENT = {"typeclass": "world.tutorial.rooms.NautilusRoom"}
-BERTHING_SOUTH = {"typeclass": "world.tutorial.rooms.NautilusBerthingSouth"}
-MAP_ROOM = {"typeclass": "world.tutorial.rooms.NautilusMapRoom"}
 EXIT_PARENT = {"typeclass": "typeclasses.exits.XYExit"}
 
 TUTORIAL_MAP = r"""
@@ -60,6 +60,7 @@ PROTOTYPES = {
             "compass": "The compass, encased in a copper shell turned verdigris at the edges, sits heavy and immobile. Its face still gleams faintly when caught by stray shafts of light, the cardinal points etched deeply into the medal as a lasting declaration of direction in a world on the waves.",
             "coins": "Surrounding the other artifacts, coins spill across the chest, their diversity a small treasure trove of tales from afar but ultimately foreign and useless to you. Each disc, whether gilt or silvery or possessing the burnished warmth of copper, carries upon it the countenance of a soverign or the sigil of a distant land, the raised details catching the dim light as if holding one last time to the days above the deep.",
         },
+        "spawns": [containers.WOODEN_CHEST],
     },
     (2, 1): {
         "key": "|CThe Nautilus - Berthing|n",
@@ -87,6 +88,7 @@ PROTOTYPES = {
             "scrolls": "These sprawling parchments, once vibrant, now adopt a mellowed hue, their surface a battleground where ink and time contend to shape history's trace.",
             "walls": "The walls, blanketed with the catographer's craft, display a palimpsest of exploration; each map, frayed at the edges, layers upon its predecessor in a narrative of discovery.",
         },
+        "spawns": [interactives.BROKEN_BODY],
     },
     (0, 2): {
         "key": "|CThe Nautilus - Map Room|n",
@@ -197,12 +199,7 @@ PROTOTYPES = {
 
 for key, prot in PROTOTYPES.items():
     if len(key) == 2:
-        if key == (1, 0):
-            prot["prototype_parent"] = BERTHING_SOUTH
-        if key == (1, 2):
-            prot["prototype_parent"] = MAP_ROOM
-        else:
-            prot["prototype_parent"] = ROOM_PARENT
+        prot["prototype_parent"] = ROOM_PARENT
     else:
         prot["prototype_parent"] = EXIT_PARENT
 
