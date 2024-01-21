@@ -127,3 +127,13 @@ class Container(Object):
             looker,
             **kwargs,
         )
+
+
+class ImmovableContainer(Container):
+    """
+    A copy of Container that cannot be moved.
+    """
+
+    def at_object_creation(self):
+        super().at_object_creation()
+        self.locks.add("get:false()")
