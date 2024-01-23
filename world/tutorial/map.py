@@ -1,3 +1,5 @@
+from typeclasses.rooms import MapNode
+
 from world.tutorial.prototypes import containers, interactives
 
 ROOM_PARENT = {"typeclass": "world.tutorial.rooms.NautilusRoom"}
@@ -203,8 +205,11 @@ for key, prot in PROTOTYPES.items():
     else:
         prot["prototype_parent"] = EXIT_PARENT
 
+LEGEND = {"#": MapNode}
+
 XYMAP_DATA_TUTORIAL = {
     "zcoord": "nautilus",
+    "legend": LEGEND,
     "map": TUTORIAL_MAP,
     "prototypes": PROTOTYPES,
 }

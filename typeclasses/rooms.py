@@ -2,9 +2,12 @@ from collections import defaultdict
 from textwrap import dedent
 
 from django.conf import settings
-from evennia.contrib.grid.xyzgrid import xyzroom
+from django.core import exceptions as django_exceptions
+from evennia.contrib.grid.xyzgrid import xymap_legend, xyzroom
+from evennia.contrib.grid.xyzgrid.utils import MapError
 from evennia.objects.objects import DefaultRoom
-from evennia.utils.utils import iter_to_str
+from evennia.prototypes import spawner
+from evennia.utils.utils import class_from_module, iter_to_str
 
 from typeclasses.mixins.rooms import ExtendedRoomMixin
 
@@ -19,8 +22,10 @@ MAP_XDEST_TAG_CATEGORY = "exit_dest_x_coordinate"
 MAP_YDEST_TAG_CATEGORY = "exit_dest_y_coordinate"
 MAP_ZDEST_TAG_CATEGORY = "exit_dest_z_coordinate"
 
+NodeTypeclass = None
 
-class Room(ExtendedRoomMixin, DefaultRoom, Object):
+
+class Room(ExtendedRoomMixin, Object, DefaultRoom):
     """
     Modified Extended Room (Griatch)
 
@@ -49,6 +54,9 @@ class Room(ExtendedRoomMixin, DefaultRoom, Object):
       echoed to the room at the given rate.
     """
 
+    def at_object_creation(self):
+        self.db.spawns = self.db.spawns or []
+
     # populated by `return_appearance`
     appearance_template = dedent(
         """
@@ -59,6 +67,12 @@ class Room(ExtendedRoomMixin, DefaultRoom, Object):
             {exits}{characters}{mobs}{things}
         """
     )
+
+    def spawn_contents(self):
+        for spawn in self.db.spawns:
+            spawn["location"] = self
+            spawn["home"] = self
+            spawner.spawn(spawn)
 
     def get_display_desc(self, looker, **kwargs):
         """
@@ -290,3 +304,69 @@ class XYRoom(Room, xyzroom.XYZRoom):
         map_separator_char (str): The char to use to separate the map area from
             the room description.
     """
+
+    def at_post_spawn(self):
+        """
+        Called just after the object is spawned and attributes
+        and tags have been initialized.
+        """
+        self.spawn_contents()
+
+
+class MapNode(xymap_legend.MapNode):
+    """A map node/room"""
+
+    symbol = "#"
+    prototype = "xyz_room"
+
+    def spawn(self):
+        """
+        Build an actual in-game room from this node.
+
+        This should be called as part of the node-sync step of the map sync. The reason is
+        that the exits (next step) requires all nodes to exist before they can link up
+        to their destinations.
+
+        """
+        global NodeTypeclass
+        if not NodeTypeclass:
+            NodeTypeclass = XYRoom
+
+        if not self.prototype:
+            # no prototype means we can't spawn anything -
+            # a 'virtual' node.
+            return
+
+        xyz = self.get_spawn_xyz()
+
+        try:
+            nodeobj = NodeTypeclass.objects.get_xyz(xyz=xyz)
+            nodeobj.at_post_spawn()
+        except django_exceptions.ObjectDoesNotExist:
+            # create a new entity, using the specified typeclass (if there's one) and
+            # with proper coordinates etc
+            typeclass = self.prototype.get("typeclass")
+            if typeclass is None:
+                raise MapError(
+                    f"The prototype {self.prototype} for this node has no 'typeclass' key.",
+                    self,
+                )
+            self.log(f"  spawning room at xyz={xyz} ({typeclass})")
+            Typeclass = class_from_module(typeclass)
+            nodeobj, err = Typeclass.create(
+                self.prototype.get("key", "An empty room"), xyz=xyz
+            )
+            if err:
+                raise RuntimeError(err)
+        else:
+            self.log(f"  updating existing room (if changed) at xyz={xyz}")
+
+        if not self.prototype.get("prototype_key"):
+            # make sure there is a prototype_key in prototype
+            self.prototype["prototype_key"] = self.generate_prototype_key()
+
+        # apply prototype to node. This will not override the XYZ tags since
+        # these are not in the prototype and exact=False
+        spawner.batch_update_objects_with_prototype(
+            self.prototype, objects=[nodeobj], exact=False
+        )
