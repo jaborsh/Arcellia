@@ -11,31 +11,24 @@ Contributions:
 
 """
 import os
-import re
 
 from django.conf import settings
-from handlers import clothing, cooldowns, quests, traits
-from parsing.text import grammarize, wrap
-from server.conf import logger
-from world.characters.genders import CharacterGender
-from world.characters.races import RaceRegistry
-
 from evennia.objects.models import ObjectDB
 from evennia.objects.objects import DefaultCharacter
 from evennia.utils.utils import lazy_property, make_iter, to_str, variable_from_module
+from handlers import quests, traits
+from parsing.text import grammarize, wrap
+from server.conf import logger
+from world.base import genders
+from world.characters import races
+
 from typeclasses import objects
+from typeclasses.mixins import living
 
 _AT_SEARCH_RESULT = variable_from_module(*settings.SEARCH_AT_RESULT.rsplit(".", 1))
-_GENDER_PRONOUN_MAP = {
-    "male": {"s": "he", "o": "him", "p": "his", "a": "his"},
-    "female": {"s": "she", "o": "her", "p": "her", "a": "hers"},
-    "neutral": {"s": "it", "o": "it", "p": "its", "a": "its"},
-    "androgynous": {"s": "they", "o": "them", "p": "their", "a": "theirs"},
-}
-_RE_GENDER_PRONOUN = re.compile(r"(?<!\|)\|(?!\|)[sSoOpPaA]")
 
 
-class Character(objects.Object, DefaultCharacter):
+class Character(living.LivingMixin, DefaultCharacter, objects.Object):
     """
     The Character defaults to reimplementing some of base Object's hook methods with the
     following functionality:
@@ -76,149 +69,29 @@ class Character(objects.Object, DefaultCharacter):
         os.makedirs(char_log_dir, exist_ok=True)
         self.attributes.add("_log_folder", f"characters/{self.key.lower()}/")
 
-    @lazy_property
-    def log_folder(self):
-        return self.attributes.get("_log_folder", f"characters/{self.key.lower()}/")
-
-    ############
-    # Handlers #
-    ############
+    # Handlers
     @lazy_property
     def appearance(self):
         return traits.TraitHandler(self, db_attribute_key="appearance")
 
     @lazy_property
-    def character(self):
-        return traits.TraitHandler(self, db_attribute_key="character")
-
-    @lazy_property
-    def clothes(self):
-        return clothing.ClothingHandler(self)
-
-    @lazy_property
-    def cooldowns(self):
-        return cooldowns.CooldownHandler(self)
-
-    @lazy_property
     def quests(self):
         return quests.QuestHandler(self)
 
-    @lazy_property
-    def stats(self):
-        return traits.TraitHandler(self, db_attribute_key="stats")
-
-    ########################
-    # Character Properties #
-    ########################
+    # Base Properties
     @property
-    def display_name(self):
-        return self.character.get("display_name") or self.name
-
-    @property
-    def gender(self):
-        return self.character.get("gender") or CharacterGender.ANDROGYNOUS
+    def background(self):
+        return self.base.get("background") or None
 
     @property
     def race(self):
-        return self.character.get("race") or RaceRegistry.get("human")
+        return self.base.get("race") or races.RaceRegistry.get("human")
 
     @property
-    def background(self):
-        return self.character.get("background") or None
+    def log_folder(self):
+        return self.attributes.get("_log_folder", f"characters/{self.key.lower()}/")
 
-    ###################
-    # Stat Properties #
-    ###################
-    @property
-    def strength(self):
-        return self.stats.get("strength") or 10
-
-    @property
-    def dexterity(self):
-        return self.stats.get("dexterity") or 10
-
-    @property
-    def constitution(self):
-        return self.stats.get("constitution") or 10
-
-    @property
-    def intelligence(self):
-        return self.stats.get("intelligence") or 10
-
-    @property
-    def wisdom(self):
-        return self.stats.get("wisdom") or 10
-
-    @property
-    def charisma(self):
-        return self.stats.get("charisma") or 10
-
-    ###############
-    # Appearances #
-    ###############
-    def get_display_things(self, looker, **kwargs):
-        clothes = self.clothes.all()
-        if not clothes:
-            return ""
-
-        output = ["|wClothing:|n"]
-
-        # Use a conditional expression to handle empty 'clothes'
-        max_position = (
-            max([len(item.position) for item in clothes]) + 8 if clothes else 0
-        )
-
-        for item in clothes:
-            spaces = " " * (max_position - len(f" <worn {item.position}>"))
-            if item.covered_by and looker is not self:
-                continue
-            line = f"|x<worn {item.position}>|n{spaces} {item.get_display_name(looker)}"
-            if item.covered_by:
-                line += " |x(hidden)|n"
-            output.append(line)
-
-        return "\n ".join(output) + "\n"
-
-    def get_pronoun(self, regex_match):
-        """
-        Get pronoun from the pronoun marker in the text. This is used as
-        the callable for the re.sub function.
-
-        Args:
-            regex_match (MatchObject): the regular expression match.
-
-        Notes:
-            - `|s`, `|S`: Subjective form: he, she, it, He, She, It, They
-            - `|o`, `|O`: Objective form: him, her, it, Him, Her, It, Them
-            - `|p`, `|P`: Possessive form: his, her, its, His, Her, Its, Their
-            - `|a`, `|A`: Absolute Possessive form: his, hers, its, His, Hers, Its, Theirs
-
-        """  # noqa: E501
-        typ = regex_match.group()[1]  # "s", "O" etc
-        gender = self.attributes.get(
-            "gender", default=CharacterGender.ANDROGYNOUS
-        ).value
-        gender = gender if gender in ("male", "female", "neutral") else "androgynous"
-        pronoun = _GENDER_PRONOUN_MAP[gender][typ.lower()]
-        return pronoun.capitalize() if typ.isupper() else pronoun
-
-    def return_appearance(self, looker, **kwargs):
-        if not looker:
-            return ""
-
-        # populate the appearance_template string.
-        return self.format_appearance(
-            self.appearance_template.format(
-                desc=self.get_display_desc(looker, **kwargs),
-                things=self.get_display_things(looker, **kwargs),
-            ),
-            looker,
-            **kwargs,
-        )
-
-    #########
-    # Hooks #
-    #########
+    # Hooks
     def at_pre_emote(self, message, **kwargs):
         """
         Before the object emotes something.
@@ -534,9 +407,12 @@ class Character(objects.Object, DefaultCharacter):
                     text = repr(text)
 
             if text and isinstance(text, tuple):
-                text = (_RE_GENDER_PRONOUN.sub(self.get_pronoun, text[0]), *text[1:])
+                text = (
+                    genders._RE_GENDER_PRONOUN.sub(self.get_pronoun, text[0]),
+                    *text[1:],
+                )
             else:
-                text = _RE_GENDER_PRONOUN.sub(self.get_pronoun, text)
+                text = genders._RE_GENDER_PRONOUN.sub(self.get_pronoun, text)
 
             if kwargs.get("wrap") == "say":
                 msg = text[0]
@@ -555,6 +431,20 @@ class Character(objects.Object, DefaultCharacter):
         watchers = self.ndb._watchers or []
         for watcher in watchers:
             watcher.msg(text=kwargs["text"])
+
+    def return_appearance(self, looker, **kwargs):
+        if not looker:
+            return ""
+
+        # populate the appearance_template string.
+        return self.format_appearance(
+            self.appearance_template.format(
+                desc=self.get_display_desc(looker, **kwargs),
+                things=self.get_display_things(looker, **kwargs),
+            ),
+            looker,
+            **kwargs,
+        )
 
     def search(
         self,

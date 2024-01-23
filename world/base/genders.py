@@ -1,4 +1,14 @@
+import re
 from enum import Enum
+
+_GENDER_PRONOUN_MAP = {
+    "male": {"s": "he", "o": "him", "p": "his", "a": "his"},
+    "female": {"s": "she", "o": "her", "p": "her", "a": "hers"},
+    "neutral": {"s": "it", "o": "it", "p": "its", "a": "its"},
+    "androgynous": {"s": "they", "o": "them", "p": "their", "a": "theirs"},
+}
+
+_RE_GENDER_PRONOUN = re.compile(r"(?<!\|)\|(?!\|)[sSoOpPaA]")
 
 GENDER_INFO_DICT = {
     "male": "Men in Arcellia come in many shapes and sizes, from many races and many backgrounds. Whether tall and muscular, or short and lean, they are often reputed to be sons of Adon, the First Man and God of the son. Typically known for their great passions, in love and in war, men are revered in the worlds of humans and orcs as the superior race, yet amongst elves, dwarves, and pyrelings, share equality with the rest. Adonites are the pinnacle of masculinity, a race of only men, and are the source of envy and resentment in many individuals across the world.",
@@ -7,7 +17,7 @@ GENDER_INFO_DICT = {
 }
 
 
-class CharacterGender(Enum):
+class Gender(Enum):
     MALE = "male"
     FEMALE = "female"
     ANDROGYNOUS = "androgynous"

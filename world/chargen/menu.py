@@ -1,6 +1,8 @@
 from evennia.contrib.grid.xyzgrid.xyzroom import XYZRoom
 from evennia.utils import dedent
-from world.characters import backgrounds, genders, races
+
+from world.base import genders
+from world.characters import backgrounds, races
 
 _BACKGROUND_INFO_DICT = backgrounds.BACKGROUND_INFO_DICT
 
@@ -40,19 +42,15 @@ def chargen_gender(caller, raw_string, **kwargs):
     def _set_gender(caller):
         selected_gender = kwargs.get("selected_gender", None)
         if selected_gender == "male":
-            caller.character.add(
+            caller.base.add(
                 "gender",
                 "Gender",
-                value=genders.CharacterGender.MALE,
+                value=genders.Gender.MALE,
             )
         elif selected_gender == "female":
-            caller.character.add(
-                "gender", "Gender", value=genders.CharacterGender.FEMALE
-            )
+            caller.base.add("gender", "Gender", value=genders.Gender.FEMALE)
         elif selected_gender == "androgynous":
-            caller.character.add(
-                "gender", "Gender", value=genders.CharacterGender.ANDROGYNOUS
-            )
+            caller.base.add("gender", "Gender", value=genders.Gender.ANDROGYNOUS)
         else:
             return "chargen_welcome"
 
@@ -128,7 +126,7 @@ def chargen_race(caller, raw_string, **kwargs):
             caller.msg("An error occurred. Contact an administrator.")
             return "chargen_welcome"
 
-        caller.character.add("race", "Race", trait_type="trait", value=race_type)
+        caller.base.add("race", "Race", value=race_type)
         return "chargen_background"
 
     selected_race = kwargs.get("selected_race", None)
@@ -220,9 +218,7 @@ def chargen_background(caller, raw_string, **kwargs):
             caller.msg("An error occurred. Contact an administrator.")
             return "chargen_welcome"
 
-        caller.character.add(
-            "background", "Background", trait_type="trait", value=background
-        )
+        caller.base.add("background", "Background", value=background)
         return "chargen_appearance"
 
     selected_background = kwargs.get("selected_background", None)

@@ -14,9 +14,10 @@ import re
 
 import inflect
 from django.utils.translation import gettext as _
-from parsing.text import strip_ansi
-
 from evennia.objects.objects import DefaultObject
+from evennia.utils import lazy_property
+from handlers import traits
+from parsing.text import strip_ansi
 
 _INFLECT = inflect.engine()
 
@@ -179,6 +180,10 @@ class Object(ObjectParent, DefaultObject):
 
     """
 
+    @lazy_property
+    def base(self):
+        return traits.TraitHandler(self, db_attribute_key="base")
+
     @property
     def display_name(self):
         return self.attributes.get("display_name", self.name)
@@ -213,11 +218,11 @@ class Object(ObjectParent, DefaultObject):
 
     @property
     def weight(self):
-        return self.attributes.get("weight", default=0)
+        return self.base.get("weight") or 0
 
     @weight.setter
     def weight(self, value):
-        self.attributes.add("weight", value)
+        self.base.add("weight", value)
 
     def get_display_name(self, looker=None, **kwargs):
         """

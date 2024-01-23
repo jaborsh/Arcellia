@@ -1,18 +1,12 @@
-from enum import Enum
 from textwrap import dedent
 
 from commands.default_cmdsets import MobCmdSet
 
 from typeclasses import objects
+from typeclasses.mixins import living
 
 
-class GenderType(Enum):
-    MALE = "male"
-    FEMALE = "female"
-    AMBIGUOUS = "ambiguous"
-
-
-class Mob(objects.Object):
+class Mob(living.LivingMixin, objects.Object):
     """
     This Mobile defaults to reimplementing some of the base Object's hook
     methods with the following functionality:
@@ -23,14 +17,6 @@ class Mob(objects.Object):
     ##############
     # Properties #
     ##############
-    @property
-    def gender(self):
-        return self.attributes.get("gender", GenderType.AMBIGUOUS).value
-
-    @gender.setter
-    def gender(self, value):
-        self.db.gender = value
-
     def at_object_creation(self):
         """
         Called the first time the object is created. We set up the base
@@ -56,7 +42,7 @@ class Mob(objects.Object):
             ";".join(
                 [
                     "control:perm(Admin)",  # edit locks/permissions, delete
-                    "examine:perm(Builder)",  # examine properties
+                    "examine:perm(Admin)",  # examine properties
                     "view:all()",  # look at object (visibility)
                     "edit:perm(Admin)",  # edit properties/attributes
                     "delete:perm(Admin)",  # delete object
