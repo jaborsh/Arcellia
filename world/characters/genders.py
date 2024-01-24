@@ -22,3 +22,11 @@ class Gender(Enum):
     FEMALE = "female"
     ANDROGYNOUS = "androgynous"
     NEUTRAL = "neutral"
+
+
+GENDER_MAP = {
+    "male": Gender.MALE,
+    "female": Gender.FEMALE,
+    "androgynous": Gender.ANDROGYNOUS,
+    "neutral": Gender.NEUTRAL,
+}

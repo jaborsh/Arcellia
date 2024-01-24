@@ -1,9 +1,9 @@
 from collections import defaultdict
 
-from typeclasses.objects import Object
+from typeclasses.items import Item
 
 
-class Container(Object):
+class Container(Item):
     """
     A container object. Implements a size component.
     """
@@ -13,27 +13,25 @@ class Container(Object):
 {contains}
     """
 
-    @property
-    def capacity(self):
-        return self.attributes.get("capacity", default=0)
-
-    @capacity.setter
-    def capacity(self, value):
-        self.attributes.add("capacity", value)
-
-    @property
-    def weight(self):
-        return self.attributes.get("weight", default=0)
-
-    @weight.setter
-    def weight(self, value):
-        self.attributes.add("weight", self.weight + value)
-
     def at_object_creation(self):
         self.locks.add("get_from:true()")
-        self.db.description = "A generic container."
-        self.db.capacity = 30
-        self.db.weight = 0
+
+    def at_post_spawn(self):
+        super().at_post_spawn()
+        capacity = self.attributes.get("capacity", 9999)
+        self.traits.add(
+            "capacity",
+            "Capacity",
+            trait_type="counter",
+            base=0,
+            min=0,
+            max=capacity,
+        )
+        self.attributes.remove("capacity")
+
+    @property
+    def capacity(self):
+        return self.traits.get("capacity")
 
     def at_pre_get_from(self, getter, target, **kwargs):
         """
@@ -46,6 +44,8 @@ class Container(Object):
         Returns:
             boolean: Whether the target should be retrieved or not.
         """
+        self.capacity.base -= target.weight.value
+
         return True
 
     def at_pre_put_in(self, putter, target, **kwargs):
@@ -59,25 +59,13 @@ class Container(Object):
         Returns:
             boolean: Whether the target should be put in or not.
         """
-        if self.capacity < self.weight + target.weight:
-            singular, _ = self.get_numbered_name(1, putter)
-            putter.msg(f"You can't fit {target.get_display_name()} in {singular}.")
+        if self.capacity.value + target.weight.value > self.capacity.max:
+            putter.msg("It won't fit.")
             return False
 
+        self.capacity.base += target.weight.value
+
         return True
-
-    def get_display_desc(self, looker, **kwargs):
-        """
-        Get the 'desc' component of the object description.
-
-        Args:
-            looker (Object): Object doing the looking.
-            **kwargs: Arbitrary data for overriding.
-
-        Returns:
-            str: The description display string.
-        """
-        return self.db.desc or ""
 
     def get_display_things(self, looker, **kwargs):
         """

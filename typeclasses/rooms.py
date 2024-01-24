@@ -6,12 +6,10 @@ from django.core import exceptions as django_exceptions
 from evennia.contrib.grid.xyzgrid import xymap_legend, xyzroom
 from evennia.contrib.grid.xyzgrid.utils import MapError
 from evennia.objects.objects import DefaultRoom
-from evennia.prototypes import spawner
 from evennia.utils.utils import class_from_module, iter_to_str
+from prototypes import spawner
 
 from typeclasses.mixins.rooms import ExtendedRoomMixin
-
-from .objects import Object
 
 CLIENT_DEFAULT_WIDTH = settings.CLIENT_DEFAULT_WIDTH
 MAP_X_TAG_CATEGORY = "room_x_coordinate"
@@ -25,7 +23,7 @@ MAP_ZDEST_TAG_CATEGORY = "exit_dest_z_coordinate"
 NodeTypeclass = None
 
 
-class Room(ExtendedRoomMixin, Object, DefaultRoom):
+class Room(ExtendedRoomMixin, DefaultRoom):
     """
     Modified Extended Room (Griatch)
 
@@ -56,6 +54,38 @@ class Room(ExtendedRoomMixin, Object, DefaultRoom):
 
     def at_object_creation(self):
         self.db.spawns = self.db.spawns or []
+
+    @property
+    def display_name(self):
+        return self.attributes.get("display_name", self.name)
+
+    @display_name.setter
+    def display_name(self, value: str):
+        self.attributes.add("display_name", value)
+
+    @property
+    def senses(self):
+        return self.attributes.get("senses", {})
+
+    @senses.setter
+    def senses(self, sense: str, value: str):
+        self.db.senses[sense] = value
+
+    @property
+    def feel(self):
+        return self.senses.get("feel", "You feel nothing interesting.")
+
+    @property
+    def smell(self):
+        return self.senses.get("smell", "You smell nothing interesting.")
+
+    @property
+    def sound(self):
+        return self.senses.get("sound", "You hear nothing interesting.")
+
+    @property
+    def taste(self):
+        return self.senses.get("taste", "You taste nothing interesting.")
 
     # populated by `return_appearance`
     appearance_template = dedent(
@@ -341,7 +371,7 @@ class MapNode(xymap_legend.MapNode):
 
         try:
             nodeobj = NodeTypeclass.objects.get_xyz(xyz=xyz)
-            nodeobj.at_post_spawn()
+
         except django_exceptions.ObjectDoesNotExist:
             # create a new entity, using the specified typeclass (if there's one) and
             # with proper coordinates etc
@@ -358,6 +388,18 @@ class MapNode(xymap_legend.MapNode):
             )
             if err:
                 raise RuntimeError(err)
+
+            if not self.prototype.get("prototype_key"):
+                # make sure there is a prototype_key in prototype
+                self.prototype["prototype_key"] = self.generate_prototype_key()
+
+            # apply prototype to node. This will not override the XYZ tags since
+            # these are not in the prototype and exact=False
+            spawner.batch_update_objects_with_prototype(
+                self.prototype, objects=[nodeobj], exact=False
+            )
+
+            nodeobj.at_post_spawn()
         else:
             self.log(f"  updating existing room (if changed) at xyz={xyz}")
 

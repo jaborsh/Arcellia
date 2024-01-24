@@ -1,12 +1,11 @@
 from evennia.contrib.rpg.traits import traits
 from evennia.utils import lazy_property
 from handlers import clothing, cooldowns
-from world.base import genders
+from world.characters import genders
 
 
 class LivingMixin:
     # Handlers
-
     @lazy_property
     def clothes(self):
         return clothing.ClothingHandler(self)
@@ -19,39 +18,58 @@ class LivingMixin:
     def stats(self):
         return traits.TraitHandler(self, db_attribute_key="stats")
 
+    @lazy_property
+    def traits(self):
+        return traits.TraitHandler(self, db_attribute_key="traits")
+
     # Base Properties
     @property
-    def display_name(self):
-        return self.base.get("display_name") or self.name
+    def gender(self):
+        return self.traits.get("gender")
+
+    @gender.setter
+    def gender(self, value):
+        if isinstance(value, str):
+            value = genders.GENDER_MAP.get(value)
+        elif isinstance(value, genders.Gender):
+            pass
+        else:
+            raise TypeError("Gender must be a string or a Gender class.")
+
+        self.gender.value = value
 
     @property
-    def gender(self):
-        return self.base.get("gender") or genders.Gender.ANDROGYNOUS
+    def wealth(self):
+        return self.traits.get("wealth")
+
+    @property
+    def weight(self):
+        return self.traits.get("weight")
 
     # Stat Properties
     @property
     def strength(self):
-        return self.stats.get("strength") or 10
+        return self.stats.get("strength")
 
     @property
     def dexterity(self):
-        return self.stats.get("dexterity") or 10
+        return self.stats.get("dexterity")
 
     @property
     def constitution(self):
-        return self.stats.get("constitution") or 10
+        return self.stats.get("constitution")
 
     @property
     def intelligence(self):
-        return self.stats.get("intelligence") or 10
+        return self.stats.get("intelligence")
 
     @property
     def wisdom(self):
-        return self.stats.get("wisdom") or 10
+        return self.stats.get("wisdom")
 
     @property
     def charisma(self):
-        return self.stats.get("charisma") or 10
+        return self.stats.get("charisma")
 
     # Methods
     def get_display_things(self, looker, **kwargs):

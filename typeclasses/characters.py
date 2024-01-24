@@ -19,8 +19,7 @@ from evennia.utils.utils import lazy_property, make_iter, to_str, variable_from_
 from handlers import quests, traits
 from parsing.text import grammarize, wrap
 from server.conf import logger
-from world.base import genders
-from world.characters import races
+from world.characters import backgrounds, genders, races
 
 from typeclasses import objects
 from typeclasses.mixins import living
@@ -60,6 +59,7 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
     def at_object_creation(self):
         self.create_log_folder()
         self.locks.add("msg:all()")
+        self.traits.add("wealth", "Wealth", trait_type="static", base=0)
 
     def create_log_folder(self):
         """
@@ -81,11 +81,33 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
     # Base Properties
     @property
     def background(self):
-        return self.base.get("background") or None
+        return self.traits.get("background")
+
+    @background.setter
+    def background(self, value):
+        if isinstance(value, str):
+            value = backgrounds.BACKGROUND_MAP.get(value)
+        elif isinstance(value, backgrounds.CharacterBackground):
+            pass
+        else:
+            raise TypeError("Background must be a string or a Background class.")
+
+        self.background.value = value
 
     @property
     def race(self):
-        return self.base.get("race") or races.RaceRegistry.get("human")
+        return self.traits.get("race")
+
+    @race.setter
+    def race(self, value):
+        if isinstance(value, str):
+            value = races.RACE_MAP.get(value)
+        elif isinstance(value, races.Race):
+            pass
+        else:
+            raise TypeError("Race must be a string or a Race class.")
+
+        self.race.value = value
 
     @property
     def log_folder(self):

@@ -36,17 +36,17 @@ SUBRACE_INFO_DICT = {
 }
 
 
-class CharacterRace:
+class Race:
     pass
 
 
 @RaceRegistry.register
-class Human(CharacterRace):
+class Human(Race):
     race = "human"
 
 
 @RaceRegistry.register
-class Elf(CharacterRace):
+class Elf(Race):
     race = "elf"
 
 
@@ -66,7 +66,7 @@ class WoodElf(Elf):
 
 
 @RaceRegistry.register
-class Dwarf(CharacterRace):
+class Dwarf(Race):
     race = "dwarf"
 
 
@@ -86,7 +86,7 @@ class IronveinDwarf(Dwarf):
 
 
 @RaceRegistry.register
-class Gnome(CharacterRace):
+class Gnome(Race):
     race = "gnome"
 
 
@@ -106,17 +106,17 @@ class SylvanGnome(Gnome):
 
 
 @RaceRegistry.register
-class Nymph(CharacterRace):
+class Nymph(Race):
     race = "nymph"
 
 
 @RaceRegistry.register
-class Orc(CharacterRace):
+class Orc(Race):
     race = "orc"
 
 
 @RaceRegistry.register
-class Pyreling(CharacterRace):
+class Pyreling(Race):
     race = "pyreling"
 
 
@@ -133,3 +133,22 @@ class EmberkinPyreling(Pyreling):
 @RaceRegistry.register
 class WarbrandPyreling(Pyreling):
     race = "warbrand pyreling"
+
+
+RACE_MAP = {
+    "human": RaceRegistry.get("human"),
+    "high elf": RaceRegistry.get("high elf"),
+    "night elf": RaceRegistry.get("night elf"),
+    "wood elf": RaceRegistry.get("wood elf"),
+    "emberheart dwarf": RaceRegistry.get("emberheart dwarf"),
+    "stoneguard dwarf": RaceRegistry.get("stoneguard dwarf"),
+    "ironvein dwarf": RaceRegistry.get("ironvein dwarf"),
+    "dusk gnome": RaceRegistry.get("dusk gnome"),
+    "hearth gnome": RaceRegistry.get("hearth gnome"),
+    "sylvan gnome": RaceRegistry.get("sylvan gnome"),
+    "nymph": RaceRegistry.get("nymph"),
+    "orc": RaceRegistry.get("orc"),
+    "arcanist pyreling": RaceRegistry.get("arcanist pyreling"),
+    "emberkin pyreling": RaceRegistry.get("emberkin pyreling"),
+    "warbrand pyreling": RaceRegistry.get("warbrand pyreling"),
+}

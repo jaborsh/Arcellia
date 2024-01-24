@@ -23,6 +23,7 @@ class Mob(living.LivingMixin, objects.Object):
         properties and flags here.
         """
         self.cmdset.add(MobCmdSet, persistent=True)
+        self.traits.add("wealth", "Wealth", trait_type="static", base=0)
 
     def basetype_setup(self):
         """

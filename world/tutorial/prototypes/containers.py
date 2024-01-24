@@ -1,3 +1,8 @@
+from world.items.miscellaneous import currency, gems
+
+GOLD = currency.GOLD
+GOLD["price"] = 25
+
 WOODEN_CHEST = {
     "key": "chest",
     "display_name": "|YWooden Chest|n",
@@ -9,4 +14,6 @@ WOODEN_CHEST = {
         "sound": "A soft creak accompanies the lifting of the lid.",
         "taste": "The air around it is laced with the faint, tannic flavor of bark and the earthiness of fallen leaves.",
     },
+    "spawns": [gems.ONYX, GOLD],
+    "weight": 40,
 }

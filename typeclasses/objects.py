@@ -15,8 +15,6 @@ import re
 import inflect
 from django.utils.translation import gettext as _
 from evennia.objects.objects import DefaultObject
-from evennia.utils import lazy_property
-from handlers import traits
 from parsing.text import strip_ansi
 
 _INFLECT = inflect.engine()
@@ -180,9 +178,8 @@ class Object(ObjectParent, DefaultObject):
 
     """
 
-    @lazy_property
-    def base(self):
-        return traits.TraitHandler(self, db_attribute_key="base")
+    def at_post_spawn(self):
+        pass
 
     @property
     def display_name(self):
@@ -190,7 +187,7 @@ class Object(ObjectParent, DefaultObject):
 
     @display_name.setter
     def display_name(self, value: str):
-        self.db.display_name = value
+        self.attributes.add("display_name", value)
 
     @property
     def senses(self):
@@ -215,14 +212,6 @@ class Object(ObjectParent, DefaultObject):
     @property
     def taste(self):
         return self.senses.get("taste", "You taste nothing interesting.")
-
-    @property
-    def weight(self):
-        return self.base.get("weight") or 0
-
-    @weight.setter
-    def weight(self, value):
-        self.base.add("weight", value)
 
     def get_display_name(self, looker=None, **kwargs):
         """

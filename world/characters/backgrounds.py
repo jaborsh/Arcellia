@@ -2,6 +2,7 @@ from class_registry import ClassRegistry
 
 BackgroundRegistry = ClassRegistry("background")
 
+
 BACKGROUND_INFO_DICT = {
     "acolyte": "|YAcolyte|n:\n\nHere, in the cloistered recesses of a sanctified monastery, a young acolyte finds solace, the air imbued with currents of piety and the scent of incense. Devoted from a tender age, with incandescent hope kindling a fire within, the acolyte learns the lore of the celestial beings and the cryptic cadence of sacred chants. Anointed into service, chosen by fate or divine whim, the acolyte's spirit entwines with the arcane and the prophetic. Vows uttered in reverent tones bind this pupil to a life of devout study, shaping the essence of being, refining body and soul for the pious battle against the encroaching shades of malevolence.",
     "charlatan": "|YCharlatan|n:\n\nWhere haggling voices and the clinking of coin weave the threads of commerce, a figure adept in the art of guile and craft moves with the grace of a whisper. Through the throngs cluttering the marketplace, the charlatan maneuvers, eyes brimming with deceptive mirth, lips curled in a conspirator's smirk. Trained in the virtuosic craft of deceit, this artificer of illusions revels in the masquerade, spinning tales as intricate as the fine silks peddled by merchants from far-off lands.",
@@ -19,80 +20,99 @@ BACKGROUND_INFO_DICT = {
 }
 
 
-class CharacterBackground:
+class Background:
     pass
 
 
 @BackgroundRegistry.register
-class Adventurer(CharacterBackground):
-    background = "adventurer"
-
-
-@BackgroundRegistry.register
-class Acolyte(CharacterBackground):
+class Acolyte(Background):
     background = "acolyte"
 
 
 @BackgroundRegistry.register
-class Charlatan(CharacterBackground):
+class Adventurer(Background):
+    background = "adventurer"
+
+
+@BackgroundRegistry.register
+class Charlatan(Background):
     background = "charlatan"
 
 
 @BackgroundRegistry.register
-class Criminal(CharacterBackground):
+class Criminal(Background):
     background = "criminal"
 
 
 @BackgroundRegistry.register
-class Entertainer(CharacterBackground):
+class Entertainer(Background):
     background = "entertainer"
 
 
 @BackgroundRegistry.register
-class FolkHero(CharacterBackground):
+class FolkHero(Background):
     background = "folk hero"
 
 
 @BackgroundRegistry.register
-class GuildArtisan(CharacterBackground):
+class GuildArtisan(Background):
     background = "guild artisan"
 
 
 @BackgroundRegistry.register
-class Hermit(CharacterBackground):
+class Hermit(Background):
     background = "hermit"
 
 
 @BackgroundRegistry.register
-class Merchant(CharacterBackground):
+class Merchant(Background):
     background = "merchant"
 
 
 @BackgroundRegistry.register
-class Noble(CharacterBackground):
+class Noble(Background):
     background = "noble"
 
 
 @BackgroundRegistry.register
-class Outlander(CharacterBackground):
+class Outlander(Background):
     background = "outlander"
 
 
 @BackgroundRegistry.register
-class Sage(CharacterBackground):
+class Sage(Background):
     background = "sage"
 
 
 @BackgroundRegistry.register
-class Sailor(CharacterBackground):
+class Sailor(Background):
     background = "sailor"
 
 
 @BackgroundRegistry.register
-class Soldier(CharacterBackground):
+class Soldier(Background):
     background = "soldier"
 
 
 @BackgroundRegistry.register
-class Urchin(CharacterBackground):
+class Urchin(Background):
     background = "urchin"
+
+
+BACKGROUND_MAP = {
+    "acolyte": BackgroundRegistry.get("acolyte"),
+    "adventurer": BackgroundRegistry.get("adventurer"),
+    "charlatan": BackgroundRegistry.get("charlatan"),
+    "criminal": BackgroundRegistry.get("criminal"),
+    "entertainer": BackgroundRegistry.get("entertainer"),
+    "folk hero": BackgroundRegistry.get("folk hero"),
+    "guild artisan": BackgroundRegistry.get("guild artisan"),
+    "hermit": BackgroundRegistry.get("hermit"),
+    "merchant": BackgroundRegistry.get("merchant"),
+    "noble": BackgroundRegistry.get("noble"),
+    "outlander": BackgroundRegistry.get("outlander"),
+    "sage": BackgroundRegistry.get("sage"),
+    "sailor": BackgroundRegistry.get("sailor"),
+    "soldier": BackgroundRegistry.get("soldier"),
+    "urchin": BackgroundRegistry.get("urchin"),
+}

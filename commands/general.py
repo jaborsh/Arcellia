@@ -1,12 +1,6 @@
 import re
 
 from django.conf import settings
-from parsing.colors import strip_ansi
-from server.conf import logger
-from typeclasses.clothing import CLOTHING_OVERALL_LIMIT, Clothing
-from typeclasses.menus import InteractionMenu
-
-from commands.command import Command
 from evennia import InterruptCommand
 from evennia.commands.default import general, system
 from evennia.typeclasses.attributes import NickTemplateInvalid
@@ -16,6 +10,14 @@ from evennia.utils import (
     inherits_from,
     utils,
 )
+from parsing.colors import strip_ansi
+from prototypes import spawner
+from server.conf import logger
+from typeclasses.clothing import CLOTHING_OVERALL_LIMIT, Clothing
+from typeclasses.menus import InteractionMenu
+from world.items.miscellaneous import currency
+
+from commands.command import Command
 
 _AT_SEARCH_RESULT = utils.variable_from_module(
     *settings.SEARCH_AT_RESULT.rsplit(".", 1)
@@ -41,6 +43,7 @@ __all__ = [
     "CmdTaste",
     "CmdTell",
     "CmdTime",
+    "CmdWealth",
     "CmdWear",
     "CmdWhisper",
 ]
@@ -338,12 +341,91 @@ class CmdBlock(Command):
             caller.msg(f"You block {target.get_display_name(caller)}.")
 
 
-class CmdDrop(general.CmdDrop):
+class CmdDrop(Command):
     """
     Syntax: drop <obj>
 
     Drops an object from your inventory into your location.
     """
+
+    key = "drop"
+    locks = "cmd:all()"
+    arg_regex = r"\s|$"
+
+    def parse(self):
+        """
+        Parses the input to extract the quantity and the object name.
+        """
+        match = re.match(r"(\d+)\s+(\w+)|(\w+)", self.args.strip())
+        if match:
+            self.num, self.obj_name = (
+                (1, match.group(3))
+                if match.group(3)
+                else (int(match.group(1)), match.group(2))
+            )
+        else:
+            self.num, self.obj_name = 0, None
+
+    def _drop_gold(self, num):
+        """
+        Handles the logic for dropping gold.
+        """
+        caller = self.caller
+        if num > caller.wealth.value:
+            return caller.msg("You don't have that much gold.")
+
+        caller.wealth.base -= num
+        self._spawn_gold(caller.location, num)
+        caller.location.msg_contents("$You() $conj(drop) some gold.", from_obj=caller)
+
+    def _spawn_gold(self, location, amount):
+        """
+        Spawns gold at the specified location.
+        """
+        gold_info = currency.GOLD.copy()
+        gold_info.update({"price": amount, "location": location, "home": None})
+        spawner.spawn(gold_info)
+
+    def func(self):
+        """Implement command"""
+
+        caller = self.caller
+        num = self.num
+        obj_name = self.obj_name
+
+        if not self.args:
+            caller.msg("Drop what?")
+            return
+
+        if obj_name == "gold":
+            self._drop_gold(num)
+            return
+
+        for _ in range(num):
+            obj = caller.search(
+                obj_name,
+                location=caller,
+                nofound_string=f"You aren't carrying {obj_name}.",
+                multimatch_string=f"You carry more than one {obj_name}:",
+            )
+            if not obj:
+                return
+
+            # Call the object script's at_pre_drop() method.
+            if not obj.at_pre_drop(caller):
+                continue
+
+            success = obj.move_to(caller.location, quiet=True, move_type="drop")
+            if not success:
+                caller.msg("This couldn't be dropped.")
+                continue
+
+            singular, _ = obj.get_numbered_name(1, caller)
+            caller.location.msg_contents(
+                f"$You() $conj(drop) {singular}.", from_obj=caller
+            )
+            # Call the object script's at_drop() method.
+            obj.at_drop(caller)
 
 
 class CmdEmote(Command):
@@ -352,8 +434,8 @@ class CmdEmote(Command):
             omote <pose>
             pmote <pose>
 
-    Examples: emote waves.           -> Jake waves.
-              omote Waving, ; smiles. -> Waving, Jake smiles.
+    Examples: emote waves.             -> Jake waves.
+              omote Waving, ; smiles.  -> Waving, Jake smiles.
               pmote smile is dazzling. -> Jake's smile is dazzling.
 
     Describe an action being taken.
@@ -480,36 +562,6 @@ class CmdGet(general.CmdGet):
             )
 
         obj.at_get(caller)
-
-    def func(self):
-        caller = self.caller
-        location = caller.location
-
-        if not self.args:
-            return self.msg("Get what?")
-
-        if self.rhs:
-            location = caller.search(self.rhs)
-            if not location:
-                return
-
-            if not location.access(caller, "get_from"):
-                if location.db.get_from_err_msg:
-                    self.msg(location.db.get_from_err_msg)
-                else:
-                    self.msg("You can't get anything from that.")
-                return
-
-            if self.lhs == "all":
-                for obj in location.contents:
-                    self._retrieve_obj(caller, obj, location)
-                return
-
-            obj = caller.search(self.lhs, location=location)
-            self._retrieve_obj(caller, obj, location)
-        else:
-            obj = caller.search(self.args)
-            self._retrieve_obj(caller, obj, caller.location)
 
 
 class CmdGive(general.CmdGive):
@@ -1145,6 +1197,20 @@ class CmdTime(system.CmdTime):
 
         prep = "an" if season == "autumn" else "a"
         self.caller.msg(f"It's {prep} {season} day, in the {timeslot}.")
+
+
+class CmdWealth(Command):
+    """
+    Syntax: wealth
+
+    Display how much money you have.
+    """
+
+    key = "wealth"
+
+    def func(self):
+        caller = self.caller
+        caller.msg("Total Wealth: %s" % int(caller.wealth.value))
 
 
 class CmdWear(Command):
