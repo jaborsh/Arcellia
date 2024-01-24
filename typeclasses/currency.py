@@ -1,11 +1,9 @@
 import re
 
-import inflect
+from parsing.text import _INFLECT
 from world.items.rarity import ItemRarity
 
 from typeclasses.items import Item
-
-_INFLECT = inflect.engine()
 
 
 class Currency(Item):

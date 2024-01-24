@@ -22,6 +22,7 @@ from evennia.utils import (
 _AT_SEARCH_RESULT = utils.variable_from_module(
     *settings.SEARCH_AT_RESULT.rsplit(".", 1)
 )
+
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 __all__ = [
     "CmdAlias",
@@ -343,9 +344,7 @@ class CmdBlock(Command):
 
 class CmdDrop(Command):
     """
-    Syntax: drop <obj>
-            drop <quantity> <obj>
-            drop <obj> <number>
+    Syntax: drop [quantity] [obj] [number]
             drop all
 
     Drops an object or multiple objects from your inventory into your location.
@@ -357,44 +356,30 @@ class CmdDrop(Command):
 
     def parse(self):
         """
-        Parses the input to extract the quantity and the object name, handling all specified cases.
+        Simplified parsing logic.
         """
         self.args = self.args.strip().lower()
+        self.quantity, self.obj_name, self.number = 1, None, 1  # Default values
+
         if self.args == "all":
-            self.quantity, self.obj_name, self.num = "all", None, 1
+            self.quantity = "all"
         else:
             match = re.match(r"(\d+)\s+(\w+)|(\w+)\s*(\d*)", self.args)
             if match:
-                if match.group(1) and match.group(2):
-                    # Case: "drop 2 object"
-                    self.quantity, self.obj_name, self.num = (
-                        int(match.group(1)),
-                        match.group(2),
-                        1,
-                    )
-                elif match.group(3) and match.group(4):
-                    # Case: "drop object 2"
-                    self.quantity, self.obj_name, self.num = (
-                        1,
-                        match.group(3),
-                        int(match.group(4)),
-                    )
-                elif match.group(3):
-                    # Case: "drop object"
-                    self.quantity, self.obj_name, self.num = 1, match.group(3), 1
-            else:
-                self.quantity, self.obj_name, self.num = 0, None, 0
+                self.obj_name = match.group(2) or match.group(3)
+                self.quantity = int(match.group(1)) if match.group(1) else 1
+                self.number = int(match.group(4)) if match.group(4) else 1
 
-    def _drop_gold(self, num):
+    def _drop_gold(self, number):
         """
         Handles the logic for dropping gold.
         """
         caller = self.caller
-        if num > caller.wealth.value:
+        if number > caller.wealth.value:
             return caller.msg("You don't have that much gold.")
 
-        caller.wealth.base -= num
-        self._spawn_gold(caller.location, num)
+        caller.wealth.base -= number
+        self._spawn_gold(caller.location, number)
         caller.location.msg_contents("$You() $conj(drop) some gold.", from_obj=caller)
 
     def _spawn_gold(self, location, amount):
@@ -405,7 +390,7 @@ class CmdDrop(Command):
         gold_info.update({"price": amount, "location": location, "home": None})
         spawner.spawn(gold_info)
 
-    def _drop_items(self, quantity, obj_name, num):
+    def _drop_items(self, quantity, obj_name, number):
         """
         Handles the logic for dropping items other than gold.
         """
@@ -429,12 +414,11 @@ class CmdDrop(Command):
                     obj_name,
                     location=caller,
                     nofound_string=f"You aren't carrying {obj_name}.",
-                    number=num,
-                    multimatch_string=f"You carry more than one {obj_name}:",
+                    number=number,
                 )
 
                 if not obj:
-                    return
+                    break
 
                 if not obj.at_pre_drop(caller):
                     continue
@@ -446,12 +430,12 @@ class CmdDrop(Command):
 
             # Send a consolidated message for multiple dropped items
             if dropped_items:
-                item_names = [
-                    obj.get_numbered_name(1, caller)[0] for obj in dropped_items
-                ]
-                item_list = ", ".join(item_names)
+                obj = dropped_items[0]
+                quantity = len(dropped_items)
+                single, plural = obj.get_numbered_name(quantity, caller)
+                item = single if quantity == 1 else f"{quantity} {plural}"
                 caller.location.msg_contents(
-                    f"$You() $conj(drop) {item_list}.", from_obj=caller
+                    f"$You() $conj(drop) {item}.", from_obj=caller
                 )
 
     def func(self):
@@ -460,7 +444,7 @@ class CmdDrop(Command):
         caller = self.caller
         quantity = self.quantity
         obj_name = self.obj_name
-        num = self.num
+        number = self.number
 
         if not self.args:
             caller.msg("Drop what?")
@@ -469,7 +453,7 @@ class CmdDrop(Command):
         if obj_name == "gold":
             self._drop_gold(quantity)
         else:
-            self._drop_items(quantity, obj_name, num)
+            self._drop_items(quantity, obj_name, number)
 
 
 class CmdEmote(Command):
@@ -564,131 +548,208 @@ class CmdFeel(Command):
         caller.msg(obj.feel)
 
 
-class CmdGet(general.CmdGet):
+class CmdGet(Command):
     """
-    Syntax: get <obj>
-            get <obj> from <container>
+    Syntax: get [quantity] [obj] [number] [from [container] [number]]
+
+    Examples: get wand
+              get 2 wands
+              get wand 2
+              get wand from backpack
+              get 2 wands from backpack
+              get wand 2 from backpack
+              get wand from backpack 2
+              get 2 wands from backpack 2
+              get wand 2 from backpack 2
 
     Picks up an object from your location or a container in your inventory.
     """
 
-    rhs_split = (" from ",)
+    key = "get"
+    aliases = ["take"]
+    locks = "cmd:all()"
+    arg_regex = r"\s|$"
 
-    def _retrieve_obj(self, caller, obj, location):
-        if not obj:
-            return
-        if caller == obj:
-            return self.msg("You can't get yourself.")
+    def parse(self):
+        """
+        Parses the input to extract the quantity, object name, container name, and their respective numbers.
+        """
+        # Regular expression to match various command formats
+        regex_pattern = (
+            r"(?:(\d+)\s+)?(\w+)(?:\s+(\d+))?(?:\s+from\s+(\w+)(?:\s+(\d+))?)?$"
+        )
+        match = re.match(regex_pattern, self.args.strip())
 
-        if not obj.access(caller, "get") or not obj.at_pre_get(caller):
-            if obj.db.get_err_msg:
-                return self.msg(obj.db.get_err_msg)
-            return self.msg("You can't get that.")
-
-        if hasattr(location, "at_pre_get_from") and not location.at_pre_get_from(
-            caller, obj
-        ):
-            return self.msg("You can't get that.")
-
-        success = obj.move_to(caller, quiet=True, move_type="get")
-        if not success:
-            return self.msg("This can't be picked up.")
-
-        singular, _ = obj.get_numbered_name(1, caller)
-        if location == caller.location:
-            caller.location.msg_contents(
-                f"$You() $conj(pick) up {singular}.", from_obj=caller
-            )
+        if match:
+            # Extracting quantity, object name, object number, container name, and container number
+            self.quantity = int(match.group(1)) if match.group(1) else 1
+            self.obj_name = match.group(2)
+            self.obj_number = int(match.group(3)) if match.group(3) else 1
+            self.container_name = match.group(4) if match.group(4) else None
+            self.container_number = int(match.group(5)) if match.group(5) else 1
         else:
-            container_name, _ = location.get_numbered_name(1, caller)
-            caller.location.msg_contents(
-                f"$You() $conj(get) {singular} from {container_name}.", from_obj=caller
+            # Default values if no match is found
+            (
+                self.quantity,
+                self.obj_name,
+                self.obj_number,
+                self.container_name,
+                self.container_number,
+            ) = (1, None, 1, None, 1)
+
+    def _retrieve_obj(self, caller, quantity, obj_name, obj_number, location):
+        retrieved_items = []
+        for _ in range(quantity):
+            obj = caller.search(
+                obj_name,
+                location=location,
+                nofound_string=f"You don't see {obj_name} here.",
+                number=obj_number,
+                multimatch_string=f"You see more than one {obj_name}:",
             )
 
-        obj.at_get(caller)
+            if not obj:
+                break
+
+            if not obj.at_pre_get(caller):
+                continue
+
+            obj.move_to(caller, quiet=True, move_type="get")
+            obj.at_get(caller)
+            retrieved_items.append(obj)
+
+        if retrieved_items:
+            obj = retrieved_items[0]
+            quantity = len(retrieved_items)
+            single, plural = obj.get_numbered_name(quantity, caller)
+            item = single if quantity == 1 else f"{quantity} {plural}"
+            if location == caller.location:
+                caller.location.msg_contents(
+                    f"$You() $conj(get) {item}.", from_obj=caller
+                )
+            else:
+                caller.location.msg_contents(
+                    f"$You() $conj(get) {item} from {location.display_name}.",
+                    from_obj=caller,
+                )
 
     def func(self):
         caller = self.caller
-        location = caller.location
+        quantity = self.quantity
+        obj_name = self.obj_name
+        obj_number = self.obj_number
+        container_name = self.container_name
+        container_number = self.container_number
 
         if not self.args:
-            return self.msg("Get what?")
+            caller.msg("Get what?")
+            return
 
-        if self.rhs:
-            location = caller.search(self.rhs)
-            if not location:
+        if container_name:
+            container = caller.search(
+                container_name,
+                number=container_number,
+            )
+
+            if not container:
                 return
 
-            if not location.access(caller, "get_from"):
-                if location.db.get_from_err_msg:
-                    self.msg(location.db.get_from_err_msg)
-                else:
-                    self.msg("You can't get anything from that.")
-                return
+            if not container.access(caller, "get_from"):
+                if container.db.get_from_err_msg:
+                    return self.msg(container.db.get_from_err_msg)
+                return self.msg("You can't get things from that.")
 
-            if self.lhs == "all":
-                for obj in location.contents:
-                    self._retrieve_obj(caller, obj, location)
-                return
-
-            obj = caller.search(self.lhs, location=location)
-            self._retrieve_obj(caller, obj, location)
+            location = container
         else:
-            obj = caller.search(self.args, location=caller.location)
-            self._retrieve_obj(caller, obj, caller.location)
+            location = caller.location
+
+        self._retrieve_obj(caller, quantity, obj_name, obj_number, location)
 
 
-class CmdGive(general.CmdGive):
+class CmdGive(Command):
     """
-    Syntax: give <inventory object> to <target>
+    Syntax: give [quantity] <obj> [number] to <target>
+
+    Examples: give wand to jake
+              give 2 wands to jake
+              give wand 2 to jake
 
     Gives an item from your inventory to another person, placing it in their
     inventory.
     """
 
     key = "give"
-    rhs_split = " to "
     locks = "cmd:all()"
     arg_regex = r"\s|$"
 
+    def parse(self):
+        """
+        Parses the input to extract the quantity, object name, object number, and target.
+        """
+        # Regular expression to match various command formats
+        regex_pattern = r"(?:(\d+)\s+)?(\w+)(?:\s+(\d+))?\s+to\s+(\w+)"
+        match = re.match(regex_pattern, self.args.strip())
+
+        if match:
+            # Extracting quantity, object name, object number, and target
+            self.quantity = int(match.group(1)) if match.group(1) else 1
+            self.obj_name = match.group(2)
+            self.obj_number = int(match.group(3)) if match.group(3) else 1
+            self.target = match.group(4)
+        else:
+            # Default values if no match is found
+            self.quantity, self.obj_name, self.obj_number, self.target = (
+                1,
+                None,
+                1,
+                None,
+            )
+
     def func(self):
         """Implement give"""
-
         caller = self.caller
-        if not self.args or not self.rhs:
-            caller.msg("Syntax: give <inventory object> to <target>")
-            return
-        to_give = caller.search(
-            self.lhs,
-            location=caller,
-            nofound_string=f"You aren't carrying {self.lhs}.",
-            multimatch_string=f"You carry more than one {self.lhs}:",
-        )
-        target = caller.search(self.rhs)
-        if not (to_give and target):
+        quantity = self.quantity
+        obj_name = self.obj_name
+        obj_number = self.obj_number
+        target = self.target
+
+        if not self.args:
+            caller.msg("Give what to whom?")
             return
 
-        singular, _ = to_give.get_numbered_name(1, caller)
-        if target == caller:
-            caller.msg(f"You keep {singular} to yourself.")
-            return
-        if not to_give.location == caller:
-            caller.msg(f"You are not holding {singular}.")
+        target = caller.search(target)
+
+        if not target:
             return
 
-        # calling at_pre_give hook method
-        if not to_give.at_pre_give(caller, target):
-            return
+        given_items = []
+        for _ in range(quantity):
+            obj = caller.search(
+                obj_name,
+                location=caller,
+                number=obj_number,
+                nofound_string=f"You aren't carrying {obj_name}.",
+            )
 
-        # give object
-        success = to_give.move_to(target, quiet=True, move_type="give")
-        if not success:
-            caller.msg(f"You could not give {singular} to {target.key}.")
-        else:
-            caller.msg(f"You give {singular} to {target.key}.")
-            target.msg(f"{caller.key} gives you {singular}.")
-            # Call the object script's at_give() method.
-            to_give.at_give(caller, target)
+            if not obj:
+                break
+
+            if not obj.at_pre_give(caller, target):
+                continue
+
+            obj.move_to(target, quiet=True, move_type="give")
+            obj.at_give(caller, target)
+            given_items.append(obj)
+
+        if given_items:
+            obj = given_items[0]
+            quantity = len(given_items)
+            single, plural = obj.get_numbered_name(quantity, caller)
+            item = single if quantity == 1 else f"{quantity} {plural}"
+            caller.location.msg_contents(
+                f"$You() $conj(give) {item} to {target.display_name}.",
+                from_obj=caller,
+            )
 
 
 class CmdInteract(Command):
@@ -919,62 +980,97 @@ class CmdLook(general.CmdLook):
 
 class CmdPut(general.CmdDrop):
     """
-    Syntax: put <obj> in <container>
+    Syntax: put [quantity] <obj> [number] in <container] [number]
+
+    Examples: put wand in backpack
+              put 2 wands in backpack
+              put wand 2 in backpack
 
     Put an object into a container.
     """
 
     key = "put"
-    rhs_split = (" in ",)
+    locks = "cmd:all()"
+    arg_regex = r"\s|$"
 
-    def _deposit_item(self, caller, obj, container):
-        pass
+    def parse(self):
+        """
+        Parses the input to extract the quantity, object name, object number, and container details.
+        """
+        # Regular expression to match various command formats
+        regex_pattern = r"(?:(\d+)\s+)?(\w+)(?:\s+(\d+))?\s+in\s+(\w+)(?:\s+(\d+))?"
+        match = re.match(regex_pattern, self.args.strip())
+
+        if match:
+            # Extracting quantity, object name, object number, container, and container number
+            self.quantity = int(match.group(1)) if match.group(1) else 1
+            self.obj_name = match.group(2)
+            self.obj_number = int(match.group(3)) if match.group(3) else 1
+            self.container = match.group(4)
+            self.container_number = int(match.group(5)) if match.group(5) else 1
+        else:
+            # Default values if no match is found
+            (
+                self.quantity,
+                self.obj_name,
+                self.obj_number,
+                self.container,
+                self.container_number,
+            ) = (1, None, 1, None, 1)
 
     def func(self):
         caller = self.caller
+        quantity = self.quantity
+        obj_name = self.obj_name
+        obj_number = self.obj_number
+        container_name = self.container
+        container_number = self.container_number
+
         if not self.args:
-            return self.msg("Put what in where?")
-
-        if not self.rhs:
-            super().func()
+            caller.msg("Put what in what?")
             return
 
-        obj = caller.search(
-            self.lhs,
-            location=caller,
-            nofound_string=f"You aren't carrying {self.args}.",
-            multimatch_string=f"You carry more than one {self.args}:",
+        container = caller.search(
+            container_name,
+            number=container_number,
         )
-        if not obj:
-            return
 
-        container = caller.search(self.rhs)
         if not container:
             return
 
         if not container.access(caller, "get_from"):
-            if container.db.put_err_msg:
-                return self.msg(container.db.put_err_msg)
+            if container.db.get_from_err_msg:
+                return self.msg(container.db.get_from_err_msg)
             return self.msg("You can't put things in that.")
 
-        if not obj.at_pre_drop(caller):
-            return self.msg("You can't put that down.")
+        deposited_items = []
+        for _ in range(quantity):
+            obj = caller.search(
+                obj_name,
+                location=container,
+                nofound_string=f"You aren't carrying {obj_name}.",
+                number=obj_number,
+            )
 
-        if hasattr(container, "at_pre_put_in") and not container.at_pre_put_in(
-            caller, obj
-        ):
-            return self.msg("You can't put that there.")
+            if not obj:
+                break
 
-        success = obj.move_to(container, quiet=True, move_type="drop")
-        if not success:
-            return self.msg("This couldn't be dropped.")
+            if not obj.at_pre_drop(caller):
+                continue
 
-        obj_name, _ = obj.get_numbered_name(1, caller)
-        container_name, _ = container.get_numbered_name(1, caller)
-        caller.location.msg_contents(
-            f"$You() $conj(put) {obj_name} in {container_name}.", from_obj=caller
-        )
-        obj.at_drop(caller)
+            obj.move_to(container, quiet=True, move_type="drop")
+            obj.at_drop(caller)
+            deposited_items.append(obj)
+
+        if deposited_items:
+            obj = deposited_items[0]
+            quantity = len(deposited_items)
+            single, plural = obj.get_numbered_name(quantity, caller)
+            item = single if quantity == 1 else f"{quantity} {plural}"
+            caller.location.msg_contents(
+                f"$You() $conj(put) {item} in {container.display_name}.",
+                from_obj=caller,
+            )
 
 
 class CmdRemove(Command):

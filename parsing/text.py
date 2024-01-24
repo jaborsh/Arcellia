@@ -1,10 +1,13 @@
 import math
 import re
 
+import inflect
 from django.conf import settings
-from evennia.utils.utils import display_len, percentile, to_str
 
+from evennia.utils.utils import display_len, percentile, to_str
 from parsing.colors import strip_ansi
+
+_INFLECT = inflect.engine()
 
 
 def grammarize(message):

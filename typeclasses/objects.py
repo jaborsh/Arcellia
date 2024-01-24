@@ -12,12 +12,10 @@ inheritance.
 """
 import re
 
-import inflect
 from django.utils.translation import gettext as _
-from evennia.objects.objects import DefaultObject
-from parsing.text import strip_ansi
+from parsing.text import _INFLECT, strip_ansi
 
-_INFLECT = inflect.engine()
+from evennia.objects.objects import DefaultObject
 
 
 class ObjectParent:
@@ -313,14 +311,19 @@ class Object(ObjectParent, DefaultObject):
                     singular_segment = segment
                 singular_segments.append(singular_segment)
 
-        plural = "".join(plural_segments)
+        plural = re.split(color_code_pattern, "".join(plural_segments), 1)
+        plural = (
+            plural[1] + _INFLECT.plural(plural[3]) + "|n"
+            if len(plural) > 1
+            else _INFLECT.plural(plural[0])
+        )
         singular = "".join(singular_segments)
 
         # Alias handling as in the original function
-        if not self.aliases.get(plural, category=plural_category):
-            self.aliases.clear(category=plural_category)
-            self.aliases.add(plural, category=plural_category)
-            self.aliases.add(singular, category=plural_category)
+        if not self.aliases.get(strip_ansi(singular)):
+            self.aliases.add(strip_ansi(singular))
+        if not self.aliases.get(strip_ansi(plural)):
+            self.aliases.add(strip_ansi(plural))
 
         return singular, plural
 
