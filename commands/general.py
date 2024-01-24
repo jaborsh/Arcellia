@@ -1,6 +1,14 @@
 import re
 
 from django.conf import settings
+from parsing.colors import strip_ansi
+from prototypes import spawner
+from server.conf import logger
+from typeclasses.clothing import CLOTHING_OVERALL_LIMIT, Clothing
+from typeclasses.menus import InteractionMenu
+from world.items.miscellaneous import currency
+
+from commands.command import Command
 from evennia import InterruptCommand
 from evennia.commands.default import general, system
 from evennia.typeclasses.attributes import NickTemplateInvalid
@@ -10,14 +18,6 @@ from evennia.utils import (
     inherits_from,
     utils,
 )
-from parsing.colors import strip_ansi
-from prototypes import spawner
-from server.conf import logger
-from typeclasses.clothing import CLOTHING_OVERALL_LIMIT, Clothing
-from typeclasses.menus import InteractionMenu
-from world.items.miscellaneous import currency
-
-from commands.command import Command
 
 _AT_SEARCH_RESULT = utils.variable_from_module(
     *settings.SEARCH_AT_RESULT.rsplit(".", 1)
@@ -344,8 +344,11 @@ class CmdBlock(Command):
 class CmdDrop(Command):
     """
     Syntax: drop <obj>
+            drop <quantity> <obj>
+            drop <obj> <number>
+            drop all
 
-    Drops an object from your inventory into your location.
+    Drops an object or multiple objects from your inventory into your location.
     """
 
     key = "drop"
@@ -354,17 +357,33 @@ class CmdDrop(Command):
 
     def parse(self):
         """
-        Parses the input to extract the quantity and the object name.
+        Parses the input to extract the quantity and the object name, handling all specified cases.
         """
-        match = re.match(r"(\d+)\s+(\w+)|(\w+)", self.args.strip())
-        if match:
-            self.num, self.obj_name = (
-                (1, match.group(3))
-                if match.group(3)
-                else (int(match.group(1)), match.group(2))
-            )
+        self.args = self.args.strip().lower()
+        if self.args == "all":
+            self.quantity, self.obj_name, self.num = "all", None, 1
         else:
-            self.num, self.obj_name = 0, None
+            match = re.match(r"(\d+)\s+(\w+)|(\w+)\s*(\d*)", self.args)
+            if match:
+                if match.group(1) and match.group(2):
+                    # Case: "drop 2 object"
+                    self.quantity, self.obj_name, self.num = (
+                        int(match.group(1)),
+                        match.group(2),
+                        1,
+                    )
+                elif match.group(3) and match.group(4):
+                    # Case: "drop object 2"
+                    self.quantity, self.obj_name, self.num = (
+                        1,
+                        match.group(3),
+                        int(match.group(4)),
+                    )
+                elif match.group(3):
+                    # Case: "drop object"
+                    self.quantity, self.obj_name, self.num = 1, match.group(3), 1
+            else:
+                self.quantity, self.obj_name, self.num = 0, None, 0
 
     def _drop_gold(self, num):
         """
@@ -386,46 +405,71 @@ class CmdDrop(Command):
         gold_info.update({"price": amount, "location": location, "home": None})
         spawner.spawn(gold_info)
 
+    def _drop_items(self, quantity, obj_name, num):
+        """
+        Handles the logic for dropping items other than gold.
+        """
+        caller = self.caller
+        if quantity == "all":
+            # Logic to drop all items
+            inventory = caller.contents  # Assuming this gets all items in the inventory
+            for obj in inventory:
+                if not obj.at_pre_drop(caller):
+                    continue
+                obj.move_to(caller.location, quiet=True, move_type="drop")
+                obj.at_drop(caller)
+            # Send a consolidated message for all items dropped
+            caller.location.msg_contents(
+                "$You() $conj(drop) everything.", from_obj=caller
+            )
+        else:
+            dropped_items = []
+            for _ in range(quantity):
+                obj = caller.search(
+                    obj_name,
+                    location=caller,
+                    nofound_string=f"You aren't carrying {obj_name}.",
+                    number=num,
+                    multimatch_string=f"You carry more than one {obj_name}:",
+                )
+
+                if not obj:
+                    return
+
+                if not obj.at_pre_drop(caller):
+                    continue
+
+                obj.move_to(caller.location, quiet=True, move_type="drop")
+                obj.at_drop(caller)
+                if obj not in dropped_items:
+                    dropped_items.append(obj)
+
+            # Send a consolidated message for multiple dropped items
+            if dropped_items:
+                item_names = [
+                    obj.get_numbered_name(1, caller)[0] for obj in dropped_items
+                ]
+                item_list = ", ".join(item_names)
+                caller.location.msg_contents(
+                    f"$You() $conj(drop) {item_list}.", from_obj=caller
+                )
+
     def func(self):
         """Implement command"""
 
         caller = self.caller
-        num = self.num
+        quantity = self.quantity
         obj_name = self.obj_name
+        num = self.num
 
         if not self.args:
             caller.msg("Drop what?")
             return
 
         if obj_name == "gold":
-            self._drop_gold(num)
-            return
-
-        for _ in range(num):
-            obj = caller.search(
-                obj_name,
-                location=caller,
-                nofound_string=f"You aren't carrying {obj_name}.",
-                multimatch_string=f"You carry more than one {obj_name}:",
-            )
-            if not obj:
-                return
-
-            # Call the object script's at_pre_drop() method.
-            if not obj.at_pre_drop(caller):
-                continue
-
-            success = obj.move_to(caller.location, quiet=True, move_type="drop")
-            if not success:
-                caller.msg("This couldn't be dropped.")
-                continue
-
-            singular, _ = obj.get_numbered_name(1, caller)
-            caller.location.msg_contents(
-                f"$You() $conj(drop) {singular}.", from_obj=caller
-            )
-            # Call the object script's at_drop() method.
-            obj.at_drop(caller)
+            self._drop_gold(quantity)
+        else:
+            self._drop_items(quantity, obj_name, num)
 
 
 class CmdEmote(Command):
@@ -562,6 +606,36 @@ class CmdGet(general.CmdGet):
             )
 
         obj.at_get(caller)
+
+    def func(self):
+        caller = self.caller
+        location = caller.location
+
+        if not self.args:
+            return self.msg("Get what?")
+
+        if self.rhs:
+            location = caller.search(self.rhs)
+            if not location:
+                return
+
+            if not location.access(caller, "get_from"):
+                if location.db.get_from_err_msg:
+                    self.msg(location.db.get_from_err_msg)
+                else:
+                    self.msg("You can't get anything from that.")
+                return
+
+            if self.lhs == "all":
+                for obj in location.contents:
+                    self._retrieve_obj(caller, obj, location)
+                return
+
+            obj = caller.search(self.lhs, location=location)
+            self._retrieve_obj(caller, obj, location)
+        else:
+            obj = caller.search(self.args, location=caller.location)
+            self._retrieve_obj(caller, obj, caller.location)
 
 
 class CmdGive(general.CmdGive):

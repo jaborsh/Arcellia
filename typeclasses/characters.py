@@ -13,14 +13,14 @@ Contributions:
 import os
 
 from django.conf import settings
-from evennia.objects.models import ObjectDB
-from evennia.objects.objects import DefaultCharacter
-from evennia.utils.utils import lazy_property, make_iter, to_str, variable_from_module
 from handlers import quests, traits
 from parsing.text import grammarize, wrap
 from server.conf import logger
 from world.characters import backgrounds, genders, races
 
+from evennia.objects.models import ObjectDB
+from evennia.objects.objects import DefaultCharacter
+from evennia.utils.utils import lazy_property, make_iter, to_str, variable_from_module
 from typeclasses import objects
 from typeclasses.mixins import living
 
@@ -481,6 +481,7 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
         candidates=None,
         use_locks=True,
         nofound_string=None,
+        number=1,
         multimatch_string=None,
         use_dbref=None,
         tags=None,
@@ -663,7 +664,7 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
                 # a valid stack, return multiple results
                 return list(results)[:stacked]
         elif nresults > 1:
-            return list(results)[0]
+            return list(results)[number - 1]
 
         # handle error messages
         return _AT_SEARCH_RESULT(
