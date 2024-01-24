@@ -135,7 +135,14 @@ class WarbrandPyreling(Pyreling):
     race = "warbrand pyreling"
 
 
+# Mob Races
+@RaceRegistry.register
+class Monster(Race):
+    race = "monster"
+
+
 RACE_MAP = {
+    # Character Races
     "human": RaceRegistry.get("human"),
     "high elf": RaceRegistry.get("high elf"),
     "night elf": RaceRegistry.get("night elf"),
@@ -151,4 +158,6 @@ RACE_MAP = {
     "arcanist pyreling": RaceRegistry.get("arcanist pyreling"),
     "emberkin pyreling": RaceRegistry.get("emberkin pyreling"),
     "warbrand pyreling": RaceRegistry.get("warbrand pyreling"),
+    # Mob Races
+    "monster": RaceRegistry.get("monster"),
 }

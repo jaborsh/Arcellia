@@ -1,6 +1,5 @@
 from evennia.contrib.grid.xyzgrid.xyzroom import XYZRoom
 from evennia.utils import dedent
-
 from world.characters import backgrounds, genders, races
 
 _BACKGROUND_INFO_DICT = backgrounds.BACKGROUND_INFO_DICT
@@ -41,15 +40,15 @@ def chargen_gender(caller, raw_string, **kwargs):
     def _set_gender(caller):
         selected_gender = kwargs.get("selected_gender", None)
         if selected_gender == "male":
-            caller.base.add(
+            caller.traits.add(
                 "gender",
                 "Gender",
                 value=genders.Gender.MALE,
             )
         elif selected_gender == "female":
-            caller.base.add("gender", "Gender", value=genders.Gender.FEMALE)
+            caller.traits.add("gender", "Gender", value=genders.Gender.FEMALE)
         elif selected_gender == "androgynous":
-            caller.base.add("gender", "Gender", value=genders.Gender.ANDROGYNOUS)
+            caller.traits.add("gender", "Gender", value=genders.Gender.ANDROGYNOUS)
         else:
             return "chargen_welcome"
 
@@ -125,7 +124,7 @@ def chargen_race(caller, raw_string, **kwargs):
             caller.msg("An error occurred. Contact an administrator.")
             return "chargen_welcome"
 
-        caller.base.add("race", "Race", value=race_type)
+        caller.traits.add("race", "Race", value=race_type)
         return "chargen_background"
 
     selected_race = kwargs.get("selected_race", None)
@@ -217,7 +216,7 @@ def chargen_background(caller, raw_string, **kwargs):
             caller.msg("An error occurred. Contact an administrator.")
             return "chargen_welcome"
 
-        caller.base.add("background", "Background", value=background)
+        caller.traits.add("background", "Background", value=background)
         return "chargen_appearance"
 
     selected_background = kwargs.get("selected_background", None)

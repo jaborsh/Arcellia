@@ -16,7 +16,7 @@ from django.conf import settings
 from handlers import quests, traits
 from parsing.text import grammarize, wrap
 from server.conf import logger
-from world.characters import backgrounds, genders, races
+from world.characters import backgrounds, genders
 
 from evennia.objects.models import ObjectDB
 from evennia.objects.objects import DefaultCharacter
@@ -93,21 +93,6 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
             raise TypeError("Background must be a string or a Background class.")
 
         self.background.value = value
-
-    @property
-    def race(self):
-        return self.traits.get("race")
-
-    @race.setter
-    def race(self, value):
-        if isinstance(value, str):
-            value = races.RACE_MAP.get(value)
-        elif isinstance(value, races.Race):
-            pass
-        else:
-            raise TypeError("Race must be a string or a Race class.")
-
-        self.race.value = value
 
     @property
     def log_folder(self):

@@ -1,7 +1,8 @@
 import time
 from random import random
 
-from buffs.buffs import Buff, Mod
+from world.buffs.buffs import Buff, Mod
+
 from evennia.server import signals
 from evennia.utils import search, utils
 

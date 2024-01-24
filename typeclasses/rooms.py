@@ -3,12 +3,12 @@ from textwrap import dedent
 
 from django.conf import settings
 from django.core import exceptions as django_exceptions
+from prototypes import spawner
+
 from evennia.contrib.grid.xyzgrid import xymap_legend, xyzroom
 from evennia.contrib.grid.xyzgrid.utils import MapError
 from evennia.objects.objects import DefaultRoom
 from evennia.utils.utils import class_from_module, iter_to_str
-from prototypes import spawner
-
 from typeclasses.mixins.rooms import ExtendedRoomMixin
 
 CLIENT_DEFAULT_WIDTH = settings.CLIENT_DEFAULT_WIDTH
@@ -94,7 +94,9 @@ class Room(ExtendedRoomMixin, DefaultRoom):
 
             {desc}
 
-            {exits}{characters}{mobs}{things}
+            {exits}
+            
+        {characters}{mobs}{things}
         """
     )
 
@@ -164,9 +166,9 @@ class Room(ExtendedRoomMixin, DefaultRoom):
         exit_names = iter_to_str(exit.display_name for exit in exits)
 
         return (
-            f"|wObvious Exits: {exit_names}|n\n"
+            f"|wObvious Exits: {exit_names}|n"
             if exit_names
-            else "|wObvious Exits: None|n\n"
+            else "|wObvious Exits: None|n"
         )
 
     def get_display_characters(self, looker, **kwargs):
@@ -191,7 +193,7 @@ class Room(ExtendedRoomMixin, DefaultRoom):
             char.get_display_name(looker, **kwargs) for char in characters
         )
 
-        return f"\n{character_names}\n" if character_names else ""
+        return f"{character_names}\n" if character_names else ""
 
     def get_display_mobs(self, looker, **kwargs):
         """
@@ -231,7 +233,7 @@ class Room(ExtendedRoomMixin, DefaultRoom):
 
         mob_names = "\n".join(reversed(mob_names))
 
-        return mob_names
+        return f"{mob_names}\n" if mob_names else ""
 
     def get_display_things(self, looker, **kwargs):
         """
@@ -264,7 +266,7 @@ class Room(ExtendedRoomMixin, DefaultRoom):
             singular, plural = thing.get_numbered_name(nthings, looker, key=thingname)
             thing_names.append(singular if nthings == 1 else plural)
         thing_names = "\n".join(thing_names)
-        return "\n" + thing_names
+        return f"{thing_names}\n" if thing_names else ""
 
     def return_appearance(self, looker, **kwargs):
         """

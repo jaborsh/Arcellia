@@ -3,10 +3,10 @@ import re
 from django.conf import settings
 from parsing.colors import strip_ansi
 from prototypes import spawner
+from prototypes.miscellaneous import currency
 from server.conf import logger
 from typeclasses.clothing import CLOTHING_OVERALL_LIMIT, Clothing
 from typeclasses.menus import InteractionMenu
-from world.items.miscellaneous import currency
 
 from commands.command import Command
 from evennia import InterruptCommand

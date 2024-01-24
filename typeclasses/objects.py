@@ -260,7 +260,6 @@ class Object(ObjectParent, DefaultObject):
             obj.get_numbered_name(3, looker, key="foo") -> ("a foo", "three foos")
         """
 
-        plural_category = "plural_key"
         key = kwargs.get("key", self.display_name)
 
         # Regular expression for color codes
@@ -313,7 +312,11 @@ class Object(ObjectParent, DefaultObject):
 
         plural = re.split(color_code_pattern, "".join(plural_segments), 1)
         plural = (
-            plural[1] + _INFLECT.plural(plural[3]) + "|n"
+            _INFLECT.number_to_words(count)
+            + " "
+            + plural[1]
+            + _INFLECT.plural(plural[3], count)
+            + "|n"
             if len(plural) > 1
             else _INFLECT.plural(plural[0])
         )

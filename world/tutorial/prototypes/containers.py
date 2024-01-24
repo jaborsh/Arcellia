@@ -1,4 +1,5 @@
-from world.items.miscellaneous import currency, gems
+from prototypes.consumables import potions
+from prototypes.miscellaneous import currency, gems
 
 GOLD = currency.GOLD
 GOLD["price"] = 25
@@ -17,3 +18,6 @@ WOODEN_CHEST = {
     "spawns": [gems.ONYX, GOLD],
     "weight": 40,
 }
+
+WOODEN_CHEST_2 = WOODEN_CHEST.copy()
+WOODEN_CHEST_2["spawns"] = [potions.HEALING_POTION, potions.HEALING_POTION]

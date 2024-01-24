@@ -1,7 +1,7 @@
-from evennia.contrib.rpg.traits import traits
+from handlers import clothing, cooldowns, traits
+from world.characters import genders, races
+
 from evennia.utils import lazy_property
-from handlers import clothing, cooldowns
-from world.characters import genders
 
 
 class LivingMixin:
@@ -37,6 +37,21 @@ class LivingMixin:
             raise TypeError("Gender must be a string or a Gender class.")
 
         self.gender.value = value
+
+    @property
+    def race(self):
+        return self.traits.get("race")
+
+    @race.setter
+    def race(self, value):
+        if isinstance(value, str):
+            value = races.RACE_MAP.get(value)
+        elif isinstance(value, races.Race):
+            pass
+        else:
+            raise TypeError("Race must be a string or a Race class.")
+
+        self.race.value = value
 
     @property
     def wealth(self):

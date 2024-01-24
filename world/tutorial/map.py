@@ -1,6 +1,6 @@
 from typeclasses.rooms import MapNode
 
-from world.tutorial.prototypes import containers, interactives
+from world.tutorial.prototypes import containers, interactives, mobs
 
 ROOM_PARENT = {"typeclass": "world.tutorial.rooms.NautilusRoom"}
 EXIT_PARENT = {"typeclass": "typeclasses.exits.XYExit"}
@@ -136,6 +136,7 @@ PROTOTYPES = {
             "ropes": "Coiled and kinked, the ropes lay in disarray, a chaotic aftermath frozen in time, their fibers frayed by toil and the relentless wear of the elements.",
             "barrels": "The scattered barrels, once full of sustenance and spirits for the journey, now lay broken, their contents long since claimed by the deep, leaving only husks behind.",
         },
+        "spawns": [mobs.FIEND, mobs.FIEND, mobs.FIEND],
     },
     (4, 3): {
         "key": "|CThe Nautilus - Inner Hold|n",
@@ -153,6 +154,7 @@ PROTOTYPES = {
             "pot": "Austere and overlooked, the chamber pot remains an object that time has not deigned to touch, underscoring the abject solitude once found here.",
             "lanterns": "The lanterns, their light extinguished, are sheathed in the accumulated grime of a tragedy silent and unseen, the faint outlines of their form barely discernible in the cloaking darkness.",
         },
+        "spawns": [containers.WOODEN_CHEST],
     },
     (4, 2): {
         "key": "|CThe Nautilus - Morphosis Room|n",
@@ -166,6 +168,7 @@ PROTOTYPES = {
         "details": {
             "altar": "Centrally placed, the altar is a slab of darkness, its surface a canvas of arcane imagery weeping with the freshness of sanguine offerings."
         },
+        "spawns": [containers.WOODEN_CHEST_2, mobs.CULTIST, mobs.CULTIST],
     },
     (3, 2): {
         "key": "|CThe Nautilus - Entrance to the Helm|n",
@@ -194,6 +197,7 @@ PROTOTYPES = {
             "wood": "The varnished beams and panels of the room exude a warmth only aged timber can. The grain patterns tell a tale of winds and waters weathered, the sheen a result of careful maintenance in the face of saline assaults.",
             "windows": "The arched windows encompass the room's forward wall, crafted to withstand the ocean's wrath. They offer a portal to the vast theater of the sea, framing the ever-changing view that is part sailor's dream, part navigator's challenge.",
         },
+        "spawns": [mobs.COMMANDER],
     },
     ("*", "*"): {},
     ("*", "*", "*"): {},
