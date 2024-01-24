@@ -2,8 +2,9 @@ import random
 
 from prototypes.armor import clothing
 from prototypes.consumables import potions
-from prototypes.weapons import marital, simple
-from world.tutorial import weapons
+from prototypes.weapons import martial, simple
+
+from world.tutorial.prototypes import weapons
 
 FIEND = {
     "key": "fiend",
@@ -21,8 +22,8 @@ FIEND = {
             [
                 clothing.SIMPLE_ROBE,
                 potions.HEALING_POTION,
-                marital.SHORTSWORD,
-                marital.SCIMITAR,
+                martial.SHORTSWORD,
+                martial.SCIMITAR,
                 simple.HANDAXE,
             ]
         )
