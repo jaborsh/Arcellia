@@ -978,7 +978,7 @@ class CmdLook(general.CmdLook):
         self.msg(text=(desc, {"type": "look"}), options=None)
 
 
-class CmdPut(general.CmdDrop):
+class CmdPut(Command):
     """
     Syntax: put [quantity] <obj> [number] in <container] [number]
 
