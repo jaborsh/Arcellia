@@ -1,8 +1,8 @@
-from evennia.utils import create
 from parsing.colors import strip_ansi
 from typeclasses.clothing import Clothing, ClothingType
 
 from commands.command import Command
+from evennia.utils import create
 
 __all__ = ["CmdTailor"]
 
@@ -25,6 +25,7 @@ class CmdTailor(Command):
         - neckwear (worn around neck)
         - undershirt (worn on torso)
         - top (worn about torso)
+        - outerwear (worn over torso)
         - fullbody (worn on body)
         - wristwear (worn around wrists)
         - handwear (worn on hands)
@@ -32,6 +33,7 @@ class CmdTailor(Command):
         - belt (worn around waist)
         - underwear (worn on hips)
         - bottom (worn on legs)
+        - hosiery (worn on legs)
         - footwear (worn on feet)
     """
 
@@ -55,6 +57,7 @@ class CmdTailor(Command):
             "neckwear": ClothingType.NECKWEAR,
             "undershirt": ClothingType.UNDERSHIRT,
             "top": ClothingType.TOP,
+            "outerwear": ClothingType.OUTERWEAR,
             "fullbody": ClothingType.FULLBODY,
             "wristwear": ClothingType.WRISTWEAR,
             "handwear": ClothingType.HANDWEAR,
@@ -62,6 +65,7 @@ class CmdTailor(Command):
             "belt": ClothingType.BELT,
             "underwear": ClothingType.UNDERWEAR,
             "bottom": ClothingType.BOTTOM,
+            "hosiery": ClothingType.HOSIERY,
             "footwear": ClothingType.FOOTWEAR,
         }
 
@@ -142,5 +146,5 @@ class CmdTailor(Command):
 
         caller.msg("|YYou finish your work and take a step back.|n")
         caller.location.msg_contents(
-            f"|Y{caller} their work and takes a step back.|n", exclude=caller
+            f"|Y{caller} finishes their work and takes a step back.|n", exclude=caller
         )

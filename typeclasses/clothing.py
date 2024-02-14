@@ -1,10 +1,9 @@
 from enum import Enum
 
 from evennia.utils.utils import lazy_property
-
 from typeclasses.objects import Object
 
-CLOTHING_OVERALL_LIMIT = 15
+CLOTHING_OVERALL_LIMIT = 20
 
 
 class ClothingType(Enum):
@@ -18,6 +17,7 @@ class ClothingType(Enum):
     NECKWEAR = "neckwear"
     UNDERSHIRT = "undershirt"
     TOP = "top"
+    OUTERWEAR = "outerwear"
     FULLBODY = "fullbody"
     WRISTWEAR = "wristwear"
     HANDWEAR = "handwear"
@@ -25,6 +25,7 @@ class ClothingType(Enum):
     BELT = "belt"
     UNDERWEAR = "underwear"
     BOTTOM = "bottom"
+    HOSIERY = "hosiery"
     FOOTWEAR = "footwear"
 
 
@@ -36,6 +37,7 @@ CLOTHING_TYPE_COVER = {
     ClothingType.NECKWEAR: [],
     ClothingType.UNDERSHIRT: [],
     ClothingType.TOP: [ClothingType.UNDERSHIRT],
+    ClothingType.OUTERWEAR: [],
     ClothingType.FULLBODY: [
         ClothingType.TOP,
         ClothingType.UNDERSHIRT,
@@ -48,6 +50,7 @@ CLOTHING_TYPE_COVER = {
     ClothingType.BELT: [],
     ClothingType.UNDERWEAR: [],
     ClothingType.BOTTOM: [ClothingType.UNDERWEAR],
+    ClothingType.HOSIERY: [],
     ClothingType.FOOTWEAR: [],
 }
 
@@ -57,15 +60,17 @@ CLOTHING_TYPE_ORDER = [
     ClothingType.EYEWEAR,
     ClothingType.EARRING,
     ClothingType.NECKWEAR,
-    ClothingType.FULLBODY,
-    ClothingType.UNDERSHIRT,
+    ClothingType.OUTERWEAR,
     ClothingType.TOP,
+    ClothingType.UNDERSHIRT,
+    ClothingType.FULLBODY,
     ClothingType.WRISTWEAR,
     ClothingType.HANDWEAR,
     ClothingType.RING,
     ClothingType.BELT,
     ClothingType.UNDERWEAR,
     ClothingType.BOTTOM,
+    ClothingType.HOSIERY,
     ClothingType.FOOTWEAR,
 ]
 
@@ -119,6 +124,7 @@ class Clothing(Object):
             ClothingType.NECKWEAR: "around neck",
             ClothingType.UNDERSHIRT: "on torso",
             ClothingType.TOP: "about torso",
+            ClothingType.OUTERWEAR: "on over torso",
             ClothingType.FULLBODY: "on body",
             ClothingType.WRISTWEAR: "around wrists",
             ClothingType.HANDWEAR: "on hands",
@@ -126,6 +132,7 @@ class Clothing(Object):
             ClothingType.BELT: "around waist",
             ClothingType.UNDERWEAR: "on hips",
             ClothingType.BOTTOM: "on legs",
+            ClothingType.HOSIERY: "on legs",
             ClothingType.FOOTWEAR: "on feet",
         }
         return position_map.get(self.clothing_type, "on body")

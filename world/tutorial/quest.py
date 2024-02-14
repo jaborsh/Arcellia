@@ -1,9 +1,8 @@
-from handlers import quests
+from handlers.quests import Quest
 
 
-class TutorialQuest(quests.Quest):
+class TutorialQuest(Quest):
     key = "Tutorial"
-    desc = "This is the Tutorial quest aboard the Nautilus."
 
-    # Stage 0 - Start
-    # Stage 1 - Interacted with Broken Body
+    # Stage 0 - Initialization
+    # Stage 1 - Investigated the Body

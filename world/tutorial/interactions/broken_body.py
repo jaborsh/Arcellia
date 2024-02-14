@@ -5,7 +5,7 @@ from world.tutorial.quest import TutorialQuest
 
 
 def node_start(caller):
-    if not (quest := caller.quests.get("Tutorial")):
+    if not (caller.quests.get("Tutorial")):
         caller.quests.add(TutorialQuest)
 
     caller.ndb._evmenu.quest = caller.quests.get("Tutorial")
@@ -18,7 +18,7 @@ def node_start(caller):
 
     options = [{"desc": "Investigate the Corpse", "goto": "node_investigate"}]
 
-    if quest.stage == 0:
+    if caller.ndb._evmenu.quest.stage == 0:
         options.append({"desc": "Assess the Damage", "goto": "node_assessment"})
 
     options.append({"desc": "Leave", "goto": "node_quit"})
@@ -44,7 +44,7 @@ def node_investigate(caller, **kwargs):
 
 
 def node_assessment(caller):
-    caller.quests.get("Tutorial").stage = 1
+    caller.quests.update_stage("Tutorial", 1)
 
     if random.randint(1, 2) == 1:
         text = dedent(
