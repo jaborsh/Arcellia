@@ -24,6 +24,7 @@ from commands import (
     general,
     git,
     help,
+    mail,
     system,
     unloggedin,
 )
