@@ -3,12 +3,12 @@ from textwrap import dedent
 
 from django.conf import settings
 from django.core import exceptions as django_exceptions
-from prototypes import spawner
-
 from evennia.contrib.grid.xyzgrid import xymap_legend, xyzroom
 from evennia.contrib.grid.xyzgrid.utils import MapError
 from evennia.objects.objects import DefaultRoom
 from evennia.utils.utils import class_from_module, iter_to_str
+
+from prototypes import spawner
 from typeclasses.mixins.rooms import ExtendedRoomMixin
 
 CLIENT_DEFAULT_WIDTH = settings.CLIENT_DEFAULT_WIDTH
@@ -373,6 +373,7 @@ class MapNode(xymap_legend.MapNode):
 
         try:
             nodeobj = NodeTypeclass.objects.get_xyz(xyz=xyz)
+            print(nodeobj)
 
         except django_exceptions.ObjectDoesNotExist:
             # create a new entity, using the specified typeclass (if there's one) and

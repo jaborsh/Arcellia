@@ -99,12 +99,11 @@ class Quest:
     abandoned_text = "This quest is abandoned!"
     finished_text = "This quest is completed!"
 
-    def __init__(self, quester, start_stage=0, details={}):
+    def __init__(self, quester, start_stage=0):
         if " " in self.key:
             raise TypeError("The quest name must not have spaces in it.")
 
         self.current_stage = start_stage or self.start_stage
-        self.details = details
         self.quester = quester
         self.abandoned = False
         self.finished = False
@@ -119,16 +118,6 @@ class Quest:
     @property
     def questhandler(self):
         return self.quester.quests
-
-    @property
-    def details(self):
-        return self.details
-
-    @details.setter
-    def details(self, detail, value):
-        self.details[detail] = value
-        self.questhandler.do_save = True
-        self.questhandler._save()
 
     @property
     def stage(self):
