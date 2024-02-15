@@ -66,7 +66,7 @@ BEHEMOTH = {
     "key": "behemoth",
     "display_name": "|xBehemoth|n",
     "typeclass": "typeclasses.mobs.Monster",
-    "desc": "The Behemoth looms, a colossus sculpted by the somber hands of shadow itself. Its eyes, twin embers smoldering beneath the craggy brow of a primeval cliff, pierce the murk with an infernal glow. The massive creature bears a carapace as intricate as the wrought gates of a forsaken fortress, each obsidian scale a testament to its indomitable fortress. Its formidable countenance, framed by a serrated beak sharp as the guillotine's final whisper, betrays a visage not of this gentle Earth. Muscle-bound limbs, hewn as if from the roots of ancient oaks, carry it forward with the inevitability of a tempest's advance.",
+    "desc": "The Behemoth looms, a colossus sculpted by the somber hands of shadow itself. Its eyes, twin embers smoldering beneath the craggy brow of a primeval cliff, pierce the murk with an infernal glow. The massive creature bears a carapace as intricate as the wrought gates of a forsaken fortress. Its formidable countenance, framed by a serrated beak sharp as the guillotine's blade, betrays a visage not of this gentle Earth. Muscle-bound limbs, hewn as if from the roots of ancient oaks, carry it forward with the inevitability of a tempest's advance.",
     "stats": {
         "str": 12,
         "dex": 11,
