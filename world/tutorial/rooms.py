@@ -1,5 +1,4 @@
-from evennia.utils.create import create_object
-from typeclasses import rooms
+from typeclasses import characters, rooms
 
 
 class NautilusRoom(rooms.XYRoom):
@@ -8,35 +7,30 @@ class NautilusRoom(rooms.XYRoom):
     """
 
 
-class NautilusBerthingSouth(NautilusRoom):
-    def initialize_objects(self):
-        chest = create_object(
-            typeclass="world.tutorial.objects.WoodenChest",
-            key="chest",
-            location=self,
-            home=self,
-        )
-
-        create_object(
-            typeclass="world.items.miscellaneous.gems.Onyx",
-            key="onyx",
-            location=chest,
-            home=chest,
-        )
-
-
-class NautilusMapRoom(NautilusRoom):
+class NautilusInnerHold(rooms.XYRoom):
     """
-    This is the Map Room with the open-skull body. When you interact with the
-    person in the chair, your character may notice that the exposed brain is
-    not, in fact, the person's own brain, but rather an abberation that has
-    taken to feeding on the person.
+    The Inner Hold of the Nautilus where the Enchantress is kept.
     """
 
-    def initialize_objects(self):
-        create_object(
-            typeclass="world.tutorial.objects.BrokenBody",
-            key="body",
-            location=self,
-            home=self,
-        )
+    def at_object_receive(self, moved_obj, source_location, move_type="move", **kwargs):
+        """
+        Called after an object has been moved into this object.
+
+        Args:
+            moved_obj (Object): The object moved into this one
+            source_location (Object): Where `moved_object` came from.
+                Note that this could be `None`.
+            move_type (str): The type of move. "give", "traverse", etc.
+                This is an arbitrary string provided to obj.move_to().
+                Useful for altering messages or altering logic depending
+                on the kind of movement.
+            **kwargs (dict): Arbitrary, optional arguments for users
+                overriding the call (unused by default).
+
+        """
+
+        if not isinstance(moved_obj, characters.Character):
+            return
+
+        enchantress = self.search("enchantress", quiet=True)[0]
+        enchantress.greeting()

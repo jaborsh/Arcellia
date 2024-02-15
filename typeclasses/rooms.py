@@ -233,7 +233,7 @@ class Room(ExtendedRoomMixin, DefaultRoom):
 
         mob_names = "\n".join(reversed(mob_names))
 
-        return f"{mob_names}\n" if mob_names else ""
+        return f"{mob_names}\n\n" if mob_names else ""
 
     def get_display_things(self, looker, **kwargs):
         """

@@ -4,6 +4,7 @@ from typeclasses.rooms import MapNode
 from world.tutorial.prototypes import containers, interactives, mobs
 
 ROOM_PARENT = {"typeclass": "world.tutorial.rooms.NautilusRoom"}
+INNER_HOLD = {"typeclass": "world.tutorial.rooms.NautilusInnerHold"}
 EXIT_PARENT = {"typeclass": "typeclasses.exits.XYExit"}
 
 TUTORIAL_MAP = r"""
@@ -157,7 +158,7 @@ PROTOTYPES = {
             "pot": "Austere and overlooked, the chamber pot remains an object that time has not deigned to touch, underscoring the abject solitude once found here.",
             "lanterns": "The lanterns, their light extinguished, are sheathed in the accumulated grime of a tragedy silent and unseen, the faint outlines of their form barely discernible in the cloaking darkness.",
         },
-        "spawns": [containers.WOODEN_CHEST],
+        "spawns": [containers.WOODEN_CHEST, mobs.ENCHANTRESS],
     },
     (4, 2): {
         "key": "|CThe Nautilus - Morphosis Room|n",
@@ -209,7 +210,10 @@ PROTOTYPES = {
 
 for key, prot in PROTOTYPES.items():
     if len(key) == 2:
-        prot["prototype_parent"] = ROOM_PARENT
+        if key == (4, 3):
+            prot["prototype_parent"] = INNER_HOLD
+        else:
+            prot["prototype_parent"] = ROOM_PARENT
     else:
         prot["prototype_parent"] = EXIT_PARENT
 
