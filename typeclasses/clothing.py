@@ -3,8 +3,6 @@ from enum import Enum
 from evennia.utils.utils import lazy_property
 from typeclasses.objects import Object
 
-CLOTHING_OVERALL_LIMIT = 20
-
 
 class ClothingType(Enum):
     """
@@ -29,55 +27,10 @@ class ClothingType(Enum):
     FOOTWEAR = "footwear"
 
 
-# Articles that are automatically concealed by their key clothing type.
-CLOTHING_TYPE_COVER = {
-    ClothingType.HEADWEAR: [],
-    ClothingType.EYEWEAR: [],
-    ClothingType.EARRING: [],
-    ClothingType.NECKWEAR: [],
-    ClothingType.UNDERSHIRT: [],
-    ClothingType.TOP: [ClothingType.UNDERSHIRT],
-    ClothingType.OUTERWEAR: [],
-    ClothingType.FULLBODY: [
-        ClothingType.TOP,
-        ClothingType.UNDERSHIRT,
-        ClothingType.BELT,
-        ClothingType.BOTTOM,
-    ],
-    ClothingType.WRISTWEAR: [],
-    ClothingType.HANDWEAR: [ClothingType.RING],
-    ClothingType.RING: [],
-    ClothingType.BELT: [],
-    ClothingType.UNDERWEAR: [],
-    ClothingType.BOTTOM: [ClothingType.UNDERWEAR],
-    ClothingType.HOSIERY: [],
-    ClothingType.FOOTWEAR: [],
-}
-
-# The order in which clothing types appear on the description.
-CLOTHING_TYPE_ORDER = [
-    ClothingType.HEADWEAR,
-    ClothingType.EYEWEAR,
-    ClothingType.EARRING,
-    ClothingType.NECKWEAR,
-    ClothingType.OUTERWEAR,
-    ClothingType.TOP,
-    ClothingType.UNDERSHIRT,
-    ClothingType.FULLBODY,
-    ClothingType.WRISTWEAR,
-    ClothingType.HANDWEAR,
-    ClothingType.RING,
-    ClothingType.BELT,
-    ClothingType.UNDERWEAR,
-    ClothingType.BOTTOM,
-    ClothingType.HOSIERY,
-    ClothingType.FOOTWEAR,
-]
-
-
 class Clothing(Object):
     def at_object_creation(self):
         self.db.covered_by = []
+        self.db.covering = []
 
     @property
     def clothing_type(self):
@@ -100,6 +53,14 @@ class Clothing(Object):
     @covered_by.setter
     def covered_by(self, value: list):
         self.db.covered_by = value
+
+    @property
+    def covering(self):
+        return self.attributes.get("covering", [])
+
+    @covering.setter
+    def covering(self, value: list):
+        self.db.covering = value
 
     @property
     def display_name(self):
@@ -137,58 +98,58 @@ class Clothing(Object):
         }
         return position_map.get(self.clothing_type, "on body")
 
-    def remove(self, wearer):
-        """
-        Removed worn clothes and optionally echoes to the room.
+    # def remove(self, wearer):
+    #     """
+    #     Removed worn clothes and optionally echoes to the room.
 
-        Args:
-            wearer (obj): object wearing this clothing object.
-            quiet (bool): if true, don't echo to the room.
-        """
-        uncovered = []
+    #     Args:
+    #         wearer (obj): object wearing this clothing object.
+    #         quiet (bool): if true, don't echo to the room.
+    #     """
+    #     uncovered = []
 
-        # Check to see if any other clothes are covered by this object.
-        for article in wearer.clothes.all():
-            if self in article.covered_by:
-                article.covered_by.remove(self)
-                uncovered.append(article)
+    #     # Check to see if any other clothes are covered by this object.
+    #     for article in wearer.clothes.all():
+    #         if self in article.covered_by:
+    #             article.covered_by.remove(self)
+    #             uncovered.append(article)
 
-        # Remove the clothes from the covered_by list.
-        self.covered_by = []
+    #     # Remove the clothes from the covered_by list.
+    #     self.covered_by = []
 
-        # Remove the clothes from the wearer.
-        wearer.clothes.remove(self)
+    #     # Remove the clothes from the wearer.
+    #     wearer.clothes.remove(self)
 
-        message = f"$You() $conj(remove) {self.get_display_name(wearer)}"
-        if len(uncovered) > 0:
-            message += f", revealing {', '.join([article.get_display_name(wearer) for article in uncovered])}"
+    #     message = f"$You() $conj(remove) {self.get_display_name(wearer)}"
+    #     if len(uncovered) > 0:
+    #         message += f", revealing {', '.join([article.get_display_name(wearer) for article in uncovered])}"
 
-        wearer.location.msg_contents(message + ".", from_obj=wearer)
+    #     wearer.location.msg_contents(message + ".", from_obj=wearer)
 
-    def wear(self, wearer):
-        """
-        Sets clothes to be worn and optionally echoes to the room.
+    # def wear(self, wearer):
+    #     """
+    #     Sets clothes to be worn and optionally echoes to the room.
 
-        Args:
-            wearer (obj): object wearing the clothing article.
-            wearstyle (str): the style of wear.
-            quiet (bool): if true, don't echo to the room.
-        """
+    #     Args:
+    #         wearer (obj): object wearing the clothing article.
+    #         wearstyle (str): the style of wear.
+    #         quiet (bool): if true, don't echo to the room.
+    #     """
 
-        # Auto-cover appropriately
-        covering = []
-        wearer_clothes = wearer.clothes.all()
-        for article in wearer_clothes:
-            if article.clothing_type in CLOTHING_TYPE_COVER[self.clothing_type]:
-                article.covered_by.append(self)
-                covering.append(article)
-            elif self.clothing_type in CLOTHING_TYPE_COVER[article.clothing_type]:
-                self.covered_by.append(article)
+    #     # Auto-cover appropriately
+    #     covering = []
+    #     wearer_clothes = wearer.clothes.all()
+    #     for article in wearer_clothes:
+    #         if article.clothing_type in CLOTHING_TYPE_COVER[self.clothing_type]:
+    #             article.covered_by.append(self)
+    #             covering.append(article)
+    #         elif self.clothing_type in CLOTHING_TYPE_COVER[article.clothing_type]:
+    #             self.covered_by.append(article)
 
-        wearer.clothes.wear(self)
+    #     wearer.clothes.wear(self)
 
-        message = f"$You() $conj(wear) {self.get_display_name(wearer)}"
-        if covering:
-            message += f", covering {', '.join([article.get_display_name(wearer) for article in covering])}"
+    #     message = f"$You() $conj(wear) {self.get_display_name(wearer)}"
+    #     if covering:
+    #         message += f", covering {', '.join([article.get_display_name(wearer) for article in covering])}"
 
-        wearer.location.msg_contents(message + ".", from_obj=wearer)
+    #     wearer.location.msg_contents(message + ".", from_obj=wearer)

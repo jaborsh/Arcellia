@@ -1,11 +1,12 @@
 import re
 
 from django.conf import settings
+from handlers.clothing import CLOTHING_OVERALL_LIMIT, CLOTHING_TYPE_COVER
 from parsing.colors import strip_ansi
 from prototypes import spawner
 from prototypes.miscellaneous import currency
 from server.conf import logger
-from typeclasses.clothing import CLOTHING_OVERALL_LIMIT, Clothing
+from typeclasses.clothing import Clothing
 from typeclasses.menus import InteractionMenu
 
 from commands.command import Command
@@ -27,6 +28,7 @@ COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 __all__ = [
     "CmdAlias",
     "CmdBlock",
+    "CmdCover",
     "CmdDrop",
     "CmdEmote",
     "CmdFeel",
@@ -44,6 +46,7 @@ __all__ = [
     "CmdTaste",
     "CmdTell",
     "CmdTime",
+    "CmdUncover",
     "CmdWealth",
     "CmdWear",
     "CmdWhisper",
@@ -340,6 +343,70 @@ class CmdBlock(Command):
         else:
             caller.locks.replace(f"msg: not id({target.id})")
             caller.msg(f"You block {target.get_display_name(caller)}.")
+
+
+class CmdCover(Command):
+    """
+    Syntax: cover <clothing> with <clothing>
+
+    This command allows a character to cover one clothing object with another.
+    Both the clothing objects must be in the character's inventory. The command
+    takes two arguments: the first argument is the clothing object to be
+    covered, and the second argument is the clothing object to be used as a
+    cover.
+    """
+
+    key = "cover"
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+
+        if not args:
+            return caller.msg("Cover what?")
+
+        args = args.split(" with ")
+
+        if len(args) != 2:
+            return caller.msg("Cover what with what?")
+
+        obj = caller.search(args[0], candidates=caller.contents)
+        if not obj:
+            return
+
+        if not isinstance(obj, Clothing):
+            return caller.msg("You can't cover that.")
+
+        if obj not in caller.clothing.all():
+            return caller.msg("You cannot cover something you aren't wearing.")
+
+        cover = caller.search(args[1], candidates=caller.contents)
+        if not cover:
+            return
+
+        if not isinstance(cover, Clothing):
+            return caller.msg("You can't use that to cover something.")
+
+        if cover not in caller.clothing.all():
+            return caller.msg(
+                "You cannot use something you aren't wearing to cover something."
+            )
+
+        if obj.clothing_type not in CLOTHING_TYPE_COVER[cover.clothing_type]:
+            return caller.msg("You can't cover that with that.")
+
+        if cover in obj.covered_by:
+            return caller.msg(
+                f"{cover.get_display_name(caller)} is already covering {obj.get_display_name(caller)}."
+            )
+
+        obj.covered_by.append(cover)
+        cover.covering.append(obj)
+        caller.location.msg_contents(
+            f"$You() $conj(cover) {obj.get_display_name(caller)} with {cover.get_display_name(caller)}.",
+            from_obj=caller,
+        )
 
 
 class CmdDrop(Command):
@@ -840,9 +907,9 @@ class CmdInventory(Command):
             caller.msg("You are not carrying or wearing anything.")
             return
 
-        worn_table = self.create_table(caller.clothes.all(), "Clothing")
+        worn_table = self.create_table(caller.clothing.all(), "Clothing")
         carried_items = [
-            obj for obj in caller.contents if obj not in caller.clothes.all()
+            obj for obj in caller.contents if obj not in caller.clothing.all()
         ]
         carried_table = self.create_table(carried_items, "Carrying")
         header = self.create_header(caller)
@@ -1091,10 +1158,10 @@ class CmdRemove(Command):
         if not clothing:
             caller.msg("You don't have anything like that.")
             return
-        if clothing not in caller.clothes.all():
+        if clothing not in caller.clothing.all():
             caller.msg("You're not wearing that!")
             return
-        clothing.remove(caller)
+        caller.clothing.remove(clothing)
 
 
 class CmdSay(Command):
@@ -1369,6 +1436,47 @@ class CmdTime(system.CmdTime):
         self.caller.msg(f"It's {prep} {season} day, in the {timeslot}.")
 
 
+class CmdUncover(Command):
+    """
+    Syntax: uncover <clothing>
+
+    This command allows a character to uncover a specific clothing object that
+    is currently covered by another clothing object. The command takes one
+    argument, which is the name or key of the object to be uncovered.
+    """
+
+    key = "uncover"
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+
+        if not args:
+            return caller.msg("Uncover what?")
+
+        obj = caller.search(args, candidates=caller.contents)
+        if not obj:
+            return
+
+        if not isinstance(obj, Clothing):
+            return caller.msg("You can't uncover that.")
+
+        if not obj.covered_by:
+            return caller.msg(
+                f"{obj.get_display_name(caller)} isn't covered by anything."
+            )
+
+        for cover in obj.covered_by:
+            cover.covering.remove(obj)
+            obj.covered_by.remove(cover)
+
+            caller.location.msg_contents(
+                f"$You() $conj(uncover) {obj.get_display_name(caller)} from beneath {cover.get_display_name(caller)}.",
+                from_obj=caller,
+            )
+
+
 class CmdWealth(Command):
     """
     Syntax: wealth
@@ -1416,7 +1524,7 @@ class CmdWear(Command):
             )
             return
 
-        clothes = caller.clothes.all()
+        clothes = caller.clothing.all()
 
         if clothing in clothes:
             caller.msg("You are already wearing that.")
@@ -1426,7 +1534,7 @@ class CmdWear(Command):
             caller.msg("You can't wear any more clothes.")
             return
 
-        clothing.wear(caller)
+        caller.clothing.wear(clothing)
 
 
 class CmdWhisper(Command):

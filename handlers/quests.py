@@ -1,7 +1,8 @@
 from evennia.utils import dbserialize
+from handlers.handler import Handler
 
 
-class QuestHandler:
+class QuestHandler(Handler):
     """
     Handler for managing quests on a game object. Supports adding, updating,
     and checking the status of quests. Quests include details about the quest
@@ -17,8 +18,6 @@ class QuestHandler:
     - remove_quest(quest_name): Removes a quest from the handler.
     - clear_quests(): Removes all quests.
     """
-
-    __slots__ = ("data", "db_attribute", "obj")
 
     def __init__(self, obj, db_attribute="quests"):
         """
@@ -36,53 +35,6 @@ class QuestHandler:
         self.obj = obj
         self.db_attribute = db_attribute
 
-    def _load(self):
-        """
-        Loads the quest data from the game object's attributes.
-
-        This method retrieves the quest data from the game object's attributes using the specified database attribute. If the attribute does not exist, it initializes it with an empty dictionary. The loaded quest data is then stored in the 'data' attribute of the QuestHandler instance.
-
-        This method is called internally by the QuestHandler class and does not need to be called directly by the user.
-
-        Parameters:
-            None
-
-        Returns:
-            None
-        """
-        self.data = self.obj.attributes.get(self.db_attribute, default={})
-
-    def _save(self):
-        """
-        Saves the quest data to the game object's attributes.
-
-        This method saves the quest data stored in the 'data' attribute of the QuestHandler instance to the game object's attributes using the specified database attribute. It updates the attribute with the current quest data. The saved quest data will persist even after game reboots.
-
-        This method is called internally by the QuestHandler class and does not need to be called directly by the user.
-
-        Parameters:
-            None
-
-        Returns:
-            None
-        """
-        self.obj.attributes.add(self.db_attribute, self.data)
-        self._load()
-
-    def all(self):
-        """
-        Returns all quests stored in the QuestHandler.
-
-        This method retrieves and returns all quests stored in the QuestHandler. It returns a dictionary containing the quest names as keys and the corresponding Quest objects as values.
-
-        Parameters:
-            None
-
-        Returns:
-            dict: A dictionary containing all quests stored in the QuestHandler. The keys are the quest names and the values are the corresponding Quest objects.
-        """
-        return self.data
-
     def add(self, quest_cls):
         """
         Adds a new quest to the QuestHandler.
@@ -97,20 +49,6 @@ class QuestHandler:
         """
         quest = quest_cls(self.obj)
         self.data[quest.key] = quest
-
-    def get(self, quest):
-        """
-        Retrieves a specific quest from the QuestHandler.
-
-        This method retrieves a specific quest from the QuestHandler's data dictionary based on the provided quest name. It returns the corresponding Quest object if the quest exists, or None if the quest does not exist.
-
-        Parameters:
-            quest (str): The name of the quest to retrieve.
-
-        Returns:
-            Quest or None: The Quest object corresponding to the provided quest name, or None if the quest does not exist.
-        """
-        return self.data.get(quest)
 
     def add_details(self, quest, new_details):
         """
