@@ -77,6 +77,7 @@ PROTOTYPES = {
         "details": {
             "corpses": "Attire merges with wearer, the decay uniform in its progress; amidst the remains, insignias and medals cling to fabric, persevering symbols of duty and honor in the unyielding dark."
         },
+        "spawns": [containers.SAILOR_CORPSE],
     },
     (1, 2): {
         "key": "|CThe Nautilus - Map Room|n",
@@ -120,6 +121,7 @@ PROTOTYPES = {
             "astrolabes": "Scattered across the observatory, the astrolabes are relics of brass and precision, their form providing homage to the goblin artificers who once crafted devices of such cunning complexity. Each dial and plate intricately engraved, not merely with the signs of the zodiac but also with minuscule depictions of goblin life, hint at a culture rich with tradition and knowledge. To lay one's gaze upon them is to be filled with sudden, fleeting visions of goblins in their daily toil and ancient history, their ingenuity and craft flashing past with ephemeral encounters with a world both alien and intimate.",
             "window": "Dominating the observatory, the window is a melancholic mosaic, its once pristine transparency marred by fissures that catch the light in haunting displays. Where the glass remains intact, it reflects the gloom of the room, an ever-watchful eye that has beheld the unfolding of the ship's fate. Through this fractured pane, the incomprehensible depth of the ocean gazes back, exacerbating the sense of isolation from the world above and the celestial guidance now lost.",
         },
+        "spawns": [containers.GOBLIN_CORPSE],
     },
     (1, 3): {
         "key": "|CThe Nautilus - Main Deck|n",

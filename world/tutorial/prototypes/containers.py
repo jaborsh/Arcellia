@@ -4,6 +4,35 @@ from prototypes.miscellaneous import currency, gems
 GOLD = currency.GOLD
 GOLD["price"] = 25
 
+SAILOR_CORPSE = {
+    "key": "corpse",
+    "display_name": "|CSailor's Corpse|n",
+    "typeclass": "typeclasses.containers.ImmovableContainer",
+    "desc": "The sailor's hands, calloused and gnarled from years of wrestling with the ropes that bound his destiny to the sea, lay clasped atop his chest as if in prayer, a silent plea to the celestial guardians he had often gazed upon through the tempestuous nights. His countenance bore the indelible marks of a life spent in ceaseless wanderlust, each line a story, each scar a battle with nature's fury. Yet, amidst the solemn stillness of his eternal rest, a semblance of a grin played upon his lifeless lips, as though recounting tales of camaraderie and adventure that would now be consigned to the depths of oblivion.",
+    "senses": {
+        "feel": "The dry, rough texture of his salt-encrusted garments contrasts sharply with the eerie smoothness of his sun-baked skin.",
+        "smell": "An overpowering blend of sea brine mingled with the decay of once-vigorous flesh, underlain by the faint, melancholic scent of weathered wood.",
+        "sound": "A haunting silence envelops the scene, save for the occasional creak of the weary ship and the soft, mournful whispers of the sea breeze.",
+        "taste": "The air carries the harsh tang of salt, reminiscent of the briny depths that claimed his vitality, mingling with the bitter taste of loss and forgotten dreams.",
+    },
+    "spawns": [potions.HEALING_POTION],
+    "weight": 100,
+}
+
+GOBLIN_CORPSE = {
+    "key": "corpse",
+    "display_name": "|GGoblin's Corpse|n",
+    "typeclass": "typeclasses.containers.ImmovableContainer",
+    "desc": "His skin, a palette of greens and yellows mottled like the underbelly of a sickly toad, was stretched taut over sharp, protruding bones. His face, twisted in an eternal grimace, betrayed the final pang of treachery or fear that had seized his heart at the moment of his demise.",
+    "senses": {
+        "feel": "The clammy, leathery texture of his skin, cool and unnerving to the touch, feels almost like damp walls of a cave.",
+        "smell": "A pungent aroma of decay, mingled with the earthy scent of moss and mold, fills the air.",
+        "sound": "Silence pervades, broken only by the occasional drip of water from stalactites, a mournful dirge for the fallen creature.",
+        "taste": "The air is thick with the taste of mildew and the metallic tang of blood, a flavor that clings to the back of the throat and refuses to be forgotten.",
+    },
+    "spawns": [GOLD],
+}
+
 WOODEN_CHEST = {
     "key": "chest",
     "display_name": "|YWooden Chest|n",
