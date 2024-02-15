@@ -10,6 +10,7 @@ Contributions:
   Modified Genders (Griatch, Jake)
 
 """
+
 import os
 
 from django.conf import settings
@@ -205,9 +206,11 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
                 display_names = [recv.get_display_name(self) for recv in receivers]
             elif type == "receiver":
                 display_names = [
-                    "you"
-                    if character == receiver
-                    else character.get_display_name(receiver)
+                    (
+                        "you"
+                        if character == receiver
+                        else character.get_display_name(receiver)
+                    )
                     for character in receivers
                 ]
             else:
@@ -255,9 +258,9 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
                     "self": "You",
                     "to": " to " if receivers else "",
                     "object": self.get_display_name(receiver),
-                    "location": location.get_display_name(receiver)
-                    if location
-                    else None,
+                    "location": (
+                        location.get_display_name(receiver) if location else None
+                    ),
                     "receiver": None,
                     "all_receivers": all_receivers,
                     "speech": message,

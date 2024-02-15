@@ -1,3 +1,6 @@
+from evennia.utils import dbserialize
+
+
 class QuestHandler:
     """
     Handler for managing quests on a game object. Supports adding, updating,
@@ -25,8 +28,8 @@ class QuestHandler:
             obj: The game object this handler is attached to.
             db_attribute (str): The database attribute used for storing quest data.
         """
-        # Ensure the game object has a quest attribute; if not, initialize it.
-        if not obj.attributes.has(db_attribute):
+
+        if not obj.attributes.get(db_attribute, None):
             obj.attributes.add(db_attribute, {})
 
         self.data = obj.attributes.get(db_attribute)
@@ -94,7 +97,6 @@ class QuestHandler:
         """
         quest = quest_cls(self.obj)
         self.data[quest.key] = quest
-        self._save()
 
     def get(self, quest):
         """
@@ -123,9 +125,8 @@ class QuestHandler:
         Returns:
             None
         """
-        quest = self.data.get(quest, None)
-        if quest:
-            quest.details.update(new_details)
+        if self.data.get(quest, None):
+            self.data[quest].add_details(new_details)
             self._save()
 
     def get_detail(self, quest, detail):
@@ -187,9 +188,8 @@ class QuestHandler:
         Returns:
             None
         """
-        quest = self.data.get(quest, None)
-        if quest:
-            quest.set_stage(new_stage)
+        if self.data.get(quest, None):
+            self.data[quest].set_stage(new_stage)
             self._save()
 
     def remove_quest(self, quest):
@@ -238,7 +238,11 @@ class Quest:
     - get_details(): Returns the quest's details.
     """
 
-    def __init__(self, quester, details={}, initial_stage=0):
+    key = "quest"
+    details = {}
+    stage = 0
+
+    def __init__(self, quester):
         """
         Initializes a new Quest object.
 
@@ -257,8 +261,13 @@ class Quest:
             raise TypeError("The quest name must not have spaces in it.")
 
         self.quester = quester
-        self.details = details
-        self.stage = initial_stage
+
+    def __serialize_dbobjs__(self):
+        self.quester = dbserialize.dbserialize(self.quester)
+
+    def __deserialize_dbobjs__(self):
+        if isinstance(self.quester, bytes):
+            self.quester = dbserialize.dbunserialize(self.quester)
 
     def add_details(self, new_details):
         """
@@ -286,6 +295,20 @@ class Quest:
 
     def get_details(self):
         return self.details
+
+    def get_stage(self):
+        """
+        Retrieves the current stage of a specific quest.
+
+        This method retrieves the current stage of a specific quest. It returns the value of the quest's stage attribute.
+
+        Parameters:
+            None
+
+        Returns:
+            str: The current stage of the specified quest.
+        """
+        return self.stage
 
     def set_stage(self, new_stage):
         """

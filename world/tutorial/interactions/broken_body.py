@@ -18,7 +18,7 @@ def node_start(caller):
 
     options = [{"desc": "Investigate the Corpse", "goto": "node_investigate"}]
 
-    if caller.ndb._evmenu.quest.stage == 0:
+    if not caller.ndb._evmenu.quest.get_detail("body_assessment"):
         options.append({"desc": "Assess the Damage", "goto": "node_assessment"})
 
     options.append({"desc": "Leave", "goto": "node_quit"})
@@ -35,7 +35,7 @@ def node_investigate(caller, **kwargs):
 
     options = []
 
-    if caller.ndb._evmenu.quest.stage == 0:
+    if not caller.ndb._evmenu.quest.get_detail("body_assessment"):
         options.append({"desc": "Assess the Damage", "goto": "node_assessment"})
 
     options.append({"desc": "Leave", "goto": "node_quit"})
@@ -44,7 +44,7 @@ def node_investigate(caller, **kwargs):
 
 
 def node_assessment(caller):
-    caller.quests.update_stage("Tutorial", 1)
+    caller.quests.add_details("Tutorial", {"body_assessment": True})
 
     if random.randint(1, 2) == 1:
         text = dedent(
