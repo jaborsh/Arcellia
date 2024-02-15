@@ -35,7 +35,7 @@ FIEND_3["spawns"] = [martial.SHORTSWORD]
 
 ENCHANTRESS = {
     "key": "enchantress",
-    "display_name": "|cThe Trapped Enchantress|n",
+    "display_name": "|cTrapped Enchantress|n",
     "typeclass": "world.tutorial.mobs.Enchantress",
     "desc": "With eyes like the twilight sky after a storm, she holds a universe of wisdom veiled beneath a countenance marked by trials unknown. Her visage, fair as the last bloom of winter, carries the freckles of a warrior painted by the brush of skirmish. Trapped as she is, behind the gnarled ironwork of her cell, there's an insidious darkness that shrouds her form. The hold's malignant grimness mocks her with its unyielding decay, the iron lattice of her door sealed by salt and moisture.",
 }
