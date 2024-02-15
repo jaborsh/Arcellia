@@ -1127,7 +1127,7 @@ class CmdPut(Command):
         for _ in range(quantity):
             obj = caller.search(
                 obj_name,
-                location=container,
+                location=caller,
                 nofound_string=f"You aren't carrying {obj_name}.",
                 number=obj_number,
             )
