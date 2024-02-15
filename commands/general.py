@@ -7,6 +7,7 @@ from prototypes import spawner
 from prototypes.miscellaneous import currency
 from server.conf import logger
 from typeclasses.clothing import Clothing
+from typeclasses.currency import Currency
 from typeclasses.menus import InteractionMenu
 
 from commands.command import Command
@@ -664,6 +665,11 @@ class CmdGet(Command):
                 self.container_number,
             ) = (1, None, 1, None, 1)
 
+    def _retrieve_currency(self, caller, quantity, gold, location):
+        caller.wealth.base += gold.price
+        gold.delete()
+        caller.location.msg_contents("$You() $conj(get) some gold.", from_obj=caller)
+
     def _retrieve_obj(self, caller, quantity, obj_name, obj_number, location):
         retrieved_items = []
         for _ in range(quantity):
@@ -674,6 +680,10 @@ class CmdGet(Command):
                 number=obj_number,
                 multimatch_string=f"You see more than one {obj_name}:",
             )
+
+            if isinstance(obj, Currency):
+                self._retrieve_currency(caller, quantity, obj, location)
+                return
 
             if not obj:
                 break

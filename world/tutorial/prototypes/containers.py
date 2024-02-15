@@ -6,6 +6,7 @@ GOLD["price"] = 25
 
 SAILOR_CORPSE = {
     "key": "corpse",
+    "aliases": ["body"],
     "display_name": "|CSailor's Corpse|n",
     "typeclass": "typeclasses.containers.ImmovableContainer",
     "desc": "The sailor's hands, calloused and gnarled from years of wrestling with the ropes that bound his destiny to the sea, lay clasped atop his chest as if in prayer, a silent plea to the celestial guardians he had often gazed upon through the tempestuous nights. His countenance bore the indelible marks of a life spent in ceaseless wanderlust, each line a story, each scar a battle with nature's fury. Yet, amidst the solemn stillness of his eternal rest, a semblance of a grin played upon his lifeless lips, as though recounting tales of camaraderie and adventure that would now be consigned to the depths of oblivion.",
@@ -21,9 +22,10 @@ SAILOR_CORPSE = {
 
 GOBLIN_CORPSE = {
     "key": "corpse",
+    "aliases": ["body"],
     "display_name": "|GGoblin's Corpse|n",
     "typeclass": "typeclasses.containers.ImmovableContainer",
-    "desc": "His skin, a palette of greens and yellows mottled like the underbelly of a sickly toad, was stretched taut over sharp, protruding bones. His face, twisted in an eternal grimace, betrayed the final pang of treachery or fear that had seized his heart at the moment of his demise.",
+    "desc": "His skin, a palette of greens and yellows mottled like the underbelly of a sickly toad, is stretched taut over sharp, protruding bones. His twisted face betrays the final pang of treachery or fear that had seized his heart at the moment of his demise.",
     "senses": {
         "feel": "The clammy, leathery texture of his skin, cool and unnerving to the touch, feels almost like damp walls of a cave.",
         "smell": "A pungent aroma of decay, mingled with the earthy scent of moss and mold, fills the air.",
