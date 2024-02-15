@@ -1,9 +1,3 @@
-import random
-
-from prototypes.armor import clothing
-from prototypes.consumables import potions
-from prototypes.weapons import martial, simple
-
 from world.tutorial.prototypes import weapons
 
 FIEND = {
@@ -17,17 +11,17 @@ FIEND = {
         "sound": "The silence is pierced by the subtle shiftings of this abomination, the scrape of its talons a grim melody upon the hardened earth.",
         "taste": "A metallic tang invades the mouth, as though the mere sight of the fiend sours the air and poisons the tongue.",
     },
-    "spawns": [
-        random.choice(
-            [
-                clothing.SIMPLE_ROBE,
-                potions.HEALING_POTION,
-                martial.SHORTSWORD,
-                martial.SCIMITAR,
-                simple.HANDAXE,
-            ]
-        )
-    ],
+    # "spawns": [
+    #      random.choice(
+    #          [
+    #              clothing.SIMPLE_ROBE,
+    #              potions.HEALING_POTION,
+    #              martial.SHORTSWORD,
+    #              martial.SCIMITAR,
+    #              simple.HANDAXE,
+    #          ]
+    #      )
+    # ],
     "stats": {
         "str": 5,
         "dex": 8,

@@ -132,13 +132,13 @@ prototype, override its name with an empty dict.
 
 """
 
-
 import hashlib
 import time
 
-import evennia
 from django.conf import settings
 from django.utils.translation import gettext as _
+
+import evennia
 from evennia.objects.models import ObjectDB
 from evennia.prototypes import prototypes as protlib
 from evennia.prototypes.prototypes import (
@@ -904,12 +904,57 @@ def batch_create_object(*objparams):
         }
         # this triggers all hooks
         obj.save()
+
+        if spawns := obj.attributes.get("spawns", None):
+            obj_spawn_contents(obj, spawns)
+
+        if stats := obj.attributes.get("stats", None):
+            obj_set_stats(obj, stats)
+
         # run eventual extra code
         for code in objparam[7]:
             if code:
                 exec(code, {}, {"evennia": evennia, "obj": obj})
         objs.append(obj)
     return objs
+
+
+def obj_set_stats(obj, stats):
+    str = stats.get("str", 10)
+    dex = stats.get("dex", 10)
+    con = stats.get("con", 10)
+    int = stats.get("int", 10)
+    wis = stats.get("wis", 10)
+    cha = stats.get("cha", 10)
+
+    health = stats.get("health", 10)
+    mana = stats.get("mana", 10)
+    stamina = stats.get("stamina", 10)
+
+    obj.stats.add("strength", "Strength", trait_type="static", base=str)
+    obj.stats.add("dexterity", "Dexterity", trait_type="static", base=dex)
+    obj.stats.add("constitution", "Constitution", trait_type="static", base=con)
+    obj.stats.add("intelligence", "Intelligence", trait_type="static", base=int)
+    obj.stats.add("wisdom", "Wisdom", trait_type="static", base=wis)
+    obj.stats.add("charisma", "Charisma", trait_type="static", base=cha)
+    obj.stats.add(
+        "health", "Health", trait_type="counter", base=health, min=0, max=health
+    )
+    obj.stats.add("mana", "Mana", trait_type="counter", base=mana, min=0, max=mana)
+    obj.stats.add(
+        "stamina", "Stamina", trait_type="counter", base=stamina, min=0, max=stamina
+    )
+
+    obj.attributes.remove("stats")
+
+
+def obj_spawn_contents(obj, spawns):
+    obj.traits.add("spawns", "Spawns", value=spawns)
+    for s in spawns:
+        s["location"] = obj
+        s["home"] = obj
+        spawn(s)
+    obj.attributes.remove("spawns")
 
 
 # Spawner mechanism
@@ -943,11 +988,14 @@ def spawn(*prototypes, caller=None, **kwargs):
             a list of the creation kwargs to build the object(s) without actually creating it.
 
     """
+
     # search string (=prototype_key) from input
     prototypes = [
-        protlib.search_prototype(prot, require_single=True)[0]
-        if isinstance(prot, str)
-        else prot
+        (
+            protlib.search_prototype(prot, require_single=True)[0]
+            if isinstance(prot, str)
+            else prot
+        )
         for prot in prototypes
     ]
 
@@ -1028,9 +1076,9 @@ def spawn(*prototypes, caller=None, **kwargs):
         typeclass = class_from_module(
             init_spawn_value(val, str, **init_spawn_kwargs), settings.TYPECLASS_PATHS
         )
-        create_kwargs[
-            "db_typeclass_path"
-        ] = f"{typeclass.__module__}.{typeclass.__name__}"
+        create_kwargs["db_typeclass_path"] = (
+            f"{typeclass.__module__}.{typeclass.__name__}"
+        )
 
         # extract calls to handlers
         val = prot.pop("permissions", [])
@@ -1086,6 +1134,7 @@ def spawn(*prototypes, caller=None, **kwargs):
         for key, value in (
             (key, value) for key, value in prot.items() if not (key.startswith("ndb_"))
         ):
+
             # we don't support categories, nor locks for simple attributes
             if key in _PROTOTYPE_META_NAMES:
                 continue

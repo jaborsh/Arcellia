@@ -6,6 +6,3 @@ class TutorialQuest(Quest):
     details = {
         "body_assessment": False,
     }
-
-    # Stage 0 - Initialization
-    # Stage 1 - Investigated the Body

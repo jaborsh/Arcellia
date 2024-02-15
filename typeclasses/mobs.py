@@ -1,7 +1,6 @@
 from textwrap import dedent
 
 from commands.default_cmdsets import MobCmdSet
-from prototypes import spawner
 from world.characters import genders, races
 
 from typeclasses import objects
@@ -25,54 +24,16 @@ class Mob(living.LivingMixin, objects.Object):
         properties and flags here.
         """
         self.cmdset.add(MobCmdSet, persistent=True)
-        self.traits.add("wealth", "Wealth", trait_type="static", base=0)
-
-    def at_post_spawn(self):
-        self.set_traits()
-        self.set_stats()
-        self.spawn_contents()
-
-    def set_stats(self):
-        stats = self.attributes.get("stats", {})
-        str = stats.get("str", 10)
-        dex = stats.get("dex", 10)
-        con = stats.get("con", 10)
-        int = stats.get("int", 10)
-        wis = stats.get("wis", 10)
-        cha = stats.get("cha", 10)
-        health = stats.get("health", 10)
-
-        self.stats.add("strength", "Strength", trait_type="static", base=str)
-        self.stats.add("dexterity", "Dexterity", trait_type="static", base=dex)
-        self.stats.add("constitution", "Constitution", trait_type="static", base=con)
-        self.stats.add("intelligence", "Intelligence", trait_type="static", base=int)
-        self.stats.add("wisdom", "Wisdom", trait_type="static", base=wis)
-        self.stats.add("charisma", "Charisma", trait_type="static", base=cha)
-        self.traits.add(
-            "health", "Health", trait_type="counter", base=health, min=0, max=health
-        )
-        self.attributes.remove("stats")
-
-    def set_traits(self):
         gender = self.attributes.get("gender", genders.Gender.ANDROGYNOUS)
         race = self.attributes.get("race", races.RaceRegistry.get("human"))
-
         self.traits.add("gender", "Gender", value=gender)
         self.traits.add("race", "Race", value=race)
+        self.traits.add("wealth", "Wealth", trait_type="static", base=0)
+        self.cleanup()
 
+    def cleanup(self):
         self.attributes.remove("gender")
         self.attributes.remove("race")
-
-    def spawn_contents(self):
-        spawns = self.attributes.get("spawns", [])
-        self.traits.add("spawns", "Spawns", value=spawns)
-        if self.traits.get("spawns").value:
-            for spawn in self.traits.get("spawns").value:
-                spawn["location"] = self
-                spawn["home"] = self
-                spawner.spawn(spawn)
-
-        self.attributes.remove("spawns")
 
     def basetype_setup(self):
         """
@@ -154,15 +115,11 @@ class Mob(living.LivingMixin, objects.Object):
 
 
 class Monster(Mob):
-    def at_post_spawn(self):
-        super().at_post_spawn()
-
-    def set_miscellaneous(self):
+    def at_object_creation(self):
+        self.cmdset.add(MobCmdSet, persistent=True)
         gender = self.attributes.get("gender", genders.Gender.NEUTRAL)
         race = self.attributes.get("race", races.RaceRegistry.get("monster"))
-
         self.traits.add("gender", "Gender", value=gender)
         self.traits.add("race", "Race", value=race)
-
-        self.attributes.remove("gender")
-        self.attributes.remove("race")
+        self.traits.add("wealth", "Wealth", trait_type="static", base=0)
+        self.cleanup()
