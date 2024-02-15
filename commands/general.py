@@ -665,10 +665,13 @@ class CmdGet(Command):
                 self.container_number,
             ) = (1, None, 1, None, 1)
 
-    def _retrieve_currency(self, caller, quantity, gold, location):
-        caller.wealth.base += gold.price
-        gold.delete()
-        caller.location.msg_contents("$You() $conj(get) some gold.", from_obj=caller)
+    def _retrieve_currency(self, caller, currency):
+        caller.wealth.base += currency.price
+        caller.location.msg_contents(
+            f"$You() $conj(get) some {currency.get_display_name(caller)}.",
+            from_obj=caller,
+        )
+        currency.delete()
 
     def _retrieve_obj(self, caller, quantity, obj_name, obj_number, location):
         retrieved_items = []
@@ -682,7 +685,7 @@ class CmdGet(Command):
             )
 
             if isinstance(obj, Currency):
-                self._retrieve_currency(caller, quantity, obj, location)
+                self._retrieve_currency(caller, obj)
                 return
 
             if not obj:
