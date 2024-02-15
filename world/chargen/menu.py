@@ -328,9 +328,11 @@ def chargen_appearance_template(caller, raw_string, **kwargs):
             """
             {identity}, standing with {height} stature, embodies the life they've lived through the form of their {body} physique. Their {skin} skin, a canvas of their heritage, captures and plays with the light, be it the golden touch of the sun or the moon's soft glow. {eye_type} eyes, rich in {eye_color}, reveal the depths of their experiences. Hair, in varying shades of {hair_color}, crowns their head, a well-proportioned {nose} nose finds harmony with a {mouth} mouth, together sketching the visage of character.
             """.format(
-                identity=f"{caller.race.value.name} {caller.gender.value.value}"
-                if caller.gender.value.value != "androgynous"
-                else f"{caller.gender.value.value} {caller.race.value.name}",
+                identity=(
+                    f"{caller.race.value.race} {caller.gender.value.value}"
+                    if caller.gender.value.value != "androgynous"
+                    else f"{caller.gender.value.value} {caller.race.value.race}"
+                ),
                 height=kwargs.get("height"),
                 body=kwargs.get("body"),
                 skin=kwargs.get("skin_type"),

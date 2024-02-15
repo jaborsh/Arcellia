@@ -32,5 +32,8 @@ class NautilusInnerHold(rooms.XYRoom):
         if not isinstance(moved_obj, characters.Character):
             return
 
+        if moved_obj.quests.get_detail("Tutorial", "enchantress"):
+            return
+
         enchantress = self.search("enchantress", quiet=True)[0]
         enchantress.greeting()
