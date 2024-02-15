@@ -1,3 +1,7 @@
+from prototypes.armor import clothing
+from prototypes.consumables import potions
+from prototypes.weapons import martial, simple
+
 from world.tutorial.prototypes import weapons
 
 FIEND = {
@@ -11,17 +15,7 @@ FIEND = {
         "sound": "The silence is pierced by the subtle shiftings of this abomination, the scrape of its talons a grim melody upon the hardened earth.",
         "taste": "A metallic tang invades the mouth, as though the mere sight of the fiend sours the air and poisons the tongue.",
     },
-    # "spawns": [
-    #      random.choice(
-    #          [
-    #              clothing.SIMPLE_ROBE,
-    #              potions.HEALING_POTION,
-    #              martial.SHORTSWORD,
-    #              martial.SCIMITAR,
-    #              simple.HANDAXE,
-    #          ]
-    #      )
-    # ],
+    "spawns": [martial.SCIMITAR, clothing.SIMPLE_ROBE],
     "stats": {
         "str": 5,
         "dex": 8,
@@ -32,6 +26,12 @@ FIEND = {
         "health": 6,
     },
 }
+
+FIEND_2 = FIEND.copy()
+FIEND_2["spawns"] = [simple.HANDAXE, potions.HEALING_POTION]
+
+FIEND_3 = FIEND.copy()
+FIEND_3["spawns"] = [martial.SHORTSWORD]
 
 CULTIST = {
     "key": "cultist",
@@ -52,6 +52,22 @@ CULTIST = {
         "wis": 11,
         "cha": 10,
         "health": 9,
+    },
+}
+
+BEHEMOTH = {
+    "key": "behemoth",
+    "display_name": "|xBehemoth|n",
+    "typeclass": "typeclasses.mobs.Monster",
+    "desc": "The Behemoth looms, a colossus sculpted by the somber hands of shadow itself. Its eyes, twin embers smoldering beneath the craggy brow of a primeval cliff, pierce the murk with an infernal glow. The massive creature bears a carapace as intricate as the wrought gates of a forsaken fortress, each obsidian scale a testament to its indomitable fortress. Its formidable countenance, framed by a serrated beak sharp as the guillotine's final whisper, betrays a visage not of this gentle Earth. Muscle-bound limbs, hewn as if from the roots of ancient oaks, carry it forward with the inevitability of a tempest's advance.",
+    "stats": {
+        "str": 12,
+        "dex": 11,
+        "con": 12,
+        "int": 6,
+        "wis": 8,
+        "cha": 5,
+        "health": 11,
     },
 }
 

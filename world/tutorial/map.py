@@ -1,3 +1,4 @@
+from prototypes.armor import light
 from typeclasses.rooms import MapNode
 
 from world.tutorial.prototypes import containers, interactives, mobs
@@ -136,7 +137,7 @@ PROTOTYPES = {
             "ropes": "Coiled and kinked, the ropes lay in disarray, a chaotic aftermath frozen in time, their fibers frayed by toil and the relentless wear of the elements.",
             "barrels": "The scattered barrels, once full of sustenance and spirits for the journey, now lay broken, their contents long since claimed by the deep, leaving only husks behind.",
         },
-        "spawns": [mobs.FIEND, mobs.FIEND, mobs.FIEND],
+        "spawns": [mobs.FIEND, mobs.FIEND_2, mobs.FIEND_3],
     },
     (4, 3): {
         "key": "|CThe Nautilus - Inner Hold|n",
@@ -179,6 +180,7 @@ PROTOTYPES = {
             "sound": "Each movement near the entryway seems to carry an echo, as if the very air anticipates the creak of the hinges and the subsequent orders that will steer the ship's course.",
             "taste": "There is a crispness here, as if one can taste the threshold between the tumult of outside elements and the stability that command necessitates.",
         },
+        "spawns": [mobs.FIEND_2, mobs.FIEND_2, mobs.BEHEMOTH, light.LEATHER_ARMOR],
     },
     (3, 4): {
         "key": "|CThe Nautilus - Helm|n",
