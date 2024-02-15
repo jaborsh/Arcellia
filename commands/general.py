@@ -691,6 +691,13 @@ class CmdGet(Command):
             if not obj:
                 break
 
+            if not obj.access(caller, "get"):
+                if obj.db.get_err_msg:
+                    caller.msg(obj.db.get_err_msg)
+                else:
+                    caller.msg("You can't get that.")
+                continue
+
             if not obj.at_pre_get(caller):
                 continue
 
