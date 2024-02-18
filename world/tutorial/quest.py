@@ -6,4 +6,6 @@ class TutorialQuest(Quest):
     details = {
         "body_assessment": False,
         "enchantress": False,
+        "enchantress_freed": False,
+        "enchantress_vomit": False,
     }

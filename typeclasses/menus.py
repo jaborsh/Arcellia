@@ -137,7 +137,7 @@ class InteractionMenu(AMenu):
         """
 
         text = nodetext.strip("\n")
-        if not text == "":
-            text += "\n\n|CSelect an Option:|n"
+        # if not text == "":
+        text += "\n\n|CSelect an Option:|n"
 
-        return dedent(text, baseline_index=0).rstrip()
+        return dedent(text.strip("\n"), baseline_index=0).rstrip()
