@@ -381,7 +381,7 @@ class CmdCover(Command):
         if not obj:
             return
 
-        if not isinstance(obj, Clothing):
+        if not inherits_from(obj, Clothing):
             return caller.msg("You can't cover that.")
 
         if obj not in caller.clothing.all():
@@ -391,7 +391,7 @@ class CmdCover(Command):
         if not cover:
             return
 
-        if not isinstance(cover, Clothing) and not isinstance(cover, Equipment):
+        if not inherits_from(cover, Clothing) and not inherits_from(cover, Equipment):
             return caller.msg("You can't use that to cover something.")
 
         if inherits_from(cover, Clothing):

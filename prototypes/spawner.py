@@ -149,6 +149,7 @@ from evennia.prototypes.prototypes import (
     value_to_obj_or_any,
 )
 from evennia.utils import logger
+from evennia.utils.dbserialize import _SaverDict, _SaverList
 from evennia.utils.utils import class_from_module, is_iter, make_iter
 
 _CREATE_OBJECT_KWARGS = ("key", "location", "home", "destination")
@@ -905,12 +906,6 @@ def batch_create_object(*objparams):
         # this triggers all hooks
         obj.save()
 
-        if clothing := obj.attributes.get("clothing", None):
-            obj_clothe(obj, clothing)
-
-        if equipment := obj.attributes.get("eq", None):
-            obj_equip(obj, equipment)
-
         if spawns := obj.attributes.get("spawns", None):
             obj_spawn_contents(obj, spawns)
 
@@ -923,20 +918,6 @@ def batch_create_object(*objparams):
                 exec(code, {}, {"evennia": evennia, "obj": obj})
         objs.append(obj)
     return objs
-
-
-def obj_clothe(obj, clothing):
-    for c in clothing:
-        c["location"] = obj
-        c["home"] = obj
-        obj.clothing.wear(spawn(c)[0])
-
-
-def obj_equip(obj, equipment):
-    for e in equipment:
-        e["location"] = obj
-        e["home"] = obj
-        obj.equipment.wear(spawn(e)[0])
 
 
 def obj_set_stats(obj, stats):
@@ -970,11 +951,39 @@ def obj_set_stats(obj, stats):
 
 def obj_spawn_contents(obj, spawns):
     obj.traits.add("spawns", "Spawns", value=spawns)
-    for s in spawns:
-        s["location"] = obj
-        s["home"] = obj
-        spawn(s)
+    if isinstance(spawns, _SaverDict):
+        clothing = spawns.get("clothing", [])
+        equipment = spawns.get("equipment", [])
+        inventory = spawns.get("inventory", [])
+        obj_spawn_clothing(obj, clothing)
+        obj_spawn_equipment(obj, equipment)
+        obj_spawn_inventory(obj, inventory)
+
+    elif isinstance(spawns, _SaverList):
+        obj_spawn_inventory(obj, spawns)
+
     obj.attributes.remove("spawns")
+
+
+def obj_spawn_clothing(obj, clothing):
+    for c in clothing:
+        c["location"] = obj
+        c["home"] = obj
+        obj.clothing.wear(spawn(c)[0])
+
+
+def obj_spawn_equipment(obj, equipment):
+    for e in equipment:
+        e["location"] = obj
+        e["home"] = obj
+        obj.equipment.wear(spawn(e)[0])
+
+
+def obj_spawn_inventory(obj, inventory):
+    for i in inventory:
+        i["location"] = obj
+        i["home"] = obj
+        spawn(i)
 
 
 # Spawner mechanism
