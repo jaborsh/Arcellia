@@ -54,3 +54,15 @@ class TestRollHandler(unittest.TestCase):
     def test_less_than_dc(self):
         result = self.obj.check("1d6")
         self.assertFalse(result)
+
+    def test_roll_advantage(self):
+        result = self.obj.roll("1d6", advantage=True)
+        self.assertIsInstance(result, int)
+        self.assertGreaterEqual(result, 1)
+        self.assertLessEqual(result, 6)
+
+    def test_roll_disadvantage(self):
+        result = self.obj.roll("1d6", disadvantage=True)
+        self.assertIsInstance(result, int)
+        self.assertGreaterEqual(result, 1)
+        self.assertLessEqual(result, 6)

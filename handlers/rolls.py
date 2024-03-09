@@ -28,6 +28,8 @@ class RollHandler(metaclass=SingletonMeta):
         roll_str,
         stat=None,
         dc=10,
+        advantage=False,
+        disadvantage=False,
     ):
         """
         Checks if the result of a roll meets or exceeds a given difficulty class (dc).
@@ -36,19 +38,36 @@ class RollHandler(metaclass=SingletonMeta):
             roll_str (str): The string representing the roll to be performed.
             stat (str, optional): The stat to use for the roll. Defaults to None.
             dc (int, optional): The difficulty class to compare the roll result against. Defaults to 10.
+            advantage (bool, optional): Whether to roll with advantage. Defaults to False.
+            disadvantage (bool, optional): Whether to roll with disadvantage. Defaults to False.
 
         Returns:
             bool: True if the roll result is greater than or equal to the dc, False otherwise.
         """
+        if advantage and disadvantage:
+            raise ValueError("Cannot have both advantage and disadvantage.")
+
+        if advantage:
+            roll1 = self.roll(roll_str, stat)
+            roll2 = self.roll(roll_str, stat)
+            return max(roll1, roll2) >= dc
+
+        if disadvantage:
+            roll1 = self.roll(roll_str, stat)
+            roll2 = self.roll(roll_str, stat)
+            return min(roll1, roll2) >= dc
+
         return self.roll(roll_str, stat) >= dc
 
-    def roll(self, roll_str, stat=None):
+    def roll(self, roll_str, stat=None, advantage=False, disadvantage=False):
         """
         Rolls a specified number of dice with a specified number of sides and returns the total sum.
 
         Args:
             roll_str (str): The string representing the roll, in the format "NdS" where N is the number of dice and S is the number of sides.
             stat (int, optional): The modifier to be added to the total sum. Defaults to None.
+            advantage (bool, optional): Whether to roll with advantage. Defaults to False.
+            disadvantage (bool, optional): Whether to roll with disadvantage. Defaults to False.
 
         Returns:
             int: The total sum of the dice rolls plus the modifier.
@@ -65,8 +84,19 @@ class RollHandler(metaclass=SingletonMeta):
         sides = int(sides)
 
         total = 0
-        for _ in range(num_dice):
-            total += random.randint(1, sides)
+        if advantage:
+            for _ in range(num_dice):
+                roll1 = random.randint(1, sides)
+                roll2 = random.randint(1, sides)
+                total += max(roll1, roll2)
+        elif disadvantage:
+            for _ in range(num_dice):
+                roll1 = random.randint(1, sides)
+                roll2 = random.randint(1, sides)
+                total += min(roll1, roll2)
+        else:
+            for _ in range(num_dice):
+                total += random.randint(1, sides)
 
         modifier = self.get_modifier(stat) if stat else 0
         return total + modifier
