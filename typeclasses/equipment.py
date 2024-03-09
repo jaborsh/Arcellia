@@ -22,6 +22,26 @@ class EquipmentType(Enum):
 
 
 class Equipment(ItemMixin, Object):
+    """
+    Represents an equipment item in the game.
+
+    Attributes:
+        db.covering (list): List of body parts covered by the equipment.
+        db.equipment_type (EquipmentType): Type of the equipment.
+        db.display_name (str): Display name of the equipment.
+
+    Properties:
+        equipment_type (EquipmentType): Type of the equipment.
+        covering (list): List of body parts covered by the equipment.
+        display_name (str): Display name of the equipment.
+        position (str): Position where the equipment is worn or held.
+
+    Methods:
+        at_object_creation(): Called when the object is created.
+        at_drop(caller): Called when the equipment is dropped by a character.
+        at_give(caller, target): Called when the equipment is given by one character to another.
+    """
+
     def at_object_creation(self):
         self.db.covering = []
 

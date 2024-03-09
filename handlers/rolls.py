@@ -3,6 +3,17 @@ import re
 
 
 class SingletonMeta(type):
+    """
+    Metaclass for creating singleton classes.
+
+    This metaclass ensures that only one instance of a class is created and
+    returned on subsequent calls to the class constructor.
+
+    Usage:
+    class MySingletonClass(metaclass=SingletonMeta):
+        # class definition
+    """
+
     _instances = {}
 
     def __call__(cls, *args, **kwargs):
@@ -14,6 +25,9 @@ class SingletonMeta(type):
 
 
 class RollHandler(metaclass=SingletonMeta):
+    """
+    A class that handles rolling dice and checking roll results against difficulty classes.
+    """
 
     def __init__(self):
         """Initialize a RollHandler object."""

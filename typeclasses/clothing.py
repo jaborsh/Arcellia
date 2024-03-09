@@ -28,6 +28,10 @@ class ClothingType(Enum):
 
 
 class Clothing(Object):
+    """
+    Represents a piece of clothing in the game.
+    """
+
     def at_object_creation(self):
         self.db.covered_by = []
         self.db.covering = []
@@ -56,6 +60,9 @@ class Clothing(Object):
 
     @property
     def covering(self):
+        """
+        Returns a list of clothing objects that this object is covering.
+        """
         return self.attributes.get("covering", [])
 
     @covering.setter
@@ -65,7 +72,7 @@ class Clothing(Object):
     @property
     def display_name(self):
         """
-        Return a potentially fanciful name
+        Returns the display name of this object.
         """
         return self.attributes.get("display_name", self.key)
 
