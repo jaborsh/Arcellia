@@ -85,7 +85,7 @@ class Clothing(Object):
             ClothingType.NECKWEAR: "around neck",
             ClothingType.UNDERSHIRT: "on torso",
             ClothingType.TOP: "about torso",
-            ClothingType.OUTERWEAR: "on over torso",
+            ClothingType.OUTERWEAR: "over torso",
             ClothingType.FULLBODY: "on body",
             ClothingType.WRISTWEAR: "around wrists",
             ClothingType.HANDWEAR: "on hands",

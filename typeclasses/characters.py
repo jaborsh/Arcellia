@@ -14,7 +14,7 @@ Contributions:
 import os
 
 from django.conf import settings
-from handlers import clothing, quests, traits
+from handlers import clothing, equipment, quests, traits
 from parsing.text import grammarize, wrap
 from server.conf import logger
 from world.characters import backgrounds, genders
@@ -59,8 +59,9 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
     #################
     def at_object_creation(self):
         self.create_log_folder()
+        self.init_stats()
+        self.init_traits()
         self.locks.add("msg:all()")
-        self.traits.add("wealth", "Wealth", trait_type="static", base=0)
 
     def create_log_folder(self):
         """
@@ -70,6 +71,21 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
         os.makedirs(char_log_dir, exist_ok=True)
         self.attributes.add("_log_folder", f"characters/{self.key.lower()}/")
 
+    def init_stats(self):
+        self.stats.add("health", "Health", trait_type="gauge", base=100)
+        self.stats.add("mana", "Mana", trait_type="gauge", base=100)
+        self.stats.add("stamina", "Stamina", trait_type="gauge", base=100)
+
+        self.stats.add("strength", "Strength", trait_type="static", base=10)
+        self.stats.add("dexterity", "Dexterity", trait_type="static", base=10)
+        self.stats.add("constitution", "Constitution", trait_type="static", base=10)
+        self.stats.add("intelligence", "Intelligence", trait_type="static", base=10)
+        self.stats.add("wisdom", "Wisdom", trait_type="static", base=10)
+        self.stats.add("charisma", "Charisma", trait_type="static", base=10)
+
+    def init_traits(self):
+        self.traits.add("wealth", "Wealth", trait_type="static", base=0)
+
     # Handlers
     @lazy_property
     def appearance(self):
@@ -78,6 +94,10 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
     @lazy_property
     def clothing(self):
         return clothing.ClothingHandler(self)
+
+    @lazy_property
+    def equipment(self):
+        return equipment.EquipmentHandler(self)
 
     @lazy_property
     def quests(self):

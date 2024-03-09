@@ -2,12 +2,14 @@ import re
 
 from django.conf import settings
 from handlers.clothing import CLOTHING_OVERALL_LIMIT, CLOTHING_TYPE_COVER
+from handlers.equipment import EQUIPMENT_TYPE_COVER
 from parsing.colors import strip_ansi
 from prototypes import spawner
 from prototypes.miscellaneous import currency
 from server.conf import logger
 from typeclasses.clothing import Clothing
 from typeclasses.currency import Currency
+from typeclasses.equipment import Equipment
 from typeclasses.menus import InteractionMenu
 
 from commands.command import Command
@@ -17,6 +19,7 @@ from evennia.typeclasses.attributes import NickTemplateInvalid
 from evennia.utils import (
     class_from_module,
     create,
+    evtable,
     inherits_from,
     utils,
 )
@@ -35,6 +38,7 @@ __all__ = [
     "CmdFeel",
     "CmdGet",
     "CmdGive",
+    "CmdHP",
     "CmdInteract",
     "CmdInteractions",
     "CmdInventory",
@@ -43,6 +47,7 @@ __all__ = [
     "CmdPut",
     "CmdRemove",
     "CmdSay",
+    "CmdScore",
     "CmdSmell",
     "CmdTaste",
     "CmdTell",
@@ -386,16 +391,26 @@ class CmdCover(Command):
         if not cover:
             return
 
-        if not isinstance(cover, Clothing):
+        if not isinstance(cover, Clothing) and not isinstance(cover, Equipment):
             return caller.msg("You can't use that to cover something.")
 
-        if cover not in caller.clothing.all():
-            return caller.msg(
-                "You cannot use something you aren't wearing to cover something."
-            )
+        if inherits_from(cover, Clothing):
+            if cover not in caller.clothing.all():
+                return caller.msg(
+                    "You cannot use something you aren't wearing to cover something."
+                )
 
-        if obj.clothing_type not in CLOTHING_TYPE_COVER[cover.clothing_type]:
-            return caller.msg("You can't cover that with that.")
+            if obj.clothing_type not in CLOTHING_TYPE_COVER[cover.clothing_type]:
+                return caller.msg("You can't cover that with that.")
+
+        elif inherits_from(cover, Equipment):
+            if cover not in caller.equipment.all():
+                return caller.msg(
+                    "You cannot use something you aren't wearing to cover something."
+                )
+
+            if obj.clothing_type not in EQUIPMENT_TYPE_COVER[cover.equipment_type]:
+                return caller.msg("You can't cover that with that.")
 
         if cover in obj.covered_by:
             return caller.msg(
@@ -839,6 +854,32 @@ class CmdGive(Command):
             )
 
 
+class CmdHP(Command):
+    """
+    Syntax: hp
+
+    Command to display your health, mana, and stamina.
+    """
+
+    key = "hp"
+    aliases = ["h"]
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+        caller.msg(
+            "|rHealth|n: |r%s|n/|r%s|n  |cMana|n: |c%s|n/|c%s|n  |gStamina|n: |g%s|n/|g%s|n"
+            % (
+                int(caller.health.value),
+                int(caller.health.max),
+                int(caller.mana.value),
+                int(caller.mana.max),
+                int(caller.stamina.value),
+                int(caller.stamina.max),
+            )
+        )
+
+
 class CmdInteract(Command):
     """
     Syntax: interact
@@ -927,15 +968,18 @@ class CmdInventory(Command):
             caller.msg("You are not carrying or wearing anything.")
             return
 
+        equipment_table = self.create_table(caller.equipment.all(), "Equipment")
         worn_table = self.create_table(caller.clothing.all(), "Clothing")
         carried_items = [
-            obj for obj in caller.contents if obj not in caller.clothing.all()
+            obj
+            for obj in caller.contents
+            if obj not in caller.clothing.all() and obj not in caller.equipment.all()
         ]
         carried_table = self.create_table(carried_items, "Carrying")
         header = self.create_header(caller)
         footer = self.create_footer()
 
-        caller.msg(f"{header}{worn_table}{carried_table}{footer}")
+        caller.msg(f"{header}{equipment_table}{worn_table}{carried_table}{footer}")
 
     def create_header(self, caller):
         item_count_line = "|C" + f"Number of Items: {len(caller.contents)}"
@@ -960,6 +1004,12 @@ class CmdInventory(Command):
                 line = f"|x<worn {item.position}>|n{spaces}{item.get_display_name(self.caller)}"
                 if item.covered_by:
                     line += " |x(hidden)|n"
+                output.append(line)
+        elif item_type == "Equipment":
+            max_position = max([len(item.position) for item in items]) + 8
+            for item in items:
+                spaces = " " * (max_position - len(f"<worn {item.position}>"))
+                line = f"|x<worn {item.position}>|n{spaces}{item.get_display_name(self.caller)}"
                 output.append(line)
         else:
             output.extend([item.get_display_name(self.caller) for item in items])
@@ -1172,16 +1222,36 @@ class CmdRemove(Command):
     key = "remove"
     aliases = ["rem"]
 
+    def remove_clothing(self, item):
+        caller = self.caller
+        if item not in caller.clothing.all():
+            caller.msg("You are not wearing that.")
+            return
+
+        caller.clothing.remove(item)
+
+    def remove_equipment(self, item):
+        caller = self.caller
+        if item not in caller.equipment.all():
+            caller.msg("You are not wearing that.")
+            return
+
+        caller.equipment.remove(item)
+
     def func(self):
         caller = self.caller
-        clothing = caller.search(self.args, candidates=self.caller.contents)
-        if not clothing:
+        item = caller.search(self.args, candidates=self.caller.contents)
+        if not item:
             caller.msg("You don't have anything like that.")
             return
-        if clothing not in caller.clothing.all():
-            caller.msg("You're not wearing that!")
+
+        if inherits_from(item, Clothing):
+            self.remove_clothing(item)
+        elif inherits_from(item, Equipment):
+            self.remove_equipment(item)
+        else:
+            caller.msg("You can't remove that.")
             return
-        caller.clothing.remove(clothing)
 
 
 class CmdSay(Command):
@@ -1235,6 +1305,31 @@ class CmdSay(Command):
             receivers=receivers or None,
             width=self.client_width(),
         )
+
+
+class CmdScore(Command):
+    key = "score"
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+        table = evtable.EvTable(border="header")
+        table.add_header("Score")
+        table.add_row(f"Name:    {caller.name}")
+        table.add_row(f"Gender:  {caller.gender.value.value}")
+        table.add_row(f"Race:    {caller.race.value.race}")
+        table.add_row(f"Health:  {int(caller.health.value)}/{int(caller.health.max)}")
+        table.add_row(f"Mana:    {int(caller.mana.value)}/{int(caller.mana.max)}")
+        table.add_row(f"Stamina: {int(caller.stamina.value)}/{int(caller.stamina.max)}")
+        table.add_column(
+            f"Strength: {int(caller.strength.value)}",
+            f"Dexterity: {int(caller.dexterity.value)}",
+            f"Constitution: {int(caller.constitution.value)}",
+            f"Intelligence: {int(caller.intelligence.value)}",
+            f"Wisdom: {int(caller.wisdom.value)}",
+            f"Charisma: {int(caller.charisma.value)}",
+        )
+        caller.msg(table)
 
 
 class CmdSmell(Command):
@@ -1518,32 +1613,14 @@ class CmdWear(Command):
     Examples:
         wear red shirt
 
-    All the clothes you are wearing appear in your description. If you provide
-    a style, the message you provide will be displayed after the clothing name.
+    All the clothes and equipment you are wearing appear in your description.
     """
 
     key = "wear"
+    locks = "cmd:all()"
 
-    def func(self):
+    def wear_clothing(self, clothing):
         caller = self.caller
-        args = self.args.strip()
-
-        if not args:
-            caller.msg("Usage: wear <obj>")
-            return
-
-        clothing = caller.search(args, candidates=caller.contents, quiet=True)
-        if not clothing:
-            caller.msg("You don't have anything like that.")
-            return
-        clothing = clothing[0]
-
-        if not inherits_from(clothing, Clothing):
-            caller.msg(
-                f"{clothing.get_display_name(caller)} isn't something you can wear."
-            )
-            return
-
         clothes = caller.clothing.all()
 
         if clothing in clothes:
@@ -1555,6 +1632,38 @@ class CmdWear(Command):
             return
 
         caller.clothing.wear(clothing)
+
+    def wear_equipment(self, gear):
+        caller = self.caller
+        equipment = caller.equipment.all()
+
+        if gear in equipment:
+            caller.msg("You are already wearing that.")
+            return
+
+        caller.equipment.wear(gear)
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+
+        if not args:
+            caller.msg("Usage: wear <obj>")
+            return
+
+        item = caller.search(args, candidates=caller.contents, quiet=True)
+        if not item:
+            caller.msg("You don't have anything like that.")
+            return
+
+        item = item[0]
+        if inherits_from(item, Clothing):
+            self.wear_clothing(item)
+        elif inherits_from(item, Equipment):
+            self.wear_equipment(item)
+        else:
+            caller.msg(f"{item.get_display_name(caller)} isn't something you can wear.")
+            return
 
 
 class CmdWhisper(Command):

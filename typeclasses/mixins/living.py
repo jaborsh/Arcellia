@@ -54,12 +54,16 @@ class LivingMixin:
         self.race.value = value
 
     @property
-    def wealth(self):
-        return self.traits.get("wealth")
+    def health(self):
+        return self.stats.get("health")
 
     @property
-    def weight(self):
-        return self.traits.get("weight")
+    def mana(self):
+        return self.stats.get("mana")
+
+    @property
+    def stamina(self):
+        return self.stats.get("stamina")
 
     # Stat Properties
     @property
@@ -86,11 +90,44 @@ class LivingMixin:
     def charisma(self):
         return self.stats.get("charisma")
 
+    # Properties
+    @property
+    def wealth(self):
+        return self.traits.get("wealth")
+
+    @property
+    def weight(self):
+        return self.traits.get("weight")
+
+    # Hooks
+    def at_attacked(self, attacker, **kwargs):
+        pass
+
+    def at_damage(self, damage, **kwargs):
+        self.health.current -= damage
+
+    def at_death(self):
+        self.location.msg_contents("$You() $conj(die).", from_obj=self)
+
     # Methods
     def get_display_things(self, looker, **kwargs):
         clothes = self.clothes.all()
-        if not clothes:
+        equipment = self.equipment.all()
+
+        if not clothes and not equipment:
             return ""
+
+        output = ["|wEquipment:|n"]
+        max_position = (
+            max([len(item.position) for item in equipment]) + 8 if equipment else 0
+        )
+
+        for item in equipment:
+            spaces = " " * (max_position - len(f" <worn {item.position}>"))
+            line = f"|x<worn {item.position}>|n{spaces} {item.get_display_name(looker)}"
+            output.append(line)
+
+        string = "\n ".join(output) + "\n\n"
 
         output = ["|wClothing:|n"]
 
@@ -108,7 +145,11 @@ class LivingMixin:
                 line += " |x(hidden)|n"
             output.append(line)
 
-        return "\n ".join(output) + "\n"
+        string += "\n ".join(output) + "\n"
+        return string
+
+    def get_condition(self, looker, **kwargs):
+        pass
 
     def get_pronoun(self, regex_match):
         """
