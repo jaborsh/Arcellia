@@ -17,20 +17,11 @@ class RollHandler(metaclass=SingletonMeta):
 
     def __init__(self):
         """Initialize a RollHandler object."""
-        if not hasattr(
-            self, "initialized"
-        ):  # This ensures __init__ is only called once
+        if not hasattr(self, "initialized"):
             self.dice_pattern = re.compile(r"(\d*)d(\d+)")
             self.initialized = True
 
-    def check(
-        self,
-        roll_str,
-        stat=None,
-        dc=10,
-        advantage=False,
-        disadvantage=False,
-    ):
+    def check(self, roll_str, stat=None, dc=10, advantage=False, disadvantage=False):
         """
         Checks if the result of a roll meets or exceeds a given difficulty class (dc).
 
@@ -47,17 +38,15 @@ class RollHandler(metaclass=SingletonMeta):
         if advantage and disadvantage:
             raise ValueError("Cannot have both advantage and disadvantage.")
 
-        if advantage:
-            roll1 = self.roll(roll_str, stat)
-            roll2 = self.roll(roll_str, stat)
-            return max(roll1, roll2) >= dc
-
-        if disadvantage:
-            roll1 = self.roll(roll_str, stat)
-            roll2 = self.roll(roll_str, stat)
-            return min(roll1, roll2) >= dc
-
-        return self.roll(roll_str, stat) >= dc
+        rolls = [
+            self.roll(roll_str, stat)
+            for _ in range(2 if advantage or disadvantage else 1)
+        ]
+        return (
+            any(roll >= dc for roll in rolls)
+            if advantage
+            else all(roll >= dc for roll in rolls)
+        )
 
     def roll(self, roll_str, stat=None, advantage=False, disadvantage=False):
         """
@@ -79,24 +68,18 @@ class RollHandler(metaclass=SingletonMeta):
         if not matches:
             raise ValueError(f"Invalid roll string: {roll_str}.")
 
-        num_dice, sides = matches.groups()
-        num_dice = int(num_dice) if num_dice else 1
-        sides = int(sides)
+        num_dice, sides = map(int, matches.groups())
+        num_dice = num_dice or 1
 
-        total = 0
+        rolls = [random.randint(1, sides) for _ in range(num_dice)]
+        total = sum(rolls)
+
         if advantage:
-            for _ in range(num_dice):
-                roll1 = random.randint(1, sides)
-                roll2 = random.randint(1, sides)
-                total += max(roll1, roll2)
+            adv_rolls = [random.randint(1, sides) for _ in range(num_dice)]
+            total = max(total, sum(adv_rolls))
         elif disadvantage:
-            for _ in range(num_dice):
-                roll1 = random.randint(1, sides)
-                roll2 = random.randint(1, sides)
-                total += min(roll1, roll2)
-        else:
-            for _ in range(num_dice):
-                total += random.randint(1, sides)
+            dis_rolls = [random.randint(1, sides) for _ in range(num_dice)]
+            total = min(total, sum(dis_rolls))
 
         modifier = self.get_modifier(stat) if stat else 0
         return total + modifier
