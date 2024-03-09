@@ -1,7 +1,10 @@
+from typeclasses.equipment import EquipmentType
+
 LEATHER_ARMOR = {
     "key": "leather armor",
     "display_name": "|Yleather armor|n",
-    "typeclass": "typeclasses.items.Item",
+    "typeclass": "typeclasses.equipment.Equipment",
+    "equipment_type": EquipmentType.BODY,
     "desc": "This heirloom of warfare, shaped from the hide of the fiercest beasts, wears its history like a proud old warrior, its surface marred with the dark, messy stains that line its armholes. The leather, once supple and gleaming under the sun, now carries the rugged texture of a life spent in armor, its surface etched with scratches and scars, akin to the weathered face of a veteran soldier. These blemishes far from diminish its value.",
     "senses": {
         "feel": "The leather feels rugged and stiff, with a toughness that speaks of many years of service. The edges, frayed and rough, tell a tactile story of survival and endurance.",

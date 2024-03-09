@@ -1,12 +1,11 @@
-from evennia.utils.utils import lazy_property
 from handlers import traits
 from prototypes import spawner
 from world.items.rarity import ItemRarity
 
-from typeclasses.objects import Object
+from evennia.utils.utils import lazy_property
 
 
-class Item(Object):
+class ItemMixin:
     @lazy_property
     def traits(self):
         return traits.TraitHandler(self, db_attribute_key="traits")

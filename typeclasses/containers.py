@@ -1,9 +1,10 @@
 from collections import defaultdict
 
-from typeclasses.items import Item
+from typeclasses.mixins.items import ItemMixin
+from typeclasses.objects import Object
 
 
-class Container(Item):
+class Container(ItemMixin, Object):
     """
     A container object. Implements a size component.
     """
@@ -105,12 +106,14 @@ class Container(Item):
         return self.format_appearance(
             self.appearance_template.format(
                 desc=self.get_display_desc(looker, **kwargs),
-                contains="\n"
-                + self.get_display_name(looker, **kwargs)
-                + " contains:\n"
-                + self.get_display_things(looker, **kwargs)
-                if self.contents
-                else "",
+                contains=(
+                    "\n"
+                    + self.get_display_name(looker, **kwargs)
+                    + " contains:\n"
+                    + self.get_display_things(looker, **kwargs)
+                    if self.contents
+                    else ""
+                ),
             ),
             looker,
             **kwargs,

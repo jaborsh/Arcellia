@@ -2,7 +2,7 @@ ONYX = {
     "key": "onyx",
     "display_name": "|xOnyx|n",
     "aliases": ["gem", "stone", "gemstone"],
-    "typeclass": "typeclasses.items.Item",
+    "typeclass": "typeclasses.miscellaneous.gems.Gem",
     "desc": "As rich as the velvety cloak of twilight, each facet captures a fragment of midnight, keeping it prisoner within its glossy, opaque prison.",
     "senses": {
         "feel": "Its smooth surface is cool to the touch, betraying no hint of the fervor with which the darkness within was born.",

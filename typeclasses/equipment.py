@@ -1,6 +1,7 @@
 from enum import Enum
 
 from evennia.utils.utils import lazy_property
+from typeclasses.mixins.items import ItemMixin
 from typeclasses.objects import Object
 
 
@@ -20,7 +21,7 @@ class EquipmentType(Enum):
     WEAPON = "weapon"
 
 
-class Equipment(Object):
+class Equipment(ItemMixin, Object):
     def at_object_creation(self):
         self.db.covering = []
 

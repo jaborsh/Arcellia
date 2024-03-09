@@ -2,7 +2,7 @@ HEALING_POTION = {
     "key": "potion",
     "aliases": ["healing potion"],
     "display_name": "|rHealing Potion|n",
-    "typeclass": "typeclasses.items.Item",
+    "typeclass": "typeclasses.consumables.potions.Potion",
     "desc": "Encased within a small glass vial, the potion awaits its call to mend the flesh's superficial agonies. Its liquid, a serene shade of scarlet, glimmers with an inner light, the subtle magic needed to soothe the trials of the flesh. The stopper fits snug atop the vial. When uncorked, the essence of medicinal herbs mingles with a hint of the arcane.",
     "senses": {
         "feel": "Grasping the vial imparts an anticipation of comfort, the promise of restoration held within a fragile sanctuary of glass.",

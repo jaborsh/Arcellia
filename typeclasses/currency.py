@@ -3,10 +3,11 @@ import re
 from parsing.text import _INFLECT
 from world.items.rarity import ItemRarity
 
-from typeclasses.items import Item
+from typeclasses.mixins.items import ItemMixin
+from typeclasses.objects import Object
 
 
-class Currency(Item):
+class Currency(ItemMixin, Object):
     def at_post_spawn(self):
         # Do not manually call since attributes are removed after initial run.
         price = self.attributes.get("price", 1)

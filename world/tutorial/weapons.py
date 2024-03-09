@@ -1,7 +1,8 @@
-from typeclasses.items import Item
+from typeclasses.mixins.items import ItemMixin
+from typeclasses.objects import Object
 
 
-class EmberwispBlade(Item):
+class EmberwispBlade(ItemMixin, Object):
     """
     The EmberWisp Blade.
 
