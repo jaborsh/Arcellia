@@ -905,6 +905,12 @@ def batch_create_object(*objparams):
         # this triggers all hooks
         obj.save()
 
+        if clothing := obj.attributes.get("clothing", None):
+            obj_clothe(obj, clothing)
+
+        if equipment := obj.attributes.get("eq", None):
+            obj_equip(obj, equipment)
+
         if spawns := obj.attributes.get("spawns", None):
             obj_spawn_contents(obj, spawns)
 
@@ -917,6 +923,20 @@ def batch_create_object(*objparams):
                 exec(code, {}, {"evennia": evennia, "obj": obj})
         objs.append(obj)
     return objs
+
+
+def obj_clothe(obj, clothing):
+    for c in clothing:
+        c["location"] = obj
+        c["home"] = obj
+        obj.clothing.wear(spawn(c)[0])
+
+
+def obj_equip(obj, equipment):
+    for e in equipment:
+        e["location"] = obj
+        e["home"] = obj
+        obj.equipment.wear(spawn(e)[0])
 
 
 def obj_set_stats(obj, stats):

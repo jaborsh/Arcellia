@@ -98,7 +98,7 @@ COMMANDER = {
         "sound": "His words cut through the din of water and wind, each command resonating with the power of the waves he has long conquered.",
         "taste": "The air around him carries the tang of salt, a reminder of his unbreakable bond with the boundless seas.",
     },
-    "spawns": [weapons.EMBERWISP_BLADE],
+    "eq": [weapons.EMBERWISP_BLADE],
     "stats": {
         "str": 20,
         "dex": 18,

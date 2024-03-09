@@ -14,7 +14,7 @@ Contributions:
 import os
 
 from django.conf import settings
-from handlers import clothing, equipment, quests, traits
+from handlers import quests, traits
 from parsing.text import grammarize, wrap
 from server.conf import logger
 from world.characters import backgrounds, genders
@@ -90,14 +90,6 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
     @lazy_property
     def appearance(self):
         return traits.TraitHandler(self, db_attribute_key="appearance")
-
-    @lazy_property
-    def clothing(self):
-        return clothing.ClothingHandler(self)
-
-    @lazy_property
-    def equipment(self):
-        return equipment.EquipmentHandler(self)
 
     @lazy_property
     def quests(self):

@@ -1,3 +1,5 @@
+from typeclasses.equipment import EquipmentType
+
 from world.items.rarity import ItemRarity
 
 EMBERWISP_BLADE = {
@@ -14,5 +16,6 @@ EMBERWISP_BLADE = {
     },
     "weight": 5.4,
     "price": 130,
+    "equipment_type": EquipmentType.WEAPON,
     "rarity": ItemRarity.UNCOMMON,
 }

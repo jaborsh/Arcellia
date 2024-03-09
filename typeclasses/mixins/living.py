@@ -1,4 +1,4 @@
-from handlers import clothing, cooldowns, traits
+from handlers import clothing, cooldowns, equipment, traits
 from world.characters import genders, races
 
 from evennia.utils import lazy_property
@@ -7,12 +7,16 @@ from evennia.utils import lazy_property
 class LivingMixin:
     # Handlers
     @lazy_property
-    def clothes(self):
+    def clothing(self):
         return clothing.ClothingHandler(self)
 
     @lazy_property
     def cooldowns(self):
         return cooldowns.CooldownHandler(self)
+
+    @lazy_property
+    def equipment(self):
+        return equipment.EquipmentHandler(self)
 
     @lazy_property
     def stats(self):
@@ -111,41 +115,44 @@ class LivingMixin:
 
     # Methods
     def get_display_things(self, looker, **kwargs):
-        clothes = self.clothes.all()
+        clothes = self.clothing.all()
         equipment = self.equipment.all()
+        string = ""
 
         if not clothes and not equipment:
             return ""
 
-        output = ["|wEquipment:|n"]
-        max_position = (
-            max([len(item.position) for item in equipment]) + 8 if equipment else 0
-        )
+        if equipment:
+            output = ["|wEquipment:|n"]
+            max_position = (
+                max([len(item.position) for item in equipment]) + 8 if equipment else 0
+            )
 
-        for item in equipment:
-            spaces = " " * (max_position - len(f" <worn {item.position}>"))
-            line = f"|x<worn {item.position}>|n{spaces} {item.get_display_name(looker)}"
-            output.append(line)
+            for item in equipment:
+                spaces = " " * (max_position - len(f" <worn {item.position}>"))
+                line = f"|x<{item.position}>|n{spaces} {item.get_display_name(looker)}"
+                output.append(line)
 
-        string = "\n ".join(output) + "\n\n"
+            string = "\n ".join(output) + "\n\n"
 
-        output = ["|wClothing:|n"]
+        if clothes:
+            output = ["|wClothing:|n"]
 
-        # Use a conditional expression to handle empty 'clothes'
-        max_position = (
-            max([len(item.position) for item in clothes]) + 8 if clothes else 0
-        )
+            # Use a conditional expression to handle empty 'clothes'
+            max_position = (
+                max([len(item.position) for item in clothes]) + 8 if clothes else 0
+            )
 
-        for item in clothes:
-            spaces = " " * (max_position - len(f" <worn {item.position}>"))
-            if item.covered_by and looker is not self:
-                continue
-            line = f"|x<worn {item.position}>|n{spaces} {item.get_display_name(looker)}"
-            if item.covered_by:
-                line += " |x(hidden)|n"
-            output.append(line)
+            for item in clothes:
+                spaces = " " * (max_position - len(f" <worn {item.position}>"))
+                if item.covered_by and looker is not self:
+                    continue
+                line = f"|x<worn {item.position}>|n{spaces} {item.get_display_name(looker)}"
+                if item.covered_by:
+                    line += " |x(hidden)|n"
+                output.append(line)
 
-        string += "\n ".join(output) + "\n"
+            string += "\n ".join(output) + "\n"
         return string
 
     def get_condition(self, looker, **kwargs):

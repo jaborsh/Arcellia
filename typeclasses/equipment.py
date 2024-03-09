@@ -52,15 +52,15 @@ class Equipment(ItemMixin, Object):
     @lazy_property
     def position(self):
         position_map = {
-            EquipmentType.HEADWEAR: "on head",
-            EquipmentType.AMULET: "around neck",
-            EquipmentType.CLOAK: "on back",
-            EquipmentType.BODY: "on body",
-            EquipmentType.HANDWEAR: "on hands",
-            EquipmentType.RING: "on finger",
-            EquipmentType.FOOTWEAR: "on feet",
-            EquipmentType.WEAPON: "in hand",
-            EquipmentType.SHIELD: "in hand",
+            EquipmentType.HEADWEAR: "worn on head",
+            EquipmentType.AMULET: "worn around neck",
+            EquipmentType.CLOAK: "worn on back",
+            EquipmentType.BODY: "worn on body",
+            EquipmentType.HANDWEAR: "worn on hands",
+            EquipmentType.RING: "worn on finger",
+            EquipmentType.FOOTWEAR: "worn on feet",
+            EquipmentType.WEAPON: "wielding",
+            EquipmentType.SHIELD: "holding",
         }
         return position_map.get(self.equipment_type, "on body")
 

@@ -71,6 +71,8 @@ class Mob(living.LivingMixin, objects.Object):
     appearance_template = dedent(
         """
             {desc}
+
+            {things}
         """
     )
 
@@ -108,6 +110,7 @@ class Mob(living.LivingMixin, objects.Object):
         return self.format_appearance(
             self.appearance_template.format(
                 desc=self.get_display_desc(looker, **kwargs),
+                things=self.get_display_things(looker, **kwargs),
             ),
             looker,
             **kwargs,
