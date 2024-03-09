@@ -23,6 +23,7 @@ If you want to share your game dir, including its settings, you can
 put secret game- or server-specific settings in secret_settings.py.
 
 """
+
 import os
 
 # Use the defaults from Evennia unless explicitly overridden

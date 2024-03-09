@@ -1,7 +1,9 @@
-import random
+from handlers.rolls import RollHandler
 
 from evennia.utils import dedent
 from world.tutorial.quest import TutorialQuest
+
+roll_handler = RollHandler()
 
 
 def node_start(caller):
@@ -14,11 +16,11 @@ def node_start(caller):
         """\
         A figure catches your eye - a young enchantress bound by cold iron chains, her presence a stark contrast to the grim surroundings. As she lifts a phantom cigarette to her lips, an action more of habit than need, you notice her eyes are brown and her face is speckled with birthmarks. 
         
-        She can't be more than 28. Draped upon her is a silver jumpsuit, cascading down her form like the armor of a queen forged from moonlight and starshine.
+        She can't be more than her late twenties. Draped upon her is a silver jumpsuit, cascading down her form like the armor of a queen forged from moonlight and starshine.
 
         |cThe Enchantress|n says, "Get me out of this cell!"
         """
-    )  # second pgh conceptualization check
+    )
 
     options = (
         {"desc": "Are you trapped?", "goto": "node_enchantress_1_1"},
@@ -94,13 +96,13 @@ def node_enchantress_2_1(caller):
 
 def node_enchantress_2_2(caller):
     def _callback(caller):
-        if random.randint(1, 20) >= 10:  # charisma check
+        if roll_handler.check("1d20", dc=10, stat=caller.charisma):
             caller.msg(
-                '|g[Success]|n\n\n"No." Her response is immediate, a single word punctuated by the drawing of silvery smoke. The phantom cigarette, seemingly forgotten, now serves as a consuit for her assurance, a visual testament to her promise. The smoke curls and dances in the dim light of her cell. Her eyes betray no deception.\n\n'
+                '|g[Charisma Success]|n\n\n"No." Her response is immediate, a single word punctuated by the drawing of silvery smoke. The phantom cigarette, seemingly forgotten, now serves as a consuit for her assurance, a visual testament to her promise. The smoke curls and dances in the dim light of her cell. Her eyes betray no deception.\n\n'
             )
             return "node_enchantress_hub_1_1"
         else:
-            caller.msg("|r[Failure]|n\n")
+            caller.msg("|r[Charisma Failure]|n\n")
             return "node_enchantress_hub_1_1"
 
     text = dedent(
@@ -131,11 +133,11 @@ def node_enchantress_hub_1_1(caller):
     def _callback(caller):
         text = "|#C7C10CShe's right. Something wants to come out -- through your mouth. But you can keep it down because your body does not control you.|n\n\n"
 
-        if random.randint(1, 20) >= 10:  # con check
+        if roll_handler.check("1d20", dc=10, stat=caller.constitution):
             caller.quests.add_details("Tutorial", {"enchantress_vomit": False})
             text += dedent(
                 """\
-            |g[Success]|n
+            |g[Constitution Success]|n
 
             Drawing upon a well of inner constitution, you focus on steadying your breath and calming the tumultuous sensation rolling within. You remind yourself firmly that your body does not control you - you control it. With a deep inhalation that carries the brine of the sea mingled with the aged wood of the boat, you steady your stance. Slowly, the urge recedes, like a wave withdrawing from the shore.
             """
@@ -144,7 +146,7 @@ def node_enchantress_hub_1_1(caller):
             caller.quests.add_details("Tutorial", {"enchantress_vomit": True})
             text += dedent(
                 """\
-                |r[Failure]|n
+                |r[Constitution Failure]|n
 
                 Despite your best efforts to quell the violent uprising within, the revolt proves too potent to suppress. It's a moment of visceral surrender as your body rebels, forcing you to acquiesce to its demands. It makes you put your hand to your mouth and swallow. The experience, as brief as it is chaotic, leaves you feeling vulnerable, yet cleansed in some ineffable way.
                 """
@@ -198,8 +200,8 @@ def node_enchantress_hub_1_2(caller):
         """
     )
 
-    if random.randint(1, 20) >= 11:  # int check
-        text += "\n|YYou have no doubt about the drinking, but do you strike yourself as a tight-lipped drunk? Surely, in an atmopshere loosened by drink, words must have flowed as freely as the spirits themselves. She must have heard something: a slip of the tongue, a whispered rumor, or even a shouted declaration."
+    if roll_handler.check("1d20", dc=11, stat=caller.intelligence):
+        text += "\n|CYou have no doubt about the drinking, but do you strike yourself as a tight-lipped drunk? Surely, in an atmopshere loosened by drink, words must have flowed as freely as the spirits themselves. She must have heard something: a slip of the tongue, a whispered rumor, or even a shouted declaration."
 
     options = {"desc": "[TEMP] Continue.", "goto": "node_enchantress_intro"}
 
@@ -210,7 +212,7 @@ def node_enchantress_hub_1_2(caller):
 def node_enchantress_intro(caller):
     def _callback1(caller):
         caller.msg(
-            'The enchantress regards you with a look that is both apologetic and discerning, as if assessing the weight of her next words before they breach her lips. "I didn\'t mean to overwhelm you with information," she finally says, her voice soft yet firm, like a gentle tide caressing the shore but persistent enough to shape the land over time. "You seem a bit... lost."'
+            'The enchantress regards you with a look that is both apologetic and discerning, as if assessing the weight of her next words before they breach her lips. "I didn\'t mean to overwhelm you with information," she finally says, her voice soft yet firm, like a gentle tide caressing the shore but persistent enough to shape the land over time. "You seem a bit... lost.\n"'
         )
         return "node_enchantress_intro"
 
@@ -225,25 +227,29 @@ def node_enchantress_intro(caller):
             The enchantress watches you, her expression somber yet laced with a subtle urging. It's clear she believes your arrival is no mere twist of fate. Silence stretches between you, broken only by the distant, mournful cry of the sea.
             """
         )
-        if random.randint(1, 20) >= 11:  # Charisma check
+
+        if roll_handler.check("1d20", dc=11, stat=caller.charisma):
             text += (
-                "\n|CShe speaks matter-of-factly, but there's a sadness in her voice.|n"
+                "\n|mShe speaks matter-of-factly, but there's a sadness in her voice.|n"
             )
     else:
         text = ""
 
     options = [
-        {"desc": "And why didn't you just tell about the rituals?", "goto": _callback1},
         {
-            "desc": "I don't remember anything that's happened on the ship",
+            "desc": "And why didn't you just tell me about the rituals?",
+            "goto": _callback1,
+        },
+        {
+            "desc": "I don't remember anything that's happened on the ship.",
             "goto": "node_enchantress_intro_1_1",
         },
     ]
 
-    if random.randint(1, 20) >= 14:
+    if roll_handler.check("1d20", dc=14, stat=caller.charisma):
         options.append(
             {
-                "desc": "[Let her know you want her. Physically.]",
+                "desc": "|m[Let her know you want her. Physically.]|n",
                 "goto": "node_enchantress_intro_2_1",
             }
         )
@@ -261,16 +267,16 @@ def node_enchantress_intro_1_1(caller):
             'The atmosphere shifts subtly, tension threading through the air like a whisper on the wind. Your affirmation, succinct and ripe with an underturrent of determination, meets her ear, sparking an ambiguous response.\n\n"Is it?" The enchantress responds, her eyebrow arched in a gesture that mingles skepticism with intrigue. The cigarette perched between her fingers sizzles, a faint sound that nevertheless slices through the tension. The crackle of burning tobacco seems to punctuate her doubt.'
         )
 
-        if random.randint(1, 20) >= 10:  # Charisma check
+        if roll_handler.check("1d20", dc=10, stat=caller.charisma):
             caller.msg(
-                "\n|CShe looks tired, her beauty waning faster than it ought to at her age.|n"
+                "\n|mShe looks tired, her beauty waning faster than it ought to at her age.|n"
             )
 
         return "node_enchantress_intro"
 
     def _callback2(caller):
         caller.msg(
-            'The journey through understanding one\'s place on a ship haunted by shadows and secrets is nothing if not a labyrinth of choices and revelations.\n\n"Have you been drinking?" The enchantress counters, a flicker of amusement - perhaps disbelief - dancing behind her eyes. The sizzle of her cigarette once again punctuates the moment, a familiar yet dissonant backdrop to the unfolding discourse.'
+            'The journey through understanding one\'s place on a ship haunted by shadows and secrets is nothing if not a labyrinth of choices and revelations.\n\n"Have you been drinking?" The enchantress counters, a flicker of amusement - perhaps disbelief - dancing behind her eyes. The sizzle of her cigarette once again punctuates the moment, a familiar yet dissonant backdrop to the unfolding discourse.\n'
         )
 
         return "node_enchantress_intro"
@@ -294,14 +300,14 @@ def node_enchantress_intro_1_1(caller):
 def node_enchantress_intro_2_1(caller):
     def _callback_success(caller):
         caller.msg(
-            '|#9B1B30Perched on the precipice of the unknown, where the veil between life and shadow grows thin, your thoughts, sparked by desperation and the surreal calm of impending doom, spill forth unguarded.\n\nThe enchantress, her presence a constant amidst the chaos, regards you with a depth of understanding. "You seek comfort," she acknowledges, her voice soft, carrying the warmth of empathy as a balm to the soul. "It\'s only natural."|n'
+            '|#9B1B30Perched on the precipice of the unknown, where the veil between life and shadow grows thin, your thoughts, sparked by desperation and the surreal calm of impending doom, spill forth unguarded.\n\nThe enchantress, her presence a constant amidst the chaos, regards you with a depth of understanding. "You seek comfort," she acknowledges, her voice soft, carrying the warmth of empathy as a balm to the soul. "It\'s only natural."|n\n'
         )
         return "node_enchantress_intro"
 
-    if random.randint(1, 20) >= 14:  # Charisma check
+    if roll_handler.check("1d20", dc=14, stat=caller.charisma):
         text = dedent(
             """\
-            |g[Success]|n
+            |g[Charisma Success]|n
 
             |#9B1B30"Why are you doing this?" The enchantress' question pierces the heavy air, her words sharp, yet not devoid of curiosity. Her gaze seeks not just an answer but an understanding of the motives that drive you, here, in the confines of a ship cloaked in shadow. Not to mention the dead bodies.|n
             """
@@ -316,14 +322,14 @@ def node_enchantress_intro_2_1(caller):
     else:
         text = dedent(
             """\
-            |r[Failure]|n
+            |r[Charisma Failure]|n
 
             |#9B1B30The words have already left your mouth, a decision made, actions set into motion like dominos cascading towards inevitable conclusions. Yet, as they hang suspended in the time between speaking and hearing, there's a palpable tension.|n
             """
         )
 
         options = {
-            "desc": "I want to have fuck with you",
+            "desc": "I want to have fuck with you.",
             "goto": "node_enchantress_seduce_failure_1",
         }
 
@@ -365,7 +371,7 @@ def node_enchantress_seduce_failure_2(caller):
         },
     ]
 
-    if random.randint(1, 20) >= 11:
+    if roll_handler.check("1d20", dc=11, stat=caller.charisma):
         options.append(
             {
                 "desc": "|xCan't back down now. Say what you said again. Proudly.",
@@ -391,15 +397,15 @@ def node_enchantress_seduce_failure_3(caller):
 def node_enchantress_seduce_authority(caller):
     text = dedent(
         """\
-        |xIn an outburst fueled by a mix of vexation, desperation, and perhaps the surreal nature of your circumstances, you escalate the exchange. |#9B1B30"I said I want to have fuck with you!" |xThe words burst forth, unfiltered and raw, defiance mingling.
+        In an outburst fueled by a mix of vexation, desperation, and perhaps the surreal nature of your circumstances, you escalate the exchange. |#9B1B30"I said I want to have fuck with you!"|n The words burst forth, unfiltered and raw, defiance mingling.
 
-        |xTaken aback by the intensity and the choice of words, the enchantress finds herself caught between shock and amusement. "You're god damn right you did," she manages to say, tears of laughter reemerging stronger than before. "What kind of person even are you?" she wonders aloud.
+        Taken aback by the intensity and the choice of words, the enchantress finds herself caught between shock and amusement. |#9B1B30"You're god damn right you did,"|n she manages to say, tears of laughter reemerging stronger than before. "What kind of person even are you?" she wonders aloud.
         """
     )
 
     options = (
         {
-            "desc": "The Bringer of the Apocalypse",
+            "desc": "The Bringer of the Apocalypse.",
             "goto": "node_enchantress_seduce_apocalypse",
         },
         {
@@ -407,7 +413,7 @@ def node_enchantress_seduce_authority(caller):
             "goto": "node_enchantress_seduce_superstar",
         },
         {
-            "desc": "I'm sorry. I don't know. You're pretty. I'm sorry",
+            "desc": "I'm sorry. I don't know. You're pretty. I'm sorry.",
             "goto": "node_enchantress_seduce_sorry",
         },
     )
@@ -492,7 +498,7 @@ def node_enchantress_seduce_sorry(caller):
         """
     )
 
-    if random.randint(1, 20) >= 11:  # Wisdom check
+    if roll_handler.check("1d20", dc=11, stat=caller.wisdom):
         text += "\n\n|CShe appears to genuinely want you to understand it's okay.|n"
 
     text += '\n"|#A9CCE3There are other things in life -- more meaningful, more fitting for you. This..." She gestures towards herself, draped in silver, "Is not one of them."|n\n\n As she extinguishes her cigarette, the glow at its tip fading like the last light before darkness, she disappears.'
@@ -500,3 +506,7 @@ def node_enchantress_seduce_sorry(caller):
     options = {"desc": "[Leave]", "goto": "node_quit"}
 
     return text, options
+
+
+def node_quit(caller):
+    return "", {}

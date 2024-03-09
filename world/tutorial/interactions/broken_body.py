@@ -1,7 +1,9 @@
-import random
+from handlers.rolls import RollHandler
 
 from evennia.utils import dedent
 from world.tutorial.quest import TutorialQuest
+
+roll_handler = RollHandler()
 
 
 def node_start(caller):
@@ -46,10 +48,10 @@ def node_investigate(caller, **kwargs):
 def node_assessment(caller):
     caller.quests.add_details("Tutorial", {"body_assessment": True})
 
-    if random.randint(1, 2) == 1:
+    if roll_handler.check("1d20", dc=10, stat=caller.intelligence):
         text = dedent(
             """\
-            |G[Success]|n
+            |G[Intelligence Success]|n
             
             With a breath of intuition, you discern a tale of violence born from within these very walls. An intruder from a world beyond in a tempest of rage or fear that had its genesis here. The positioning of the lifeless navigator further speaks to this gruesome revelation, a placement not at random, but the end fresult of an act dictated by raw, unforgiving physics of brutality. His slump against the stern tells of an intensity that could very well have been the sentinel of his demise - a force striking with such fervor that even the vessel's sturdy build yielded to its fury.
             """
@@ -64,9 +66,9 @@ def node_assessment(caller):
     else:
         text = dedent(
             """
-            |r[Failure]|n
+            |r[Intelligence Failure]|n
             
-            What do you mean *assess the damage*? How would I do that? What am I even trying to do?
+            What do you mean *assess the damage*? How would you do that? What am you even trying to do?
             """
         )
 
