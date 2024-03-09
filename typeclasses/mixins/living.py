@@ -111,6 +111,10 @@ class LivingMixin:
         self.health.current -= damage
 
     def at_death(self):
+        for item in self.contents:
+            item.at_drop(self)
+            item.move_to(self.location, quiet=True)
+
         self.location.msg_contents("$You() $conj(die).", from_obj=self)
 
     # Methods
