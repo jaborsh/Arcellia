@@ -98,58 +98,8 @@ class Clothing(Object):
         }
         return position_map.get(self.clothing_type, "on body")
 
-    # def remove(self, wearer):
-    #     """
-    #     Removed worn clothes and optionally echoes to the room.
+    def at_drop(self, caller):
+        caller.clothing.remove(self)
 
-    #     Args:
-    #         wearer (obj): object wearing this clothing object.
-    #         quiet (bool): if true, don't echo to the room.
-    #     """
-    #     uncovered = []
-
-    #     # Check to see if any other clothes are covered by this object.
-    #     for article in wearer.clothes.all():
-    #         if self in article.covered_by:
-    #             article.covered_by.remove(self)
-    #             uncovered.append(article)
-
-    #     # Remove the clothes from the covered_by list.
-    #     self.covered_by = []
-
-    #     # Remove the clothes from the wearer.
-    #     wearer.clothes.remove(self)
-
-    #     message = f"$You() $conj(remove) {self.get_display_name(wearer)}"
-    #     if len(uncovered) > 0:
-    #         message += f", revealing {', '.join([article.get_display_name(wearer) for article in uncovered])}"
-
-    #     wearer.location.msg_contents(message + ".", from_obj=wearer)
-
-    # def wear(self, wearer):
-    #     """
-    #     Sets clothes to be worn and optionally echoes to the room.
-
-    #     Args:
-    #         wearer (obj): object wearing the clothing article.
-    #         wearstyle (str): the style of wear.
-    #         quiet (bool): if true, don't echo to the room.
-    #     """
-
-    #     # Auto-cover appropriately
-    #     covering = []
-    #     wearer_clothes = wearer.clothes.all()
-    #     for article in wearer_clothes:
-    #         if article.clothing_type in CLOTHING_TYPE_COVER[self.clothing_type]:
-    #             article.covered_by.append(self)
-    #             covering.append(article)
-    #         elif self.clothing_type in CLOTHING_TYPE_COVER[article.clothing_type]:
-    #             self.covered_by.append(article)
-
-    #     wearer.clothes.wear(self)
-
-    #     message = f"$You() $conj(wear) {self.get_display_name(wearer)}"
-    #     if covering:
-    #         message += f", covering {', '.join([article.get_display_name(wearer) for article in covering])}"
-
-    #     wearer.location.msg_contents(message + ".", from_obj=wearer)
+    def at_give(self, caller, target):
+        caller.clothing.remove(self)

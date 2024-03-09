@@ -78,6 +78,11 @@ class EquipmentHandler(Handler):
                 self.data[equipment_type] = None
                 break
 
+        for piece in item.covering:
+            piece.covered_by.remove(self)
+
+        item.covering = []
+
         self._save()
         message = f"$You() $conj(remove) {item.get_display_name(self.obj)}."
         self.obj.location.msg_contents(message, from_obj=self.obj)

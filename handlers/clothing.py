@@ -134,6 +134,15 @@ class ClothingHandler(Handler):
                 items.remove(item)
                 break
 
+        for piece in item.covering:
+            piece.covered_by.remove(self)
+
+        for piece in item.covered_by:
+            piece.covering.remove(self)
+
+        item.covering = []
+        item.covered_by = []
+
         self._save()
 
         message = f"$You() $conj(remove) {item.get_display_name(self.obj)}"

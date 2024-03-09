@@ -62,3 +62,9 @@ class Equipment(Object):
             EquipmentType.SHIELD: "in hand",
         }
         return position_map.get(self.equipment_type, "on body")
+
+    def at_drop(self, caller):
+        caller.equipment.remove(self)
+
+    def at_give(self, caller, target):
+        caller.equipment.remove(self)
