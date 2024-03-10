@@ -11,6 +11,7 @@ from typeclasses.clothing import Clothing
 from typeclasses.currency import Currency
 from typeclasses.equipment import Equipment
 from typeclasses.menus import InteractionMenu
+from typeclasses.mixins.living import LivingMixin
 
 from commands.command import Command
 from evennia import InterruptCommand
@@ -31,6 +32,8 @@ _AT_SEARCH_RESULT = utils.variable_from_module(
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 __all__ = [
     "CmdAlias",
+    "CmdAttack",
+    "CmdAttackStop",
     "CmdBlock",
     "CmdCover",
     "CmdDrop",
@@ -315,6 +318,39 @@ class CmdAlias(general.CmdNick):
                 errstring = ""
         string = errstring if errstring else string
         caller.msg(_cy(string))
+
+
+class CmdAttack(Command):
+    key = "attack"
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+
+        if not args:
+            return caller.msg("Attack who?")
+
+        target = caller.search(args)
+        if not target:
+            return
+
+        if not inherits_from(target, LivingMixin):
+            return caller.msg("You can't attack that.")
+
+        caller.combat.add_enemy(target)
+        target.combat.add_enemy(caller)
+        caller.combat.start_combat()
+        target.combat.start_combat()
+
+
+class CmdAttackStop(Command):
+    key = "attackstop"
+    locks = "cmd:all()"
+
+    def func(self):
+        self.caller.combat.stop_combat()
+        self.caller.msg("You stop combat.")
 
 
 class CmdBlock(Command):

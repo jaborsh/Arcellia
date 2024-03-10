@@ -1,4 +1,4 @@
-from handlers import clothing, cooldowns, equipment, traits
+from handlers import clothing, combat, cooldowns, equipment, traits
 from world.characters import genders, races
 
 from evennia.utils import lazy_property
@@ -9,6 +9,10 @@ class LivingMixin:
     @lazy_property
     def clothing(self):
         return clothing.ClothingHandler(self)
+
+    @lazy_property
+    def combat(self):
+        return combat.CombatHandler(self)
 
     @lazy_property
     def cooldowns(self):
@@ -118,6 +122,14 @@ class LivingMixin:
         self.location.msg_contents("$You() $conj(die).", from_obj=self)
 
     # Methods
+    def combat_tick(self):
+        if self.combat.check_stop_combat():
+            return
+
+        target = self.combat.get_target()
+
+        self.combat.msg(f"$You() $conj(attack) {target.get_display_name(self)}")
+
     def get_display_things(self, looker, **kwargs):
         clothes = self.clothing.all()
         equipment = self.equipment.all()
