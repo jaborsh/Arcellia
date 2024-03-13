@@ -1,11 +1,11 @@
 from math import ceil
 
 from django.conf import settings
-from parsing.colors import strip_ansi
-
 from evennia.utils.evmenu import EvMenu
 from evennia.utils.evtable import EvColumn, EvTable
 from evennia.utils.utils import dedent, m_len
+
+from parsing.colors import strip_ansi
 
 _MAX_TEXT_WIDTH = settings.CLIENT_DEFAULT_WIDTH
 

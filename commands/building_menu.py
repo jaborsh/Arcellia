@@ -1,5 +1,6 @@
 from django.conf import settings
 from evennia.contrib.base_systems.building_menu import building_menu
+
 from parsing.colors import strip_ansi
 from server.conf import logger
 

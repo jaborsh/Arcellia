@@ -1,6 +1,5 @@
-from typeclasses.clothing import ClothingType
-
 from handlers.handler import Handler
+from typeclasses.clothing import ClothingType
 
 CLOTHING_OVERALL_LIMIT = 20
 
@@ -49,7 +48,6 @@ CLOTHING_TYPE_ORDER = [
 
 
 class ClothingHandler(Handler):
-
     clothing_defaults = {
         ClothingType.HEADWEAR: [],
         ClothingType.EYEWEAR: [],

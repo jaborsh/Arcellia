@@ -2,12 +2,6 @@ import re
 
 from django.conf import settings
 from django.db.models import Max, Min, Q
-from parsing.colors import strip_ansi
-from server.conf import logger
-
-# from typeclasses.rooms import XYZRoom
-from commands import building_menu
-from commands.command import Command
 from evennia import InterruptCommand
 from evennia.commands.default import building, system
 from evennia.contrib.grid.xyzgrid import commands as xyzcommands
@@ -17,6 +11,12 @@ from evennia.objects.models import ObjectDB
 from evennia.utils import class_from_module, utils
 from evennia.utils.eveditor import EvEditor
 from evennia.utils.utils import dbref, inherits_from, list_to_string
+
+# from typeclasses.rooms import XYZRoom
+from commands import building_menu
+from commands.command import Command
+from parsing.colors import strip_ansi
+from server.conf import logger
 
 CHAR_TYPECLASS = settings.BASE_CHARACTER_TYPECLASS
 ROOM_TYPECLASS = settings.BASE_ROOM_TYPECLASS

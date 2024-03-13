@@ -1,5 +1,6 @@
 from evennia.contrib.grid.xyzgrid.xyzroom import XYZRoom
 from evennia.utils import dedent
+
 from world.characters import backgrounds, genders, races
 
 _BACKGROUND_INFO_DICT = backgrounds.BACKGROUND_INFO_DICT

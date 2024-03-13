@@ -1,10 +1,9 @@
 from textwrap import dedent
 
 from commands.default_cmdsets import MobCmdSet
-from world.characters import genders, races
-
 from typeclasses import objects
 from typeclasses.mixins import living
+from world.characters import genders, races
 
 
 class Mob(living.LivingMixin, objects.Object):

@@ -21,6 +21,7 @@ possibility to connect with a guest account. The setting file accepts
 several more options for customizing the Guest account system.
 
 """
+
 import os
 
 from django.conf import settings
@@ -30,6 +31,7 @@ from evennia.objects.models import ObjectDB
 from evennia.server.signals import SIGNAL_OBJECT_POST_PUPPET
 from evennia.utils import class_from_module
 from evennia.utils.utils import is_iter
+
 from server.conf import logger
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS

@@ -1,7 +1,6 @@
+from handlers.handler import Handler
 from typeclasses.clothing import ClothingType
 from typeclasses.equipment import EquipmentType
-
-from handlers.handler import Handler
 
 EQUIPMENT_TYPE_COVER = {
     EquipmentType.HEADWEAR: [

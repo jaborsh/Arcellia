@@ -1,6 +1,18 @@
 import re
 
 from django.conf import settings
+from evennia import InterruptCommand
+from evennia.commands.default import general, system
+from evennia.typeclasses.attributes import NickTemplateInvalid
+from evennia.utils import (
+    class_from_module,
+    create,
+    evtable,
+    inherits_from,
+    utils,
+)
+
+from commands.command import Command
 from handlers.clothing import CLOTHING_OVERALL_LIMIT, CLOTHING_TYPE_COVER
 from handlers.equipment import EQUIPMENT_TYPE_COVER
 from parsing.colors import strip_ansi
@@ -12,18 +24,6 @@ from typeclasses.currency import Currency
 from typeclasses.equipment import Equipment
 from typeclasses.menus import InteractionMenu
 from typeclasses.mixins.living import LivingMixin
-
-from commands.command import Command
-from evennia import InterruptCommand
-from evennia.commands.default import general, system
-from evennia.typeclasses.attributes import NickTemplateInvalid
-from evennia.utils import (
-    class_from_module,
-    create,
-    evtable,
-    inherits_from,
-    utils,
-)
 
 _AT_SEARCH_RESULT = utils.variable_from_module(
     *settings.SEARCH_AT_RESULT.rsplit(".", 1)

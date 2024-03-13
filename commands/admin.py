@@ -7,10 +7,10 @@ from evennia.contrib.grid.xyzgrid.xyzroom import XYZRoom
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import class_from_module
 from evennia.utils.utils import inherits_from
-from parsing.text import wrap
-from server.conf.settings import SERVERNAME
 
 from commands.command import Command
+from parsing.text import wrap
+from server.conf.settings import SERVERNAME
 
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 

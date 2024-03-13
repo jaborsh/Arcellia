@@ -1,7 +1,7 @@
+from evennia.utils import lazy_property
+
 from handlers import clothing, combat, cooldowns, equipment, traits
 from world.characters import genders, races
-
-from evennia.utils import lazy_property
 
 
 class LivingMixin:

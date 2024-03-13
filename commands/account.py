@@ -8,11 +8,11 @@ from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import create, search, utils
 from evennia.utils.ansi import strip_ansi
 from evennia.utils.evmenu import get_input
+
+from commands.command import Command
 from parsing.text import wrap
 from server.conf import logger
 from typeclasses.menus import AMenu
-
-from commands.command import Command
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
 _AUTO_PUPPET_ON_LOGIN = settings.AUTO_PUPPET_ON_LOGIN

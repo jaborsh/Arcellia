@@ -1,8 +1,8 @@
-from parsing.colors import strip_ansi
-from typeclasses.clothing import Clothing, ClothingType
+from evennia.utils import create
 
 from commands.command import Command
-from evennia.utils import create
+from parsing.colors import strip_ansi
+from typeclasses.clothing import Clothing, ClothingType
 
 __all__ = ["CmdTailor"]
 

@@ -3,9 +3,9 @@ from evennia.commands.default import comms as default_comms
 from evennia.utils.ansi import strip_ansi
 from evennia.utils.evmenu import ask_yes_no
 from evennia.utils.utils import class_from_module
-from server.conf import logger
 
 from commands.command import Command
+from server.conf import logger
 
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 CHANNEL_DEFAULT_TYPECLASS = class_from_module(

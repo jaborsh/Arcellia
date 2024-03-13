@@ -14,6 +14,8 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 
 """
 
+from evennia import CmdSet, default_cmds
+
 from commands import (
     account,
     admin,
@@ -28,7 +30,6 @@ from commands import (
     system,
     unloggedin,
 )
-from evennia import CmdSet, default_cmds
 
 
 def add_modules(self, modules):

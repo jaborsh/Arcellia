@@ -1,10 +1,9 @@
 import re
 
 from parsing.text import _INFLECT
-from world.items.rarity import ItemRarity
-
 from typeclasses.mixins.items import ItemMixin
 from typeclasses.objects import Object
+from world.items.rarity import ItemRarity
 
 
 class Currency(ItemMixin, Object):

@@ -19,6 +19,7 @@ are defined in evennia.default_cmds.UnloggedinCmdSet. The parsing and display
 of the screen is done by the unlogged-in "look" command.
 
 """
+
 from django.conf import settings
 
 CONNECTION_SCREEN = """

@@ -1,6 +1,7 @@
 from enum import Enum
 
 from evennia.utils.utils import lazy_property
+
 from typeclasses.mixins.items import ItemMixin
 from typeclasses.objects import Object
 

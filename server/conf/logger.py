@@ -13,7 +13,6 @@ log_typemsg(). This is for historical, back-compatible reasons.
 
 """
 
-
 import os
 import time
 from datetime import datetime
@@ -21,10 +20,11 @@ from traceback import format_exc
 
 from django.conf import settings
 from evennia.comms.models import ChannelDB
-from parsing.text import wrap
 from twisted import logger as twisted_logger
 from twisted.internet.threads import deferToThread
 from twisted.python import logfile
+
+from parsing.text import wrap
 
 log = twisted_logger.Logger()
 

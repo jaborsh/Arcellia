@@ -135,10 +135,9 @@ prototype, override its name with an empty dict.
 import hashlib
 import time
 
+import evennia
 from django.conf import settings
 from django.utils.translation import gettext as _
-
-import evennia
 from evennia.objects.models import ObjectDB
 from evennia.prototypes import prototypes as protlib
 from evennia.prototypes.prototypes import (
@@ -1163,7 +1162,6 @@ def spawn(*prototypes, caller=None, **kwargs):
         for key, value in (
             (key, value) for key, value in prot.items() if not (key.startswith("ndb_"))
         ):
-
             # we don't support categories, nor locks for simple attributes
             if key in _PROTOTYPE_META_NAMES:
                 continue

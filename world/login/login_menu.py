@@ -2,8 +2,8 @@
 This changes the login menu to ask for the account name and password in
 sequence instead of requiring one to enter both at once.
 """
-from django.conf import settings
 
+from django.conf import settings
 from evennia.accounts.accounts import DefaultAccount
 from evennia.utils.evmenu import EvMenu
 from evennia.utils.utils import (

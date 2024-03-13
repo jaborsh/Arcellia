@@ -1,6 +1,5 @@
-from typeclasses import mobs
-
 from evennia.utils import delay
+from typeclasses import mobs
 
 
 class Enchantress(mobs.Mob):

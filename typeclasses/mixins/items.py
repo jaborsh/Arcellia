@@ -1,8 +1,8 @@
+from evennia.utils.utils import lazy_property
+
 from handlers import traits
 from prototypes import spawner
 from world.items.rarity import ItemRarity
-
-from evennia.utils.utils import lazy_property
 
 
 class ItemMixin:

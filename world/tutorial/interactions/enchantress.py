@@ -1,6 +1,6 @@
+from evennia.utils import dedent
 from handlers.rolls import RollHandler
 
-from evennia.utils import dedent
 from world.tutorial.quest import TutorialQuest
 
 roll_handler = RollHandler()
@@ -169,7 +169,6 @@ def node_enchantress_hub_1_1(caller):
 
 def node_enchantress_vomit(caller):
     if caller.quests.get_detail("Tutorial", "enchantress_vomit"):
-
         text = dedent(
             """\
             Her concern deepening at the sight of your distress, she watches you closely. "Friend?", she begins, the uncertainty in her voice clear as she braces for what might come next.

@@ -10,12 +10,13 @@ the other types, you can do so by adding this as a multiple
 inheritance.
 
 """
+
 import re
 
 from django.utils.translation import gettext as _
-from parsing.text import _INFLECT, strip_ansi
-
 from evennia.objects.objects import DefaultObject
+
+from parsing.text import _INFLECT, strip_ansi
 
 
 class ObjectParent:

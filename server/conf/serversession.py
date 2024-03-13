@@ -20,7 +20,9 @@ settings file:
     SERVER_SESSION_CLASS = "server.conf.serversession.ServerSession"
 
 """
+
 from evennia.server.serversession import ServerSession as BaseServerSession
+
 from parsing.colors import hex_to_xterm
 
 
