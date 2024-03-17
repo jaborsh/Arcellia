@@ -1,5 +1,4 @@
 from evennia.utils import lazy_property
-
 from handlers import clothing, combat, cooldowns, equipment, traits
 from world.characters import genders, races
 
@@ -101,11 +100,11 @@ class LivingMixin:
     # Properties
     @property
     def wealth(self):
-        return self.traits.get("wealth")
+        return self.stats.get("wealth")
 
     @property
     def weight(self):
-        return self.traits.get("weight")
+        return self.stats.get("weight")
 
     # Hooks
     def at_attacked(self, attacker, **kwargs):

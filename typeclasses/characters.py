@@ -17,13 +17,13 @@ from django.conf import settings
 from evennia.objects.models import ObjectDB
 from evennia.objects.objects import DefaultCharacter
 from evennia.utils.utils import lazy_property, make_iter, to_str, variable_from_module
-
 from handlers import quests, traits
 from parsing.text import grammarize, wrap
 from server.conf import logger
+from world.characters import backgrounds, genders
+
 from typeclasses import objects
 from typeclasses.mixins import living
-from world.characters import backgrounds, genders
 
 _AT_SEARCH_RESULT = variable_from_module(*settings.SEARCH_AT_RESULT.rsplit(".", 1))
 
@@ -60,7 +60,6 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
     def at_object_creation(self):
         self.create_log_folder()
         self.init_stats()
-        self.init_traits()
         self.locks.add("msg:all()")
 
     def create_log_folder(self):
@@ -83,8 +82,8 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
         self.stats.add("wisdom", "Wisdom", trait_type="static", base=10)
         self.stats.add("charisma", "Charisma", trait_type="static", base=10)
 
-    def init_traits(self):
-        self.traits.add("wealth", "Wealth", trait_type="static", base=0)
+        self.stats.add("wealth", "Wealth", trait_type="static", base=0)
+        self.stats.add("weight", "Weight", trait_type="counter", base=0, max=100)
 
     # Handlers
     @lazy_property

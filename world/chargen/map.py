@@ -1,3 +1,5 @@
+from typeclasses.rooms import MapNode
+
 CHARGEN_MAP = r"""
  + 0
    
@@ -22,8 +24,11 @@ for key, prot in PROTOTYPES.items():
     else:
         prot["prototype_parent"] = CREATION_EXIT_PARENT
 
+LEGEND = {"#": MapNode}
+
 XYMAP_DATA = {
     "zcoord": "chargen",
+    "legend": LEGEND,
     "map": CHARGEN_MAP,
     "prototypes": PROTOTYPES,
 }

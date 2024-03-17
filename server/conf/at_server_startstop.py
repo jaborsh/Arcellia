@@ -17,10 +17,8 @@ at_server_cold_stop()
 
 """
 
-from evennia.contrib.grid.xyzgrid.launchcmd import (
-    _option_add as xyzgrid_add,
-)
-from evennia.contrib.grid.xyzgrid.xyzgrid import get_xyzgrid
+from world.xyzgrid.launchcmd import _option_add as xyzgrid_add
+from world.xyzgrid.xyzgrid import get_xyzgrid
 
 
 def at_server_init():

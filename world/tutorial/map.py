@@ -208,6 +208,15 @@ PROTOTYPES = {
     ("*", "*", "*"): {},
 }
 
+MOBILE_PROTOTYPES = {
+    "a": {
+        "name": "TestMob",
+        "desc": "This is a test mob.",
+        "type": "typeclasses.mobs.Mob",
+        "location": (1, 1),
+    }
+}
+
 for key, prot in PROTOTYPES.items():
     if len(key) == 2:
         if key == (4, 3):
@@ -224,6 +233,7 @@ XYMAP_DATA_TUTORIAL = {
     "legend": LEGEND,
     "map": TUTORIAL_MAP,
     "prototypes": PROTOTYPES,
+    "mobile_prototypes": MOBILE_PROTOTYPES,
 }
 
 XYMAP_DATA_LIST = [XYMAP_DATA_TUTORIAL]
