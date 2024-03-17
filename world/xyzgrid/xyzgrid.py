@@ -1,10 +1,12 @@
 from evennia.scripts.scripts import DefaultScript
 from evennia.utils import logger
 from evennia.utils.utils import variable_from_module
-from typeclasses.exits import XYExit as XYZExit
-from typeclasses.rooms import XYRoom as XYZRoom
 
-from world.xyzgrid.xyzmap import XYZMap as XYMap
+from world.xyzgrid.xyzexit import XYZExit
+from world.xyzgrid.xyzmap import XYZMap
+
+# from world.xyzgrid.xyzmob import XYZMob
+from world.xyzgrid.xyzroom import XYZRoom
 
 
 class XYGrid(DefaultScript):
@@ -90,6 +92,22 @@ class XYGrid(DefaultScript):
         kwargs["db_key"] = name
         return XYZExit.objects.filter_xyz_exit(xyz=xyz, **kwargs)
 
+    # def get_mob(self, xyz, name="*", **kwargs):
+    #     """
+    #     Get one or more mob objects at coordinate.
+
+    #     Args:
+    #         xyz (tuple): X,Y,Z coordinate of the room the
+    #                      mob should be in. '*' acts as wildcard.
+    #         name (str): The full name of the mob, e.g. 'goblin' or 'orc'.
+    #                     The '*' acts as a wildcard.
+
+    #     Returns:
+    #         Queryset: A queryset of XYZMob(s) found.
+    #     """
+    #     kwargs["db_key"] = name
+    #     return XYZMob.objects.filter_xyz_mob(xyz=xyz, **kwargs)
+
     def maps_from_module(self, module_path):
         """
         Load map data from module. The loader will look for a dict XYMAP_DATA or a list of
@@ -151,7 +169,7 @@ class XYGrid(DefaultScript):
                 self.log(f" XYMap data for Z='{zcoord}' has changed.")
                 changed.append(zcoord)
 
-            xymap = XYMap(dict(new_mapdata), Z=zcoord, xyzgrid=self)
+            xymap = XYZMap(dict(new_mapdata), Z=zcoord, xyzgrid=self)
             xymap.parse()
             xymap.calculate_path_matrix()
             self.ndb.grid[zcoord] = xymap

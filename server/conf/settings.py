@@ -134,7 +134,7 @@ SEARCH_MULTIMATCH_REGEX = r"(?P<name>[^-]*) (?P<number>[0-9]+)(?P<args>.*)"
 # SEARCH_MULTIMATCH_TEMPLATE = " {name} {number}{aliases}{info}\n"
 
 EXTRA_LAUNCHER_COMMANDS["xyzgrid"] = "world.xyzgrid.launchcmd.xyzcommand"
-PROTOTYPE_MODULES += ["evennia.contrib.grid.xyzgrid.prototypes"]
+PROTOTYPE_MODULES += ["world.xyzgrid.prototypes"]
 
 ######################################################################
 # Default command sets and commands

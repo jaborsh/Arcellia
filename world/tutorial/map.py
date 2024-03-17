@@ -1,11 +1,10 @@
 from prototypes.armor import light
-from typeclasses.rooms import MapNode
 
 from world.tutorial.prototypes import containers, interactives, mobs
 
 ROOM_PARENT = {"typeclass": "world.tutorial.rooms.NautilusRoom"}
 INNER_HOLD = {"typeclass": "world.tutorial.rooms.NautilusInnerHold"}
-EXIT_PARENT = {"typeclass": "typeclasses.exits.XYExit"}
+EXIT_PARENT = {"typeclass": "world.xyzgrid.xyzexit.XYZExit"}
 
 TUTORIAL_MAP = r"""
  + 0 1 2 3 4
@@ -226,11 +225,10 @@ for key, prot in PROTOTYPES.items():
     else:
         prot["prototype_parent"] = EXIT_PARENT
 
-LEGEND = {"#": MapNode}
+# LEGEND = {"#": MapNode}
 
 XYMAP_DATA_TUTORIAL = {
     "zcoord": "nautilus",
-    "legend": LEGEND,
     "map": TUTORIAL_MAP,
     "prototypes": PROTOTYPES,
     "mobile_prototypes": MOBILE_PROTOTYPES,

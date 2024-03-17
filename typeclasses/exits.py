@@ -7,7 +7,6 @@ for allowing Characters to traverse the exit to its destination.
 
 """
 
-from evennia.contrib.grid.xyzgrid import xyzroom
 from evennia.objects.objects import DefaultExit
 
 from .objects import ObjectParent
@@ -37,20 +36,6 @@ class Exit(ObjectParent, DefaultExit):
         at_failed_traverse(traveller) - called by at_traverse if traversal failed for some reason. Will
                                         not be called if the attribute `err_traverse` is
                                         defined, in which case that will simply be echoed.
-    """
-
-    @property
-    def display_name(self):
-        return self.attributes.get("display_name", self.name)
-
-    @display_name.setter
-    def display_name(self, value: str):
-        self.db.display_name = value
-
-
-class XYExit(xyzroom.XYZExit, Exit):
-    """
-    An exit that is aware of the XYZ coordinate system.
     """
 
     @property

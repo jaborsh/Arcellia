@@ -1,4 +1,5 @@
-from typeclasses.rooms import MapNode
+CREATION_ROOM_PARENT = {"typeclass": "world.chargen.rooms.CreationRoom"}
+CREATION_EXIT_PARENT = {"typeclass": "world.xyzgrid.xyzexit.XYZExit"}
 
 CHARGEN_MAP = r"""
  + 0
@@ -15,8 +16,6 @@ PROTOTYPES = {
     },
 }
 
-CREATION_ROOM_PARENT = {"typeclass": "world.chargen.rooms.CreationRoom"}
-CREATION_EXIT_PARENT = {"typeclass": "typeclasses.exits.XYExit"}
 
 for key, prot in PROTOTYPES.items():
     if len(key) == 2:
@@ -24,11 +23,10 @@ for key, prot in PROTOTYPES.items():
     else:
         prot["prototype_parent"] = CREATION_EXIT_PARENT
 
-LEGEND = {"#": MapNode}
-
 XYMAP_DATA = {
     "zcoord": "chargen",
-    "legend": LEGEND,
     "map": CHARGEN_MAP,
     "prototypes": PROTOTYPES,
 }
+
+XYMAP_DATA_LIST = [XYMAP_DATA]

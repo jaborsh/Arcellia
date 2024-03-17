@@ -3,14 +3,14 @@ import re
 from django.conf import settings
 from evennia import InterruptCommand
 from evennia.commands.default import building, muxcommand
-from evennia.contrib.grid.xyzgrid.xyzroom import XYZRoom
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import class_from_module
 from evennia.utils.utils import inherits_from
-
-from commands.command import Command
 from parsing.text import wrap
 from server.conf.settings import SERVERNAME
+from world.xyzgrid.xyzroom import XYZRoom
+
+from commands.command import Command
 
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 

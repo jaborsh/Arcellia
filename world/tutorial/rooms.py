@@ -1,13 +1,15 @@
-from typeclasses import characters, rooms
+from typeclasses import characters
+
+from world.xyzgrid.xyzroom import XYZRoom
 
 
-class NautilusRoom(rooms.XYRoom):
+class NautilusRoom(XYZRoom):
     """
     This is a Tutorial room.
     """
 
 
-class NautilusInnerHold(rooms.XYRoom):
+class NautilusInnerHold(XYZRoom):
     """
     The Inner Hold of the Nautilus where the Enchantress is kept.
     """

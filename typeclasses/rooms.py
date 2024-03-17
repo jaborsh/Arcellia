@@ -2,11 +2,8 @@ from collections import defaultdict
 from textwrap import dedent
 
 from django.conf import settings
-from django.core import exceptions as django_exceptions
-from evennia.contrib.grid.xyzgrid import xymap_legend, xyzroom
-from evennia.contrib.grid.xyzgrid.utils import MapError
 from evennia.objects.objects import DefaultRoom
-from evennia.utils.utils import class_from_module, iter_to_str
+from evennia.utils.utils import iter_to_str
 from prototypes import spawner
 
 from typeclasses.builders.mob_builder import MobBuilder
@@ -318,133 +315,102 @@ class Room(ExtendedRoomMixin, DefaultRoom):
         )
 
 
-class XYRoom(Room, xyzroom.XYZRoom):
-    """
-    A game location aware of its XYZ-position.
+# class MapNode(xymap_legend.MapNode):
+#     """A map node/room"""
 
-    Special properties:
-        map_display (bool): If the return_appearance of the room should
-            show the map or not.
-        map_mode (str): One of 'nodes' or 'scan'. See `return_apperance`
-            for examples of how they differ.
-        map_visual_range (int): How far on the map one can see. This is a
-            fixed value here, but could also be dynamic based on skills,
-            light etc.
-        map_character_symbol (str): The character symbol to use to show
-            the character position. Can contain color info. Default is
-            the @-character.
-        map_area_client (bool): If True, map area will always fill the entire
-            client width. If False, the map area's width will vary with the
-            width of the currently displayed location description.
-        map_fill_all (bool): I the map area should fill the client width or not.
-        map_separator_char (str): The char to use to separate the map area from
-            the room description.
-    """
+#     symbol = "#"
+#     prototype = "xyz_room"
+#     updating = False
 
-    def at_post_spawn(self):
-        """
-        Called just after the object is spawned and attributes
-        and tags have been initialized.
-        """
-        self.spawn_contents()
+#     def spawn(self):
+#         """
+#         Build an actual in-game room from this node.
 
+#         This should be called as part of the node-sync step of the map sync. The reason is
+#         that the exits (next step) requires all nodes to exist before they can link up
+#         to their destinations.
 
-class MapNode(xymap_legend.MapNode):
-    """A map node/room"""
+#         """
+#         global NodeTypeclass
+#         if not NodeTypeclass:
+#             NodeTypeclass = XYRoom
 
-    symbol = "#"
-    prototype = "xyz_room"
-    updating = False
+#         if not self.prototype:
+#             # no prototype means we can't spawn anything -
+#             # a 'virtual' node.
+#             return
 
-    def spawn(self):
-        """
-        Build an actual in-game room from this node.
+#         xyz = self.get_spawn_xyz()
 
-        This should be called as part of the node-sync step of the map sync. The reason is
-        that the exits (next step) requires all nodes to exist before they can link up
-        to their destinations.
+#         try:
+#             nodeobj = NodeTypeclass.objects.get_xyz(xyz=xyz)
 
-        """
-        global NodeTypeclass
-        if not NodeTypeclass:
-            NodeTypeclass = XYRoom
+#         except django_exceptions.ObjectDoesNotExist:
+#             # create a new entity, using the specified typeclass (if there's one) and
+#             # with proper coordinates etc
+#             typeclass = self.prototype.get("typeclass")
+#             if typeclass is None:
+#                 raise MapError(
+#                     f"The prototype {self.prototype} for this node has no 'typeclass' key.",
+#                     self,
+#                 )
+#             self.log(f"  spawning room at xyz={xyz} ({typeclass})")
+#             Typeclass = class_from_module(typeclass)
+#             nodeobj, err = Typeclass.create(
+#                 self.prototype.get("key", "An empty room"), xyz=xyz
+#             )
+#             if err:
+#                 raise RuntimeError(err)
 
-        if not self.prototype:
-            # no prototype means we can't spawn anything -
-            # a 'virtual' node.
-            return
+#             if not self.prototype.get("prototype_key"):
+#                 # make sure there is a prototype_key in prototype
+#                 self.prototype["prototype_key"] = self.generate_prototype_key()
 
-        xyz = self.get_spawn_xyz()
+#             # apply prototype to node. This will not override the XYZ tags since
+#             # these are not in the prototype and exact=False
+#             spawner.batch_update_objects_with_prototype(
+#                 self.prototype, objects=[nodeobj], exact=False
+#             )
 
-        try:
-            nodeobj = NodeTypeclass.objects.get_xyz(xyz=xyz)
+#             nodeobj.at_post_spawn()
+#         else:
+#             self.log(f"  updating existing room (if changed) at xyz={xyz}")
+#             self.updating = True
 
-        except django_exceptions.ObjectDoesNotExist:
-            # create a new entity, using the specified typeclass (if there's one) and
-            # with proper coordinates etc
-            typeclass = self.prototype.get("typeclass")
-            if typeclass is None:
-                raise MapError(
-                    f"The prototype {self.prototype} for this node has no 'typeclass' key.",
-                    self,
-                )
-            self.log(f"  spawning room at xyz={xyz} ({typeclass})")
-            Typeclass = class_from_module(typeclass)
-            nodeobj, err = Typeclass.create(
-                self.prototype.get("key", "An empty room"), xyz=xyz
-            )
-            if err:
-                raise RuntimeError(err)
+#         if not self.prototype.get("prototype_key"):
+#             # make sure there is a prototype_key in prototype
+#             self.prototype["prototype_key"] = self.generate_prototype_key()
 
-            if not self.prototype.get("prototype_key"):
-                # make sure there is a prototype_key in prototype
-                self.prototype["prototype_key"] = self.generate_prototype_key()
+#         # apply prototype to node. This will not override the XYZ tags since
+#         # these are not in the prototype and exact=False
+#         spawner.batch_update_objects_with_prototype(
+#             self.prototype, objects=[nodeobj], exact=False
+#         )
 
-            # apply prototype to node. This will not override the XYZ tags since
-            # these are not in the prototype and exact=False
-            spawner.batch_update_objects_with_prototype(
-                self.prototype, objects=[nodeobj], exact=False
-            )
+#     def spawn_mobiles(self, mobiles):
+#         """
+#         Build actual in-game mobiles based on the nodes of the map.
 
-            nodeobj.at_post_spawn()
-        else:
-            self.log(f"  updating existing room (if changed) at xyz={xyz}")
-            self.updating = True
+#         This should be called after all `sync_node_to_grid` operations have finished across
+#         the entire XYZgrid. This creates/syncs all mobiles to their locations.
+#         """
 
-        if not self.prototype.get("prototype_key"):
-            # make sure there is a prototype_key in prototype
-            self.prototype["prototype_key"] = self.generate_prototype_key()
+#         global MobileTypeclass
+#         if not MobileTypeclass:
+#             from typeclasses.mobs import Mob as MobileTypeclass
+#         global NodeTypeclass
+#         if not NodeTypeclass:
+#             from typeclasses.rooms import XYRoom as NodeTypeclass
 
-        # apply prototype to node. This will not override the XYZ tags since
-        # these are not in the prototype and exact=False
-        spawner.batch_update_objects_with_prototype(
-            self.prototype, objects=[nodeobj], exact=False
-        )
+#         if not self.prototype or self.updating:
+#             return
 
-    def spawn_mobiles(self, mobiles):
-        """
-        Build actual in-game mobiles based on the nodes of the map.
+#         xyz = self.get_spawn_xyz()
+#         nodeobj = NodeTypeclass.objects.get_xyz(xyz=xyz)
 
-        This should be called after all `sync_node_to_grid` operations have finished across
-        the entire XYZgrid. This creates/syncs all mobiles to their locations.
-        """
-
-        global MobileTypeclass
-        if not MobileTypeclass:
-            from typeclasses.mobs import Mob as MobileTypeclass
-        global NodeTypeclass
-        if not NodeTypeclass:
-            from typeclasses.rooms import XYRoom as NodeTypeclass
-
-        if not self.prototype or self.updating:
-            return
-
-        xyz = self.get_spawn_xyz()
-        nodeobj = NodeTypeclass.objects.get_xyz(xyz=xyz)
-
-        for k, v in mobiles.items():
-            MobBuilder.set_key(k)
-            MobBuilder.set_name(v["name"])
-            MobBuilder.set_desc(v["desc"])
-            MobBuilder.set_location(nodeobj)
-            MobBuilder.build()
+#         for k, v in mobiles.items():
+#             MobBuilder.set_key(k)
+#             MobBuilder.set_name(v["name"])
+#             MobBuilder.set_desc(v["desc"])
+#             MobBuilder.set_location(nodeobj)
+#             MobBuilder.build()

@@ -1,9 +1,9 @@
 from textwrap import dedent
 
-from typeclasses import rooms
+from world.xyzgrid.xyzroom import XYZRoom
 
 
-class CreationRoom(rooms.XYRoom):
+class CreationRoom(XYZRoom):
     """
     Parent for all creation rooms.
     """

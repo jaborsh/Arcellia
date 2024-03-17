@@ -16,7 +16,7 @@ does what you expect it to.
 
 
 def at_initial_setup():
-    from evennia.contrib.grid.xyzgrid.launchcmd import (
+    from world.xyzgrid.launchcmd import (
         _option_init as xyzgrid_init,
     )
 

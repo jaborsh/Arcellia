@@ -1,4 +1,4 @@
-from evennia.contrib.grid.xyzgrid import xymap_legend
+from world.xyzgrid import xyzmap_legend
 
 VALARIA_ARMORY = {"typeclass": "typeclasses.valaria.castle.rooms.CastleValariaArmory"}
 VALARIA_ROUNDTABLE = {
@@ -37,7 +37,7 @@ CASTLE_FLOOR0 = r"""
 """
 
 
-class TransitionToFloor1(xymap_legend.MapTransitionNode):
+class TransitionToFloor1(xyzmap_legend.MapTransitionNode):
     target_map_xyz = (1, 2, "castle_floor1")
 
 
@@ -198,7 +198,7 @@ CASTLE_FLOOR1 = r"""
 """
 
 
-class TransitionToFloor0(xymap_legend.MapTransitionNode):
+class TransitionToFloor0(xyzmap_legend.MapTransitionNode):
     target_map_xyz = (1, 3, "castle_floor0")
 
 
