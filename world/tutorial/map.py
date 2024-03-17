@@ -208,12 +208,69 @@ PROTOTYPES = {
 }
 
 MOBILE_PROTOTYPES = {
-    "a": {
-        "name": "TestMob",
-        "desc": "This is a test mob.",
+    "fiend": {
+        "name": "|rFiend|n",
+        "type": "typeclasses.mobs.Monster",
+        "desc": "The creature's limbs contort with the discord of nature's laws broken. A skin of discomforting pallid greens melding into deep purples resembles a bruised sky after tempest, both taut and strangely glistening with a veneer of unwholesome moisture. Eyes offset the countenance of the beast, scattered as if by a mad painter's errant brush, their luminescence piercing the surroundings with malevolent interest. Tatters of flesh drape about its gaunt frame. Nestled within the fiend's ghastly visage, a cavernous mouth agape reveals a nightmare collection of fangs, asymmetrical and serrated like the remnants of a shattered iron gate. Its tongue spills forth with sickening liberty, painting the air with the anticipation.",
+        "location": (1, 3),
+        "stats": {
+            "strength": 5,
+            "dexterity": 8,
+            "constitution": 10,
+            "intelligence": 8,
+            "wisdom": 9,
+            "charisma": 10,
+        },
+    },
+    "enchantress": {
+        "name": "|cTrapped Enchantress|n",
+        "type": "world.tutorial.mobs.Enchantress",
+        "desc": "With eyes like the twilight sky after a storm, she holds a universe of wisdom veiled beneath a countenance marked by trials unknown. Her visage, fair as the last bloom of winter, carries the freckles of a warrior painted by the brush of skirmish. Trapped as she is, behind the gnarled ironwork of her cell, there's an insidious darkness that shrouds her form. The hold's malignant grimness mocks her with its unyielding decay, the iron lattice of her door sealed by salt and moisture.",
+        "location": (4, 3),
+    },
+    "cultist": {
+        "name": "|xCultist|n",
         "type": "typeclasses.mobs.Mob",
-        "location": (1, 1),
-    }
+        "desc": "Enshrouded in a tattered robe of the deepest nightshade, a cultist stands, a supplicant to secret and eldritch forces beyond mortal ken. The garment veils the figure in mystery, obscuring the outlines of humanity. Upon the figure's head, a hood looms shadowy, half-concealing a visage that bears the etchings of devotion and madness intertwined like the roots of some blighted tree. This face is hollow-cheeked and with skin as pallid as the underbelly of a long-dead fish.",
+        "location": (4, 2),
+        "stats": {
+            "strength": 11,
+            "dexterity": 12,
+            "constitution": 10,
+            "intelligence": 10,
+            "wisdom": 11,
+            "charisma": 10,
+        },
+    },
+    "behemoth": {
+        "name": "|xBehemoth|n",
+        "type": "typeclasses.mobs.Monster",
+        "desc": "The Behemoth looms, a colossus sculpted by the somber hands of shadow itself. Its eyes, twin embers smoldering beneath the craggy brow of a primeval cliff, pierce the murk with an infernal glow. The massive creature bears a carapace as intricate as the wrought gates of a forsaken fortress. Its formidable countenance, framed by a serrated beak sharp as the guillotine's blade, betrays a visage not of this gentle Earth. Muscle-bound limbs, hewn as if from the roots of ancient oaks, carry it forward with the inevitability of a tempest's advance.",
+        "location": (3, 2),
+        "stats": {
+            "strength": 12,
+            "dexterity": 11,
+            "constitution": 12,
+            "intelligence": 6,
+            "wisdom": 8,
+            "charisma": 5,
+        },
+    },
+    "commander": {
+        "name": "|rCommander Ambrose Harrowgate|n",
+        "aliases": ["ambrose", "harrowgate"],
+        "type": "typeclasses.mobs.Mob",
+        "desc": "His presence is as commanding as the rolling waves, his features carved by salt winds and the unforgiving sun. Indomitable winter-blue eyes gleam with the wisdom of ancient mariners and stories of the deep. A heavy, dark beard, peppered with the white of seafoam, adorns a face weathered and bronzed. Adorned in a long coat that fluttered like a banner against the relentless wind, his hands are calloused and firm, each scar and rough patch a chronicle of survival and mastery of the aquatic realm.",
+        "location": (3, 4),
+        "stats": {
+            "strength": 20,
+            "dexterity": 18,
+            "constitution": 16,
+            "intelligence": 14,
+            "wisdom": 12,
+            "charisma": 16,
+        },
+    },
 }
 
 for key, prot in PROTOTYPES.items():

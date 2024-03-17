@@ -291,7 +291,7 @@ class MapNode:
             return (key, *aliases)
         return key
 
-    def spawn(self):
+    def spawn(self, mobiles={}):
         """
         Build an actual in-game room from this node.
 
@@ -310,7 +310,6 @@ class MapNode:
             return
 
         xyz = self.get_spawn_xyz()
-
         try:
             nodeobj = NodeTypeclass.objects.get_xyz(xyz=xyz)
         except django_exceptions.ObjectDoesNotExist:
@@ -331,6 +330,7 @@ class MapNode:
                 raise RuntimeError(err)
         else:
             self.log(f"  updating existing room (if changed) at xyz={xyz}")
+            self.spawn_mobiles(nodeobj, mobiles)
 
         if not self.prototype.get("prototype_key"):
             # make sure there is a prototype_key in prototype
@@ -435,7 +435,7 @@ class MapNode:
                 maplinks[key.lower()][3].prototype, objects=[linkobj], exact=False
             )
 
-    def spawn_mobiles(self, mobiles):
+    def spawn_mobiles(self, nodeobj, mobiles):
         """
         Build actual in-game mobiles based on the nodes of the map.
 
@@ -443,25 +443,24 @@ class MapNode:
         the entire XYZgrid. This creates/syncs all mobiles to their locations.
         """
 
-        # global MobileTypeclass
-        # if not MobileTypeclass:
-        #     from .xyzmob import XYZMob as MobileTypeclass
-        global NodeTypeclass
-        if not NodeTypeclass:
-            from .xyzroom import XYZRoom as NodeTypeclass
-
-        if not self.prototype:
-            return
-
         xyz = self.get_spawn_xyz()
-        nodeobj = NodeTypeclass.objects.get_xyz(xyz=xyz)
+        filtered_mobs = {
+            key: value
+            for key, value in mobiles.items()
+            if value["location"] == (self.X, self.Y)
+        }
 
-        # for k, v in mobiles.items():
-        #     MobBuilder.set_key(k)
-        #     MobBuilder.set_name(v["name"])
-        #     MobBuilder.set_desc(v["desc"])
-        #     MobBuilder.set_location(nodeobj)
-        #     MobBuilder.build()
+        for k, v in filtered_mobs.items():
+            stats = v.get("stats", {})
+            MobBuilder.set_key(k)
+            MobBuilder.set_name(v["name"])
+            MobBuilder.set_desc(v["desc"])
+            MobBuilder.set_location(nodeobj)
+            MobBuilder.set_xyz(xyz)
+            for stat, value in stats.items():
+                MobBuilder.set_stat(stat, value)
+            mob = MobBuilder.build()
+            self.log(f"  spawning mob '{mob.key}' at xyz={xyz}")
 
     def unspawn(self):
         """

@@ -1,4 +1,9 @@
 from evennia.utils.create import create_object
+from world.xyzgrid.xyzroom import (
+    MAP_X_TAG_CATEGORY,
+    MAP_Y_TAG_CATEGORY,
+    MAP_Z_TAG_CATEGORY,
+)
 
 
 class MobBuilder:
@@ -9,6 +14,8 @@ class MobBuilder:
         "desc": "",
         "type": "typeclasses.mobs.Mob",
         "location": None,
+        "tags": None,
+        "xyz": None,
         "locks": (
             "control:perm(Admin);call:false();examine:perm(Admin);"
             "delete:perm(Admin);edit:perm(Admin);view:all();"
@@ -53,6 +60,22 @@ class MobBuilder:
 
     def set_location(self, location):
         self.settings["location"] = location
+
+    def set_tags(self, tags):
+        self.settings["tags"] = tags
+
+    def set_xyz(self, xyz):
+        x, y, z = xyz
+        tags = (
+            (str(x), MAP_X_TAG_CATEGORY),
+            (str(y), MAP_Y_TAG_CATEGORY),
+            (str(z), MAP_Z_TAG_CATEGORY),
+        )
+
+        self.settings["xyz"] = tags
+
+    def set_stat(self, stat, value):
+        self.settings["stats"][stat] = value
 
     def set_stats(self, ac, health, mana, stamina):
         self.settings["stats"]["ac"] = ac
@@ -109,11 +132,15 @@ class MobBuilder:
     def build(self):
         mob = create_object(
             typeclass=self.settings["type"],
-            key="Test",  # self.settings["key"],
+            key=self.settings["key"],
             location=self.settings["location"],
             home=self.settings["location"],
+            tags=self.settings["xyz"],  # self.settings["tags"] +
             locks=self.settings["locks"],
         )
+
+        mob.db.desc = self.settings["desc"]
+        mob.display_name = self.settings["name"]
 
         mob.stats.add(
             "ac", "Armor Class", trait_type="static", base=self.settings["stats"]["ac"]

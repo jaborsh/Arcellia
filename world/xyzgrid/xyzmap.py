@@ -628,7 +628,7 @@ class XYZMap:
         # (re)build nodes (will not build already existing rooms)
         for node in sorted(self.node_index_map.values(), key=lambda n: (n.Y, n.X)):
             if (x in (wildcard, node.X)) and (y in (wildcard, node.Y)):
-                node.spawn()
+                node.spawn(mobiles=self.mobile_prototypes)
                 spawned.append(node)
         return spawned
 

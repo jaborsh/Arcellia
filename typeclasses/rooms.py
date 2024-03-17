@@ -6,7 +6,6 @@ from evennia.objects.objects import DefaultRoom
 from evennia.utils.utils import iter_to_str
 from prototypes import spawner
 
-from typeclasses.builders.mob_builder import MobBuilder
 from typeclasses.mixins.rooms import ExtendedRoomMixin
 
 CLIENT_DEFAULT_WIDTH = settings.CLIENT_DEFAULT_WIDTH
@@ -20,8 +19,6 @@ MAP_ZDEST_TAG_CATEGORY = "exit_dest_z_coordinate"
 
 MobileTypeclass = None
 NodeTypeclass = None
-
-MobBuilder = MobBuilder()
 
 
 class Room(ExtendedRoomMixin, DefaultRoom):

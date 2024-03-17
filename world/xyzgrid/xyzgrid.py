@@ -281,9 +281,9 @@ class XYGrid(DefaultScript):
             xymap.spawn_links(xy=(x, y), directions=directions)
 
         # next build all the mobiles within nodes
-        for zcoord, xymap in xymaps.items():
-            self.log(f"spawning/updating mobiles for Z='{zcoord}' ...")
-            xymap.spawn_mobiles(xy=(x, y))
+        # for zcoord, xymap in xymaps.items():
+        #     self.log(f"spawning/updating mobiles for Z='{zcoord}' ...")
+        #     xymap.spawn_mobiles(xy=(x, y))
 
 
 def get_xyzgrid(print_errors=True):
