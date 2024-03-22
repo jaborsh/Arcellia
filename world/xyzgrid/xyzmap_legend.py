@@ -12,6 +12,7 @@ from django.core import exceptions as django_exceptions
 from evennia.utils.utils import class_from_module
 from prototypes import spawner
 
+from world.tutorial.prototypes.mobs import __all__ as MOB_PROTOTYPES
 from world.xyzgrid.utils import (
     BIGVAL,
     MAPSCAN,
@@ -431,6 +432,7 @@ class MapNode:
 
         # apply prototypes to catch any changes
         for key, linkobj in linkobjs.items():
+            # print(maplinks[key.lower()][3].prototype)
             spawner.batch_update_objects_with_prototype(
                 maplinks[key.lower()][3].prototype, objects=[linkobj], exact=False
             )
@@ -447,10 +449,13 @@ class MapNode:
         if not self.prototype:
             return
 
-        xyz = self.get_spawn_xyz()
         existing_mobs = nodeobj.contents_get(content_type="mob")
-        for mob in existing_mobs:
-            mob.delete()
+        if existing_mobs:
+            for proto in MOB_PROTOTYPES:
+                for mob in existing_mobs:
+                    if proto["prototype"] == mob.db.prototype:
+                        self.update_mobile(mob, proto)
+            return  # TODO: Improve this to not be so absolute.
 
         filtered_mobs = {
             key: value
@@ -470,32 +475,42 @@ class MapNode:
         XYZMobBuilder.set("location", nodeobj)
         XYZMobBuilder.build()
 
-        # spawned_mobs = nodeobj.contents_get(content_type="mob")
+    def update_mobile(self, mob, proto):
+        for key, value in proto.items():
+            if isinstance(value, dict):
+                if key == "senses":
+                    for key2, value2 in value.items():
+                        mob.senses[key2] = value2
+                elif key == "stats":
+                    for key2, value2 in value.items():
+                        if key2 in ["health", "mana", "stamina"]:
+                            mob.stats.add(
+                                key2,
+                                key2.capitalize(),
+                                trait_type="counter",
+                                base=value2,
+                                max=value2,
+                            )
+                        else:
+                            mob.stats.add(
+                                key2, key2.capitalize(), trait_type="static", base=value
+                            )
+            elif key in [
+                "key",
+                "typeclass",
+                "location",
+                "tags",
+                "locks",
+                "quantity",
+                "aliases",
+            ]:
+                pass
+            elif key == "name":
+                mob.attributes.add("display_name", value)
+            else:
+                mob.attributes.add(key, value)
 
-        # for each mob in spawned_mobs, get the prototype tag and compare it to the
-        # prototype of the mob in the filtered_mobs dictionary. If they match, we should
-        # check if the prototype has changed. If it has, we should update the mob.
-        # for mob in spawned_mobs:
-        #    prototype = mob.tags.get(category="prototype")
-
-        # xyz = self.get_spawn_xyz()
-        # filtered_mobs = {
-        #     key: value
-        #     for key, value in mobiles.items()
-        #     if value["location"] == (self.X, self.Y)
-        # }
-
-        # for k, v in filtered_mobs.items():
-        #     stats = v.get("stats", {})
-        #     MobBuilder.set_key(k)
-        #     MobBuilder.set_name(v["name"])
-        #     MobBuilder.set_desc(v["desc"])
-        #     MobBuilder.set_location(nodeobj)
-        #     MobBuilder.set_xyz(xyz)
-        #     for stat, value in stats.items():
-        #         MobBuilder.set_stat(stat, value)
-        #     mob = MobBuilder.build()
-        #     self.log(f"  spawning mob '{mob.key}' at xyz={xyz}")
+        # May need to implement location changing in the future.
 
     def unspawn(self):
         """

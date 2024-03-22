@@ -1,9 +1,3 @@
-# from typeclasses.mobs import Mob as DefaultMob
-
-
-# class XYZMob(DefaultMob):
-#     pass
-
 from evennia.utils.create import create_object
 
 from world.xyzgrid.xyzroom import (
@@ -11,6 +5,27 @@ from world.xyzgrid.xyzroom import (
     MAP_Y_TAG_CATEGORY,
     MAP_Z_TAG_CATEGORY,
 )
+
+# class XYZMob(DefaultMob):
+#     objects = XYZMobManager()
+
+#     def __str__(self):
+#         return repr(self)
+
+#     def __repr__(self):
+#         x, y, z = self.xyz
+#         return f"<XYZMob '{self.db_key}', XYZ=({x},{y},{z})>"
+
+#     @property
+#     def xyz(self):
+#         if not hasattr(self, "_xyz"):
+#             x = self.tags.get(category=MAP_X_TAG_CATEGORY, return_list=False)
+#             y = self.tags.get(category=MAP_Y_TAG_CATEGORY, return_list=False)
+#             z = self.tags.get(category=MAP_Z_TAG_CATEGORY, return_list=False)
+#             if x is None or y is None or z is None:
+#                 return (x, y, z)
+#             self._xyz = (x, y, z)
+#         return self._xyz
 
 
 class XYZMobBuilder:
@@ -108,7 +123,7 @@ class XYZMobBuilder:
                     mob.stats.add(
                         key, key.capitalize(), trait_type="static", base=value
                     )
-            mob.tags.add(self.settings["prototype"])
+            mob.attributes.add("prototype", self.settings["prototype"])
             mob.tags.add(self.settings["tags"])
 
             mobs.append(mob)

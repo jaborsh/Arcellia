@@ -28,6 +28,18 @@ MAPSCAN = {
     "nw": (-1, 1),
 }
 
+
+def get_dictionary_from_path(path):
+    try:
+        dictionary = globals()[path]
+        if isinstance(dictionary, dict):
+            return dictionary
+        else:
+            raise ValueError(f"{path} is not a dictionary.")
+    except KeyError:
+        raise ValueError(f"{path} is not defined.")
+
+
 # errors for Map system
 
 
