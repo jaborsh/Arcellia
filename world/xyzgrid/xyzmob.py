@@ -112,6 +112,8 @@ class XYZMobBuilder:
             mob.tags.add(self.settings["tags"])
 
             mobs.append(mob)
+
+        self.reset()
         return mobs
 
     def reset(self):
