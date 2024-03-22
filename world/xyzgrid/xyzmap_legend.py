@@ -11,7 +11,6 @@ from collections import defaultdict
 from django.core import exceptions as django_exceptions
 from evennia.utils.utils import class_from_module
 from prototypes import spawner
-from typeclasses.builders.mob_builder import MobBuilder
 
 from world.xyzgrid.utils import (
     BIGVAL,
@@ -20,6 +19,7 @@ from world.xyzgrid.utils import (
     MapError,
     MapParserError,
 )
+from world.xyzgrid.xyzmob import XYZMobBuilder
 
 ExitTypeclass = None
 NodeTypeclass = None
@@ -27,7 +27,7 @@ MobileTypeclass = None
 
 UUID_XYZ_NAMESPACE = uuid.uuid5(uuid.UUID(int=0), "xyzgrid")
 
-MobBuilder = MobBuilder()
+XYZMobBuilder = XYZMobBuilder()
 
 
 class MapNode:
@@ -443,24 +443,59 @@ class MapNode:
         the entire XYZgrid. This creates/syncs all mobiles to their locations.
         """
 
+        # no mobs spawn in a 'virtual' node.
+        if not self.prototype:
+            return
+
         xyz = self.get_spawn_xyz()
+        existing_mobs = nodeobj.contents_get(content_type="mob")
+        for mob in existing_mobs:
+            mob.delete()
+
         filtered_mobs = {
             key: value
             for key, value in mobiles.items()
             if value["location"] == (self.X, self.Y)
         }
 
+        if not filtered_mobs:
+            return
+
         for k, v in filtered_mobs.items():
-            stats = v.get("stats", {})
-            MobBuilder.set_key(k)
-            MobBuilder.set_name(v["name"])
-            MobBuilder.set_desc(v["desc"])
-            MobBuilder.set_location(nodeobj)
-            MobBuilder.set_xyz(xyz)
-            for stat, value in stats.items():
-                MobBuilder.set_stat(stat, value)
-            mob = MobBuilder.build()
-            self.log(f"  spawning mob '{mob.key}' at xyz={xyz}")
+            if isinstance(v, dict):
+                for k2, v2 in v.items():
+                    XYZMobBuilder.set(k2, v2)
+            else:
+                XYZMobBuilder.set(k, v)
+        XYZMobBuilder.set("location", nodeobj)
+        XYZMobBuilder.build()
+
+        # spawned_mobs = nodeobj.contents_get(content_type="mob")
+
+        # for each mob in spawned_mobs, get the prototype tag and compare it to the
+        # prototype of the mob in the filtered_mobs dictionary. If they match, we should
+        # check if the prototype has changed. If it has, we should update the mob.
+        # for mob in spawned_mobs:
+        #    prototype = mob.tags.get(category="prototype")
+
+        # xyz = self.get_spawn_xyz()
+        # filtered_mobs = {
+        #     key: value
+        #     for key, value in mobiles.items()
+        #     if value["location"] == (self.X, self.Y)
+        # }
+
+        # for k, v in filtered_mobs.items():
+        #     stats = v.get("stats", {})
+        #     MobBuilder.set_key(k)
+        #     MobBuilder.set_name(v["name"])
+        #     MobBuilder.set_desc(v["desc"])
+        #     MobBuilder.set_location(nodeobj)
+        #     MobBuilder.set_xyz(xyz)
+        #     for stat, value in stats.items():
+        #         MobBuilder.set_stat(stat, value)
+        #     mob = MobBuilder.build()
+        #     self.log(f"  spawning mob '{mob.key}' at xyz={xyz}")
 
     def unspawn(self):
         """
@@ -739,9 +774,11 @@ class MapLink:
             # we average the weight across all traversed link segments.
             return (
                 next_target,
-                _weight / max(1, _linklen)
-                if self.average_long_link_weights
-                else _weight,
+                (
+                    _weight / max(1, _linklen)
+                    if self.average_long_link_weights
+                    else _weight
+                ),
                 _steps,
             )
         else:
