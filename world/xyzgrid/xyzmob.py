@@ -1,135 +1,67 @@
-from evennia.utils.create import create_object
+from typeclasses.mobs import Mob as DefaultMob
+from typeclasses.mobs import Monster as DefaultMonster
 
+from world.xyzgrid.xyzmanager import XYZMobManager
 from world.xyzgrid.xyzroom import (
     MAP_X_TAG_CATEGORY,
     MAP_Y_TAG_CATEGORY,
     MAP_Z_TAG_CATEGORY,
 )
 
-# class XYZMob(DefaultMob):
-#     objects = XYZMobManager()
 
-#     def __str__(self):
-#         return repr(self)
+class XYZMob(DefaultMob):
+    objects = XYZMobManager()
 
-#     def __repr__(self):
-#         x, y, z = self.xyz
-#         return f"<XYZMob '{self.db_key}', XYZ=({x},{y},{z})>"
+    def __str__(self):
+        return repr(self)
 
-#     @property
-#     def xyz(self):
-#         if not hasattr(self, "_xyz"):
-#             x = self.tags.get(category=MAP_X_TAG_CATEGORY, return_list=False)
-#             y = self.tags.get(category=MAP_Y_TAG_CATEGORY, return_list=False)
-#             z = self.tags.get(category=MAP_Z_TAG_CATEGORY, return_list=False)
-#             if x is None or y is None or z is None:
-#                 return (x, y, z)
-#             self._xyz = (x, y, z)
-#         return self._xyz
+    def __repr__(self):
+        x, y, z = self.xyz
+        return f"<XYZMob '{self.db_key}', XYZ=({x},{y},{z})>"
+
+    @property
+    def xyzgrid(self):
+        global GET_XYZGRID
+        if not GET_XYZGRID:
+            from world.xyzgrid.xyzgrid import get_xyzgrid as GET_XYZGRID
+        return GET_XYZGRID()
+
+    @property
+    def xyz(self):
+        if not hasattr(self, "_xyz"):
+            x = self.tags.get(category=MAP_X_TAG_CATEGORY, return_list=False)
+            y = self.tags.get(category=MAP_Y_TAG_CATEGORY, return_list=False)
+            z = self.tags.get(category=MAP_Z_TAG_CATEGORY, return_list=False)
+            if x is None or y is None or z is None:
+                return (x, y, z)
+            self._xyz = (x, y, z)
+        return self._xyz
 
 
-class XYZMobBuilder:
-    default_settings = {
-        "key": "",
-        "name": "",
-        "aliases": [],
-        "desc": "",
-        "typeclass": "typeclasses.mobs.Mob",
-        "prototype": None,
-        "location": None,
-        "tags": None,
-        "xyz": None,
-        "locks": (
-            "control:perm(Admin);call:false();examine:perm(Admin);"
-            "delete:perm(Admin);edit:perm(Admin);view:all();"
-            "search:perm(Admin);get:perm(Developer);puppet:perm(Admin);"
-            "attrcreate:perm(Admin);"
-        ),
-        "senses": {
-            "feel": "",
-            "smell": "",
-            "sound": "",
-            "taste": "",
-        },
-        "stats": {
-            # Attributes
-            "strength": 10,
-            "dexterity": 10,
-            "constitution": 10,
-            "intelligence": 10,
-            "wisdom": 10,
-            "charisma": 10,
-            # Stats (add ac eventually?)
-            "health": 10,
-            "mana": 10,
-            "stamina": 10,
-            "wealth": 0,
-            "weight": 0,
-        },
-        "quantity": 1,
-    }
+class XYZMonster(DefaultMonster):
+    objects = XYZMobManager()
 
-    def __init__(self):
-        self.settings = self.default_settings.copy()
+    def __str__(self):
+        return repr(self)
 
-    def set(self, key, value):
-        if (
-            key not in self.settings
-            and key not in self.settings["senses"]
-            and key not in self.settings["stats"]
-        ):
-            raise ValueError(f"Invalid key: {key}")
+    def __repr__(self):
+        x, y, z = self.xyz
+        return f"<XYZMob '{self.db_key}', XYZ=({x},{y},{z})>"
 
-        if key in self.settings["senses"]:
-            self.settings["senses"][key] = value
-        elif key in self.settings["stats"]:
-            self.settings["stats"][key] = value
-        else:
-            self.settings[key] = value
+    @property
+    def xyzgrid(self):
+        global GET_XYZGRID
+        if not GET_XYZGRID:
+            from world.xyzgrid.xyzgrid import get_xyzgrid as GET_XYZGRID
+        return GET_XYZGRID()
 
-    def set_xyz(self, xyz):
-        x, y, z = xyz
-        tags = (
-            (str(x), MAP_X_TAG_CATEGORY),
-            (str(y), MAP_Y_TAG_CATEGORY),
-            (str(z), MAP_Z_TAG_CATEGORY),
-        )
-
-        self.settings["xyz"] = tags
-
-    def build(self):
-        mobs = []
-        for _ in range(self.settings["quantity"]):
-            mob = create_object(
-                typeclass=self.settings["typeclass"],
-                key=self.settings["key"],
-                location=self.settings["location"],
-                tags=self.settings["xyz"],
-                locks=self.settings["locks"],
-            )
-
-            mob.db.desc = self.settings["desc"]
-            mob.display_name = self.settings["name"]
-            for key, value in self.settings["stats"].items():
-                if key in ["health", "mana", "stamina"]:
-                    mob.stats.add(
-                        key,
-                        key.capitalize(),
-                        trait_type="counter",
-                        base=value,
-                        max=value,
-                    )
-                else:
-                    mob.stats.add(
-                        key, key.capitalize(), trait_type="static", base=value
-                    )
-            mob.attributes.add("prototype", self.settings["prototype"])
-            mob.tags.add(self.settings["tags"])
-
-            mobs.append(mob)
-
-        self.reset()
-        return mobs
-
-    def reset(self):
-        self.settings = self.default_settings.copy()
+    @property
+    def xyz(self):
+        if not hasattr(self, "_xyz"):
+            x = self.tags.get(category=MAP_X_TAG_CATEGORY, return_list=False)
+            y = self.tags.get(category=MAP_Y_TAG_CATEGORY, return_list=False)
+            z = self.tags.get(category=MAP_Z_TAG_CATEGORY, return_list=False)
+            if x is None or y is None or z is None:
+                return (x, y, z)
+            self._xyz = (x, y, z)
+        return self._xyz

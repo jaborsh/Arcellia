@@ -92,21 +92,21 @@ class XYGrid(DefaultScript):
         kwargs["db_key"] = name
         return XYZExit.objects.filter_xyz_exit(xyz=xyz, **kwargs)
 
-    # def get_mob(self, xyz, name="*", **kwargs):
-    #     """
-    #     Get one or more mob objects at coordinate.
+    def get_mob(self, xyz, name="*", **kwargs):
+        """
+        Get one or more mob objects at coordinate.
 
-    #     Args:
-    #         xyz (tuple): X,Y,Z coordinate of the room the
-    #                      mob should be in. '*' acts as wildcard.
-    #         name (str): The full name of the mob, e.g. 'goblin' or 'orc'.
-    #                     The '*' acts as a wildcard.
+        Args:
+            xyz (tuple): X,Y,Z coordinate of the room the
+                         mob should be in. '*' acts as wildcard.
+            name (str): The full name of the mob, e.g. 'goblin' or 'orc'.
+                        The '*' acts as a wildcard.
 
-    #     Returns:
-    #         Queryset: A queryset of XYZMob(s) found.
-    #     """
-    #     kwargs["db_key"] = name
-    #     return XYZMob.objects.filter_xyz_mob(xyz=xyz, **kwargs)
+        Returns:
+            Queryset: A queryset of XYZMob(s) found.
+        """
+        kwargs["db_key"] = name
+        return XYZMob.objects.filter_xyz_mob(xyz=xyz, **kwargs)
 
     def maps_from_module(self, module_path):
         """

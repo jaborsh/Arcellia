@@ -1,7 +1,7 @@
 FIEND = {
     "key": "fiend",
     "name": "|rFiend|n",
-    "typeclass": "typeclasses.mobs.Monster",
+    "typeclass": "world.xyzgrid.xyzmob.XYZMonster",
     "prototype": "world.tutorial.prototypes.mobs.FIEND",
     "location": (1, 3),
     "desc": "The creature's limbs contort with the discord of nature's laws broken. A skin of discomforting pallid greens melding into deep purples resembles a bruised sky after tempest, both taut and strangely glistening with a veneer of unwholesome moisture. Eyes offset the countenance of the beast, scattered as if by a mad painter's errant brush, their luminescence piercing the surroundings with malevolent interest. Tatters of flesh drape about its gaunt frame. Nestled within the fiend's ghastly visage, a cavernous mouth agape reveals a nightmare collection of fangs, asymmetrical and serrated like the remnants of a shattered iron gate. Its tongue spills forth with sickening liberty, painting the air with the anticipation.",
@@ -38,7 +38,7 @@ ENCHANTRESS = {
 CULTIST = {
     "key": "cultist",
     "name": "|xCultist|n",
-    "typeclass": "typeclasses.mobs.Mob",
+    "typeclass": "world.xyzgrid.xyzmob.XYZMob",
     "prototype": "world.tutorial.prototypes.mobs.CULTIST",
     "location": (4, 2),
     "desc": "Enshrouded in a tattered robe of the deepest nightshade, a cultist stands, a supplicant to secret and eldritch forces beyond mortal ken. The garment veils the figure in mystery, obscuring the outlines of humanity. Upon the figure's head, a hood looms shadowy, half-concealing a visage that bears the etchings of devotion and madness intertwined like the roots of some blighted tree. This face is hollow-cheeked and with skin as pallid as the underbelly of a long-dead fish.",
@@ -62,7 +62,7 @@ CULTIST = {
 BEHEMOTH = {
     "key": "behemoth",
     "name": "|xBehemoth|n",
-    "typeclass": "typeclasses.mobs.Monster",
+    "typeclass": "world.xyzgrid.xyzmob.XYZMonster",
     "prototype": "world.tutorial.prototypes.mobs.BEHEMOTH",
     "location": (3, 2),
     "desc": "The Behemoth looms, a colossus sculpted by the somber hands of shadow itself. Its eyes, twin embers smoldering beneath the craggy brow of a primeval cliff, pierce the murk with an infernal glow. The massive creature bears a carapace as intricate as the wrought gates of a forsaken fortress. Its formidable countenance, framed by a serrated beak sharp as the guillotine's blade, betrays a visage not of this gentle Earth. Muscle-bound limbs, hewn as if from the roots of ancient oaks, carry it forward with the inevitability of a tempest's advance.",
@@ -87,7 +87,7 @@ COMMANDER = {
         "commander harrowgate",
         "commander ambrose harrowgate",
     ],
-    "typeclass": "typeclasses.mobs.Mob",
+    "typeclass": "world.xyzgrid.xyzmob.XYZMob",
     "prototype": "world.tutorial.prototypes.mobs.COMMANDER",
     "location": (3, 4),
     # gender: male,

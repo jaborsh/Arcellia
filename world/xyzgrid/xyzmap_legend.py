@@ -20,7 +20,7 @@ from world.xyzgrid.utils import (
     MapError,
     MapParserError,
 )
-from world.xyzgrid.xyzmob import XYZMobBuilder
+from world.xyzgrid.xyzbuilder import XYZMobBuilder
 
 ExitTypeclass = None
 NodeTypeclass = None
@@ -466,16 +466,21 @@ class MapNode:
         if not filtered_mobs:
             return
 
+        type_path = ""
         for k, v in filtered_mobs.items():
             if isinstance(v, dict):
                 for k2, v2 in v.items():
                     XYZMobBuilder.set(k2, v2)
             else:
+                if k == "typeclass":
+                    type_path = v
                 XYZMobBuilder.set(k, v)
         XYZMobBuilder.set("location", nodeobj)
+        self.log(f"  spawning mob at xyz=({self.X}, {self.Y}, {self.Z}) ({type_path})")
         XYZMobBuilder.build()
 
     def update_mobile(self, mob, proto):
+        self.log(f"  updating existing mob {mob.key}")
         for key, value in proto.items():
             if isinstance(value, dict):
                 if key == "senses":

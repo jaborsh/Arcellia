@@ -27,10 +27,10 @@ try:
 except AttributeError:
     exit_override = {}
 
-# try:
-#     mob_override = settings.XYZMOB_PROTOTYPE_OVERRIDE
-# except AttributeError:
-#     mob_override = {}
+try:
+    mob_override = settings.XYZMOB_PROTOTYPE_OVERRIDE
+except AttributeError:
+    mob_override = {}
 
 room_prototype = {
     "prototype_key": "xyz_room",
@@ -49,16 +49,14 @@ exit_prototype = {
 }
 exit_prototype.update(exit_override)
 
-# mob_prototype = {
-#     "prototype_key": "xyz_mob",
-#     "typeclass": "world.xyzgrid.xyzmob.XYZMob",
-#     "prototype_tags": ("xyzmob",),
-#     "key": "A mob",
-#     "desc": "A nondescript mob.",
-# }
-# mob_prototype.update(mob_override)
+mob_prototype = {
+    "prototype_key": "xyz_mob",
+    "typeclass": "world.xyzgrid.xyzmob.XYZMob",
+    "prototype_tags": ("xyzmob",),
+    "key": "A mob",
+    "desc": "A nondescript mob.",
+}
+mob_prototype.update(mob_override)
 
 # accessed by the prototype importer
-PROTOTYPE_LIST = [room_prototype, exit_prototype]
-
-# mob_prototype
+PROTOTYPE_LIST = [room_prototype, exit_prototype, mob_prototype]
