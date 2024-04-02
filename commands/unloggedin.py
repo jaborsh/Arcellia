@@ -7,7 +7,10 @@ from commands.command import Command
 
 _CONNECTION_SCREEN_MODULE = settings.CONNECTION_SCREEN_MODULE
 
-__all__ = ("CmdUnloggedinLook",)
+__all__ = (
+    "CmdUnloggedinLook",
+    "CmdUnconnectedQuit",
+)
 
 
 class CmdUnloggedinLook(Command):
@@ -57,3 +60,24 @@ class CmdUnloggedinLook(Command):
             auto_quit=False,
             cmd_on_exit=None,
         )
+
+
+class CmdUnconnectedQuit(Command):
+    """
+    quit when in unlogged-in state
+
+    Usage:
+      quit
+
+    We maintain a different version of the quit command
+    here for unconnected accounts for the sake of simplicity. The logged in
+    version is a bit more complicated.
+    """
+
+    key = "quit"
+    aliases = ["q", "qu"]
+    locks = "cmd:all()"
+
+    def func(self):
+        session = self.caller
+        session.sessionhandler.disconnect(session, "Good bye! Disconnecting.")
