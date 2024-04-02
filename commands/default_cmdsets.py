@@ -16,24 +16,24 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 
 from evennia import default_cmds
 
+from . import developer, git
 
-class CharacterCmdSet(default_cmds.CharacterCmdSet):
+
+def add_modules(self, modules):
     """
-    The `CharacterCmdSet` contains general in-game commands like `look`,
-    `get`, etc available on in-game Character objects. It is merged with
-    the `AccountCmdSet` when an Account puppets a Character.
+    Adds command classes from the given modules to the command set.
+
+    Args:
+        modules (dict): A dictionary containing module groups, where each group is a list of modules.
+
+    Returns:
+        None
     """
-
-    key = "DefaultCharacter"
-
-    def at_cmdset_creation(self):
-        """
-        Populates the cmdset
-        """
-        super().at_cmdset_creation()
-        #
-        # any commands you add below will overload the default ones.
-        #
+    for module_group in modules.values():
+        for module in module_group:
+            for cmd_name in module.__all__:
+                cmd_class = getattr(module, cmd_name)
+                self.add(cmd_class)
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):
@@ -45,6 +45,24 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
     """
 
     key = "DefaultAccount"
+
+    def at_cmdset_creation(self):
+        """
+        Populates the cmdset
+        """
+        modules = {
+            "Developer Modules": [developer, git],
+        }
+
+
+class CharacterCmdSet(default_cmds.CharacterCmdSet):
+    """
+    The `CharacterCmdSet` contains general in-game commands like `look`,
+    `get`, etc available on in-game Character objects. It is merged with
+    the `AccountCmdSet` when an Account puppets a Character.
+    """
+
+    key = "DefaultCharacter"
 
     def at_cmdset_creation(self):
         """
