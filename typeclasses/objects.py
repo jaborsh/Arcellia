@@ -11,7 +11,11 @@ inheritance.
 
 """
 
+import re
+
+from django.utils.translation import gettext as _
 from evennia.objects.objects import DefaultObject
+from utils.text import _INFLECT, strip_ansi
 
 
 class ObjectParent:
@@ -172,4 +176,299 @@ class Object(ObjectParent, DefaultObject):
 
     """
 
-    pass
+    @property
+    def display_name(self):
+        return self.attributes.get("display_name", self.name)
+
+    @display_name.setter
+    def display_name(self, value: str):
+        self.attributes.add("display_name", value)
+
+    @property
+    def senses(self):
+        return self.attributes.get("senses", {})
+
+    @property
+    def feel(self):
+        return self.senses.get("feel", "You feel nothing interesting.")
+
+    @feel.setter
+    def feel(self, value: str):
+        self.senses["feel"] = value
+
+    @property
+    def smell(self):
+        return self.senses.get("smell", "You smell nothing interesting.")
+
+    @smell.setter
+    def smell(self, value: str):
+        self.senses["smell"] = value
+
+    @property
+    def sound(self):
+        return self.senses.get("sound", "You hear nothing interesting.")
+
+    @sound.setter
+    def sound(self, value: str):
+        self.senses["sound"] = value
+
+    @property
+    def taste(self):
+        return self.senses.get("taste", "You taste nothing interesting.")
+
+    @taste.setter
+    def taste(self, value: str):
+        self.senses["taste"] = value
+
+    def get_display_name(self, looker=None, **kwargs):
+        """
+        Displays the name of the object in a viewer-aware manner.
+
+        Args:
+            looker (DefaultObject): The object or account that is looking at or getting information
+                for this object.
+
+        Returns:
+            str: A name to display for this object. By default this returns the `.name` of the object.
+
+        Notes:
+            This function can be extended to change how object names appear to users in character,
+            but it does not change an object's keys or aliases when searching.
+        """
+        return self.display_name
+
+    def get_extra_display_name_info(self, looker=None, **kwargs):
+        """
+        Adds any extra display information to the object's name. By default this is is the
+        object's dbref in parentheses, if the looker has permission to see it.
+
+        Args:
+            looker (DefaultObject): The object looking at this object.
+
+        Returns:
+            str: The dbref of this object, if the looker has permission to see it. Otherwise, an
+            empty string is returned.
+
+        Notes:
+            By default, this becomes a string (#dbref) attached to the object's name.
+
+        """
+        if looker and self.locks.check_lockstring(looker, "perm(Builder)"):
+            return f"{self.display_name} (#{self.id})"
+        return ""
+
+    def get_numbered_name(self, count, looker, **kwargs):
+        """
+        Return the numbered (singular, plural) forms of this object's key. This
+        is by default called by return_appearance and is used for grouping
+        multiple same-named of this object. Note that this will be called on
+        *every* member of a group even though the plural name will be only shown
+        once. Also the singular display version, such as 'an apple', 'a tree'
+        is determined from this method.
+
+        Args:
+            count (int): Number of objects of this type
+            looker (Object): Onlooker. Not used by default.
+
+        Keyword Args:
+            key (str): Optional key to pluralize. If not given, the object's `.name` property is
+                used.
+            no_article (bool): If 'True', do not return an article if 'count' is 1.
+
+        Returns:
+            tuple: This is a tuple `(str, str)` with the singular and plural forms of the key
+                including the count.
+
+        Examples:
+            obj.get_numbered_name(3, looker, key="foo") -> ("a foo", "three foos")
+        """
+
+        key = kwargs.get("key", self.get_display_name(looker))
+
+        # Regular expression for color codes
+        color_code_pattern = (
+            r"(\|(r|g|y|b|m|c|w|x|R|G|Y|B|M|C|W|X|\d{3}|#[0-9A-Fa-f]{6}))"
+        )
+        color_code_positions = [
+            (m.start(0), m.end(0)) for m in re.finditer(color_code_pattern, key)
+        ]
+
+        # Split the key into segments of text and color codes
+        segments = []
+        last_pos = 0
+        for start, end in color_code_positions:
+            segments.append(key[last_pos:start])  # Text segment
+            segments.append(key[start:end])  # Color code
+            last_pos = end
+        segments.append(key[last_pos:])  # Remaining text after last color code
+
+        # Apply pluralization and singularization to each text segment
+        plural_segments = []
+        singular_segments = []
+        for segment in segments:
+            if re.match(color_code_pattern, segment):
+                # Color code remains unchanged for both plural and singular segments
+                plural_segments.append(segment)
+                singular_segments.append(segment)
+            else:
+                # Apply pluralization to text segment
+                plural_segment = (
+                    _INFLECT.plural(segment, count) if segment.strip() else segment
+                )
+                plural_segments.append(plural_segment)
+
+                # Apply singularization to text segment
+                if len(singular_segments) == 2:
+                    # Special handling when singular_segments has exactly two elements
+                    segment = _INFLECT.an(segment) if segment.strip() else segment
+                    split_segment = segment.split(" ")
+                    singular_segment = (
+                        strip_ansi(split_segment[0])
+                        + singular_segments[1]
+                        + " "
+                        + " ".join(split_segment[1:])
+                    )
+                    singular_segments[1] = ""
+                else:
+                    singular_segment = segment
+                singular_segments.append(singular_segment)
+
+        plural = re.split(color_code_pattern, "".join(plural_segments), 1)
+        plural = (
+            _INFLECT.number_to_words(count)
+            + " "
+            + plural[1]
+            + _INFLECT.plural(plural[3], count)
+            + "|n"
+            if len(plural) > 1
+            else _INFLECT.plural(plural[0])
+        )
+        singular = "".join(singular_segments)
+
+        # Alias handling as in the original function
+        if not self.aliases.get(strip_ansi(singular)):
+            self.aliases.add(strip_ansi(singular))
+        if not self.aliases.get(strip_ansi(plural)):
+            self.aliases.add(strip_ansi(plural))
+
+        return singular, plural
+
+    def announce_move_to(
+        self, source_location, msg=None, mapping=None, move_type="move", **kwargs
+    ):
+        """
+        Announces the movement of the object to a new location.
+
+        Args:
+            source_location (Object): The previous location of the object.
+            msg (str, optional): Additional message to include in the announcement.
+            mapping (dict, optional): Mapping of variables for string formatting.
+            move_type (str, optional): Type of movement (e.g., "move", "teleport").
+
+        Returns:
+            None
+        """
+        if not source_location and self.location.has_account:
+            self.location.msg(
+                _("You now have {name} in your possession.").format(
+                    name=self.get_display_name(self.location)
+                )
+            )
+            return
+
+        origin = source_location
+        destination = self.location
+        exits = [
+            o
+            for o in destination.contents
+            if o.location is destination and o.destination is origin
+        ]
+
+        if exits:
+            exit_name = exits[0].get_display_name(self.location)
+            if exit_name in [
+                "north",
+                "west",
+                "south",
+                "east",
+                "northeast",
+                "northwest",
+                "southwest",
+                "southeast",
+            ]:
+                exit_traversed = f"the {exit_name}"
+            elif exit_name == "up":
+                exit_traversed = "above"
+            elif exit_name == "down":
+                exit_traversed = "below"
+            else:
+                exit_traversed = exit_name
+            string = _("{object} arrives from {exit_traversed}.")
+        elif origin:
+            string = _("{object} arrives from {origin}.")
+        else:
+            string = _("{object} arrives to {destination}.")
+
+        mapping = mapping or {}
+        mapping.update(
+            {
+                "object": self,
+                "exit_traversed": exit_traversed if exits else "nowhere",
+                "origin": origin or "nowhere",
+                "destination": destination or "nowhere",
+            }
+        )
+
+        destination.msg_contents(
+            (string, {"type": move_type}),
+            exclude=(self,),
+            from_obj=self,
+            mapping=mapping,
+        )
+
+    def announce_move_from(
+        self, destination, msg=None, mapping=None, move_type="move", **kwargs
+    ):
+        """
+        Announces the movement of the object from its current location to a destination.
+
+        Args:
+            destination (object): The destination object where the object is moving to.
+            msg (str, optional): The message to be displayed when announcing the movement. If not provided,
+                a default message will be used.
+            mapping (dict, optional): A dictionary containing additional variables to be used in the message
+                string. These variables can be referenced using placeholders in the message string.
+            move_type (str, optional): The type of movement being performed. Defaults to "move".
+            **kwargs: Additional keyword arguments that can be used to customize the behavior of the method.
+
+        Returns:
+            None
+
+        """
+        if not self.location:
+            return
+
+        string = msg or "{object} leaves {exit_traversed}."
+        location = self.location
+        exits = [
+            o
+            for o in location.contents
+            if o.location is location and o.destination is destination
+        ]
+
+        mapping = mapping or {}
+        mapping.update(
+            {
+                "object": self,
+                "exit_traversed": exits[0].get_display_name(self.location)
+                if exits
+                else "an unknown exit",
+            }
+        )
+
+        location.msg_contents(
+            (string, {"type": move_type}),
+            exclude=(self,),
+            from_obj=self,
+            mapping=mapping,
+        )

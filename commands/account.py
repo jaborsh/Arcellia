@@ -621,24 +621,27 @@ class CmdPlay(Command):
         account = self.account
         session = self.session
 
-        if not self.args:
-            self.msg("Syntax: ic <character>")
+        if (
+            not self.args
+            and not account.db._main_character
+            and not account.db._last_puppet
+        ):
+            self.msg("Syntax: play <character>")
             return
 
-        character_candidates = self.get_character_candidates(account, self.args)
-
-        if not character_candidates:
-            self.msg("That is not a valid character choice.")
-            return
-
-        if len(character_candidates) > 1:
-            self.msg(
-                "Multiple targets with the same name:\n %s"
-                % ", ".join(
-                    "%s(#%s)" % (obj.key, obj.id) for obj in character_candidates
-                )
+        if account.db._main_character:
+            character_candidates = self.get_character_candidates(
+                account, account.db._main_character.key
             )
-            return
+        elif account.db._last_puppet:
+            character_candidates = self.get_character_candidates(
+                account, account.db._last_puppet.key
+            )
+        else:
+            character_candidates = self.get_character_candidates(account, self.args)
+            if not character_candidates:
+                self.msg("That is not a valid character choice.")
+                return
 
         new_character = character_candidates[0]
 
