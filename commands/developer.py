@@ -1,4 +1,9 @@
+import re
+import time
+
 from evennia.commands.default import account, admin, batchprocess, building
+from evennia.server.models import ServerConfig
+from server.conf import logger
 
 from commands.command import Command
 
@@ -16,51 +21,136 @@ __all__ = (
 )
 
 
-class CmdBan(admin.CmdBan):
+# regex matching IP addresses with wildcards, eg. 233.122.4.*
+IPREGEX = re.compile(r"[0-9*]{1,3}\.[0-9*]{1,3}\.[0-9*]{1,3}\.[0-9*]{1,3}")
+
+
+def list_bans(cmd, banlist):
     """
-    Syntax: ban [<name or ip> [:reason]]
+    Helper function to display a list of active bans. Input argument
+    is the banlist read into the two commands ban and unban below.
 
-    Ban an account from the server.
-
-    Without any arguments, this shows a list of active bans.
-
-    This command bans a user from accessing the game. Supply an optional reason
-    to be able to later remember why the ban was put in place.
-
-    It is often preferable to ban an account from the server than to delete an
-    account with accounts/delete. If banned by name, that account can no longer
-    be logged into.
-
-    IP address banning allows blocking all access from a specific address or
-    subnet. Use an asterisk (*) as a wildcard.
-
-    Examples:
-      ban thomas
-      ban/ip 127.0.0.1
-      ban/ip 127.0.0.*
-      ban/ip 127.0.*.*
-
-    A single IP filter can be easy to circumvent by changing computers or
-    requesting a new IP address. Setting a wide IP block filter with wildcards
-    might be tempting, but remember that it may also accidentally block
-    innocent users.
+    Args:
+        cmd (Command): Instance of the Ban command.
+        banlist (list): List of bans to list.
     """
+    if not banlist:
+        return "No active bans were found."
 
-    locks = "cmd:perm(Developer)"
-    help_category = "System"
+    table = cmd.styled_table("|wid", "|wname/ip", "|wdate", "|wreason")
+    for inum, ban in enumerate(banlist):
+        table.add_row(str(inum + 1), ban[0] and ban[0] or ban[1], ban[3], ban[4])
+    return f"|wActive bans:|n\n{table}"
 
 
-class CmdUnban(admin.CmdUnban):
+class CmdBan(Command):
     """
-    Syntax: unban <banid>
+    Command to ban a player or IP address.
 
-    This will clear an account name/ip ban previously set with the ban command.
-    Use this command without an argument to view a numbered list of bans. Use
-    the numbers in this list to select which one to unban.
+    Usage:
+      ban <name or IP>[:reason] - Bans a player or IP address.
+      bans - Lists all current bans.
+
+    Switches:
+      ip - Bans an IP address.
+      name - Bans a player by name.
     """
 
-    locks = "cmd:perm(Developer)"
-    help_category = "System"
+    key = "ban"
+    aliases = ["bans"]
+    locks = "pperm(Developer)"
+    help_category = "Developer"
+
+    def func(self):
+        banlist = ServerConfig.objects.conf("server_bans") or []
+
+        if not self.args or (
+            self.switches
+            and not any(switch in ("ip", "name") for switch in self.switches)
+        ):
+            self.msg(list_bans(self, banlist))
+            return
+
+        now = time.ctime()
+        reason = ""
+        if ":" in self.args:
+            ban, reason = self.args.rsplit(":", 1)
+        else:
+            ban = self.args
+        ban = ban.lower()
+
+        ipban = IPREGEX.findall(ban)
+        if ipban:
+            typ = "IP"
+            ban = ipban[0]
+            ipregex = re.compile(ban.replace(".", "\.").replace("*", "[0-9]{1,3}"))
+            bantup = ("", ban, ipregex, now, reason)
+        else:
+            typ = "Name"
+            bantup = (ban, "", "", now, reason)
+
+        ret = yield (f"Are you sure you want to {typ}-ban '|w{ban}|n' [Y]/N?")
+        if str(ret).lower() in ("no", "n"):
+            self.msg("Aborted.")
+            return
+
+        banlist.append(bantup)
+        ServerConfig.objects.conf("server_bans", banlist)
+        self.msg(f"{typ}-ban '|w{ban}|n' was added. Use |wunban|n to reinstate.")
+        logger.log_sec(
+            f"Banned {typ}: {ban.strip()} (Caller: {self.caller}, IP: {self.session.address})."
+        )
+
+
+class CmdUnban(Command):
+    """
+    Command to unban a player from the server.
+
+    Usage:
+      unban [ban_id]
+
+    Arguments:
+      ban_id - The ID of the ban to clear.
+
+    This command allows developers to remove bans from the server's banlist.
+    If no ban_id is provided, it will display the list of bans.
+    """
+
+    key = "unban"
+    locks = "cmd:pperm(Developer)"
+    help_category = "Developer"
+
+    def func(self):
+        banlist = ServerConfig.objects.conf("server_bans")
+
+        if not self.args:
+            self.msg(list_bans(self, banlist))
+            return
+
+        try:
+            num = int(self.args)
+        except ValueError:
+            self.msg("You must supply a valid ban id to clear.")
+            return
+
+        if not banlist:
+            self.msg("There are no bans to clear.")
+        elif not 0 < num <= len(banlist):
+            self.msg(f"Ban id |w{self.args}|n was not found.")
+        else:
+            ban = banlist[num - 1]
+            value = " ".join(filter(None, ban[:2]))
+            ret = yield (f"Are you sure you want to unban {num}: '|w{value}|n' [Y]/N?")
+            if str(ret).lower() in ("n", "no"):
+                self.msg("Aborted.")
+                return
+
+            del banlist[num - 1]
+            ServerConfig.objects.conf("server_bans", banlist)
+            self.msg(f"Cleared ban {num}: '{value}'")
+            logger.log_sec(
+                f"Unbanned: {value.strip()} (Caller: {self.caller}, IP: {self.session.address})."
+            )
 
 
 class CmdBatchCommands(batchprocess.CmdBatchCommands):
@@ -78,7 +168,7 @@ class CmdBatchCommands(batchprocess.CmdBatchCommands):
     key = "batchcommands"
     aliases = ["batchcommand", "batchcmd"]
     switch_options = ("interactive",)
-    locks = "cmd:perm(batchcommands) or perm(Developer)"
+    locks = "cmd:pperm(Developer)"
     help_category = "System"
 
 
@@ -117,7 +207,7 @@ class CmdBoot(admin.CmdBoot):
     to the user unless /quiet is set.
     """
 
-    locks = "cmd:perm(Developer)"
+    locks = "cmd:pperm(Developer)"
     help_category = "System"
 
 
@@ -129,7 +219,7 @@ class CmdListCmdSets(building.CmdListCmdSets):
     """
 
     key = "cmdsets"
-    locks = "cmd:perm(Developer)"
+    locks = "cmd:pperm(Developer)"
     help_category = "System"
 
 

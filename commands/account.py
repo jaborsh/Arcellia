@@ -831,7 +831,7 @@ class CmdWho(Command):
     key = "who"
     aliases = ["wh"]
     locks = "cmd:all()"
-    help_category = "General"
+    help_category = "Account"
 
     def create_header(self, width):
         header_string = f"{self.get_header(width)}\n"
