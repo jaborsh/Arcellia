@@ -1,6 +1,8 @@
 import re
 
 from django.conf import settings
+from evennia import InterruptCommand
+from evennia.commands.default import muxcommand
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils.utils import inherits_from
 from utils.text import wrap
@@ -13,6 +15,7 @@ __all__ = (
     "CmdEcho",
     "CmdForce",
     "CmdHome",
+    "CmdTeleport",
     "CmdTransfer",
     "CmdWatch",
 )
@@ -254,6 +257,90 @@ class CmdHome(Command):
     def msg_teleport_home(self):
         """Send message when player is teleporting home"""
         self.caller.msg("There's no place like home ...")
+
+
+class CmdTeleport(Command):
+    """
+    Syntax: tel/switch [<object> to||=] <target location>
+            tel/switch [<object> to||=] (X,Y[,Z])
+
+    Examples:
+      tel Limbo
+      tel/quiet box = Limbo
+      tel/tonone box
+      tel (3, 3, the small cave)
+      tel (4, 1)   # on the same map
+      tel/map Z | mapname
+
+    Switches:
+      quiet    - don't echo leave/arrive messages to the source/target
+      intoexit - if target is an exit, teleport INTO the exit object
+      tonone   - teleport the object to a none-location
+      loc      - teleport object to the target's location
+      map      - show coordinate map of given Zcoord/mapname.
+
+    Teleports an object somewhere. If no object is given, you yourself are
+    teleported to the target location. If (X,Y) or (X,Y,Z) coordinates
+    are given, the target is a location on the XYZGrid.
+    """
+
+    key = "teleport"
+    aliases = ["goto", "tel"]
+    switch_options = ("quiet", "intoexit", "tonone", "loc")
+    rhs_split = ("=", " to ")  # Prefer = delimiter, but allow " to " usage.
+    locks = "cmd:perm(teleport) or perm(Builder)"
+    help_category = "Building"
+
+    def parse(self):
+        muxcommand.MuxCommand.parse(self)
+        self.obj_to_teleport = self.caller
+        self.destination = None
+
+        if self.rhs:
+            self.obj_to_teleport = self.caller.search(self.lhs, global_search=True)
+            if not self.obj_to_teleport:
+                self.caller.msg("Did not find object to teleport.")
+                raise InterruptCommand
+            if all(char in self.rhs for char in ("(", ")", ",")):
+                # search by (X,Y) or (X,Y,Z)
+                self.search_by_xyz(self.rhs)
+            else:
+                # fallback to regular search by name/alias
+                self.destination = self.caller.search(self.rhs, global_search=True)
+
+        elif self.lhs:
+            if all(char in self.lhs for char in ("(", ")", ",")):
+                self._search_by_xyz(self.lhs)
+            else:
+                self.destination = self.caller.search(self.lhs, global_search=True)
+
+    def search_by_xyz(self, inp):
+        return self.msg("Not implemented.")
+
+    #     inp = inp.strip("()")
+    #     X, Y, *Z = inp.split(",", 2)
+    #     if Z:
+    #         # Z was specified
+    #         Z = Z[0]
+    #     else:
+    #         # use current location's Z, if it exists
+    #         try:
+    #             xyz = self.caller.location.xyz
+    #         except AttributeError:
+    #             self.caller.msg(
+    #                 "Z-coordinate is also required since you are not currently "
+    #                 "in a room with a Z coordinate of its own."
+    #             )
+    #             raise InterruptCommand
+    #         else:
+    #             Z = xyz[2]
+    #     # search by coordinate
+    #     X, Y, Z = str(X).strip(), str(Y).strip(), str(Z).strip()
+    #     try:
+    #         self.destination = XYZRoom.objects.get_xyz(xyz=(X, Y, Z))
+    #     except XYZRoom.DoesNotExist:
+    #         self.caller.msg(f"Found no target XYZRoom at ({X},{Y},{Z}).")
+    #         raise InterruptCommand
 
 
 class CmdTransfer(Command):
