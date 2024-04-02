@@ -16,7 +16,7 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 
 from evennia import default_cmds
 
-from . import admin, developer, git, help, system
+from . import admin, developer, git, help, system, unloggedin
 
 
 def add_modules(self, modules):
@@ -77,24 +77,6 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         #
 
 
-class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
-    """
-    Command set available to the Session before being logged in.  This
-    holds commands like creating a new account, logging in, etc.
-    """
-
-    key = "DefaultUnloggedin"
-
-    def at_cmdset_creation(self):
-        """
-        Populates the cmdset
-        """
-        # super().at_cmdset_creation()
-        #
-        # any commands you add below will overload the default ones.
-        #
-
-
 class SessionCmdSet(default_cmds.SessionCmdSet):
     """
     This cmdset is made available on Session level once logged in. It
@@ -115,3 +97,26 @@ class SessionCmdSet(default_cmds.SessionCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
+
+
+class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
+    """
+    Command set available to the Session before being logged in.  This
+    holds commands like creating a new account, logging in, etc.
+    """
+
+    key = "DefaultUnloggedin"
+
+    def at_cmdset_creation(self):
+        """
+        Populates the cmdset
+        """
+        # super().at_cmdset_creation()
+        #
+        # any commands you add below will overload the default ones.
+        #
+        modules = {
+            "Unloggedin Modules": [unloggedin],
+        }
+
+        add_modules(self, modules)
