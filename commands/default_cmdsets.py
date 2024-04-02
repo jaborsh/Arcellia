@@ -16,7 +16,7 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 
 from evennia import default_cmds
 
-from . import admin, developer, git, help, system, unloggedin
+from . import account, admin, developer, git, help, system, unloggedin
 
 
 def add_modules(self, modules):
@@ -52,7 +52,7 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         """
         modules = {
             "Admin Modules": [admin, developer, git, system],
-            "Account Modules": [help],
+            "Account Modules": [account, help],
         }
 
         add_modules(self, modules)
