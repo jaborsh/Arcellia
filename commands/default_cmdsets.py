@@ -14,33 +14,26 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 
 """
 
-from evennia import CmdSet, default_cmds
-
-from commands import (
-    account,
-    admin,
-    building,
-    clothing,
-    comms,
-    developer,
-    general,
-    git,
-    help,
-    mail,
-    system,
-    unloggedin,
-)
+from evennia import default_cmds
 
 
-def add_modules(self, modules):
+class CharacterCmdSet(default_cmds.CharacterCmdSet):
     """
-    Add all commands from modules passed by argument.
+    The `CharacterCmdSet` contains general in-game commands like `look`,
+    `get`, etc available on in-game Character objects. It is merged with
+    the `AccountCmdSet` when an Account puppets a Character.
     """
-    for module_group in modules.values():
-        for module in module_group:
-            for cmd_name in module.__all__:
-                cmd_class = getattr(module, cmd_name)
-                self.add(cmd_class)
+
+    key = "DefaultCharacter"
+
+    def at_cmdset_creation(self):
+        """
+        Populates the cmdset
+        """
+        super().at_cmdset_creation()
+        #
+        # any commands you add below will overload the default ones.
+        #
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):
@@ -57,53 +50,28 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         """
         Populates the cmdset
         """
-        modules = {
-            "Developer Modules": [developer, git],
-            "Admin Modules": [admin],
-            "Account Modules": [account],
-            "Building Modules": [building],
-            "Comm Modules": [comms],
-            "Help Modules": [help],
-            "System Modules": [system],
-        }
-        add_modules(self, modules)
+        super().at_cmdset_creation()
+        #
+        # any commands you add below will overload the default ones.
+        #
 
 
-class CharacterCmdSet(default_cmds.CharacterCmdSet):
+class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
     """
-    The `CharacterCmdSet` contains general in-game commands like `look`,
-    `get`, etc available on in-game Character objects. It is merged with
-    the `AccountCmdSet` when an Account puppets a Character.
+    Command set available to the Session before being logged in.  This
+    holds commands like creating a new account, logging in, etc.
     """
 
-    key = "DefaultCharacter"
+    key = "DefaultUnloggedin"
 
     def at_cmdset_creation(self):
         """
         Populates the cmdset
         """
-        modules = {
-            "General Modules": [general],
-            "Clothing Modules": [clothing],
-            "Mail Module": [mail],
-        }
-        add_modules(self, modules)
-
-
-class MobCmdSet(CmdSet):
-    """
-    The `MobCmdSet` contains default commands for mobs. These will closely
-    mirror the basic commands available to characters.
-    """
-
-    key = "DefaultMob"
-
-    def at_cmdset_creation(self):
-        modules = {
-            "General Modules": [general],
-            "Merchant Modules": [clothing],
-        }
-        add_modules(self, modules)
+        super().at_cmdset_creation()
+        #
+        # any commands you add below will overload the default ones.
+        #
 
 
 class SessionCmdSet(default_cmds.SessionCmdSet):
@@ -123,19 +91,6 @@ class SessionCmdSet(default_cmds.SessionCmdSet):
         It prints some info.
         """
         super().at_cmdset_creation()
-
-
-class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
-    """
-    Command set available to the Session before being logged in.  This
-    holds commands like creating a new account, logging in, etc.
-    """
-
-    key = "DefaultUnloggedin"
-
-    def at_cmdset_creation(self):
-        """
-        Populates the cmdset
-        """
-        modules = {"Unloggedin Modules": [unloggedin]}
-        add_modules(self, modules)
+        #
+        # any commands you add below will overload the default ones.
+        #

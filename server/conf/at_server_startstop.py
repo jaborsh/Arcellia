@@ -17,16 +17,12 @@ at_server_cold_stop()
 
 """
 
-from world.xyzgrid.launchcmd import _option_add as xyzgrid_add
-from world.xyzgrid.xyzgrid import get_xyzgrid
-
 
 def at_server_init():
     """
     This is called first as the server is starting up, regardless of how.
     """
-    xyzgrid_add("world.chargen.map")
-    xyzgrid_add("world.tutorial.map")
+    pass
 
 
 def at_server_start():
@@ -34,8 +30,7 @@ def at_server_start():
     This is called every time the server starts up, regardless of
     how it was shut down.
     """
-    grid = get_xyzgrid()
-    grid.spawn(xyz=("*", "*", "*"))
+    pass
 
 
 def at_server_stop():

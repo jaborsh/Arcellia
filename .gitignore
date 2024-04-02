@@ -32,7 +32,6 @@ server/conf/secret_settings.py
 server/logs/*.log.*
 server/.static/*
 server/.media/*
-server/.cache/*
 
 # Installer logs
 pip-log.txt
@@ -53,5 +52,5 @@ nosetests.xml
 # PyCharm config
 .idea
 
-# Arcellia
-.DS_Store
+# VSCode config
+.vscode

@@ -23,8 +23,6 @@ settings file:
 
 from evennia.server.serversession import ServerSession as BaseServerSession
 
-from parsing.colors import hex_to_xterm
-
 
 class ServerSession(BaseServerSession):
     """
@@ -35,27 +33,5 @@ class ServerSession(BaseServerSession):
     to the game server. All communication between game and account goes
     through their session(s).
     """
-
-    def data_out(self, **kwargs):
-        """
-        Sending data from Evennia->Client
-
-        Keyword Args:
-            text (str or tuple)
-            any (str or tuple): Send-commands identified
-                by their keys. Or "options", carrying options
-                for the protocol(s).
-
-        """
-        try:
-            kwargs["text"] = (
-                hex_to_xterm(kwargs["text"][0])
-                if type(kwargs["text"]) == tuple
-                else hex_to_xterm(kwargs["text"])
-            )
-        except KeyError:
-            pass
-
-        self.sessionhandler.data_out(self, **kwargs)
 
     pass

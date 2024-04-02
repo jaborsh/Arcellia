@@ -5,10 +5,12 @@ Commands describe the input the account can do to the game.
 
 """
 
-from evennia.commands.default.muxcommand import MuxCommand
+from evennia.commands.command import Command as BaseCommand
+
+# from evennia import default_cmds
 
 
-class Command(MuxCommand):
+class Command(BaseCommand):
     """
     Base command (you may see this if a child command had no help text defined)
 
@@ -28,17 +30,7 @@ class Command(MuxCommand):
     #     - at_post_cmd(): Extra actions, often things done after
     #         every command, like prompts.
     #
-
-    def at_post_cmd(self):
-        """
-        This hook is called after the command has finished executing
-        (after self.func()).
-        """
-
-        try:
-            self.msg(prompt="> ")
-        except Exception:
-            pass
+    pass
 
 
 # -------------------------------------------------------------

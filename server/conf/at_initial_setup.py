@@ -16,8 +16,4 @@ does what you expect it to.
 
 
 def at_initial_setup():
-    from world.xyzgrid.launchcmd import (
-        _option_init as xyzgrid_init,
-    )
-
-    xyzgrid_init()
+    pass
