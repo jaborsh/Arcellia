@@ -1,0 +1,378 @@
+import re
+
+from django.conf import settings
+from evennia.server.sessionhandler import SESSIONS
+from evennia.utils.utils import inherits_from
+from utils.text import wrap
+
+from commands.command import Command
+
+__all__ = (
+    "CmdAccess",
+    "CmdAnnounce",
+    "CmdEcho",
+    "CmdForce",
+    "CmdHome",
+    "CmdTransfer",
+    "CmdWatch",
+)
+
+
+class CmdAccess(Command):
+    """
+    Command class for displaying the caller's access and permission groups.
+
+    Usage:
+      access
+
+    This command displays the permission groups and the caller's access level.
+    If the caller is a superuser, it displays "<Superuser>". Otherwise, it
+    displays the caller's permissions for both the character and the account.
+    """
+
+    key = "access"
+    aliases = ["groups", "hierarchy"]
+    locks = "cmd:pperm(Admin)"
+    help_category = "Admin"
+
+    def func(self):
+        """Load the permission groups and display the caller's access"""
+        caller = self.caller
+        hierarchy_full = settings.PERMISSION_HIERARCHY
+
+        if caller.account.is_superuser:
+            cperms = pperms = "<Superuser>"
+        else:
+            cperms = ", ".join(caller.permissions.all())
+            pperms = ", ".join(caller.account.permissions.all())
+
+        string = (
+            "\n|wPermission Hierarchy|n (climbing):\n %s\n"
+            "\n|wYour access|n:"
+            "\n  Character |c%s|n: %s" % (", ".join(hierarchy_full), caller.key, cperms)
+        )
+
+        if hasattr(caller, "account"):
+            string += "\n  Account |c%s|n: %s" % (caller.account.key, pperms)
+
+        caller.msg(string)
+
+
+class CmdAnnounce(Command):
+    """
+    Command to announce a message to all players.
+
+    Usage:
+        announce <message>
+
+    This command allows administrators to send an announcement to all players
+    currently connected to the game. The message should be provided as an argument
+    after the command. The announcement will be displayed to all players in a
+    formatted manner.
+
+    Example:
+        > announce Welcome to the game!
+
+    This will send the message "Welcome to the game!" as an announcement to all
+    connected players.
+    """
+
+    key = "announce"
+    locks = "cmd:pperm(Admin)"
+    help_category = "Admin"
+
+    def func(self):
+        if not self.args:
+            self.caller.msg("Syntax: announce <message>")
+            return
+
+        message = wrap(self.args, text_width=63, align="c", pre_text="  ")
+        announcement = (
+            "\n|C  .:*~*:._.:*~*:._.:*~ |r{SERVERNAME} Announcement |C~*:._.:*~*:._.:*~*:.|n"
+            "\n\n|Y{message}|n"
+            "\n\n|C  .:*~*:._.:*~*:._.:*~                       ~*:._.:*~*:._.:*~*:.|n"
+        ).format(SERVERNAME=settings.SERVERNAME, message=message)
+
+        SESSIONS.announce_all(announcement)
+
+
+class CmdEcho(Command):
+    """
+    Echo a message to specified objects or all objects.
+
+    Usage:
+        echo[/switches] <objects> <message>
+
+    Switches:
+        all    - Echo to all objects.
+        rooms  - Echo to objects in the same room as the caller.
+
+    Arguments:
+        objects - Comma-separated list of object names to echo to.
+        message - The message to echo.
+
+    Examples:
+        echo player1, player2 Hello, world!
+        echo/all Hello, everyone!
+
+    This command allows administrators to send a message to specific objects
+    or all objects in the game. If the 'all' switch is used or the command is
+    invoked as 'aecho', the message will be echoed to all objects. If the
+    'rooms' switch is used or the command is invoked as 'recho', the message
+    will be echoed to objects in the same room as the caller.
+    """
+
+    key = "echo"
+    aliases = ["aecho", "recho"]
+    switch_options = ("all", "rooms")
+    locks = "cmd:pperm(Admin)"
+    help_category = "Admin"
+
+    def parse(self):
+        pattern = r"(\/[^ ]+)? ?([^ ]+)? (.+)"
+        match = re.match(pattern, self.args)
+        if match:
+            self.switches = match.group(1).lstrip("/") if match.group(1) else ""
+            self.objects = match.group(2).split(",") if match.group(2) else []
+            self.message = match.group(3).strip()
+
+    def func(self):
+        if not self.message:
+            self.caller.msg("Echo what?")
+            return
+
+        if self.cmdstring == "aecho" or "all" in self.switches:
+            self.caller.msg("Echoing to all objects:")
+            SESSIONS.announce_all(self.message)
+            return
+
+        if not self.objects:
+            self.caller.msg("Syntax: echo[/switches] <objects> <message>")
+            return
+
+        echoed = set()
+        locations = set()
+
+        for obj_name in self.objects:
+            obj = self.caller.search(obj_name, global_search=True)
+            if not obj:
+                continue
+
+            if self.cmdstring == "recho" or "rooms" in self.switches:
+                if obj.location not in locations:
+                    obj.location.msg_contents(self.message)
+                    echoed.update(obj.name for obj in obj.location.contents)
+                    locations.add(obj.location)
+            else:
+                obj.msg(self.message)
+                echoed.add(obj.name)
+
+        self.caller.msg(f"Echoed to {', '.join(echoed)}: {self.message}")
+
+
+class CmdForce(Command):
+    """
+    Admin command to force an object to execute a command.
+
+    Usage:
+        force <object> <command>
+
+    This command allows administrators to force an object to execute a command.
+    The <object> parameter specifies the name of the object to be forced, and
+    the <command> parameter specifies the command to be executed by the object.
+
+    Example:
+        force jake look
+
+    This will force the object named 'jake' to execute the 'look' command.
+    """
+
+    key = "force"
+    locks = "cmd:pperm(Admin)"
+    help_category = "Admin"
+
+    def func(self):
+        if not self.args:
+            self.msg("Syntax: force <object> <command>")
+            return
+
+        args = self.args.split(None, 1)
+        if len(args) < 2:
+            self.msg("Syntax: force <object> <command>")
+            return
+
+        obj_name, command = args
+        obj = self.account.search(obj_name, global_search=True, search_object=True)
+        if not obj:
+            self.msg(f"Object '{obj_name}' not found.")
+            return
+
+        obj.execute_cmd(command)
+        self.msg(f"You force {obj} to {command}")
+
+
+class CmdHome(Command):
+    """
+    Command to teleport the player to their home location.
+
+    Usage:
+      home
+
+    This command allows the player to teleport to their home location.
+    If the player has no home, they will receive a message indicating so.
+    If the player is already at their home location, they will receive a
+    message indicating so. Otherwise, the player will be teleported to
+    their home location.
+    """
+
+    key = "home"
+    locks = "cmd:perm(home) or perm(Admin)"
+    help_category = "Admin"
+    arg_regex = r"$"
+
+    def func(self):
+        """Implement the command"""
+        caller = self.caller
+        home = caller.home
+
+        if not home:
+            self.msg_no_home()
+        elif home == caller.location:
+            self.msg_already_home()
+        else:
+            self.msg_teleport_home()
+            caller.move_to(home, move_type="teleport")
+
+    def msg_no_home(self):
+        """Send message when player has no home"""
+        self.caller.msg("You have no home!")
+
+    def msg_already_home(self):
+        """Send message when player is already at home"""
+        self.caller.msg("You are already home!")
+
+    def msg_teleport_home(self):
+        """Send message when player is teleporting home"""
+        self.caller.msg("There's no place like home ...")
+
+
+class CmdTransfer(Command):
+    """
+    Command to transfer an object to a different location.
+
+    Usage:
+      transfer <object>
+
+    This command allows an admin to transfer an object to a different location.
+    The object can be a room or an exit. The admin must have the necessary
+    permission to control the object in order to transfer it.
+
+    Args:
+      <object> (str): The name or key of the object to transfer.
+
+    Example:
+      transfer sword
+    """
+
+    key = "transfer"
+    aliases = ["trans"]
+    locks = "cmd:pperm(Admin)"
+    help_category = "Admin"
+
+    def func(self):
+        caller = self.caller
+        if not self.args:
+            caller.msg("Syntax: transfer <object>")
+            return
+
+        obj_to_transfer = caller.search(self.args.strip(), global_search=True)
+        if not obj_to_transfer:
+            return
+
+        if inherits_from(
+            obj_to_transfer, ("typeclasses.rooms.Room", "typeclasses.exits.Exit")
+        ):
+            caller.msg(
+                f"You cannot transfer a {obj_to_transfer.__class__.__name__.lower()}."
+            )
+            return
+
+        if obj_to_transfer.location == caller.location:
+            caller.msg(f"{obj_to_transfer} is already here.")
+            return
+
+        if obj_to_transfer == caller.location:
+            caller.msg("You cannot transfer an object to itself.")
+            return
+
+        if obj_to_transfer in caller.location.contents:
+            caller.msg("You can't transfer an object inside something it holds!")
+            return
+
+        if not obj_to_transfer.access(caller, "control"):
+            caller.msg(f"You do not have permission to transfer {obj_to_transfer}.")
+            return
+
+        success = obj_to_transfer.move_to(
+            caller.location, emit_to_obj=caller, move_type="transfer"
+        )
+        caller.msg(
+            f"You {'transfer' if success else 'fail to transfer'} {obj_to_transfer}."
+        )
+
+
+class CmdWatch(Command):
+    """
+    Command to start watching a character.
+
+    Usage:
+      watch <character>
+
+    This command allows an admin to start watching a character. Once
+    watching, the admin will receive updates about the character's
+    actions and movements.
+    """
+
+    key = "watch"
+    aliases = ["snoop"]
+    locks = "cmd:perm(Admin)"
+    help_category = "Admin"
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+
+        if not args:
+            if caller.ndb._watching:
+                self._stop_watching(caller)
+                return
+
+            self.msg("Syntax: watch <character>")
+            return
+
+        target = self.account.search(self.args.strip())
+        if not target:
+            self.msg("Character not found.")
+            return
+
+        if caller.ndb._watching == target:
+            self.msg(f"You are already watching {target.name}.")
+            return
+
+        if caller.ndb._watching:
+            self._stop_watching(caller)
+
+        self._start_watching(caller, target)
+
+    def _start_watching(self, watcher, target):
+        watcher.ndb._watching = target
+        if not target.ndb._watchers:
+            target.ndb._watchers = list()
+        target.ndb._watchers.append(watcher)
+        self.msg(f"You start watching {target.name}.")
+
+    def _stop_watching(self, watcher):
+        target = watcher.ndb._watching
+        target.ndb._watchers.remove(watcher)
+        watcher.ndb._watching = None
+        self.msg(f"You stop watching {target.name}.")

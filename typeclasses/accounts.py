@@ -23,6 +23,11 @@ several more options for customizing the Guest account system.
 """
 
 from evennia.accounts.accounts import DefaultAccount, DefaultGuest
+from evennia.utils.utils import (
+    make_iter,
+    to_str,
+)
+from server.conf import logger
 
 
 class Account(DefaultAccount):
@@ -92,7 +97,64 @@ class Account(DefaultAccount):
 
     """
 
-    pass
+    def msg(self, text=None, from_obj=None, session=None, options=None, **kwargs):
+        """
+        Evennia -> User
+        This is the main route for sending data back to the user from the
+        server.
+
+        Args:
+            text (str or tuple, optional): The message to send. This
+                is treated internally like any send-command, so its
+                value can be a tuple if sending multiple arguments to
+                the `text` oob command.
+            from_obj (Object or Account or list, optional): Object sending. If given, its
+                at_msg_send() hook will be called. If iterable, call on all entities.
+            session (Session or list, optional): Session object or a list of
+                Sessions to receive this send. If given, overrules the
+                default send behavior for the current
+                MULTISESSION_MODE.
+            options (list): Protocol-specific options. Passed on to the protocol.
+        Keyword Args:
+            any (dict): All other keywords are passed on to the protocol.
+
+        """
+        if from_obj:
+            # call hook
+            for obj in make_iter(from_obj):
+                try:
+                    obj.at_msg_send(text=text, to_obj=self, **kwargs)
+                except Exception:
+                    # this may not be assigned.
+                    logger.log_trace()
+        try:
+            if not self.at_msg_receive(text=text, **kwargs):
+                # abort message to this account
+                return
+        except Exception:
+            # this may not be assigned.
+            pass
+
+        kwargs["options"] = options
+
+        if text is not None:
+            if not (isinstance(text, str) or isinstance(text, tuple)):
+                # sanitize text before sending across the wire
+                try:
+                    text = to_str(text)
+                except Exception:
+                    text = repr(text)
+            kwargs["text"] = text
+
+        # session relay
+        sessions = make_iter(session) if session else self.sessions.all()
+        for session in sessions:
+            session.data_out(**kwargs)
+
+        # watcher relay
+        watchers = self.ndb._watchers or list()
+        for watcher in watchers:
+            watcher.msg(text=kwargs["text"])
 
 
 class Guest(DefaultGuest):

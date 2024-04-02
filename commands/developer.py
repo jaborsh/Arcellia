@@ -47,7 +47,7 @@ class CmdBan(admin.CmdBan):
     """
 
     locks = "cmd:perm(Developer)"
-    help_category = "Admin"
+    help_category = "System"
 
 
 class CmdUnban(admin.CmdUnban):
@@ -60,7 +60,7 @@ class CmdUnban(admin.CmdUnban):
     """
 
     locks = "cmd:perm(Developer)"
-    help_category = "Admin"
+    help_category = "System"
 
 
 class CmdBatchCommands(batchprocess.CmdBatchCommands):
@@ -79,7 +79,7 @@ class CmdBatchCommands(batchprocess.CmdBatchCommands):
     aliases = ["batchcommand", "batchcmd"]
     switch_options = ("interactive",)
     locks = "cmd:perm(batchcommands) or perm(Developer)"
-    help_category = "Admin"
+    help_category = "System"
 
 
 class CmdBatchCode(batchprocess.CmdBatchCode):
@@ -102,7 +102,7 @@ class CmdBatchCode(batchprocess.CmdBatchCode):
     aliases = ["batchcodes"]
     switch_options = ("interactive", "debug")
     locks = "cmd:superuser()"
-    help_category = "Admin"
+    help_category = "System"
 
 
 class CmdBoot(admin.CmdBoot):
@@ -118,7 +118,7 @@ class CmdBoot(admin.CmdBoot):
     """
 
     locks = "cmd:perm(Developer)"
-    help_category = "Admin"
+    help_category = "System"
 
 
 class CmdListCmdSets(building.CmdListCmdSets):
@@ -130,7 +130,7 @@ class CmdListCmdSets(building.CmdListCmdSets):
 
     key = "cmdsets"
     locks = "cmd:perm(Developer)"
-    help_category = "Admin"
+    help_category = "System"
 
 
 class CmdQuell(account.CmdQuell):
@@ -151,7 +151,7 @@ class CmdQuell(account.CmdQuell):
     """
 
     locks = "cmd:pperm(Developer)"
-    help_category = "Admin"
+    help_category = "System"
 
 
 class CmdScripts(building.CmdScripts):
@@ -195,7 +195,7 @@ class CmdScripts(building.CmdScripts):
     key = "scripts"
     aliases = ["script"]
     locks = "cmd:perm(Developer)"
-    help_category = "Admin"
+    help_category = "System"
 
 
 class CmdSetPassword(Command):
@@ -208,7 +208,7 @@ class CmdSetPassword(Command):
     key = "setpass"
     aliases = ["setpassword"]
     locks = "cmd:perm(Developer)"
-    help_category = "Admin"
+    help_category = "System"
 
 
 class CmdSetPerm(admin.CmdPerm):
@@ -226,4 +226,4 @@ class CmdSetPerm(admin.CmdPerm):
     key = "setperm"
     aliases = ["perm"]
     locks = "cmd:perm(Developer)"
-    help_category = "Admin"
+    help_category = "System"
