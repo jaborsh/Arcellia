@@ -24,6 +24,8 @@ put secret game- or server-specific settings in secret_settings.py.
 
 """
 
+import os
+
 # Use the defaults from Evennia unless explicitly overridden
 from evennia.settings_default import *
 
@@ -33,6 +35,136 @@ from evennia.settings_default import *
 
 # This is the name of your game. Make it catchy!
 SERVERNAME = "Arcellia"
+
+# Place to put log files, how often to rotate the log and how big each log file
+# may become before rotating.
+LOG_DIR = os.path.join(GAME_DIR, "server", "logs")
+SERVER_LOG_FILE = os.path.join(LOG_DIR, "server", "server.log")
+PORTAL_LOG_FILE = os.path.join(LOG_DIR, "portal", "portal.log")
+HTTP_LOG_FILE = os.path.join(LOG_DIR, "http", "http_requests.log")
+LOCKWARNING_LOG_FILE = os.path.join(LOG_DIR, "lockwarning", "lockwarnings.log")
+ACCOUNT_LOG_DIR = os.path.join(LOG_DIR, "accounts")
+CHANNEL_LOG_DIR = os.path.join(LOG_DIR, "channels")
+CHARACTER_LOG_DIR = os.path.join(LOG_DIR, "characters")
+
+log_files = [
+    SERVER_LOG_FILE,
+    PORTAL_LOG_FILE,
+    HTTP_LOG_FILE,
+    LOCKWARNING_LOG_FILE,
+    ACCOUNT_LOG_DIR,
+    CHANNEL_LOG_DIR,
+    CHARACTER_LOG_DIR,
+]
+for log_file in log_files:
+    log_dir = os.path.dirname(log_file)
+    os.makedirs(log_dir, exist_ok=True)
+
+# Determine how many commands per second a given Session is allowed
+# to send to the Portal via a connected protocol. Too high rate will
+# drop the command and echo a warning. Note that this will also cap
+# OOB messages so don't set it too low if you expect a lot of events
+# from the client! To turn the limiter off, set to <= 0.
+MAX_COMMAND_RATE = 60
+# The warning to echo back to users if they send commands too fast
+COMMAND_RATE_WARNING = (
+    "|RYou're entering commands too fast. Wait a moment and try again.|n"
+)
+
+# Determine how large of a string can be sent to the server in number
+# of characters. If they attempt to enter a string over this character
+# limit, we stop them and send a message. To make unlimited, set to
+# 0 or less.
+MAX_CHAR_LIMIT = 1600  # 80 characters * 20 lines, previously 6000.
+# The warning to echo back to users if they enter a very large string
+MAX_CHAR_LIMIT_WARNING = (
+    "|RYou've entered a string that is too long. "
+    "Please break it up into multiple parts.|n"
+)
+
+######################################################################
+# Default command sets and commands
+######################################################################
+COMMAND_DEFAULT_CLASS = "commands.command.Command"
+
+######################################################################
+# Game Time setup
+######################################################################
+
+# You don't actually have to use this, but it affects the routines in
+# evennia.utils.gametime.py and allows for a convenient measure to
+# determine the current in-game time. You can of course interpret
+# "week", "month" etc as your own in-game time units as desired.
+
+# The time factor dictates if the game world runs faster (timefactor>1)
+# or slower (timefactor<1) than the real world.
+TIME_FACTOR = 1.0
+# Local time zone for this installation. All choices can be found here:
+# http://www.postgresql.org/docs/8.0/interactive/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
+TIME_ZONE = "EST"
+# The starting point of your game time (the epoch), in seconds.
+# In Python a value of 0 means Jan 1 1970 (use negatives for earlier
+# start date). This will affect the returns from the utils.gametime
+# module. If None, the server's first start-time is used as the epoch.
+TIME_GAME_EPOCH = None
+# Normally, game time will only increase when the server runs. If this is True,
+# game time will not pause when the server reloads or goes offline. This setting
+# together with a time factor of 1 should keep the game in sync with
+# the real time (add a different epoch to shift time)
+TIME_IGNORE_DOWNTIMES = True
+
+######################################################################
+# Default Account setup and access
+######################################################################
+# Different Multisession modes allow a player (=account) to connect to the
+# game simultaneously with multiple clients (=sessions).
+#  0 - single session per account (if reconnecting, disconnect old session)
+#  1 - multiple sessions per account, all sessions share output
+#  2 - multiple sessions per account, one session allowed per puppet
+#  3 - multiple sessions per account, multiple sessions per puppet (share output)
+#      session getting the same data.
+MULTISESSION_MODE = 3
+# Whether we should create a character with the same name as the account when
+# a new account is created. Together with AUTO_PUPPET_ON_LOGIN, this mimics
+# a legacy MUD, where there is no difference between account and character.
+AUTO_CREATE_CHARACTER_WITH_ACCOUNT = False
+# Whether an account should auto-puppet the last puppeted puppet when logging in. This
+# will only work if the session/puppet combination can be determined (usually
+# MULTISESSION_MODE 0 or 1), otherwise, the player will end up OOC. Use
+# MULTISESSION_MODE=0, AUTO_CREATE_CHARACTER_WITH_ACCOUNT=True and this value to
+# mimic a legacy mud with minimal difference between Account and Character. Disable
+# this and AUTO_PUPPET to get a chargen/character select screen on login.
+AUTO_PUPPET_ON_LOGIN = True
+# How many *different* characters an account can puppet *at the same time*. A value
+# above 1 only makes a difference together with MULTISESSION_MODE > 1.
+MAX_NR_SIMULTANEOUS_PUPPETS = None
+# The maximum number of characters allowed by be created by the default ooc
+# char-creation command. This can be seen as how big of a 'stable' of characters
+# an account can have (not how many you can puppet at the same time). Set to
+# None for no limit.
+MAX_NR_CHARACTERS = 3
+# The access hierarchy, in climbing order. A higher permission in the
+# hierarchy includes access of all levels below it. Used by the perm()/pperm()
+# lock functions, which accepts both plural and singular (Admin & Admins)
+PERMISSION_HIERARCHY = [
+    "Guest",  # note-only used if GUEST_ENABLED=True
+    "Player",
+    "Helper",
+    "Builder",
+    "Admin",
+    "Developer",
+]
+
+# Default sizes for client window (in number of characters), if client
+# is not supplying this on its own
+CLIENT_DEFAULT_WIDTH = 80
+
+# Set rate limits per-IP on account creations and login attempts. Set limits
+# to None to disable.
+CREATION_THROTTLE_LIMIT = 0
+# CREATION_THROTTLE_TIMEOUT = 10 * 60
+LOGIN_THROTTLE_LIMIT = 0
+# LOGIN_THROTTLE_TIMEOUT = 5 * 60
 
 ######################################################################
 # Networking Replaceables
@@ -51,6 +183,33 @@ SERVER_SESSION_CLASS = "server.conf.serversession.ServerSession"
 # unexpected disconnects. You shouldn't need to touch it, but you can.
 # Replace it to implement altered game logic.
 SERVER_SESSION_HANDLER_CLASS = "server.conf.sessionhandler.ServerSessionHandler"
+
+######################################################################
+# Evennia components
+######################################################################
+# Password validation plugins
+# https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"  # noqa: E501
+    },
+]
+
+# Username validation plugins
+AUTH_USERNAME_VALIDATORS = [
+    {"NAME": "django.contrib.auth.validators.ASCIIUsernameValidator"},
+    {
+        "NAME": "django.core.validators.MinLengthValidator",
+        "OPTIONS": {"limit_value": 3},
+    },
+    {
+        "NAME": "django.core.validators.MaxLengthValidator",
+        "OPTIONS": {"limit_value": 16},
+    },
+    {"NAME": "evennia.server.validators.EvenniaUsernameAvailabilityValidator"},
+]
 
 ######################################################################
 # Settings given in secret_settings.py override those in this file.
