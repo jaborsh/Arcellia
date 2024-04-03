@@ -847,5 +847,12 @@ def appearance_eyebrow_type(caller, raw_string, **kwargs):
 
 
 def chargen_finalize(caller, raw_string):
+    caller.stats.add("strength", "Strength", trait_type="static", base=10)
+    caller.stats.add("dexterity", "Dexterity", trait_type="static", base=10)
+    caller.stats.add("constitution", "Constitution", trait_type="static", base=10)
+    caller.stats.add("intelligence", "Intelligence", trait_type="static", base=10)
+    caller.stats.add("wisdom", "Wisdom", trait_type="static", base=10)
+    caller.stats.add("charisma", "Charisma", trait_type="static", base=10)
+
     caller.move_to(XYZRoom.objects.get_xyz(xyz=("1", "1", "nautilus")), quiet=True)
     return "", ""

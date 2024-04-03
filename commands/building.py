@@ -9,13 +9,12 @@ from evennia.objects.models import ObjectDB
 from evennia.utils import class_from_module, utils
 from evennia.utils.eveditor import EvEditor
 from evennia.utils.utils import dbref, inherits_from, list_to_string
+from menus import building_menu
 from server.conf import logger
 from utils.colors import strip_ansi
-from world.xyzgrid import commands as xyzcommands
+from world.xyzgrid import xyzcommands
 from world.xyzgrid.xyzroom import XYZRoom
 
-# from typeclasses.rooms import XYZRoom
-from commands import building_menu
 from commands.command import Command
 
 CHAR_TYPECLASS = settings.BASE_CHARACTER_TYPECLASS

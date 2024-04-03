@@ -120,23 +120,3 @@ class AMenu(EvMenu):
             cols_list.append(EvColumn(*table[start:end]))
 
         return "\n" + str(EvTable(table=cols_list, border="none")) + "\n"
-
-
-class InteractionMenu(AMenu):
-    def nodetext_formatter(self, nodetext):
-        """
-        Format the node text itself.
-
-        Args:
-            nodetext (str): The full node text (the text describing the node).
-
-        Returns:
-            nodetext (str): The formatted node text.
-
-        """
-
-        text = nodetext.strip("\n")
-        # if not text == "":
-        text += "\n\n|CSelect an Option:|n"
-
-        return dedent(text.strip("\n"), baseline_index=0).rstrip()

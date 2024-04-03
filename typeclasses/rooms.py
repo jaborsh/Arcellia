@@ -53,9 +53,7 @@ class Room(ExtendedRoomMixin, ObjectParent, DefaultRoom):
             
             {exits}
             
-        {characters}
-        {mobs}
-        {things}
+        {characters}{mobs}{things}
         """
     )
 

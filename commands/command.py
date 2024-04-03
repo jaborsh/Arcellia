@@ -204,7 +204,7 @@ class Command(BaseCommand):
                 self.character = None
 
     def at_post_cmd(self):
-        self.msg(prompt="> ")
+        self.caller.msg(prompt="> ")
 
 
 # -------------------------------------------------------------

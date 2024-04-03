@@ -45,7 +45,6 @@ HTTP_LOG_FILE = os.path.join(LOG_DIR, "http", "http_requests.log")
 LOCKWARNING_LOG_FILE = os.path.join(LOG_DIR, "lockwarning", "lockwarnings.log")
 ACCOUNT_LOG_DIR = os.path.join(LOG_DIR, "accounts")
 CHANNEL_LOG_DIR = os.path.join(LOG_DIR, "channels")
-CHARACTER_LOG_DIR = os.path.join(LOG_DIR, "characters")
 
 log_files = [
     SERVER_LOG_FILE,
@@ -54,7 +53,6 @@ log_files = [
     LOCKWARNING_LOG_FILE,
     ACCOUNT_LOG_DIR,
     CHANNEL_LOG_DIR,
-    CHARACTER_LOG_DIR,
 ]
 for log_file in log_files:
     log_dir = os.path.dirname(log_file)
@@ -86,6 +84,13 @@ MAX_CHAR_LIMIT_WARNING = (
 # Default command sets and commands
 ######################################################################
 COMMAND_DEFAULT_CLASS = "commands.command.Command"
+EXTRA_LAUNCHER_COMMANDS["xyzgrid"] = "world.xyzgrid.launchcmd.xyzcommand"
+PROTOTYPE_MODULES += [
+    "world.xyzgrid.prototypes",
+    "world.prototypes.containers",
+    "world.prototypes.gemstones",
+    "world.nautilus.prototypes",
+]
 
 ######################################################################
 # Game Time setup

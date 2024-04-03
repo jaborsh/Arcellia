@@ -1,6 +1,8 @@
+from . import prototypes
+
 NAUTILUS_INNER_HOLD = {
     "prototype_key": "xyz_room",
-    "typeclass": "world.nautilus.rooms.NautilusInnerHold",
+    "typeclass": "typeclasses.nautilus.rooms.NautilusInnerHold",
 }
 
 TUTORIAL_MAP = r"""
@@ -11,8 +13,8 @@ TUTORIAL_MAP = r"""
  3   #---+-#
      |   | |
  2 #-#-# #-#
-     |     
- 1 #-#-#   
+     |     |
+ 1 #-#-#   #
      |
  0   #
 
@@ -52,6 +54,7 @@ PROTOTYPES = {
         "prototype_parent": "xyz_room",
         "key": "|CThe Nautilus - Berthing|n",
         "desc": "Within the southern alcove of the berthing, a small recess houses personal effects untouched by time's mercy. An ensemble of trinkets - a tarnished |#c0c0c0locket|n, a |#b87333compass|n whose needle swings with indecision, and a scattering of |#ffd700coins|n from realms afar - rests atop a simple wooden chest. The chest, its varnish dulled and worn, bears carvings of the creatures of the deep: serpents and leviathans winding in eternal chase around its lock. Here, the presence of those who once called this chamber their own lingers like a watermark, stories untold and voyages abruptly ceased.",
+        "tags": "test",
         "senses": {
             "feel": "The stillness of the alcove melds with the coolness of the submerged environment, a silent sanctuary away from the ceaseless tides beyond.",
             "smell": "Aromatic hints of wood polish faintly rise above the omnipresent odor of brine and decay.",
@@ -63,6 +66,7 @@ PROTOTYPES = {
             "compass": "The compass, encased in a copper shell turned verdigris at the edges, sits heavy and immobile. Its face still gleams faintly when caught by stray shafts of light, the cardinal points etched deeply into the medal as a lasting declaration of direction in a world on the waves.",
             "coins": "Surrounding the other artifacts, coins spill across the chest, their diversity a small treasure trove of tales from afar but ultimately foreign and useless to you. Each disc, whether gilt or silvery or possessing the burnished warmth of copper, carries upon it the countenance of a soverign or the sigil of a distant land, the raised details catching the dim light as if holding one last time to the days above the deep.",
         },
+        "items": [(prototypes.NAUTILUS_WOODEN_CHEST, 1)],
     },
     (2, 1): {
         "prototype_parent": "xyz_room",
@@ -77,6 +81,7 @@ PROTOTYPES = {
         "details": {
             "corpses": "Attire merges with wearer, the decay uniform in its progress; amidst the remains, insignias and medals cling to fabric, persevering symbols of duty and honor in the unyielding dark."
         },
+        "items": [(prototypes.NAUTILUS_SAILOR_CORPSE, 1)],
     },
     (1, 2): {
         "prototype_parent": "xyz_room",
@@ -92,6 +97,7 @@ PROTOTYPES = {
             "scrolls": "These sprawling parchments, once vibrant, now adopt a mellowed hue, their surface a battleground where ink and time contend to shape history's trace.",
             "walls": "The walls, blanketed with the catographer's craft, display a palimpsest of exploration; each map, frayed at the edges, layers upon its predecessor in a narrative of discovery.",
         },
+        "items": [(prototypes.NAUTILUS_BROKEN_BODY, 1)],
     },
     (0, 2): {
         "prototype_parent": "xyz_room",
@@ -122,6 +128,7 @@ PROTOTYPES = {
             "astrolabes": "Scattered across the observatory, the astrolabes are relics of brass and precision, their form providing homage to the goblin artificers who once crafted devices of such cunning complexity. Each dial and plate intricately engraved, not merely with the signs of the zodiac but also with minuscule depictions of goblin life, hint at a culture rich with tradition and knowledge. To lay one's gaze upon them is to be filled with sudden, fleeting visions of goblins in their daily toil and ancient history, their ingenuity and craft flashing past with ephemeral encounters with a world both alien and intimate.",
             "window": "Dominating the observatory, the window is a melancholic mosaic, its once pristine transparency marred by fissures that catch the light in haunting displays. Where the glass remains intact, it reflects the gloom of the room, an ever-watchful eye that has beheld the unfolding of the ship's fate. Through this fractured pane, the incomprehensible depth of the ocean gazes back, exacerbating the sense of isolation from the world above and the celestial guidance now lost.",
         },
+        "items": [(prototypes.NAUTILUS_GOBLIN_CORPSE, 1)],
     },
     (1, 3): {
         "prototype_parent": "xyz_room",
@@ -142,8 +149,23 @@ PROTOTYPES = {
         },
     },
     (4, 3): {
+        "prototype_parent": "xyz_room",
+        "key": "|CThe Nautilus - Hallway|n",
+        "desc": "The dimly lit hallway stretches out, its once pristine walls now marred by the unsettling remnants of dark rituals. The air hangs heavy with an oppressive stillness, broken only by the occasional creak of the ship's timbers, as if the vessel itself were mourning the atrocities that have taken place within its confines. The floorboards, stained with the telltale signs of spilled blood, groan underfoot. Shadows dance along the walls, cast by the flickering light of a few remaining oil lamps, their feeble glow serving only to deepen the sense of foreboding that permeates the space. The peeling wallpaper, once a rich burgundy, now appears as a sickly, mottled hue, its intricate patterns distorted. At the far end of the hallway, a heavy wooden door stands slightly ajar, its iron hinges rusted and twisted.|/|/    <morning>|#808080The pale, sickly light of dawn filters through the grimy portholes, casting an eerie, gray pallor over the hallway, as if even the sun itself were reluctant to shed its light upon this forsaken place.|n</morning><afternoon>|#A9A9A9The afternoon sun, obscured by thick clouds, casts a gloomy, ashen light through the portholes, further emphasizing the lifeless atmosphere that pervades the hallway.|n</afternoon><evening>|#696969As evening falls, the dying light filtering through the portholes takes on a sinister, leaden hue, transforming the hallway into a realm of gathering shadows and deepening despair.|n</evening><night>|xIn the dead of night, the hallway is engulfed in an impenetrable, inky darkness, broken only by the feeble, flickering light of the oil lamps, their wavering flames casting grotesque, dancing shadows upon the walls.|n</night>",
+        "senses": {
+            "feel": "The air feels thick and oppressive.",
+            "smell": "A faint, cloying scent of decay and incense lingers in the air.",
+            "sound": "The silence is broken by the occasional creak and groan of the ship's timbers, like the mournful whispers of the souls trapped within.",
+            "taste": "The taste of fear and despair lingers on the tongue.",
+        },
+        "details": {
+            "lamps": "The oil lamps, their brass fittings tarnished and dented, emit a feeble, flickering light, casting distorted shadows that seem to writhe and dance upon the walls, as if possessed by the malevolent spirits that haunt this place.",
+            "door": "The heavy wooden door at the end of the hallway stands slightly ajar, its once sturdy frame now warped and twisted, as if even the inanimate wood had recoiled in horror at the atrocities it had witnessed.",
+        },
+    },
+    (4, 2): {
         "prototype_parent": NAUTILUS_INNER_HOLD,
-        "typeclass": "world.nautilus.rooms.NautilusInnerHold",
+        "typeclass": "typeclasses.nautilus.rooms.NautilusInnerHold",
         "key": "|CThe Nautilus - Inner Hold|n",
         "desc": "Shrouded in insidious darkness, the hold below betrays its purpose with an unyielding grimness. Corrosion grips the iron lattice of cell doors, the once unwavering barriers succumbing to a relentless siege by salt and moisture. Narrow confines serve as punitive chambers - stark, unfurnished save for the barest necessities of a cot bolted firmly to the wall, a hard wooden bench, and a chamber pot. The air hangs thick with a stagnant heaviness as if suffused with the muted laments of souls once held within these oppressive walls. Long-dead lanterns spaced methodically along the corridor offer no relief from the pervasive umbrage, their glassy eyes mirroring the void where hope's light has long since dwindled.",
         "senses": {
@@ -159,8 +181,9 @@ PROTOTYPES = {
             "pot": "Austere and overlooked, the chamber pot remains an object that time has not deigned to touch, underscoring the abject solitude once found here.",
             "lanterns": "The lanterns, their light extinguished, are sheathed in the accumulated grime of a tragedy silent and unseen, the faint outlines of their form barely discernible in the cloaking darkness.",
         },
+        "items": [(prototypes.NAUTILUS_WOODEN_CHEST, 1)],
     },
-    (4, 2): {
+    (4, 1): {
         "prototype_parent": "xyz_room",
         "key": "|CThe Nautilus - Morphosis Room|n",
         "desc": "Enclosed by walls etched with a menacing lexicon of runes, the chamber harbors an air of imminent darkness. A viscous, scarlet gleam emanates from the cryptic symbols, casting the room in a ghastly tableau as if illuminated by the very essence of malice. Fresh gore adheres to the surface of the floor, its viscosity narrating a grim chronicle of ritual and sacrifice. At the heart lies a shadowed altar, crafted from somber stone, besieged by a horde of unsanitary instruments and blood-stained blades. The atmosphere vibrates with eldritch energy, a palpable presence that imbues the sinister sigils with a pulsating life, as though on the verge of birthing some abhorrent sentience.",
@@ -173,6 +196,7 @@ PROTOTYPES = {
         "details": {
             "altar": "Centrally placed, the altar is a slab of darkness, its surface a canvas of arcane imagery weeping with the freshness of sanguine offerings."
         },
+        "items": [(prototypes.NAUTILUS_WOODEN_CHEST, 1)],
     },
     (3, 2): {
         "prototype_parent": "xyz_room",

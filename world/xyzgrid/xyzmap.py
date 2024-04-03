@@ -202,10 +202,10 @@ class XYZMap:
 
                 {
                     "map": <str>,
-                    "zcoord": <int or str>, # optional
-                    "legend": <dict>,       # optional
-                    "prototypes": <dict>    # optional
-                    "options": <dict>       # optional
+                    "zcoord": <int or str>,   # optional
+                    "legend": <dict>,         # optional
+                    "prototypes": <dict>      # optional
+                    "options": <dict>         # optional
                 }
 
         """

@@ -7,9 +7,9 @@ from evennia.objects.models import ObjectDB
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import create, search, utils
 from evennia.utils.evmenu import get_input
+from menus.amenu import AMenu
 from server.conf import logger
 from utils.colors import strip_ansi
-from world.menus import AMenu
 
 from commands.command import Command
 

@@ -17,7 +17,7 @@ class Handler:
 
     __slots__ = ("data", "db_attribute", "obj")
 
-    def __init__(self, obj, db_attribute):
+    def __init__(self, obj, db_attribute_key):
         """
         Initializes a Handler object.
 
@@ -30,12 +30,12 @@ class Handler:
             db_attribute (str): The name of the attribute in the object's attributes dictionary.
             obj (object): The object for which the data is being handled.
         """
-        if not obj.attributes.get(db_attribute, None):
-            obj.attributes.add(db_attribute, {})
+        if not obj.attributes.get(db_attribute_key, None):
+            obj.attributes.add(db_attribute_key, {})
 
-        self.data = obj.attributes.get(db_attribute)
+        self.data = obj.attributes.get(db_attribute_key)
         self.obj = obj
-        self.db_attribute = db_attribute
+        self.db_attribute = db_attribute_key
 
     def _load(self):
         """

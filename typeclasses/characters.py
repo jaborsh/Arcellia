@@ -10,7 +10,7 @@ creation commands.
 
 from evennia.objects.objects import DefaultCharacter
 from evennia.utils.utils import lazy_property, make_iter, to_str
-from handlers import traits
+from handlers import quests, traits
 from server.conf import logger
 from utils.text import grammarize, wrap
 from world.characters import backgrounds, genders
@@ -46,6 +46,10 @@ class Character(LivingMixin, ObjectParent, DefaultCharacter):
     @lazy_property
     def appearance(self):
         return traits.TraitHandler(self, db_attribute_key="appearance")
+
+    @lazy_property
+    def quests(self):
+        return quests.QuestHandler(self, db_attribute_key="quests")
 
     @property
     def background(self):

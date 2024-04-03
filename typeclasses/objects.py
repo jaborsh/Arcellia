@@ -472,3 +472,12 @@ class Object(ObjectParent, DefaultObject):
             from_obj=self,
             mapping=mapping,
         )
+
+
+class InteractiveObject(Object):
+    """
+    An interactive object.
+    """
+
+    def at_object_creation(self):
+        self.locks.add("get:false()")
