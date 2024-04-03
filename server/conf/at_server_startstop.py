@@ -26,6 +26,7 @@ def at_server_init():
     This is called first as the server is starting up, regardless of how.
     """
     xyzgrid_add("world.chargen.map")
+    xyzgrid_add("world.nautilus.map")
 
 
 def at_server_start():

@@ -30,6 +30,7 @@ __pycache__
 # For group efforts, comment out some or all of these.
 server/conf/secret_settings.py
 server/logs/*.log.*
+server/.cache/*
 server/.static/*
 server/.media/*
 

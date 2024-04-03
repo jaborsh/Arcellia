@@ -141,7 +141,7 @@ class CmdCreate(Command):
                 persistent=True,
             )
 
-        prompt = f"Did you enter '|w{key}|n' correctly and does this name comply with the rules? |r[Y/n]|n"
+        prompt = f"\nDid you enter '|w{key}|n' correctly and does this name comply with the rules? |r[Y/n]|n"
         get_input(account, prompt, _callback)
 
 

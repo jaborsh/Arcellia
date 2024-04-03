@@ -30,6 +30,14 @@ class ObjectParent:
     """
 
     @property
+    def display_name(self):
+        return self.attributes.get("display_name", self.name)
+
+    @display_name.setter
+    def display_name(self, value: str):
+        self.db.display_name = value
+
+    @property
     def senses(self):
         return self.attributes.get("senses", {})
 
@@ -211,14 +219,6 @@ class Object(ObjectParent, DefaultObject):
                                  object speaks
 
     """
-
-    @property
-    def display_name(self):
-        return self.attributes.get("display_name", self.name)
-
-    @display_name.setter
-    def display_name(self, value: str):
-        self.attributes.add("display_name", value)
 
     def get_display_name(self, looker=None, **kwargs):
         """

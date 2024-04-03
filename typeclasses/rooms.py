@@ -48,12 +48,14 @@ class Room(ExtendedRoomMixin, ObjectParent, DefaultRoom):
     appearance_template = dedent(
         """
         {name}
-
+        
             {desc}
-
+            
             {exits}
             
-        {characters}{mobs}{things}
+        {characters}
+        {mobs}
+        {things}
         """
     )
 
@@ -251,15 +253,11 @@ class Room(ExtendedRoomMixin, ObjectParent, DefaultRoom):
             return ""
 
         # populate the appearance_template string.
-        return self.format_appearance(
-            self.appearance_template.format(
-                name=self.get_display_name(looker, **kwargs),
-                desc=self.get_display_desc(looker, **kwargs),
-                exits=self.get_display_exits(looker, **kwargs),
-                characters=self.get_display_characters(looker, **kwargs),
-                mobs=self.get_display_mobs(looker, **kwargs),
-                things=self.get_display_things(looker, **kwargs),
-            ),
-            looker,
-            **kwargs,
-        )
+        return self.appearance_template.format(
+            name=self.get_display_name(looker, **kwargs),
+            desc=self.get_display_desc(looker, **kwargs),
+            exits=self.get_display_exits(looker, **kwargs),
+            characters=self.get_display_characters(looker, **kwargs),
+            mobs=self.get_display_mobs(looker, **kwargs),
+            things=self.get_display_things(looker, **kwargs),
+        ).strip()
