@@ -1,3 +1,5 @@
+from copy import copy
+
 from evennia.utils import dbserialize
 
 from handlers.handler import Handler
@@ -20,22 +22,6 @@ class QuestHandler(Handler):
     - clear_quests(): Removes all quests.
     """
 
-    def __init__(self, obj, db_attribute_key="quests"):
-        """
-        Initializes the QuestHandler attached to a game object.
-
-        Args:
-            obj: The game object this handler is attached to.
-            db_attribute (str): The database attribute used for storing quest data.
-        """
-
-        if not obj.attributes.get(db_attribute_key, None):
-            obj.attributes.add(db_attribute_key, {})
-
-        self.data = obj.attributes.get(db_attribute_key)
-        self.obj = obj
-        self.db_attribute = db_attribute_key
-
     def add(self, quest_cls):
         """
         Adds a new quest to the QuestHandler.
@@ -49,7 +35,7 @@ class QuestHandler(Handler):
             None
         """
         quest = quest_cls(self.obj)
-        self.data[quest.key] = quest
+        self._data[quest.key] = quest
 
     def add_details(self, quest, new_details):
         """
@@ -64,8 +50,8 @@ class QuestHandler(Handler):
         Returns:
             None
         """
-        if self.data.get(quest, None):
-            self.data[quest].add_details(new_details)
+        if self._data.get(quest, None):
+            self._data[quest].add_details(new_details)
             self._save()
 
     def get_detail(self, quest, detail):
@@ -81,7 +67,7 @@ class QuestHandler(Handler):
         Returns:
             Any or None: The value of the specific detail from the specified quest, or None if the quest or the detail does not exist.
         """
-        quest = self.data.get(quest, None)
+        quest = self._data.get(quest, None)
         return quest.details.get(detail) if quest else None
 
     def get_details(self, quest):
@@ -96,40 +82,8 @@ class QuestHandler(Handler):
         Returns:
             dict or None: A dictionary containing the details of the specified quest, or None if the quest does not exist.
         """
-        quest = self.data.get(quest, None)
+        quest = self._data.get(quest, None)
         return quest.get_details() if quest else None
-
-    def get_stage(self, quest):
-        """
-        Retrieves the current stage of a specific quest.
-
-        This method retrieves the current stage of a specific quest from the QuestHandler's data dictionary. It first checks if the quest exists in the data dictionary. If the quest exists, it retrieves the corresponding Quest object and then calls the 'get_stage' method of the Quest object to retrieve the current stage. If the quest does not exist, it returns None.
-
-        Parameters:
-            quest (str): The name of the quest to retrieve the stage from.
-
-        Returns:
-            str or None: The current stage of the specified quest, or None if the quest does not exist.
-        """
-        quest = self.data.get(quest, None)
-        return quest.get_stage() if quest else None
-
-    def set_stage(self, quest, new_stage):
-        """
-        Sets the stage of a specific quest.
-
-        This method sets the current stage of a specific quest in the QuestHandler's data dictionary. It first checks if the quest exists in the data dictionary. If the quest exists, it retrieves the corresponding Quest object and then calls the 'set_stage' method of the Quest object to update the stage. The updated stage is then saved using the _save() method.
-
-        Parameters:
-            quest (str): The name of the quest to set the stage for.
-            new_stage (str): The new stage to set for the quest.
-
-        Returns:
-            None
-        """
-        if self.data.get(quest, None):
-            self.data[quest].set_stage(new_stage)
-            self._save()
 
     def remove_quest(self, quest):
         """
@@ -143,8 +97,8 @@ class QuestHandler(Handler):
         Returns:
             None
         """
-        if quest in self.data:
-            del self.data[quest]
+        if quest in self._data:
+            del self._data[quest]
             self._save()
 
     def clear_quests(self):
@@ -159,7 +113,7 @@ class QuestHandler(Handler):
         Returns:
             None
         """
-        self.data.clear()
+        self._data.clear()
 
 
 class Quest:
@@ -178,8 +132,7 @@ class Quest:
     """
 
     key = "quest"
-    details = {}
-    stage = 0
+    initial_details = {}
 
     def __init__(self, quester):
         """
@@ -200,6 +153,7 @@ class Quest:
             raise TypeError("The quest name must not have spaces in it.")
 
         self.quester = quester
+        self.details = copy(self.initial_details)
 
     def __serialize_dbobjs__(self):
         self.quester = dbserialize.dbserialize(self.quester)
@@ -234,31 +188,3 @@ class Quest:
 
     def get_details(self):
         return self.details
-
-    def get_stage(self):
-        """
-        Retrieves the current stage of a specific quest.
-
-        This method retrieves the current stage of a specific quest. It returns the value of the quest's stage attribute.
-
-        Parameters:
-            None
-
-        Returns:
-            str: The current stage of the specified quest.
-        """
-        return self.stage
-
-    def set_stage(self, new_stage):
-        """
-        Sets the stage of a specific quest.
-
-        This method updates the current stage of a specific quest. It takes a new_stage parameter, which represents the new stage to set for the quest. The method sets the quest's stage attribute to the new_stage value.
-
-        Parameters:
-            new_stage (str): The new stage to set for the quest.
-
-        Returns:
-            None
-        """
-        self.stage = new_stage

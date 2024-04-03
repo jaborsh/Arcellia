@@ -3,7 +3,7 @@ from handlers.quests import Quest
 
 class NautilusQuest(Quest):
     key = "Nautilus"
-    details = {
+    initial_details = {
         "body_assessment": False,
         "pulled_lever": None,
         "enchantress": False,
