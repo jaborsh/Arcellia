@@ -116,6 +116,9 @@ TIME_IGNORE_DOWNTIMES = True
 ######################################################################
 # Default Account setup and access
 ######################################################################
+# The start position for new characters. Default is Creation (#3).
+START_LOCATION = "#3"
+
 # Different Multisession modes allow a player (=account) to connect to the
 # game simultaneously with multiple clients (=sessions).
 #  0 - single session per account (if reconnecting, disconnect old session)

@@ -29,6 +29,42 @@ class ObjectParent:
 
     """
 
+    @property
+    def senses(self):
+        return self.attributes.get("senses", {})
+
+    @property
+    def feel(self):
+        return self.senses.get("feel", "You feel nothing interesting.")
+
+    @feel.setter
+    def feel(self, value: str):
+        self.senses["feel"] = value
+
+    @property
+    def smell(self):
+        return self.senses.get("smell", "You smell nothing interesting.")
+
+    @smell.setter
+    def smell(self, value: str):
+        self.senses["smell"] = value
+
+    @property
+    def sound(self):
+        return self.senses.get("sound", "You hear nothing interesting.")
+
+    @sound.setter
+    def sound(self, value: str):
+        self.senses["sound"] = value
+
+    @property
+    def taste(self):
+        return self.senses.get("taste", "You taste nothing interesting.")
+
+    @taste.setter
+    def taste(self, value: str):
+        self.senses["taste"] = value
+
 
 class Object(ObjectParent, DefaultObject):
     """
@@ -183,42 +219,6 @@ class Object(ObjectParent, DefaultObject):
     @display_name.setter
     def display_name(self, value: str):
         self.attributes.add("display_name", value)
-
-    @property
-    def senses(self):
-        return self.attributes.get("senses", {})
-
-    @property
-    def feel(self):
-        return self.senses.get("feel", "You feel nothing interesting.")
-
-    @feel.setter
-    def feel(self, value: str):
-        self.senses["feel"] = value
-
-    @property
-    def smell(self):
-        return self.senses.get("smell", "You smell nothing interesting.")
-
-    @smell.setter
-    def smell(self, value: str):
-        self.senses["smell"] = value
-
-    @property
-    def sound(self):
-        return self.senses.get("sound", "You hear nothing interesting.")
-
-    @sound.setter
-    def sound(self, value: str):
-        self.senses["sound"] = value
-
-    @property
-    def taste(self):
-        return self.senses.get("taste", "You taste nothing interesting.")
-
-    @taste.setter
-    def taste(self, value: str):
-        self.senses["taste"] = value
 
     def get_display_name(self, looker=None, **kwargs):
         """
