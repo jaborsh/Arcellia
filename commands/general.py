@@ -460,118 +460,102 @@ class CmdCover(Command):
         )
 
 
-class CmdDrop(general.CmdDrop):
-    """
-    Syntax: drop [quantity] [obj] [number]
-            drop all
+class CmdDrop(Command):
+    key = "drop"
+    locks = "cmd:all()"
+    arg_regex = r"\s|$"
 
-    Drops an object or multiple objects from your inventory into your location.
-    """
+    def parse(self):
+        self.args = self.args.strip()
+        if "all" in self.args:
+            regex_pattern = r"(?P<quantity>)(?P<item>all\s*\w*)(?P<item_number>)?$"
+        else:
+            regex_pattern = r"(?:(?P<quantity>\d+)\s+)?(?P<item>[\w\s]+?)(?:\s+(?P<item_number>\d+))?$"
 
-    # key = "drop"
-    # locks = "cmd:all()"
-    # arg_regex = r"\s|$"
+        match = re.match(regex_pattern, self.args.strip())
+        if match:
+            self.quantity = (
+                int(match.group("quantity")) if match.group("quantity") else 1
+            )
+            self.item = match.group("item")
+            self.item_number = (
+                int(match.group("item_number")) if match.group("item_number") else 1
+            )
 
-    # def parse(self):
-    #     """
-    #     Simplified parsing logic.
-    #     """
-    #     self.args = self.args.strip().lower()
-    #     self.quantity, self.obj_name, self.number = 1, None, 1  # Default values
+    def _drop_all(self, caller, item):
+        inventory = caller.contents
+        location = caller.location
+        for obj in inventory:
+            if not obj.at_pre_drop(caller):
+                continue
 
-    #     if self.args == "all":
-    #         self.quantity = "all"
-    #     else:
-    #         match = re.match(r"(\d+)\s+(\w+)|(\w+)\s*(\d*)", self.args)
-    #         if match:
-    #             self.obj_name = match.group(2) or match.group(3)
-    #             self.quantity = int(match.group(1)) if match.group(1) else 1
-    #             self.number = int(match.group(4)) if match.group(4) else 1
+            obj.move_to(location, quiet=True, move_type="drop")
+            obj.at_drop(caller)
 
-    # def _drop_gold(self, number):
-    #     """
-    #     Handles the logic for dropping gold.
-    #     """
-    #     caller = self.caller
-    #     if number > caller.wealth.value:
-    #         return caller.msg("You don't have that much gold.")
+        caller.location.msg_contents("$You() $conj(drop) everything.", from_obj=caller)
 
-    #     caller.wealth.base -= number
-    #     self._spawn_gold(caller.location, number)
-    #     caller.location.msg_contents("$You() $conj(drop) some gold.", from_obj=caller)
+    def _drop_single(self, caller, item, quantity, item_number):
+        obj = caller.search(
+            item,
+            location=caller,
+            return_quantity=item_number,
+            return_type=SearchReturnType.ONE,
+        )
+        if not obj:
+            return
 
-    # def _spawn_gold(self, location, amount):
-    #     """
-    #     Spawns gold at the specified location.
-    #     """
-    #     gold_info = GOLD.copy()
-    #     gold_info.update({"price": amount, "location": location, "home": None})
-    #     spawner.spawn(gold_info)
+        if not obj.at_pre_drop(caller):
+            return
 
-    # def _drop_items(self, quantity, obj_name, number):
-    #     """
-    #     Handles the logic for dropping items other than gold.
-    #     """
-    #     caller = self.caller
-    #     if quantity == "all":
-    #         # Logic to drop all items
-    #         inventory = caller.contents  # Assuming this gets all items in the inventory
-    #         for obj in inventory:
-    #             if not obj.at_pre_drop(caller):
-    #                 continue
-    #             obj.move_to(caller.location, quiet=True, move_type="drop")
-    #             obj.at_drop(caller)
-    #         # Send a consolidated message for all items dropped
-    #         caller.location.msg_contents(
-    #             "$You() $conj(drop) everything.", from_obj=caller
-    #         )
-    #     else:
-    #         dropped_items = []
-    #         for _ in range(quantity):
-    #             obj = caller.search(
-    #                 obj_name,
-    #                 location=caller,
-    #                 nofound_string=f"You aren't carrying {obj_name}.",
-    #                 number=number,
-    #             )
+        obj.move_to(caller.location, quiet=True, move_type="drop")
+        obj.at_drop(caller)
+        caller.location.msg_contents(
+            f"$You() $conj(drop) {obj.get_display_name(caller)}.", from_obj=caller
+        )
 
-    #             if not obj:
-    #                 break
+    def _drop_multiple(self, caller, item, quantity, item_number):
+        objs = caller.search(
+            item,
+            location=caller,
+            return_quantity=quantity,
+            return_type=SearchReturnType.MULTIPLE,
+        )
+        if not objs:
+            return
 
-    #             if not obj.at_pre_drop(caller):
-    #                 continue
+        for obj in objs:
+            if not obj.at_pre_drop(caller):
+                continue
 
-    #             obj.move_to(caller.location, quiet=True, move_type="drop")
-    #             obj.at_drop(caller)
-    #             if obj not in dropped_items:
-    #                 dropped_items.append(obj)
+            obj.move_to(caller.location, quiet=True, move_type="drop")
+            obj.at_drop(caller)
 
-    #         # Send a consolidated message for multiple dropped items
-    #         if dropped_items:
-    #             obj = dropped_items[0]
-    #             quantity = len(dropped_items)
-    #             single, plural = obj.get_numbered_name(quantity, caller)
-    #             item = single if quantity == 1 else f"{quantity} {plural}"
-    #             caller.location.msg_contents(
-    #                 f"$You() $conj(drop) {item}.", from_obj=caller
-    #             )
+        obj = objs[0]
+        quantity = len(objs)
+        single, plural = obj.get_numbered_name(quantity, caller)
+        caller.location.msg_contents(f"$You() $conj(drop) {plural}.", from_obj=caller)
 
-    # def func(self):
-    #     """Implement command"""
+    def func(self):
+        caller = self.caller
+        args = self.args
 
-    #     caller = self.caller
-    #     quantity = self.quantity
-    #     obj_name = self.obj_name
-    #     number = self.number
+        if not args:
+            return caller.msg("Drop what?")
 
-    #     if not self.args:
-    #         caller.msg("Drop what?")
-    #         return
+        all = "all" in self.item or (self.quantity == 1 and singularize(self.item))
+        quantity = self.quantity
+        item = self.item.strip("all").strip()
+        item_number = self.item_number
 
-    #     if obj_name == "gold":
-    #         self._drop_gold(quantity)
-    #     else:
-    #         self._drop_items(quantity, obj_name, number)
+        if item:
+            item = singularize(item) if singularize(item) else item
+
+        if all:
+            self._drop_all(caller, item)
+        elif quantity == 1:
+            self._drop_single(caller, item, quantity, item_number)
+        else:
+            self._drop_multiple(caller, item, quantity, item_number)
 
 
 class CmdEmote(Command):
@@ -666,21 +650,37 @@ class CmdFeel(Command):
         caller.msg(obj.feel)
 
 
-class CmdGet(general.CmdGet):
+class CmdGet(Command):
     """
-    Syntax: get [quantity] [obj] [number] [from [container] [number]]
+    Command to get/take items from the game world.
 
-    Examples: get wand
-              get 2 wands
-              get wand 2
-              get wand from backpack
-              get 2 wands from backpack
-              get wand 2 from backpack
-              get wand from backpack 2
-              get 2 wands from backpack 2
-              get wand 2 from backpack 2
+    Usage:
+        get all [items] [from <container>] [container_number]
+        get <item> [item_number] [from <container>] [container_number]
 
-    Picks up an object from your location or a container in your inventory.
+    Examples:
+        get all
+        get sword
+        get sword 2
+        get 2 swords
+        get all from bag
+        get apple from bag
+        get 2 apples from bag
+        get 2 apples from bag 2
+
+    This command allows the player to get/take items from the game world. The
+    player can specify the name of the item to get, an optional container from
+    which to get the item, and an optional quantity of items to get. If no
+    quantity is specified, the default is 1.
+
+    If the player specifies a container, the command will attempt to find the
+    item within the container. If no container is specified, the command will
+    search for the item in the player's current location.
+
+    If the item is found and the player has the necessary permissions to get
+    the item, it will be moved to the player's inventory. The appropriate
+    messages will be displayed to the player and other characters in the
+    location.
     """
 
     key = "get"

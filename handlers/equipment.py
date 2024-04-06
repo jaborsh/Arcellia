@@ -119,7 +119,6 @@ class EquipmentHandler(Handler):
             or equipment_type == EquipmentType.SHIELD
         ):
             remaining_weapons = self._data[EquipmentType.WEAPON]
-            print(remaining_weapons[0].versatility == WeaponVersatility.VERSATILE)
             if (
                 remaining_weapons
                 and remaining_weapons[0].versatility == WeaponVersatility.VERSATILE

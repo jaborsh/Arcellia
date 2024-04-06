@@ -95,7 +95,9 @@ class Equipment(Object):
         return position_map.get(self.equipment_type, "on body")
 
     def at_drop(self, caller):
-        caller.equipment.remove(self)
+        if self in caller.equipment.all():
+            caller.equipment.remove(self)
 
     def at_give(self, caller, target):
-        caller.equipment.remove(self)
+        if self in caller.equipment.all():
+            caller.equipment.remove(self)
