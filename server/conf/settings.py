@@ -86,6 +86,7 @@ MAX_CHAR_LIMIT_WARNING = (
 COMMAND_DEFAULT_CLASS = "commands.command.Command"
 EXTRA_LAUNCHER_COMMANDS["xyzgrid"] = "world.xyzgrid.launchcmd.xyzcommand"
 PROTOTYPE_MODULES += [
+    "prototypes.common_prototypes",
     "prototypes.containers",
     "prototypes.currencies",
     "prototypes.gemstones",
