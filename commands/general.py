@@ -19,7 +19,7 @@ from prototypes import currencies
 from server.conf import logger
 from server.conf.at_search import SearchReturnType
 from typeclasses.clothing import Clothing
-from typeclasses.equipment.equipment import Equipment
+from typeclasses.equipment.equipment import Equipment, EquipmentType
 from typeclasses.mixins.living import LivingMixin
 from utils.colors import strip_ansi
 from utils.text import pluralize, singularize
@@ -60,6 +60,7 @@ __all__ = [
     "CmdWealth",
     "CmdWear",
     "CmdWhisper",
+    "CmdWield",
 ]
 
 
@@ -1772,7 +1773,7 @@ class CmdWear(Command):
             caller.msg("Usage: wear <obj>")
             return
 
-        item = caller.search(args, candidates=caller.contents, quiet=True)
+        item = caller.search(args, location=caller, quiet=True)
         if not item:
             caller.msg("You don't have anything like that.")
             return
@@ -1825,3 +1826,26 @@ class CmdWhisper(Command):
         caller.at_say(
             whisper, msg_self=True, receivers=receivers or None, msg_type="whisper"
         )
+
+
+class CmdWield(Command):
+    key = "wield"
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+
+        if not args:
+            return caller.msg("Wield what?")
+
+        weapon = caller.search(args, location=caller, quiet=True)
+        if not weapon:
+            return caller.msg("You don't have anything like that.")
+
+        weapon = weapon[0]
+
+        if not weapon.equipment_type == EquipmentType.WEAPON:
+            return caller.msg("You can't wield that.")
+
+        caller.equipment.wear(weapon)

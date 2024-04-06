@@ -1,6 +1,7 @@
 from .weapons import Weapon, WeaponVersatility
 
 
+# Martial Weapons
 class Flail(Weapon):
     """
     A one-handed flail weapon.
@@ -74,6 +75,98 @@ class WarPick(Weapon):
 
     Attributes:
         versatility (WeaponVersatility): The versatility of the weapon, indicating that it is a one-handed weapon.
+    """
+
+    def at_object_creation(self):
+        super().at_object_creation()
+        self.versatility = WeaponVersatility.ONE_HANDED
+
+
+# Simple Weapons
+class Club(Weapon):
+    """
+    A one-handed club weapon.
+
+    Attributes:
+        versatility (WeaponVersatility): The versatility of the weapon, indicating it is a one-handed weapon.
+    """
+
+    def at_object_creation(self):
+        super().at_object_creation()
+        self.versatility = WeaponVersatility.ONE_HANDED
+
+
+class Dagger(Weapon):
+    """
+    A one-handed dagger weapon.
+
+    Attributes:
+        versatility (WeaponVersatility): The versatility of the weapon, indicating it is a one-handed weapon.
+    """
+
+    def at_object_creation(self):
+        super().at_object_creation()
+        self.versatility = WeaponVersatility.ONE_HANDED
+
+
+class Handaxe(Weapon):
+    """
+    A one-handed handaxe weapon.
+
+    Attributes:
+        versatility (WeaponVersatility): The versatility of the weapon, indicating it is a one-handed weapon.
+    """
+
+    def at_object_creation(self):
+        super().at_object_creation()
+        self.versatility = WeaponVersatility.ONE_HANDED
+
+
+class Javelin(Weapon):
+    """
+    A one-handed javelin weapon.
+
+    Attributes:
+        versatility (WeaponVersatility): The versatility of the weapon, indicating it is a one-handed weapon.
+    """
+
+    def at_object_creation(self):
+        super().at_object_creation()
+        self.versatility = WeaponVersatility.ONE_HANDED
+
+
+class LightHammer(Weapon):
+    """
+    A one-handed light hammer weapon.
+
+    Attributes:
+        versatility (WeaponVersatility): The versatility of the weapon, indicating it is a one-handed weapon.
+    """
+
+    def at_object_creation(self):
+        super().at_object_creation()
+        self.versatility = WeaponVersatility.ONE_HANDED
+
+
+class Mace(Weapon):
+    """
+    A one-handed mace weapon.
+
+    Attributes:
+        versatility (WeaponVersatility): The versatility of the weapon, indicating it is a one-handed weapon.
+    """
+
+    def at_object_creation(self):
+        super().at_object_creation()
+        self.versatility = WeaponVersatility.ONE_HANDED
+
+
+class Sickle(Weapon):
+    """
+    A one-handed sickle weapon.
+
+    Attributes:
+        versatility (WeaponVersatility): The versatility of the weapon, indicating it is a one-handed weapon.
     """
 
     def at_object_creation(self):

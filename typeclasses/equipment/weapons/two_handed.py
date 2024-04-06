@@ -1,6 +1,7 @@
 from .weapons import Weapon, WeaponVersatility
 
 
+# Martial Weapons
 class Glaive(Weapon):
     """
     A two-handed weapon known as a glaive.
@@ -73,6 +74,21 @@ class Maul(Weapon):
 class Pike(Weapon):
     """
     A class representing a pike weapon.
+
+    Attributes:
+        versatility (WeaponVersatility): The versatility of the weapon,
+            indicating that it is a two-handed weapon.
+    """
+
+    def at_object_creation(self):
+        super().at_object_creation()
+        self.versatility = WeaponVersatility.TWO_HANDED
+
+
+# Simple Weapons
+class Greatclub(Weapon):
+    """
+    A two-handed weapon known as a greatclub.
 
     Attributes:
         versatility (WeaponVersatility): The versatility of the weapon,

@@ -5,6 +5,15 @@ from world.characters import genders, races
 
 
 class LivingMixin:
+    def at_object_creation(self):
+        self.attributes.add("wealth", 0)
+        self.stats.add("strength", "Strength", trait_type="static", base=10)
+        self.stats.add("dexterity", "Dexterity", trait_type="static", base=10)
+        self.stats.add("constitution", "Constitution", trait_type="static", base=10)
+        self.stats.add("intelligence", "Intelligence", trait_type="static", base=10)
+        self.stats.add("wisdom", "Wisdom", trait_type="static", base=10)
+        self.stats.add("charisma", "Charisma", trait_type="static", base=10)
+
     @lazy_property
     def clothing(self):
         return clothing.ClothingHandler(
