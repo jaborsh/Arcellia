@@ -33,7 +33,10 @@ class Clothing(Object):
     Represents a piece of clothing in the game.
     """
 
-    _content_types = ("clothing",)
+    _content_types = (
+        "clothing",
+        "object",
+    )
 
     def at_object_creation(self):
         self.db.covered_by = []

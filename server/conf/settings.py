@@ -93,6 +93,30 @@ PROTOTYPE_MODULES += [
     "world.xyzgrid.prototypes",
 ]
 
+# On a multi-match when search objects or commands, the user has the
+# ability to search again with an index marker that differentiates
+# the results. If multiple "box" objects
+# are found, they can by default be separated as 1-box, 2-box. Below you
+# can change the regular expression used. The regex must have one
+# have two capturing groups (?P<number>...) and (?P<name>...) - the default
+# parser expects this. It should also involve a number starting from 1.
+# When changing this you must also update SEARCH_MULTIMATCH_TEMPLATE
+# to properly describe the syntax.
+SEARCH_MULTIMATCH_REGEX = r"(?P<name>[^\s]*)\s(?P<number>[0-9]+)(?P<args>.*)"
+# To display multimatch errors in various listings we must display
+# the syntax in a way that matches what SEARCH_MULTIMATCH_REGEX understand.
+# The template will be populated with data and expects the following markup:
+# {number} - the order of the multimatch, starting from 1; {name} - the
+# name (key) of the multimatched entity; {aliases} - eventual
+# aliases for the entity; {info} - extra info like #dbrefs for staff. Don't
+# forget a line break if you want one match per line.
+SEARCH_MULTIMATCH_TEMPLATE = " {name} {number}{aliases}{info}\n"
+# The handler that outputs errors when using any API-level search
+# (not manager methods). This function should correctly report errors
+# both for command- and object-searches. This allows full control
+# over the error output (it uses SEARCH_MULTIMATCH_TEMPLATE by default).
+SEARCH_AT_RESULT = "server.conf.at_search.at_search_result"
+
 ######################################################################
 # Game Time setup
 ######################################################################

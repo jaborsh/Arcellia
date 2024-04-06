@@ -1,6 +1,6 @@
 from typeclasses.clothing import ClothingType
 from typeclasses.equipment.equipment import EquipmentType
-from typeclasses.equipment.weapons import WeaponVersatility
+from typeclasses.equipment.weapons.weapons import WeaponVersatility
 
 from handlers.handler import Handler
 
@@ -98,60 +98,128 @@ class EquipmentHandler(Handler):
         Args:
             item (Item): The item to be removed.
         """
-        for equipment_type, equipment in self._data.items():
+        equipment_type = None
+        for eq_type, equipment in self._data.items():
             if isinstance(equipment, list):
                 if item in equipment:
                     equipment.remove(item)
+                    equipment_type = eq_type
                     break
             elif equipment == item:
-                self._data[equipment_type] = None
+                self._data[eq_type] = None
+                equipment_type = eq_type
                 break
 
         for piece in item.covering:
             piece.covered_by.remove(self)
         item.covering = []
+
+        if (
+            equipment_type == EquipmentType.WEAPON
+            or equipment_type == EquipmentType.SHIELD
+        ):
+            remaining_weapons = self._data[EquipmentType.WEAPON]
+            print(remaining_weapons[0].versatility == WeaponVersatility.VERSATILE)
+            if (
+                remaining_weapons
+                and remaining_weapons[0].versatility == WeaponVersatility.VERSATILE
+            ):
+                self.obj.msg("You switch your versatile weapon to use two hands.")
+
         self._save()
-        message = f"$You() $conj(remove) {item.get_display_name(self.obj)}."
+        self._display_remove_message(item, equipment_type)
+
+    def _display_remove_message(self, item, equipment_type):
+        if equipment_type == EquipmentType.WEAPON:
+            message = f"$You() $conj(sheath) {item.get_display_name(self.obj)}."
+        else:
+            message = f"$You() $conj(remove) {item.get_display_name(self.obj)}."
+        self.obj.location.msg_contents(message, from_obj=self.obj)
+
+    def _check_equipment_constraints(self, item):
+        if self._data[item.equipment_type]:
+            self.obj.msg("You are already wearing something there.")
+            return False
+        return True
+
+    def _check_ring_constraints(self, item):
+        if len(self._data[EquipmentType.RING]) >= 2:
+            self.obj.msg("You are already wearing two rings.")
+            return False
+        return True
+
+    def _check_shield_constraints(self, item):
+        if self._data[EquipmentType.WEAPON]:
+            if (
+                self._data[EquipmentType.WEAPON][0].versatility
+                == WeaponVersatility.TWO_HANDED
+            ):
+                self.obj.msg("You cannot wield a shield with a two-handed weapon.")
+                return False
+            elif len(self._data[EquipmentType.WEAPON]) >= 2:
+                self.obj.msg("You cannot wear a shield with two weapons.")
+                return False
+            elif (
+                self._data[EquipmentType.WEAPON][0].versatility
+                == WeaponVersatility.VERSATILE
+            ):
+                self.obj.msg("You switch your versatile weapon to use a single hand.")
+                return True
+        return True
+
+    def _check_weapon_constraints(self, item):
+        if len(self._data[EquipmentType.WEAPON]) >= 2:
+            self.obj.msg("You are already wielding two weapons.")
+            return False
+        elif item.versatility == WeaponVersatility.TWO_HANDED and (
+            len(self._data[EquipmentType.WEAPON]) >= 1
+            or self._data[EquipmentType.SHIELD]
+        ):
+            self.obj.msg(
+                "You cannot wield a two-handed weapon with another weapon or shield."
+            )
+            return False
+        elif (
+            self._data[EquipmentType.SHIELD]
+            and len(self._data[EquipmentType.WEAPON]) >= 1
+        ):
+            self.obj.msg("You cannot wield two weapons with a shield.")
+            return False
+        elif (
+            item.versatility == WeaponVersatility.VERSATILE
+            and len(self._data[EquipmentType.WEAPON]) >= 1
+        ):
+            if (
+                self._data[EquipmentType.WEAPON][0].versatility
+                == WeaponVersatility.VERSATILE
+            ):
+                self.obj.msg("You switch your versatile weapon to use a single hand.")
+            else:
+                self.obj.msg("You are already wielding a weapon with two hands.")
+            return False
+        return True
+
+    def _display_wear_message(self, item, equipment_type):
+        if equipment_type == EquipmentType.WEAPON:
+            message = f"$You() $conj(wield) {item.get_display_name(self.obj)}."
+        else:
+            message = f"$You() $conj(wear) {item.get_display_name(self.obj)}."
         self.obj.location.msg_contents(message, from_obj=self.obj)
 
     def wear(self, item):
-        """
-        Wears the specified item.
-        Args:
-            item (Item): The item to be worn.
-        """
         equipment_type = item.equipment_type
+
         if equipment_type == EquipmentType.WEAPON:
-            if len(self._data[equipment_type]) >= 2:
-                self.obj.msg("You are already wielding two weapons.")
-                return
-            if (
-                item.versatility == WeaponVersatility.TWO_HANDED
-                and len(self._data[equipment_type]) >= 1
-            ):
-                self.obj.msg(
-                    "You cannot wield a two-handed weapon with another weapon."
-                )
-                return
-            if (
-                item.versatility == WeaponVersatility.TWO_HANDED
-                and self._data[EquipmentType.SHIELD]
-            ):
-                self.obj.msg("You cannot wield a two-handed weapon with a shield.")
-                return
-            if (
-                self._data[EquipmentType.SHIELD]
-                and len(self._data[equipment_type]) >= 1
-            ):
-                self.obj.msg("You cannot wield two weapons with a shield.")
+            if not self._check_weapon_constraints(item):
                 return
         elif equipment_type == EquipmentType.RING:
-            if len(self._data[equipment_type]) >= 2:
-                self.obj.msg("You are already wearing two rings.")
+            if not self._check_ring_constraints(item):
+                return
+        elif equipment_type == EquipmentType.SHIELD:
+            if not self._check_shield_constraints(item):
                 return
         else:
-            if self._data[equipment_type]:
-                self.obj.msg("You are already wearing something in that slot.")
+            if not self._check_equipment_constraints(item):
                 return
 
         if isinstance(self._data[equipment_type], list):
@@ -160,13 +228,7 @@ class EquipmentHandler(Handler):
             self._data[equipment_type] = item
 
         self._save()
-
-        if equipment_type == EquipmentType.WEAPON:
-            message = f"$You() $conj(wield) {item.get_display_name(self.obj)}."
-        else:
-            message = f"$You() $conj(wear) {item.get_display_name(self.obj)}."
-
-        self.obj.location.msg_contents(message, from_obj=self.obj)
+        self._display_wear_message(item, equipment_type)
 
     def reset(self):
         """

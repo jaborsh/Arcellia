@@ -30,15 +30,15 @@ class Mob(LivingMixin, Object):
                     "control:perm(Admin)",  # edit locks/permissions, delete
                     "examine:perm(Admin)",  # examine properties
                     "view:all()",  # look at object (visibility)
-                    "edit:perm(Admin)",  # edit properties/attributes
-                    "delete:perm(Admin)",  # delete object
-                    "get:superuser()",  # pick up object
-                    "drop:superuser()",  # drop only that which you hold
+                    "edit:pperm(Admin)",  # edit properties/attributes
+                    "delete:pperm(Admin)",  # delete object
+                    "get:pperm(Admin)",  # pick up object
+                    "drop:pperm(Admin)",  # drop only that which you hold
                     "call:false()",  # allow to call commands on this object
-                    "tell:perm(Admin)",  # allow emits to this object
+                    "tell:all()",  # allow emits to this object
                     "puppet:pperm(Developer)",
-                    "teleport:perm(Admin)",
-                    "teleport_here:perm(Admin)",
+                    "teleport:pperm(Admin)",
+                    "teleport_here:pperm(Admin)",
                 ]
             )
         )  # lock down puppeting only to staff by default

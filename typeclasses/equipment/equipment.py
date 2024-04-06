@@ -43,7 +43,10 @@ class Equipment(Object):
         at_give(caller, target): Called when the equipment is given by one character to another.
     """
 
-    _content_types = ("equipment",)
+    _content_types = (
+        "equipment",
+        "object",
+    )
 
     def at_object_creation(self):
         self.db.covering = []

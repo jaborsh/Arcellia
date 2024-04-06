@@ -75,6 +75,14 @@ def grammarize(message):
     return message
 
 
+def singularize(word):
+    return _INFLECT.singular_noun(word)
+
+
+def pluralize(word):
+    return _INFLECT.plural(word)
+
+
 def wrap(text, text_width=80, pre_text="", align="l", indent=0, hang=0):
     # Wrap the text to the terminal width.
     if not text:

@@ -25,6 +25,20 @@ line to your settings file:
 
 """
 
+from enum import Enum
+
+from django.conf import settings
+from django.utils.translation import gettext as _
+
+_MULTIMATCH_TEMPLATE = settings.SEARCH_MULTIMATCH_TEMPLATE
+
+
+class SearchReturnType(Enum):
+    DEFAULT = 1
+    ALL = 2
+    ONE = 3
+    MULTIPLE = 4
+
 
 def at_search_result(matches, caller, query="", quiet=False, **kwargs):
     """
@@ -52,3 +66,64 @@ def at_search_result(matches, caller, query="", quiet=False, **kwargs):
             already have happened.
 
     """
+
+    error = ""
+    if not matches:
+        # no results.
+        error = kwargs.get("nofound_string") or _("Could not find '{query}'.").format(
+            query=query
+        )
+        matches = None
+    elif len(matches) > 1:
+        return_quantity = kwargs.get("return_quantity", 1)
+        return_type = kwargs.get("return_type", SearchReturnType.DEFAULT)
+        if return_type == SearchReturnType.ONE:
+            return matches[return_quantity - 1]
+        elif return_type == SearchReturnType.MULTIPLE:
+            matches = matches[:return_quantity]
+            return matches
+        elif return_type == SearchReturnType.ALL:
+            return matches
+
+        multimatch_string = kwargs.get("multimatch_string")
+        if multimatch_string:
+            error = "%s\n" % multimatch_string
+        else:
+            error = _(
+                "More than one match for '{query}' (please narrow target):\n"
+            ).format(query=query)
+
+        for num, result in enumerate(matches):
+            # we need to consider that result could be a Command, where .aliases
+            # is a list of strings
+            if hasattr(result.aliases, "all"):
+                # result is a typeclassed entity where `.aliases` is an AliasHandler.
+                aliases = result.aliases.all(return_objs=True)
+                # remove pluralization aliases
+                aliases = [
+                    alias.db_key
+                    for alias in aliases
+                    if alias.db_category != "plural_key"
+                ]
+            else:
+                # result is likely a Command, where `.aliases` is a list of strings.
+                aliases = result.aliases
+
+            error += _MULTIMATCH_TEMPLATE.format(
+                number=num + 1,
+                name=(
+                    result.get_display_name(caller)
+                    if hasattr(result, "get_display_name")
+                    else query
+                ),
+                aliases=" [{alias}]".format(alias=";".join(aliases)) if aliases else "",
+                info=result.get_extra_info(caller),
+            )
+        matches = None
+    else:
+        # exactly one match
+        matches = matches[0]
+
+    if error and not quiet:
+        caller.msg(error.strip())
+    return matches

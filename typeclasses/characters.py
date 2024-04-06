@@ -8,8 +8,15 @@ creation commands.
 
 """
 
+from django.conf import settings
 from evennia.objects.objects import DefaultCharacter
-from evennia.utils.utils import lazy_property, make_iter, to_str
+from evennia.utils.utils import (
+    dbref,
+    lazy_property,
+    make_iter,
+    to_str,
+    variable_from_module,
+)
 from handlers import quests, traits
 from server.conf import logger
 from utils.text import grammarize, wrap
@@ -17,6 +24,8 @@ from world.characters import backgrounds
 
 from .mixins.living import LivingMixin
 from .objects import ObjectParent
+
+_AT_SEARCH_RESULT = variable_from_module(*settings.SEARCH_AT_RESULT.rsplit(".", 1))
 
 
 class Character(LivingMixin, ObjectParent, DefaultCharacter):
@@ -401,3 +410,123 @@ class Character(LivingMixin, ObjectParent, DefaultCharacter):
         sessions = make_iter(session) if session else self.sessions.all()
         for session in sessions:
             session.data_out(**kwargs)
+
+    def handle_search_results(self, searchdata, results, **kwargs):
+        """
+        This method is called by the search method to allow for handling of the final search result.
+
+        Args:
+            searchdata (str): The original search criterion (potentially modified by
+                `get_search_query_replacement`).
+            results (list): The list of results from the search.
+            **kwargs (any): These are the same as passed to the `search` method.
+
+        Returns:
+            Object, None or list: Normally this is a single object, but if `quiet=True` it should be
+            a list.  If quiet=False and we have to handle a no/multi-match error (directly messaging
+            the user), this should return `None`.
+
+        """
+        if kwargs.get("quiet"):
+            # don't care about no/multi-match errors, just return list of whatever we have
+            return list(results)
+
+        # handle any error messages, otherwise return a single result
+
+        nofound_string = kwargs.get("nofound_string")
+        multimatch_string = kwargs.get("multimatch_string")
+        return_quantity = kwargs.get("return_quantity")
+        return_type = kwargs.get("return_type")
+
+        return _AT_SEARCH_RESULT(
+            results,
+            self,
+            query=searchdata,
+            nofound_string=nofound_string,
+            multimatch_string=multimatch_string,
+            return_quantity=return_quantity,
+            return_type=return_type,
+        )
+
+    def search(
+        self,
+        searchdata,
+        global_search=False,
+        use_nicks=True,
+        typeclass=None,
+        location=None,
+        attribute_name=None,
+        quiet=False,
+        exact=False,
+        candidates=None,
+        use_locks=True,
+        nofound_string=None,
+        multimatch_string=None,
+        use_dbref=None,
+        tags=None,
+        stacked=0,
+        return_quantity=1,
+        return_type=None,
+    ):
+        # store input kwargs for sub-methods (this must be done first in this method)
+        input_kwargs = {
+            key: value
+            for key, value in locals().items()
+            if key not in ("self", "searchdata")
+        }
+
+        # replace incoming searchdata string with a potentially modified version
+        searchdata = self.get_search_query_replacement(searchdata, **input_kwargs)
+
+        # handle special input strings, like "me" or "here".
+        should_return, searchdata = self.get_search_direct_match(
+            searchdata, **input_kwargs
+        )
+        if should_return:
+            # we got an actual result, return it immediately
+            return [searchdata] if quiet else searchdata
+
+        # if use_dbref is None, we use a lock to determine if dbref search is allowed
+        use_dbref = (
+            self.locks.check_lockstring(self, "_dummy:perm(Builder)")
+            if use_dbref is None
+            else use_dbref
+        )
+
+        # convert tags into tag tuples suitable for query
+        tags = [
+            (tagkey, tagcat[0] if tagcat else None)
+            for tagkey, *tagcat in make_iter(tags or [])
+        ]
+
+        # always use exact match for dbref/global searches
+        exact = True if global_search or dbref(searchdata) else exact
+
+        # get candidates
+        candidates = self.get_search_candidates(searchdata, **input_kwargs)
+
+        # do the actual search
+        results = self.get_search_result(
+            searchdata,
+            attribute_name=attribute_name,
+            typeclass=typeclass,
+            candidates=candidates,
+            exact=exact,
+            use_dbref=use_dbref,
+            tags=tags,
+        )
+
+        # filter out objects we are not allowed to search
+        if use_locks:
+            results = [
+                x for x in list(results) if x.access(self, "search", default=True)
+            ]
+
+        # handle stacked objects
+        is_stacked, results = self.get_stacked_results(results, **input_kwargs)
+        if is_stacked:
+            # we have a stacked result, return it immediately (a list)
+            return results
+
+        # handle the end (unstacked) results, returning a single object, a list or None
+        return self.handle_search_results(searchdata, results, **input_kwargs)

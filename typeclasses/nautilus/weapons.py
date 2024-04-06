@@ -1,4 +1,4 @@
-from typeclasses.equipment.weapons import Weapon, WeaponVersatility
+from typeclasses.equipment.weapons.weapons import Weapon, WeaponVersatility
 
 
 class EmberwispBlade(Weapon):
