@@ -884,9 +884,11 @@ class CmdWho(Command):
             utils.crop(location, width=25),
             utils.time_format(delta_conn, 0),
             utils.time_format(delta_cmd, 1),
-            session.address[0]
-            if isinstance(session.address, tuple)
-            else session.address,
+            (
+                session.address[0]
+                if isinstance(session.address, tuple)
+                else session.address
+            ),
         )
 
     def get_admin_and_table(self, session_list, caller, width):
