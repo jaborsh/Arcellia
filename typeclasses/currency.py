@@ -10,6 +10,45 @@ class Currency(Object):
     def price(self):
         return self.db.price
 
+    def at_pre_get(self, getter, **kwargs):
+        """
+        Called by the default `get` command before this object has been
+        picked up.
+
+        Args:
+            getter (DefaultObject): The object about to get this object.
+            **kwargs: Arbitrary, optional arguments for users
+                overriding the call (unused by default).
+
+        Returns:
+            bool: If the object should be gotten or not.
+
+        Notes:
+            If this method returns False/None, the getting is cancelled
+            before it is even started.
+        """
+        if quantity := kwargs.get("quantity", self.db.price):
+            if quantity < self.db.price:
+                getter.db.wealth += quantity
+                self.db.price -= quantity
+
+                getter.location.msg_contents(
+                    f"$You() $conj(get) {quantity} {self.get_display_name(getter)}.",
+                    from_obj=getter,
+                )
+                return False
+            elif quantity >= self.db.price:
+                quantity = self.db.price
+                getter.db.wealth += quantity
+                getter.location.msg_contents(
+                    f"$You() $conj(get) {quantity} {self.get_display_name(getter)}.",
+                    from_obj=getter,
+                )
+                self.delete()
+                return False
+
+        return True
+
     def at_get(self, getter, **kwargs):
         """
         Called by the default `get` command when this object has been
@@ -24,9 +63,7 @@ class Currency(Object):
             This hook cannot stop the pickup from happening. Use
             permissions or the at_pre_get() hook for that.
         """
-
-        getter.wealth.base += self.traits.get("price").value
-        self.delete()
+        pass
 
     def get_numbered_name(self, count, looker, **kwargs):
         """

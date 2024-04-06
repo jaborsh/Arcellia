@@ -51,6 +51,7 @@ class Character(LivingMixin, ObjectParent, DefaultCharacter):
 
     def at_object_creation(self):
         self.locks.add("msg:all()")
+        self.attributes.add("wealth", 0)
 
     @lazy_property
     def appearance(self):

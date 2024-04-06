@@ -3,6 +3,7 @@ import re
 from django.conf import settings
 from evennia import InterruptCommand
 from evennia.commands.default import general, system
+from evennia.prototypes import spawner
 from evennia.typeclasses.attributes import NickTemplateInvalid
 from evennia.utils import (
     class_from_module,
@@ -14,6 +15,7 @@ from evennia.utils import (
 from handlers.clothing import CLOTHING_OVERALL_LIMIT, CLOTHING_TYPE_COVER
 from handlers.equipment import EQUIPMENT_TYPE_COVER
 from menus.interaction_menu import InteractionMenu
+from prototypes import currencies
 from server.conf import logger
 from server.conf.at_search import SearchReturnType
 from typeclasses.clothing import Clothing
@@ -485,6 +487,10 @@ class CmdDrop(Command):
     def _drop_all(self, caller, item):
         inventory = caller.contents
         location = caller.location
+
+        if item in ("coins", "gold"):
+            return self._drop_coins(caller, caller.db.wealth)
+
         for obj in inventory:
             if not obj.at_pre_drop(caller):
                 continue
@@ -495,6 +501,9 @@ class CmdDrop(Command):
         caller.location.msg_contents("$You() $conj(drop) everything.", from_obj=caller)
 
     def _drop_single(self, caller, item, quantity, item_number):
+        if item in ("coin", "coins", "gold"):
+            return self._drop_coins(caller, quantity)
+
         obj = caller.search(
             item,
             location=caller,
@@ -514,6 +523,9 @@ class CmdDrop(Command):
         )
 
     def _drop_multiple(self, caller, item, quantity, item_number):
+        if item in ("coin", "coins", "gold"):
+            return self._drop_coins(caller, quantity)
+
         objs = caller.search(
             item,
             location=caller,
@@ -534,6 +546,16 @@ class CmdDrop(Command):
         quantity = len(objs)
         single, plural = obj.get_numbered_name(quantity, caller)
         caller.location.msg_contents(f"$You() $conj(drop) {plural}.", from_obj=caller)
+
+    def _drop_coins(self, caller, quantity):
+        gold = spawner.spawn(currencies.GOLD)[0]
+        gold.db.price = quantity
+        caller.db.wealth -= quantity
+        gold.move_to(caller.location, quiet=True, move_type="drop")
+        return caller.location.msg_contents(
+            f"$You() $conj(drop) {gold.price} {gold.get_display_name(caller)}.",
+            from_obj=caller,
+        )
 
     def func(self):
         caller = self.caller
@@ -732,7 +754,7 @@ class CmdGet(Command):
                 caller.msg("You can't get that.")
             return
 
-        if not obj.at_pre_get(caller):
+        if not obj.at_pre_get(caller, quantity=quantity):
             return
 
         obj.move_to(caller, quiet=True, move_type="get")
@@ -754,8 +776,12 @@ class CmdGet(Command):
             return_quantity=quantity,
             return_type=SearchReturnType.MULTIPLE,
         )
+
         if not objs:
             return
+
+        if not isinstance(objs, list):
+            objs = [objs]
 
         for obj in objs:
             if not obj.access(caller, "get"):
@@ -765,8 +791,9 @@ class CmdGet(Command):
                     caller.msg("You can't get that.")
                 continue
 
-            if not obj.at_pre_get(caller):
-                continue
+            if not obj.at_pre_get(caller, quantity=quantity):
+                return  # This should only proc with currency.
+                # continue
 
             obj.move_to(caller, quiet=True, move_type="get")
             obj.at_get(caller)
@@ -797,6 +824,9 @@ class CmdGet(Command):
         if not objs:
             return
 
+        if not isinstance(objs, list):
+            objs = [objs]
+
         for obj in objs:
             if obj == caller:
                 continue
@@ -815,6 +845,9 @@ class CmdGet(Command):
             obj.at_get(caller)
 
         items = str(len(objs)) + " " + pluralize(item) if item else "everything"
+        if "gold" in items:
+            return
+
         if container:
             return caller.location.msg_contents(
                 f"$You() $conj(get) {items} from {container.get_display_name(caller)}.",
@@ -1691,7 +1724,7 @@ class CmdWealth(Command):
 
     def func(self):
         caller = self.caller
-        caller.msg("Total Wealth: %s" % int(caller.wealth.value))
+        caller.msg("Total Wealth: %s" % int(caller.wealth))
 
 
 class CmdWear(Command):

@@ -82,6 +82,10 @@ class LivingMixin:
     def charisma(self):
         return self.stats.get("charisma")
 
+    @property
+    def wealth(self):
+        return self.attributes.get("wealth", 0)
+
     appearance_template = dedent(
         """
         {desc}
