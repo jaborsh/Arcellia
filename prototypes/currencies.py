@@ -10,5 +10,4 @@ GOLD = {
         "sound": "The coin makes no sound.",
         "taste": "The coin has no flavor.",
     },
-    "price": 1,
 }

@@ -7,11 +7,17 @@ from world.characters import genders, races
 class LivingMixin:
     @lazy_property
     def clothing(self):
-        return clothing.ClothingHandler(self, db_attribute_key="clothing")
+        return clothing.ClothingHandler(
+            self, db_attribute_key="clothing", default_data=clothing.CLOTHING_DEFAULTS
+        )
 
     @lazy_property
     def equipment(self):
-        return equipment.EquipmentHandler(self, db_attribute_key="equipment")
+        return equipment.EquipmentHandler(
+            self,
+            db_attribute_key="equipment",
+            default_data=equipment.EQUIPMENT_DEFAULTS,
+        )
 
     @lazy_property
     def stats(self):

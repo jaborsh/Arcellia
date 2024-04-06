@@ -6,11 +6,9 @@ from typeclasses.objects import Object
 
 
 class Currency(Object):
-    def at_post_spawn(self):
-        # Do not manually call since attributes are removed after initial run.
-        price = self.attributes.get("price", 1)
-        self.traits.add("price", "Price", trait_type="static", base=price)
-        self.attributes.remove("price")
+    @property
+    def price(self):
+        return self.db.price
 
     def at_get(self, getter, **kwargs):
         """
@@ -97,7 +95,7 @@ class Currency(Object):
                     split_segment = segment.split(" ")
                     singular_segment = (
                         singular_segments[1]
-                        + _INFLECT.number_to_words(int(self.price.value))
+                        + _INFLECT.number_to_words(int(self.price))
                         + " "
                         + " ".join(split_segment[1:])
                     )
@@ -107,7 +105,9 @@ class Currency(Object):
                 singular_segments.append(singular_segment)
 
         plural = "".join(plural_segments)
-        singular = "".join(singular_segments)
+        singular = "".join(singular_segments) + self.get_extra_display_name_info(
+            looker, **kwargs
+        )
 
         # Alias handling as in the original function
         if not self.aliases.get(plural, category=plural_category):

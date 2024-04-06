@@ -15,13 +15,13 @@ from evennia.utils import (
 from handlers.clothing import CLOTHING_OVERALL_LIMIT, CLOTHING_TYPE_COVER
 from handlers.equipment import EQUIPMENT_TYPE_COVER
 from menus.interaction_menu import InteractionMenu
+from prototypes.currencies import GOLD
 from server.conf import logger
 from typeclasses.clothing import Clothing
 from typeclasses.currency import Currency
 from typeclasses.equipment.equipment import Equipment
 from typeclasses.mixins.living import LivingMixin
 from utils.colors import strip_ansi
-from world.prototypes.currencies import GOLD
 
 from commands.command import Command
 

@@ -11,6 +11,7 @@ from evennia.utils.eveditor import EvEditor
 from evennia.utils.utils import dbref, inherits_from, list_to_string
 from menus import building_menu
 from server.conf import logger
+from typeclasses.characters import Character as CharacterTypeclass
 from utils.colors import strip_ansi
 from world.xyzgrid import xyzcommands
 from world.xyzgrid.xyzroom import XYZRoom
@@ -41,6 +42,7 @@ __all__ = (
     "CmdLockstring",
     "CmdMap",
     "CmdMvAttr",
+    "CmdPurge",
     "CmdRename",
     "CmdRoomState",
     "CmdSetAlias",
@@ -940,6 +942,43 @@ class CmdMvAttr(building.CmdMvAttr):
 
     key = "mvattr"
     aliases = ["moveattr"]
+
+
+class CmdPurge(Command):
+    """
+    Command to delete all characters in the current location.
+
+    Usage:
+      purge
+
+    This command deletes all characters (objects that inherit from the CharacterTypeclass)
+    in the current location. It requires the caller to have the 'Builder' permission.
+
+    """
+
+    key = "purge"
+    locks = "cmd:perm(Builder)"
+    help_category = "Building"
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+
+        if not args:
+            for obj in caller.location.contents:
+                if inherits_from(obj, CharacterTypeclass):
+                    continue
+
+                obj.delete()
+
+        if inherits_from(obj, CharacterTypeclass):
+            return
+
+        target = caller.search(args)
+        if not target:
+            return
+
+        target.delete()
 
 
 class CmdRename(building.ObjManipCommand):

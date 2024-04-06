@@ -401,28 +401,3 @@ class Character(LivingMixin, ObjectParent, DefaultCharacter):
         sessions = make_iter(session) if session else self.sessions.all()
         for session in sessions:
             session.data_out(**kwargs)
-
-    def return_appearance(self, looker, **kwargs):
-        """
-        Returns the appearance of the character.
-
-        Args:
-            looker (object): The object that is looking at the character.
-            **kwargs: Additional keyword arguments.
-
-        Returns:
-            str: The appearance of the character.
-
-        """
-        if not looker:
-            return ""
-
-        # populate the appearance_template string.
-        return self.format_appearance(
-            self.appearance_template.format(
-                desc=self.get_display_desc(looker, **kwargs),
-                things=self.get_display_things(looker, **kwargs),
-            ),
-            looker,
-            **kwargs,
-        )

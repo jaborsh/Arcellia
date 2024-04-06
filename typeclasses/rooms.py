@@ -141,7 +141,9 @@ class Room(ExtendedRoomMixin, ObjectParent, DefaultRoom):
 
         characters = _filter_visible(self.contents_get(content_type="character"))
         character_names = iter_to_str(
-            char.get_display_name(looker, **kwargs) for char in characters
+            char.get_display_name(looker, **kwargs)
+            + char.get_extra_display_name_info(looker, **kwargs)
+            for char in characters
         )
 
         return f"{character_names}\n" if character_names else ""
@@ -178,8 +180,13 @@ class Room(ExtendedRoomMixin, ObjectParent, DefaultRoom):
             singular, plural = mob.get_numbered_name(nmobs, looker, key=mobname)
             mob_names.append(
                 mob.get_display_name(looker, **kwargs)
+                + mob.get_extra_display_name_info(looker, **kwargs)
                 if nmobs == 1
-                else plural[0].upper() + plural[1:]
+                else plural[0].upper()
+                + plural[1:]
+                + ",".join(
+                    [m.get_extra_display_name_info(looker, **kwargs) for m in moblist]
+                )
             )
 
         mob_names = "\n".join(reversed(mob_names))
@@ -208,7 +215,10 @@ class Room(ExtendedRoomMixin, ObjectParent, DefaultRoom):
 
         grouped_things = defaultdict(list)
         for thing in things:
-            grouped_things[thing.get_display_name(looker, **kwargs)].append(thing)
+            grouped_things[
+                thing.get_display_name(looker, **kwargs)
+                + thing.get_extra_display_name_info(looker, **kwargs)
+            ].append(thing)
 
         thing_names = []
         for thingname, thinglist in sorted(grouped_things.items()):

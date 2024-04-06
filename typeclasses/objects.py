@@ -12,6 +12,7 @@ inheritance.
 """
 
 import re
+from collections import defaultdict
 
 from django.utils.translation import gettext as _
 from evennia.objects.objects import DefaultObject
@@ -254,8 +255,37 @@ class Object(ObjectParent, DefaultObject):
 
         """
         if looker and self.locks.check_lockstring(looker, "perm(Builder)"):
-            return f"{self.display_name} (#{self.id})"
+            return f"(#{self.id})"
         return ""
+
+    def get_display_things(self, looker=None, **kwargs):
+        """
+        Get the 'things' component of the object description. Called by `return_appearance`.
+
+        Args:
+            looker (DefaultObject): Object doing the looking.
+            **kwargs: Arbitrary data for use when overriding.
+        Returns:
+            str: The things display data.
+
+        """
+        # sort and handle same-named things
+        things = self.filter_visible(
+            self.contents_get(content_type="object"), looker, **kwargs
+        )
+
+        grouped_things = defaultdict(list)
+        for thing in things:
+            grouped_things[thing.get_display_name(looker, **kwargs)].append(thing)
+
+        thing_names = []
+        for thingname, thinglist in sorted(grouped_things.items()):
+            nthings = len(thinglist)
+            thing = thinglist[0]
+            singular, plural = thing.get_numbered_name(nthings, looker, key=thingname)
+            thing_names.append(singular if nthings == 1 else plural)
+        thing_names = "\n ".join(thing_names)
+        return f"|wYou see:|n\n {thing_names}" if thing_names else ""
 
     def get_numbered_name(self, count, looker, **kwargs):
         """

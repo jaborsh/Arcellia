@@ -4,6 +4,19 @@ from typeclasses.equipment.weapons import WeaponVersatility
 
 from handlers.handler import Handler
 
+EQUIPMENT_DEFAULTS = {
+    EquipmentType.HEADWEAR: None,
+    EquipmentType.AMULET: None,
+    EquipmentType.CLOAK: None,
+    EquipmentType.ARMOR: None,
+    EquipmentType.HANDWEAR: None,
+    EquipmentType.RING: [],
+    EquipmentType.FOOTWEAR: None,
+    EquipmentType.WEAPON: [],
+    EquipmentType.SHIELD: None,
+}
+
+
 EQUIPMENT_TYPE_COVER = {
     EquipmentType.HEADWEAR: [
         ClothingType.HEADWEAR,
@@ -60,33 +73,6 @@ class EquipmentHandler(Handler):
         reset(self): Resets the equipment to its default values.
     """
 
-    equipment_defaults = {
-        EquipmentType.HEADWEAR: None,
-        EquipmentType.AMULET: None,
-        EquipmentType.CLOAK: None,
-        EquipmentType.ARMOR: None,
-        EquipmentType.HANDWEAR: None,
-        EquipmentType.RING: [],
-        EquipmentType.FOOTWEAR: None,
-        EquipmentType.WEAPON: [],
-        EquipmentType.SHIELD: None,
-    }
-
-    def __init__(self, obj, db_attribute_key="equipment"):
-        """
-        Initializes the EquipmentHandler instance.
-
-        Args:
-            obj (GameObject): The game object associated with the equipment handler.
-            db_attribute (str, optional): The name of the attribute used to store the equipment data. Defaults to "equipment".
-        """
-        if not obj.attributes.get(db_attribute_key, None):
-            obj.attributes.add(db_attribute_key, self.equipment_defaults.copy())
-
-        self.data = obj.attributes.get(db_attribute_key)
-        self.db_attribute = db_attribute_key
-        self.obj = obj
-
     def all(self):
         """
         Returns a list of all equipped items.
@@ -96,7 +82,7 @@ class EquipmentHandler(Handler):
         """
         equipment = [
             item
-            for slot in self.data.values()
+            for slot in self._data.values()
             for item in (slot if isinstance(slot, list) else [slot])
             if item
         ]
@@ -112,13 +98,13 @@ class EquipmentHandler(Handler):
         Args:
             item (Item): The item to be removed.
         """
-        for equipment_type, equipment in self.data.items():
+        for equipment_type, equipment in self._data.items():
             if isinstance(equipment, list):
                 if item in equipment:
                     equipment.remove(item)
                     break
             elif equipment == item:
-                self.data[equipment_type] = None
+                self._data[equipment_type] = None
                 break
 
         for piece in item.covering:
@@ -136,12 +122,12 @@ class EquipmentHandler(Handler):
         """
         equipment_type = item.equipment_type
         if equipment_type == EquipmentType.WEAPON:
-            if len(self.data[equipment_type]) >= 2:
+            if len(self._data[equipment_type]) >= 2:
                 self.obj.msg("You are already wielding two weapons.")
                 return
             if (
                 item.versatility == WeaponVersatility.TWO_HANDED
-                and len(self.data[equipment_type]) >= 1
+                and len(self._data[equipment_type]) >= 1
             ):
                 self.obj.msg(
                     "You cannot wield a two-handed weapon with another weapon."
@@ -149,26 +135,29 @@ class EquipmentHandler(Handler):
                 return
             if (
                 item.versatility == WeaponVersatility.TWO_HANDED
-                and self.data[EquipmentType.SHIELD]
+                and self._data[EquipmentType.SHIELD]
             ):
                 self.obj.msg("You cannot wield a two-handed weapon with a shield.")
                 return
-            if self.data[EquipmentType.SHIELD] and len(self.data[equipment_type]) >= 1:
+            if (
+                self._data[EquipmentType.SHIELD]
+                and len(self._data[equipment_type]) >= 1
+            ):
                 self.obj.msg("You cannot wield two weapons with a shield.")
                 return
         elif equipment_type == EquipmentType.RING:
-            if len(self.data[equipment_type]) >= 2:
+            if len(self._data[equipment_type]) >= 2:
                 self.obj.msg("You are already wearing two rings.")
                 return
         else:
-            if self.data[equipment_type]:
+            if self._data[equipment_type]:
                 self.obj.msg("You are already wearing something in that slot.")
                 return
 
-        if isinstance(self.data[equipment_type], list):
-            self.data[equipment_type].append(item)
+        if isinstance(self._data[equipment_type], list):
+            self._data[equipment_type].append(item)
         else:
-            self.data[equipment_type] = item
+            self._data[equipment_type] = item
 
         self._save()
 
@@ -183,5 +172,5 @@ class EquipmentHandler(Handler):
         """
         Resets the equipment to its default values.
         """
-        self.data = self.equipment_defaults.copy()
+        self._data = self.default_data.copy()
         self._save()

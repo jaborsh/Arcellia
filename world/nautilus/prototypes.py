@@ -113,6 +113,7 @@ NAUTILUS_RIGHT_LEVER = {
     },
     "interaction": "world.nautilus.interactions.right_lever",
 }
+
 # Weapons
 NAUTILUS_EMBERWISP_BLADE = {
     "key": "blade",
