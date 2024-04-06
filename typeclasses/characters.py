@@ -13,7 +13,7 @@ from evennia.utils.utils import lazy_property, make_iter, to_str
 from handlers import quests, traits
 from server.conf import logger
 from utils.text import grammarize, wrap
-from world.characters import backgrounds, genders
+from world.characters import backgrounds
 
 from .mixins.living import LivingMixin
 from .objects import ObjectParent
@@ -381,13 +381,13 @@ class Character(LivingMixin, ObjectParent, DefaultCharacter):
                 except Exception:
                     text = repr(text)
 
-            if text and isinstance(text, tuple):
-                text = (
-                    genders._RE_GENDER_PRONOUN.sub(self.get_pronoun, text[0]),
-                    *text[1:],
-                )
-            else:
-                text = genders._RE_GENDER_PRONOUN.sub(self.get_pronoun, text)
+            # if text and isinstance(text, tuple):
+            #     text = (
+            #         genders._RE_GENDER_PRONOUN.sub(self.get_pronoun, text[0]),
+            #         *text[1:],
+            #     )
+            # else:
+            #     text = genders._RE_GENDER_PRONOUN.sub(self.get_pronoun, text)
 
             if kwargs.get("wrap") == "say":
                 msg = text[0]

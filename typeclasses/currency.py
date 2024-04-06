@@ -105,9 +105,7 @@ class Currency(Object):
                 singular_segments.append(singular_segment)
 
         plural = "".join(plural_segments)
-        singular = "".join(singular_segments) + self.get_extra_display_name_info(
-            looker, **kwargs
-        )
+        singular = "".join(singular_segments)
 
         # Alias handling as in the original function
         if not self.aliases.get(plural, category=plural_category):

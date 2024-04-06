@@ -16,6 +16,7 @@ from collections import defaultdict
 
 from django.utils.translation import gettext as _
 from evennia.objects.objects import DefaultObject
+from evennia.utils.utils import compress_whitespace, dedent, iter_to_str
 from utils.text import _INFLECT, strip_ansi
 
 
@@ -27,7 +28,6 @@ class ObjectParent:
     Just add any method that exists on `DefaultObject` to this class. If one
     of the derived classes has itself defined that same hook already, that will
     take precedence.
-
     """
 
     @property
@@ -221,6 +221,16 @@ class Object(ObjectParent, DefaultObject):
 
     """
 
+    appearance_template = dedent(
+        """
+        {desc}
+        {exits}
+        
+        {characters}
+        {things}
+        """
+    )
+
     def get_display_name(self, looker=None, **kwargs):
         """
         Displays the name of the object in a viewer-aware manner.
@@ -237,6 +247,19 @@ class Object(ObjectParent, DefaultObject):
             but it does not change an object's keys or aliases when searching.
         """
         return self.display_name
+
+    def get_display_desc(self, looker, **kwargs):
+        """
+        Get the 'desc' component of the object description. Called by `return_appearance`.
+
+        Args:
+            looker (DefaultObject): Object doing the looking.
+            **kwargs: Arbitrary data for use when overriding.
+        Returns:
+            str: The desc display string.
+
+        """
+        return self.db.desc.strip() or "You see nothing special."
 
     def get_extra_display_name_info(self, looker=None, **kwargs):
         """
@@ -258,6 +281,26 @@ class Object(ObjectParent, DefaultObject):
             return f"(#{self.id})"
         return ""
 
+    def get_display_characters(self, looker, **kwargs):
+        """
+        Get the 'characters' component of the object description. Called by `return_appearance`.
+
+        Args:
+            looker (DefaultObject): Object doing the looking.
+            **kwargs: Arbitrary data for use when overriding.
+        Returns:
+            str: The character display data.
+
+        """
+        characters = self.filter_visible(
+            self.contents_get(content_type="character"), looker, **kwargs
+        )
+        character_names = iter_to_str(
+            char.get_display_name(looker, **kwargs) for char in characters
+        )
+
+        return f"|wCharacters:|n {character_names}" if character_names else ""
+
     def get_display_things(self, looker=None, **kwargs):
         """
         Get the 'things' component of the object description. Called by `return_appearance`.
@@ -276,7 +319,10 @@ class Object(ObjectParent, DefaultObject):
 
         grouped_things = defaultdict(list)
         for thing in things:
-            grouped_things[thing.get_display_name(looker, **kwargs)].append(thing)
+            grouped_things[
+                thing.get_display_name(looker, **kwargs)
+                + thing.get_extra_display_name_info(looker, **kwargs)
+            ].append(thing)
 
         thing_names = []
         for thingname, thinglist in sorted(grouped_things.items()):
@@ -314,7 +360,6 @@ class Object(ObjectParent, DefaultObject):
         """
 
         key = kwargs.get("key", self.get_display_name(looker))
-
         # Regular expression for color codes
         color_code_pattern = (
             r"(\|(r|g|y|b|m|c|w|x|R|G|Y|B|M|C|W|X|\d{3}|#[0-9A-Fa-f]{6}))"
@@ -382,6 +427,48 @@ class Object(ObjectParent, DefaultObject):
             self.aliases.add(strip_ansi(plural))
 
         return singular, plural
+
+    def return_appearance(self, looker, **kwargs):
+        """
+        Main callback used by 'look' for the object to describe itself.
+        This formats a description. By default, this looks for the `appearance_template`
+        string set on this class and populates it with formatting keys
+        'name', 'desc', 'exits', 'characters', 'things' as well as
+        (currently empty) 'header'/'footer'. Each of these values are
+        retrieved by a matching method `.get_display_*`, such as `get_display_name`,
+        `get_display_footer` etc.
+
+        Args:
+            looker (DefaultObject): Object doing the looking. Passed into all helper methods.
+            **kwargs (dict): Arbitrary, optional arguments for users
+                overriding the call. This is passed into all helper methods.
+
+        Returns:
+            str: The description of this entity. By default this includes
+            the entity's name, description and any contents inside it.
+
+        Notes:
+            To simply change the layout of how the object displays itself (like
+            adding some line decorations or change colors of different sections),
+            you can simply edit `.appearance_template`. You only need to override
+            this method (and/or its helpers) if you want to change what is passed
+            into the template or want the most control over output.
+
+        """
+
+        if not looker:
+            return ""
+
+        # populate the appearance_template string.
+        return compress_whitespace(
+            self.appearance_template.format(
+                desc=self.get_display_desc(looker, **kwargs),
+                exits=self.get_display_exits(looker, **kwargs),
+                characters=self.get_display_characters(looker, **kwargs),
+                things=self.get_display_things(looker, **kwargs),
+            ).strip(),
+            max_linebreaks=2,
+        )
 
     def announce_move_to(
         self, source_location, msg=None, mapping=None, move_type="move", **kwargs
