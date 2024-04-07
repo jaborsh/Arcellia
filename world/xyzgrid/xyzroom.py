@@ -65,7 +65,7 @@ class XYZRoom(DefaultRoom):
 
     def __repr__(self):
         x, y, z = self.xyz
-        return f"<XYZRoom '{self.db_key}', XYZ=({x},{y},{z})>"
+        return f"<{self.__class__.__name__} '{self.db_key}', XYZ=({x},{y},{z})>"
 
     @property
     def xyz(self):
