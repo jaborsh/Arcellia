@@ -372,64 +372,17 @@ def chargen_background(caller, raw_string, **kwargs):
 
 
 def chargen_appearance(caller, raw_string, **kwargs):
-    text = dedent(
-        """
-        Suspended above a basin twisted and marred by neglect, a mirror holds court. From the damaged faucet, a jet of scalding water erupts, casting a shroud of steam across the glass, obscuring clarity. There, in the fogged reflection, only the barest hint of a figure can be discerned, a specter of self without detail or form. A startling epiphany cascades over you in that ill-defined moment; your own visage is a mystery, lost beneath the gentle veil of mist.
+    text = "|CSelect an Appearance Option|n:"
 
-        |CSelect an Appearance Option|n:
-        """
-    )
-
-    options = (
-        {"key": "", "goto": "chargen_appearance"},
-        {
-            "key": ("1", "detailed", "d"),
-            "desc": "Create a Customized Description",
-            "goto": "chargen_appearance_detailed",
-        },
-        {
-            "key": ("2", "template", "t"),
-            "desc": "Select Template Descriptors",
-            "goto": "chargen_appearance_template",
-        },
-        {"key": "_default", "goto": "chargen_appearance"},
-    )
-
-    return text, options
-
-
-def chargen_appearance_detailed(caller, raw_string, **kwargs):
-    def _set_appearance(caller, raw_string, **kwargs):
-        caller.db.desc = raw_string.strip()
-        return ("chargen_appearance_detailed", {"appearance": caller.db.desc})
-
-    if appearance := kwargs.get("appearance", None):
-        text = f"\n{appearance}\n\n|CConfirm your Appearance|n:"
-        options = (
-            {"key": "y", "desc": "Confirm Appearance", "goto": "chargen_finalize"},
-            {
-                "key": "n",
-                "desc": "Return",
-                "goto": ("chargen_appearance_detailed", {"appearance": None}),
-            },
-        )
-    else:
+    if len(kwargs.items()) <= 2:
         text = dedent(
             """
-            The time has come: a defining instant that invites no delay, and fosters no escape. What lies beyond that soft and swirling vapor is a truth that must be faced. With a breath that is both anticipatory and anxious, the facade you're about to unveil comes with the peril of true self-revelation. Therein lies the precipice of identity - you stand poised to meet the eyes of the being you inhabit, to witness the countenance that is undeniably yours, irrespective of reverberations they might cause within the core of who you are.
+            Suspended above a basin twisted and marred by neglect, a mirror holds court. From the damaged faucet, a jet of scalding water erupts, casting a shroud of steam across the glass, obscuring clarity. There, in the fogged reflection, only the barest hint of a figure can be discerned, a specter of self without detail or form. A startling epiphany cascades over you in that ill-defined moment; your own visage is a mystery, lost beneath the gentle veil of mist.
 
-            |CWrite your Description|n:
+            |CSelect an Appearance Option|n:
             """
         )
-        options = (
-            {"key": "", "goto": "chargen_appearance_detailed"},
-            {"key": "_default", "goto": _set_appearance},
-        )
 
-    return text, options
-
-
-def chargen_appearance_template(caller, raw_string, **kwargs):
     def _set_appearance(caller, **kwargs):
         desc = dedent(
             """
@@ -458,15 +411,7 @@ def chargen_appearance_template(caller, raw_string, **kwargs):
         )
 
         caller.db.desc = desc.strip()
-        return "chargen_finalize"
-
-    text = dedent(
-        """
-        A figure stares back from the other side of the obscured mirror, its features hidden beneath the mist's caress. It exists there as an enigma, a stranger composed of familiar lines and curves, yet wholly unrecognizable. A shiver of alienation creeps along your spine - the realization dawns upon you that the entity reflected in the glass, this 'thing' that should be as known to you as the very beat of your heart, remains anonymous. It is as if you are gazing upon an intimate unknown, a specter of self that is both intimately close and unsettlingly foreign.
-
-        |CSelect an Appearance Option|n:
-        """
-    )
+        return "chargen_desc"
 
     height = kwargs.get("height", "")
     body = kwargs.get("body", "")
@@ -521,7 +466,7 @@ def chargen_appearance_template(caller, raw_string, **kwargs):
         },
     )
 
-    if len(kwargs) == 9:
+    if len(kwargs) == 10:
         options += (
             {
                 "key": ("9", "f", "finalize"),
@@ -540,19 +485,19 @@ def appearance_height(caller, raw_string, **kwargs):
         {
             "key": ("1", "short", "sh"),
             "desc": "Short",
-            "goto": ("chargen_appearance_template", kwargs | {"height": "short"}),
+            "goto": ("chargen_appearance", kwargs | {"height": "short"}),
         },
         {
             "key": ("2", "average", "av"),
             "desc": "Average",
-            "goto": ("chargen_appearance_template", kwargs | {"height": "average"}),
+            "goto": ("chargen_appearance", kwargs | {"height": "average"}),
         },
         {
             "key": ("3", "tall", "t"),
             "desc": "Tall",
-            "goto": ("chargen_appearance_template", kwargs | {"height": "tall"}),
+            "goto": ("chargen_appearance", kwargs | {"height": "tall"}),
         },
-        {"key": "_default", "goto": "chargen_appearance_template"},
+        {"key": "_default", "goto": "chargen_appearance"},
     )
 
     return text, options
@@ -565,29 +510,29 @@ def appearance_body(caller, raw_string, **kwargs):
         {
             "key": ("1", "petite", "p"),
             "desc": "Petite",
-            "goto": ("chargen_appearance_template", kwargs | {"body": "petite"}),
+            "goto": ("chargen_appearance", kwargs | {"body": "petite"}),
         },
         {
             "key": ("2", "slender", "s"),
             "desc": "Slender",
-            "goto": ("chargen_appearance_template", kwargs | {"body": "slender"}),
+            "goto": ("chargen_appearance", kwargs | {"body": "slender"}),
         },
         {
             "key": ("3", "average", "av"),
             "desc": "Average",
-            "goto": ("chargen_appearance_template", kwargs | {"body": "average"}),
+            "goto": ("chargen_appearance", kwargs | {"body": "average"}),
         },
         {
             "key": ("4", "athletic", "at"),
             "desc": "Athletic",
-            "goto": ("chargen_appearance_template", kwargs | {"body": "athletic"}),
+            "goto": ("chargen_appearance", kwargs | {"body": "athletic"}),
         },
         {
             "key": ("5", "robust", "r"),
             "desc": "Robust",
-            "goto": ("chargen_appearance_template", kwargs | {"body": "robust"}),
+            "goto": ("chargen_appearance", kwargs | {"body": "robust"}),
         },
-        {"key": "_default", "goto": "chargen_appearance_template"},
+        {"key": "_default", "goto": "chargen_appearance"},
     )
 
     return text, options
@@ -600,94 +545,94 @@ def appearance_eye_color(caller, raw_string, **kwargs):
         {
             "key": ("1", "amber", "a"),
             "desc": "Amber",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "amber"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "amber"}),
         },
         {
             "key": ("2", "blue", "b"),
             "desc": "Blue",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "blue"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "blue"}),
         },
         {
             "key": ("3", "brown", "br"),
             "desc": "Brown",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "brown"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "brown"}),
         },
         {
             "key": ("4", "green", "g"),
             "desc": "Green",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "green"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "green"}),
         },
         {
             "key": ("5", "grey", "gr"),
             "desc": "Grey",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "grey"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "grey"}),
         },
         {
             "key": ("6", "hazel", "h"),
             "desc": "Hazel",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "hazel"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "hazel"}),
         },
         {
             "key": ("7", "black", "bl"),
             "desc": "Black",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "black"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "black"}),
         },
         {
             "key": ("8", "copper", "c"),
             "desc": "Copper",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "copper"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "copper"}),
         },
         {
             "key": ("9", "crimson", "cr"),
             "desc": "Crimson",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "crimson"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "crimson"}),
         },
         {
             "key": ("10", "emerald", "e"),
             "desc": "Emerald",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "emerald"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "emerald"}),
         },
         {
             "key": ("11", "gold", "go"),
             "desc": "Gold",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "gold"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "gold"}),
         },
         {
             "key": ("12", "opal", "o"),
             "desc": "Opal",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "opal"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "opal"}),
         },
         {
             "key": ("13", "onyx", "on"),
             "desc": "Onyx",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "onyx"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "onyx"}),
         },
         {
             "key": ("14", "red", "r"),
             "desc": "Red",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "red"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "red"}),
         },
         {
             "key": ("15", "sapphire", "sa"),
             "desc": "Sapphire",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "sapphire"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "sapphire"}),
         },
         {
             "key": ("16", "silver", "si"),
             "desc": "Silver",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "silver"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "silver"}),
         },
         {
             "key": ("17", "violet", "v"),
             "desc": "Violet",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "violet"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "violet"}),
         },
         {
             "key": ("18", "white", "w"),
             "desc": "White",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_color": "white"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_color": "white"}),
         },
-        {"key": "_default", "goto": "chargen_appearance_template"},
+        {"key": "_default", "goto": "chargen_appearance"},
     )
 
     return text, options
@@ -700,74 +645,74 @@ def appearance_hair_color(caller, raw_string, **kwargs):
         {
             "key": ("1", "auburn", "a"),
             "desc": "Auburn",
-            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "auburn"}),
+            "goto": ("chargen_appearance", kwargs | {"hair_color": "auburn"}),
         },
         {
             "key": ("2", "black", "bl"),
             "desc": "Black",
-            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "black"}),
+            "goto": ("chargen_appearance", kwargs | {"hair_color": "black"}),
         },
         {
             "key": ("3", "blonde", "b"),
             "desc": "Blonde",
-            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "blonde"}),
+            "goto": ("chargen_appearance", kwargs | {"hair_color": "blonde"}),
         },
         {
             "key": ("4", "brown", "br"),
             "desc": "Brown",
-            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "brown"}),
+            "goto": ("chargen_appearance", kwargs | {"hair_color": "brown"}),
         },
         {
             "key": ("5", "grey", "gr"),
             "desc": "Grey",
-            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "grey"}),
+            "goto": ("chargen_appearance", kwargs | {"hair_color": "grey"}),
         },
         {
             "key": ("6", "red", "r"),
             "desc": "Red",
-            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "red"}),
+            "goto": ("chargen_appearance", kwargs | {"hair_color": "red"}),
         },
         {
             "key": ("7", "white", "w"),
             "desc": "White",
-            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "white"}),
+            "goto": ("chargen_appearance", kwargs | {"hair_color": "white"}),
         },
         {
             "key": ("8", "blue", "bl"),
             "desc": "Blue",
-            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "blue"}),
+            "goto": ("chargen_appearance", kwargs | {"hair_color": "blue"}),
         },
         {
             "key": ("9", "green", "g"),
             "desc": "Green",
-            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "green"}),
+            "goto": ("chargen_appearance", kwargs | {"hair_color": "green"}),
         },
         {
             "key": ("10", "pink", "p"),
             "desc": "Pink",
-            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "pink"}),
+            "goto": ("chargen_appearance", kwargs | {"hair_color": "pink"}),
         },
         {
             "key": ("11", "purple", "pu"),
             "desc": "Purple",
-            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "purple"}),
+            "goto": ("chargen_appearance", kwargs | {"hair_color": "purple"}),
         },
         {
             "key": ("12", "silver", "si"),
             "desc": "Silver",
-            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "silver"}),
+            "goto": ("chargen_appearance", kwargs | {"hair_color": "silver"}),
         },
         {
             "key": ("13", "teal", "t"),
             "desc": "Teal",
-            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "teal"}),
+            "goto": ("chargen_appearance", kwargs | {"hair_color": "teal"}),
         },
         {
             "key": ("14", "yellow", "y"),
             "desc": "Yellow",
-            "goto": ("chargen_appearance_template", kwargs | {"hair_color": "yellow"}),
+            "goto": ("chargen_appearance", kwargs | {"hair_color": "yellow"}),
         },
-        {"key": "_default", "goto": "chargen_appearance_template"},
+        {"key": "_default", "goto": "chargen_appearance"},
     )
 
     return text, options
@@ -780,27 +725,27 @@ def appearance_skin_type(caller, raw_string, **kwargs):
         {
             "key": ("1", "freckled", "f"),
             "desc": "Freckled",
-            "goto": ("chargen_appearance_template", kwargs | {"skin_type": "freckled"}),
+            "goto": ("chargen_appearance", kwargs | {"skin_type": "freckled"}),
         },
         {
             "key": ("2", "scarred", "sc"),
             "desc": "Scarred",
-            "goto": ("chargen_appearance_template", kwargs | {"skin_type": "scarred"}),
+            "goto": ("chargen_appearance", kwargs | {"skin_type": "scarred"}),
         },
         {
             "key": ("3", "wrinkled", "w"),
             "desc": "Wrinkled",
-            "goto": ("chargen_appearance_template", kwargs | {"skin_type": "wrinkled"}),
+            "goto": ("chargen_appearance", kwargs | {"skin_type": "wrinkled"}),
         },
         {
             "key": ("4", "unblemished", "u"),
             "desc": "Unblemished",
             "goto": (
-                "chargen_appearance_template",
+                "chargen_appearance",
                 kwargs | {"skin_type": "unblemished"},
             ),
         },
-        {"key": "_default", "goto": "chargen_appearance_template"},
+        {"key": "_default", "goto": "chargen_appearance"},
     )
 
     return text, options
@@ -813,19 +758,19 @@ def appearance_eye_type(caller, raw_string, **kwargs):
         {
             "key": ("1", "almond", "a"),
             "desc": "Almond",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_type": "almond"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_type": "almond"}),
         },
         {
             "key": ("2", "hooded", "h"),
             "desc": "Hooded",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_type": "hooded"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_type": "hooded"}),
         },
         {
             "key": ("3", "round", "r"),
             "desc": "Round",
-            "goto": ("chargen_appearance_template", kwargs | {"eye_type": "round"}),
+            "goto": ("chargen_appearance", kwargs | {"eye_type": "round"}),
         },
-        {"key": "_default", "goto": "chargen_appearance_template"},
+        {"key": "_default", "goto": "chargen_appearance"},
     )
 
     return text, options
@@ -838,24 +783,24 @@ def appearance_nose_type(caller, raw_string, **kwargs):
         {
             "key": ("1", "aquiline", "a"),
             "desc": "Aquiline",
-            "goto": ("chargen_appearance_template", kwargs | {"nose_type": "aquiline"}),
+            "goto": ("chargen_appearance", kwargs | {"nose_type": "aquiline"}),
         },
         {
             "key": ("2", "button", "b"),
             "desc": "Button",
-            "goto": ("chargen_appearance_template", kwargs | {"nose_type": "button"}),
+            "goto": ("chargen_appearance", kwargs | {"nose_type": "button"}),
         },
         {
             "key": ("3", "flat", "f"),
             "desc": "Flat",
-            "goto": ("chargen_appearance_template", kwargs | {"nose_type": "flat"}),
+            "goto": ("chargen_appearance", kwargs | {"nose_type": "flat"}),
         },
         {
             "key": ("4", "wide", "w"),
             "desc": "Wide",
-            "goto": ("chargen_appearance_template", kwargs | {"nose_type": "wide"}),
+            "goto": ("chargen_appearance", kwargs | {"nose_type": "wide"}),
         },
-        {"key": "_default", "goto": "chargen_appearance_template"},
+        {"key": "_default", "goto": "chargen_appearance"},
     )
 
     return text, options
@@ -868,24 +813,24 @@ def appearance_mouth_type(caller, raw_string, **kwargs):
         {
             "key": ("1", "full", "f"),
             "desc": "Full",
-            "goto": ("chargen_appearance_template", kwargs | {"mouth_type": "full"}),
+            "goto": ("chargen_appearance", kwargs | {"mouth_type": "full"}),
         },
         {
             "key": ("2", "small", "s"),
             "desc": "Small",
-            "goto": ("chargen_appearance_template", kwargs | {"mouth_type": "small"}),
+            "goto": ("chargen_appearance", kwargs | {"mouth_type": "small"}),
         },
         {
             "key": ("3", "thin", "t"),
             "desc": "Thin",
-            "goto": ("chargen_appearance_template", kwargs | {"mouth_type": "thin"}),
+            "goto": ("chargen_appearance", kwargs | {"mouth_type": "thin"}),
         },
         {
             "key": ("4", "wide", "w"),
             "desc": "Wide",
-            "goto": ("chargen_appearance_template", kwargs | {"mouth_type": "wide"}),
+            "goto": ("chargen_appearance", kwargs | {"mouth_type": "wide"}),
         },
-        {"key": "_default", "goto": "chargen_appearance_template"},
+        {"key": "_default", "goto": "chargen_appearance"},
     )
 
     return text, options
@@ -898,19 +843,19 @@ def appearance_jaw_type(caller, raw_string, **kwargs):
         {
             "key": ("1", "pointed", "p"),
             "desc": "Pointed",
-            "goto": ("chargen_appearance_template", kwargs | {"jaw_type": "pointed"}),
+            "goto": ("chargen_appearance", kwargs | {"jaw_type": "pointed"}),
         },
         {
             "key": ("2", "round", "r"),
             "desc": "Round",
-            "goto": ("chargen_appearance_template", kwargs | {"jaw_type": "round"}),
+            "goto": ("chargen_appearance", kwargs | {"jaw_type": "round"}),
         },
         {
             "key": ("3", "square", "s"),
             "desc": "Square",
-            "goto": ("chargen_appearance_template", kwargs | {"jaw_type": "square"}),
+            "goto": ("chargen_appearance", kwargs | {"jaw_type": "square"}),
         },
-        {"key": "_default", "goto": "chargen_appearance_template"},
+        {"key": "_default", "goto": "chargen_appearance"},
     )
 
     return text, options
@@ -924,7 +869,7 @@ def appearance_eyebrow_type(caller, raw_string, **kwargs):
             "key": ("1", "arched", "a"),
             "desc": "Arched",
             "goto": (
-                "chargen_appearance_template",
+                "chargen_appearance",
                 kwargs | {"eyebrow_type": "arched"},
             ),
         },
@@ -932,22 +877,53 @@ def appearance_eyebrow_type(caller, raw_string, **kwargs):
             "key": ("2", "straight", "s"),
             "desc": "Straight",
             "goto": (
-                "chargen_appearance_template",
+                "chargen_appearance",
                 kwargs | {"eyebrow_type": "straight"},
             ),
         },
         {
             "key": ("3", "thick", "t"),
             "desc": "Thick",
-            "goto": ("chargen_appearance_template", kwargs | {"eyebrow_type": "thick"}),
+            "goto": ("chargen_appearance", kwargs | {"eyebrow_type": "thick"}),
         },
         {
             "key": ("4", "thin", "th"),
             "desc": "Thin",
-            "goto": ("chargen_appearance_template", kwargs | {"eyebrow_type": "thin"}),
+            "goto": ("chargen_appearance", kwargs | {"eyebrow_type": "thin"}),
         },
-        {"key": "_default", "goto": "chargen_appearance_template"},
+        {"key": "_default", "goto": "chargen_appearance"},
     )
+
+    return text, options
+
+
+def chargen_desc(caller, raw_string, **kwargs):
+    def _set_appearance(caller, raw_string, **kwargs):
+        caller.db.desc = raw_string.strip()
+        return ("chargen_desc", {"appearance": caller.db.desc})
+
+    if appearance := kwargs.get("appearance", None):
+        text = f"\n{appearance}\n\n|CConfirm your Appearance|n:"
+        options = (
+            {"key": "y", "desc": "Confirm Appearance", "goto": "chargen_finalize"},
+            {
+                "key": "n",
+                "desc": "Return",
+                "goto": ("chargen_desc", {"appearance": None}),
+            },
+        )
+    else:
+        text = dedent(
+            """
+            The time has come: a defining instant that invites no delay, and fosters no escape. What lies beyond that soft and swirling vapor is a truth that must be faced. With a breath that is both anticipatory and anxious, the facade you're about to unveil comes with the peril of true self-revelation. Therein lies the precipice of identity - you stand poised to meet the eyes of the being you inhabit, to witness the countenance that is undeniably yours, irrespective of reverberations they might cause within the core of who you are.
+
+            |CWrite your Description|n:
+            """
+        )
+        options = (
+            {"key": "", "goto": "chargen_desc"},
+            {"key": "_default", "goto": _set_appearance},
+        )
 
     return text, options
 

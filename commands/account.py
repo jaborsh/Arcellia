@@ -3,15 +3,15 @@ from codecs import lookup as codecs_lookup
 from datetime import datetime
 
 from django.conf import settings
-from evennia.objects.models import ObjectDB
-from evennia.server.sessionhandler import SESSIONS
-from evennia.utils import create, search, utils
-from evennia.utils.evmenu import get_input
 from menus.amenu import AMenu
 from server.conf import logger
 from utils.colors import strip_ansi
 
 from commands.command import Command
+from evennia.objects.models import ObjectDB
+from evennia.server.sessionhandler import SESSIONS
+from evennia.utils import create, search, utils
+from evennia.utils.evmenu import get_input
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
 _AUTO_PUPPET_ON_LOGIN = settings.AUTO_PUPPET_ON_LOGIN
@@ -179,7 +179,6 @@ class CmdDelete(Command):
             return
 
         char_name = self.args.strip().lower()
-        print(utils.make_iter(account.db._playable_characters))
         match = [
             char
             for char in utils.make_iter(account.db._playable_characters)
