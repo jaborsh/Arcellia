@@ -9,6 +9,11 @@ creation commands.
 """
 
 from django.conf import settings
+from handlers import quests, traits
+from server.conf import logger
+from utils.text import grammarize, wrap
+from world.characters import backgrounds
+
 from evennia.objects.objects import DefaultCharacter
 from evennia.utils.utils import (
     dbref,
@@ -17,10 +22,6 @@ from evennia.utils.utils import (
     to_str,
     variable_from_module,
 )
-from handlers import quests, traits
-from server.conf import logger
-from utils.text import grammarize, wrap
-from world.characters import backgrounds
 
 from .mixins.living import LivingMixin
 from .objects import ObjectParent
@@ -75,6 +76,10 @@ class Character(LivingMixin, ObjectParent, DefaultCharacter):
             raise TypeError("Background must be a string or a Background class.")
 
         self.background.value = value
+
+    @property
+    def cls(self):
+        return self.traits.get("cls")
 
     # Hooks
     def at_pre_emote(self, message, **kwargs):

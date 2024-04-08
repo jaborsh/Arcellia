@@ -1,9 +1,10 @@
 from evennia.utils import dedent
-
-from world.characters import backgrounds, genders, races
+from world.characters import backgrounds, classes, genders, races
 from world.xyzgrid.xyzroom import XYZRoom
 
 _BACKGROUND_INFO_DICT = backgrounds.BACKGROUND_INFO_DICT
+
+_CLASS_INFO_DICT = classes.CLASS_INFO_DICT
 
 _GENDER_INFO_DICT = genders.GENDER_INFO_DICT
 
@@ -126,7 +127,7 @@ def chargen_race(caller, raw_string, **kwargs):
             return "chargen_welcome"
 
         caller.traits.add("race", "Race", value=race_type)
-        return "chargen_background"
+        return "chargen_class"
 
     selected_race = kwargs.get("selected_race", None)
     selected_subrace = kwargs.get("selected_subrace", "")
@@ -202,6 +203,111 @@ def chargen_race(caller, raw_string, **kwargs):
                 "key": "n",
                 "desc": "Return",
                 "goto": ("chargen_race", {"selected_race": None}),
+            },
+        )
+
+    return text, options
+
+
+def chargen_class(caller, raw_string, **kwargs):
+    def _set_class(caller, **kwargs):
+        cls = kwargs.get("selected_class", None)
+        cls = classes.ClsRegistry.get(cls)
+
+        if not cls:
+            caller.msg("An error occurred. Contact an administrator.")
+            return "chargen_welcome"
+
+        caller.traits.add("cls", "Class", value=cls)
+        return "chargen_background"
+
+    selected_class = kwargs.get("selected_class", None)
+    if selected_class:
+        text = _CLASS_INFO_DICT[selected_class] + "\n\n|CConfirm your Class|n:"
+        options = (
+            {
+                "key": "y",
+                "desc": f"Confirm {selected_class}",
+                "goto": (_set_class, {"selected_class": selected_class}),
+            },
+            {
+                "key": "n",
+                "desc": "Return",
+                "goto": ("chargen_class", {"selected_class": None}),
+            },
+        )
+    else:
+        text = dedent(
+            """
+            Upon this precipe of decision, a crossroads not of the land but of the soul, you stand. It is here that the essence of your being whispers a silent decree, urging you to define the vessel through which your journey shall begin.
+            
+            Awaken from your reverie and gaze upon the spectrum of existence laid bare, a gallery of portraits painted with the hues of lineament. These are not mere vessels, mind you, but the embodiment of ideologies and the dormant power that slumbers within marrow.
+            
+            |CSelect your Starting Class|n:
+            """
+        )
+
+        options = (
+            {"key": "", "goto": "chargen_class"},
+            {
+                "key": ("1", "barbarian"),
+                "desc": "Barbarian",
+                "goto": ("chargen_class", {"selected_class": "barbarian"}),
+            },
+            {
+                "key": ("2", "bard"),
+                "desc": "Bard",
+                "goto": ("chargen_class", {"selected_class": "bard"}),
+            },
+            {
+                "key": ("3", "cleric"),
+                "desc": "Cleric",
+                "goto": ("chargen_class", {"selected_class": "cleric"}),
+            },
+            {
+                "key": ("4", "druid"),
+                "desc": "Druid",
+                "goto": ("chargen_class", {"selected_class": "druid"}),
+            },
+            {
+                "key": ("5", "fighter"),
+                "desc": "Fighter",
+                "goto": ("chargen_class", {"selected_class": "fighter"}),
+            },
+            {
+                "key": ("6", "monk"),
+                "desc": "Monk",
+                "goto": ("chargen_class", {"selected_class": "monk"}),
+            },
+            {
+                "key": ("7", "paladin"),
+                "desc": "Paladin",
+                "goto": ("chargen_class", {"selected_class": "paladin"}),
+            },
+            {
+                "key": ("8", "ranger"),
+                "desc": "Ranger",
+                "goto": ("chargen_class", {"selected_class": "ranger"}),
+            },
+            {
+                "key": ("9", "rogue"),
+                "desc": "Rogue",
+                "goto": ("chargen_class", {"selected_class": "rogue"}),
+            },
+            {
+                "key": ("10", "sorcerer"),
+                "desc": "Sorcerer",
+                "goto": ("chargen_class", {"selected_class": "sorcerer"}),
+            },
+            {
+                "key": ("11", "warlock"),
+                "desc": "Warlock",
+                "goto": ("chargen_class", {"selected_class": "warlock"}),
+            },
+            {
+                "key": ("12", "wizard"),
+                "desc": "Wizard",
+                "goto": ("chargen_class", {"selected_class": "wizard"}),
             },
         )
 

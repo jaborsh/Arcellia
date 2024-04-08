@@ -19,11 +19,13 @@ from datetime import datetime
 from traceback import format_exc
 
 from django.conf import settings
-from evennia.comms.models import ChannelDB
 from twisted import logger as twisted_logger
 from twisted.internet.threads import deferToThread
 from twisted.python import logfile
 from utils.text import wrap
+
+from evennia.comms.models import ChannelDB
+from evennia.utils import logger as evennia_logger
 
 log = twisted_logger.Logger()
 
@@ -48,7 +50,7 @@ def _log(msg, logfunc, prefix="", color="", **kwargs):
                 logfunc("{line}", prefix=prefix, line=line)
                 send_mudinfo(f"{color}{line}")
         except Exception as err:
-            log.error("Log failure: {err}", err=err)
+            evennia_logger.log.error("Log failure: {err}", err=err)
 
 
 # log call functions (each has legacy aliases)
@@ -195,7 +197,7 @@ def send_mudinfo(message):
         try:
             channel = ChannelDB.objects.get(db_key=settings.CHANNEL_MUDINFO["key"])
         except ChannelDB.DoesNotExist:
-            return log_trace()
+            return evennia_logger.log_trace()
 
         message = wrap(message, hang=10)
 

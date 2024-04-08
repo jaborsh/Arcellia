@@ -26,6 +26,8 @@ import os
 
 from django.conf import settings
 from django.utils.translation import gettext as _
+from server.conf import logger
+
 from evennia.accounts.accounts import DefaultAccount, DefaultGuest
 from evennia.objects.models import ObjectDB
 from evennia.server.signals import SIGNAL_OBJECT_POST_PUPPET
@@ -35,7 +37,6 @@ from evennia.utils.utils import (
     make_iter,
     to_str,
 )
-from server.conf import logger
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
 _MAX_NR_SIMULTANEOUS_PUPPETS = settings.MAX_NR_SIMULTANEOUS_PUPPETS
@@ -122,7 +123,7 @@ class Account(DefaultAccount):
         self.attributes.add("_main_character", None, lockstring=lockstring)
         self.attributes.add("_playable_characters", [], lockstring=lockstring)
         self.attributes.add("_saved_protocol_flags", {}, lockstring=lockstring)
-        self.create_log_folder()
+        # self.create_log_folder()
 
     def create_log_folder(self):
         """
