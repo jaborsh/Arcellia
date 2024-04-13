@@ -1,27 +1,21 @@
+"""
+Room
+
+Rooms are simple containers that has no location of their own.
+
+"""
+
 from collections import defaultdict
 from textwrap import dedent
 
-from django.conf import settings
 from evennia.objects.objects import DefaultRoom
 from evennia.utils.utils import iter_to_str
-from prototypes import spawner
 
-from typeclasses.mixins.rooms import ExtendedRoomMixin
-
-CLIENT_DEFAULT_WIDTH = settings.CLIENT_DEFAULT_WIDTH
-MAP_X_TAG_CATEGORY = "room_x_coordinate"
-MAP_Y_TAG_CATEGORY = "room_y_coordinate"
-MAP_Z_TAG_CATEGORY = "room_z_coordinate"
-
-MAP_XDEST_TAG_CATEGORY = "exit_dest_x_coordinate"
-MAP_YDEST_TAG_CATEGORY = "exit_dest_y_coordinate"
-MAP_ZDEST_TAG_CATEGORY = "exit_dest_z_coordinate"
-
-MobileTypeclass = None
-NodeTypeclass = None
+from .mixins.extended_room import ExtendedRoomMixin
+from .objects import ObjectParent
 
 
-class Room(ExtendedRoomMixin, DefaultRoom):
+class Room(ExtendedRoomMixin, ObjectParent, DefaultRoom):
     """
     Modified Extended Room (Griatch)
 
@@ -50,59 +44,18 @@ class Room(ExtendedRoomMixin, DefaultRoom):
       echoed to the room at the given rate.
     """
 
-    def at_object_creation(self):
-        self.db.spawns = self.db.spawns or []
-
-    @property
-    def display_name(self):
-        return self.attributes.get("display_name", self.name)
-
-    @display_name.setter
-    def display_name(self, value: str):
-        self.attributes.add("display_name", value)
-
-    @property
-    def senses(self):
-        return self.attributes.get("senses", {})
-
-    @senses.setter
-    def senses(self, sense: str, value: str):
-        self.db.senses[sense] = value
-
-    @property
-    def feel(self):
-        return self.senses.get("feel", "You feel nothing interesting.")
-
-    @property
-    def smell(self):
-        return self.senses.get("smell", "You smell nothing interesting.")
-
-    @property
-    def sound(self):
-        return self.senses.get("sound", "You hear nothing interesting.")
-
-    @property
-    def taste(self):
-        return self.senses.get("taste", "You taste nothing interesting.")
-
     # populated by `return_appearance`
     appearance_template = dedent(
         """
         {name}
-
+        
             {desc}
-
+            
             {exits}
             
         {characters}{mobs}{things}
         """
     )
-
-    def spawn_contents(self):
-        for spawn in self.db.spawns:
-            spawn["location"] = self
-            spawn["home"] = self
-            spawner.spawn(spawn)
 
     def get_display_desc(self, looker, **kwargs):
         """
@@ -188,7 +141,9 @@ class Room(ExtendedRoomMixin, DefaultRoom):
 
         characters = _filter_visible(self.contents_get(content_type="character"))
         character_names = iter_to_str(
-            char.get_display_name(looker, **kwargs) for char in characters
+            char.get_display_name(looker, **kwargs)
+            + char.get_extra_display_name_info(looker, **kwargs)
+            for char in characters
         )
 
         return f"{character_names}\n" if character_names else ""
@@ -225,8 +180,13 @@ class Room(ExtendedRoomMixin, DefaultRoom):
             singular, plural = mob.get_numbered_name(nmobs, looker, key=mobname)
             mob_names.append(
                 mob.get_display_name(looker, **kwargs)
+                + mob.get_extra_display_name_info(looker, **kwargs)
                 if nmobs == 1
-                else plural[0].upper() + plural[1:]
+                else plural[0].upper()
+                + plural[1:]
+                + ",".join(
+                    [m.get_extra_display_name_info(looker, **kwargs) for m in moblist]
+                )
             )
 
         mob_names = "\n".join(reversed(mob_names))
@@ -255,7 +215,10 @@ class Room(ExtendedRoomMixin, DefaultRoom):
 
         grouped_things = defaultdict(list)
         for thing in things:
-            grouped_things[thing.get_display_name(looker, **kwargs)].append(thing)
+            grouped_things[
+                thing.get_display_name(looker, **kwargs)
+                + thing.get_extra_display_name_info(looker, **kwargs)
+            ].append(thing)
 
         thing_names = []
         for thingname, thinglist in sorted(grouped_things.items()):
@@ -298,116 +261,11 @@ class Room(ExtendedRoomMixin, DefaultRoom):
             return ""
 
         # populate the appearance_template string.
-        return self.format_appearance(
-            self.appearance_template.format(
-                name=self.get_display_name(looker, **kwargs),
-                desc=self.get_display_desc(looker, **kwargs),
-                exits=self.get_display_exits(looker, **kwargs),
-                characters=self.get_display_characters(looker, **kwargs),
-                mobs=self.get_display_mobs(looker, **kwargs),
-                things=self.get_display_things(looker, **kwargs),
-            ),
-            looker,
-            **kwargs,
-        )
-
-
-# class MapNode(xymap_legend.MapNode):
-#     """A map node/room"""
-
-#     symbol = "#"
-#     prototype = "xyz_room"
-#     updating = False
-
-#     def spawn(self):
-#         """
-#         Build an actual in-game room from this node.
-
-#         This should be called as part of the node-sync step of the map sync. The reason is
-#         that the exits (next step) requires all nodes to exist before they can link up
-#         to their destinations.
-
-#         """
-#         global NodeTypeclass
-#         if not NodeTypeclass:
-#             NodeTypeclass = XYRoom
-
-#         if not self.prototype:
-#             # no prototype means we can't spawn anything -
-#             # a 'virtual' node.
-#             return
-
-#         xyz = self.get_spawn_xyz()
-
-#         try:
-#             nodeobj = NodeTypeclass.objects.get_xyz(xyz=xyz)
-
-#         except django_exceptions.ObjectDoesNotExist:
-#             # create a new entity, using the specified typeclass (if there's one) and
-#             # with proper coordinates etc
-#             typeclass = self.prototype.get("typeclass")
-#             if typeclass is None:
-#                 raise MapError(
-#                     f"The prototype {self.prototype} for this node has no 'typeclass' key.",
-#                     self,
-#                 )
-#             self.log(f"  spawning room at xyz={xyz} ({typeclass})")
-#             Typeclass = class_from_module(typeclass)
-#             nodeobj, err = Typeclass.create(
-#                 self.prototype.get("key", "An empty room"), xyz=xyz
-#             )
-#             if err:
-#                 raise RuntimeError(err)
-
-#             if not self.prototype.get("prototype_key"):
-#                 # make sure there is a prototype_key in prototype
-#                 self.prototype["prototype_key"] = self.generate_prototype_key()
-
-#             # apply prototype to node. This will not override the XYZ tags since
-#             # these are not in the prototype and exact=False
-#             spawner.batch_update_objects_with_prototype(
-#                 self.prototype, objects=[nodeobj], exact=False
-#             )
-
-#             nodeobj.at_post_spawn()
-#         else:
-#             self.log(f"  updating existing room (if changed) at xyz={xyz}")
-#             self.updating = True
-
-#         if not self.prototype.get("prototype_key"):
-#             # make sure there is a prototype_key in prototype
-#             self.prototype["prototype_key"] = self.generate_prototype_key()
-
-#         # apply prototype to node. This will not override the XYZ tags since
-#         # these are not in the prototype and exact=False
-#         spawner.batch_update_objects_with_prototype(
-#             self.prototype, objects=[nodeobj], exact=False
-#         )
-
-#     def spawn_mobiles(self, mobiles):
-#         """
-#         Build actual in-game mobiles based on the nodes of the map.
-
-#         This should be called after all `sync_node_to_grid` operations have finished across
-#         the entire XYZgrid. This creates/syncs all mobiles to their locations.
-#         """
-
-#         global MobileTypeclass
-#         if not MobileTypeclass:
-#             from typeclasses.mobs import Mob as MobileTypeclass
-#         global NodeTypeclass
-#         if not NodeTypeclass:
-#             from typeclasses.rooms import XYRoom as NodeTypeclass
-
-#         if not self.prototype or self.updating:
-#             return
-
-#         xyz = self.get_spawn_xyz()
-#         nodeobj = NodeTypeclass.objects.get_xyz(xyz=xyz)
-
-#         for k, v in mobiles.items():
-#             MobBuilder.set_key(k)
-#             MobBuilder.set_name(v["name"])
-#             MobBuilder.set_desc(v["desc"])
-#             MobBuilder.set_location(nodeobj)
-#             MobBuilder.build()
+        return self.appearance_template.format(
+            name=self.get_display_name(looker, **kwargs),
+            desc=self.get_display_desc(looker, **kwargs),
+            exits=self.get_display_exits(looker, **kwargs),
+            characters=self.get_display_characters(looker, **kwargs),
+            mobs=self.get_display_mobs(looker, **kwargs),
+            things=self.get_display_things(looker, **kwargs),
+        ).strip()

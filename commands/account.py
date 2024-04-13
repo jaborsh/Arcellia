@@ -1,26 +1,24 @@
 import time
+from codecs import lookup as codecs_lookup
 from datetime import datetime
 
 from django.conf import settings
-from evennia.commands.default import account
+from menus.amenu import AMenu
+from server.conf import logger
+from utils.colors import strip_ansi
+
+from commands.command import Command
 from evennia.objects.models import ObjectDB
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import create, search, utils
-from evennia.utils.ansi import strip_ansi
 from evennia.utils.evmenu import get_input
-
-from commands.command import Command
-from parsing.text import wrap
-from server.conf import logger
-from typeclasses.menus import AMenu
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
 _AUTO_PUPPET_ON_LOGIN = settings.AUTO_PUPPET_ON_LOGIN
 
-# limit symbol import for  API
 __all__ = (
-    "CmdCharCreate",
-    "CmdCharDelete",
+    "CmdCreate",
+    "CmdDelete",
     "CmdDisconnect",
     "CmdOOCLook",
     "CmdOptions",
@@ -33,84 +31,65 @@ __all__ = (
 )
 
 
-class CmdCharCreate(Command):
+class CmdCreate(Command):
     """
-    Command for creating a new character.
+    Command to create a new character.
 
-    Syntax: charcreate <name>
+    Syntax: create <name>
 
-    This command allows a player to create a new character. The name of the
-    character should be provided as an argument. The command checks if the
-    character name is valid and if it already exists. If the name is valid
-    and available, a new character object is created and associated with the
-    player's account. The player then enters the game as the newly created
-    character.
+    This command allows players to create a new character. The name of the character
+    should be provided as an argument. The command performs various checks to ensure
+    the name is valid and not already taken. If the name passes all checks, a new
+    character object is created and associated with the player's account.
 
-    The command also enforces certain rules for character names, which are
-    displayed to the player before the character creation process begins.
-
-    Note: This command requires the player to be out-of-character (OOC) and
-    have the appropriate permissions to create a character.
+    The command also prompts the player to confirm the name and check if it complies
+    with the game's rules for character names.
     """
 
-    key = "charcreate"
+    key = "create"
     locks = "cmd:is_ooc() and pperm(Player)"
-    help_category = "General"
+    help_category = "Account"
     account_caller = True
 
     def func(self):
         account = self.account
         session = self.session
+
         if not self.args:
             self.msg("Syntax: create <name>")
             return
 
-        if _MAX_NR_CHARACTERS is not None:
-            if (
-                not account.is_superuser
-                and not account.check_permstring("Developer")
-                and account.db._playable_characters
-                and len(account.db._playable_characters) >= _MAX_NR_CHARACTERS
-            ):
+        if (
+            _MAX_NR_CHARACTERS is not None
+            and not account.is_superuser
+            and not account.check_permstring("Developer")
+        ):
+            if len(account.db._playable_characters) >= _MAX_NR_CHARACTERS:
                 plural = "" if _MAX_NR_CHARACTERS == 1 else "s"
                 self.msg(
-                    f"You may only have a maximum of {_MAX_NR_CHARACTERS} character{plural}."  # noqa: E501
+                    f"You may only have a maximum of {_MAX_NR_CHARACTERS} character{plural}."
                 )
                 return
-        if not self.args.isalpha():
+
+        key = self.args.replace(" ", "").capitalize()[:16]
+
+        if not key.isalpha():
             self.msg("|rYour character's name may only contain letters.|n")
             return
 
-        key = self.args.replace(" ", "").capitalize()[:16]
         typeclass = settings.BASE_CHARACTER_TYPECLASS
 
-        # check if the character already exists
-        if ObjectDB.objects.filter(db_typeclass_path=typeclass, db_key__iexact=key):
+        if ObjectDB.objects.filter(
+            db_typeclass_path=typeclass, db_key__iexact=key
+        ).exists():
             self.msg(f"|rA character named '|w{key}|r' already exists.|n")
             return
 
-        # check if the name is valid
-        rules_string = "The following rules apply to names:\n\n"
-        rules_string += (
-            wrap(
-                "|gNames should be distinct from iconic media characters.",
-                pre_text="1. ",
-            )
-            + "\n"
-        )
-        rules_string += (
-            wrap(
-                "|gNames should suit the game's theme and setting.",
-                pre_text="2. ",
-            )
-            + "\n"
-        )
-        rules_string += (
-            wrap(
-                "|gNames should be understandable and pronounceable.",
-                pre_text="3. ",
-            )
-            + "\n"
+        rules_string = (
+            "The following rules apply to names:\n\n"
+            "1. |gNames should be distinct from iconic media characters.|n\n"
+            "2. |gNames should suit the game's theme and setting.|n\n"
+            "3. |gNames should be understandable and pronounceable.|n"
         )
         self.msg(rules_string)
 
@@ -119,10 +98,10 @@ class CmdCharCreate(Command):
                 self.msg("Creation aborted.")
                 return
 
-            # create the character
             start_location = ObjectDB.objects.get_id(settings.START_LOCATION)
             default_home = ObjectDB.objects.get_id(settings.DEFAULT_HOME)
             permissions = settings.PERMISSION_ACCOUNT_DEFAULT
+
             new_character = create.create_object(
                 typeclass,
                 key=key,
@@ -131,30 +110,24 @@ class CmdCharCreate(Command):
                 permissions=permissions,
             )
             new_character.locks.add(
-                "puppet:id(%i) or pid(%i) or perm(Developer) or pperm(Developer);"
-                "delete:id(%i) or perm(Admin)"
-                % (new_character.id, account.id, account.id)
+                f"puppet:id({new_character.id}) or pid({account.id}) or perm(Developer) or pperm(Developer);"
+                f"delete:id({account.id}) or perm(Admin)"
             )
             account.db._playable_characters.append(new_character)
             new_character.db.desc = "This is a character."
+
             logger.log_sec(
-                f"Character Created: {new_character} "
-                f"(Account: {account}, IP: {session.address})."
+                f"Character Created: {new_character} (Account: {account}, IP: {session.address})."
             )
 
-            # start puppeting the character
             try:
                 account.puppet_object(session, new_character)
                 account.db._last_puppet = new_character
-                logger.log_sec(
-                    f"{new_character} enters the game (Account: {account})."
-                    # f"IP: {self.session.address})."
-                )
+                logger.log_sec(f"{new_character} enters the game (Account: {account}).")
             except RuntimeError as error:
                 self.msg(f"|rYou cannot become |C{new_character.name}|n: {error}")
                 logger.log_sec(
                     f"{new_character} fails to enter the game (Account: {account})."
-                    # f"IP: {self.session.address})."
                 )
                 return
 
@@ -168,27 +141,34 @@ class CmdCharCreate(Command):
                 persistent=True,
             )
 
-        prompt = f"Did you enter '|w{key}|n' correctly and does this name comply with the rules? |r[Y/n]|n"  # noqa: E501
+        prompt = f"\nDid you enter '|w{key}|n' correctly and does this name comply with the rules? |r[Y/n]|n"
         get_input(account, prompt, _callback)
 
 
-class CmdCharDelete(Command):
+class CmdDelete(Command):
     """
-    Command to delete a character associated with an account.
+    Command to delete a character associated with the account.
 
-    Syntax: chardelete <name>
+    Usage:
+      delete <name>
 
-    This command allows an account to delete one of its playable characters.
-    The character to be deleted is specified by its name. Once deleted, the
-    character cannot be recovered.
+    This command allows the player to delete one of their characters. The character
+    to be deleted is specified by its name. If there are multiple characters with
+    the same name, an admin needs to be contacted to delete the correct one.
+
+    Deleting a character is a permanent action and cannot be undone. The command
+    checks if the player has permission to delete the character before proceeding.
 
     Example:
-        chardelete JohnDoe
+      delete JohnDoe
+
+    This will permanently delete the character named 'JohnDoe' associated with
+    the player's account.
     """
 
-    key = "chardelete"
+    key = "delete"
     locks = "cmd:is_ooc() and pperm(Player)"
-    help_category = "General"
+    help_category = "Account"
     account_caller = True
 
     def func(self):
@@ -198,276 +178,411 @@ class CmdCharDelete(Command):
             self.msg("Syntax: delete <name>")
             return
 
+        char_name = self.args.strip().lower()
         match = [
             char
             for char in utils.make_iter(account.db._playable_characters)
-            if char.key.lower() == self.args.lower()
+            if char.key.lower() == char_name
         ]
+
         if not match:
             self.msg("You have no such character to delete.")
             return
-        elif len(match) > 1:
+
+        if len(match) > 1:
             self.msg(
-                "Aborting - there are two characters with the same name. Ask an admin to delete the right one."  # noqa: E501
+                "Aborting - there are two characters with the same name. Ask an admin to delete the right one."
             )
             return
 
-        def _callback(caller, callback_prompt, result):
+        char_to_delete = match[0]
+
+        if not char_to_delete.access(account, "delete"):
+            self.msg("You do not have permission to delete this character.")
+            return
+
+        def _delete_character(account, prompt, result):
             if result.lower() not in ["yes", "y"]:
                 self.msg("Deletion aborted.")
                 return
 
-            delobj = caller.ndb._char_to_delete
-            key = delobj.key
-            caller.db._playable_characters = [
-                pc for pc in caller.db._playable_characters if pc != delobj
+            key = char_to_delete.key
+            account.db._playable_characters = [
+                pc for pc in account.db._playable_characters if pc != char_to_delete
             ]
-            delobj.delete()
+            char_to_delete.delete()
             self.msg(f"Character '|w{key}|n' permanently deleted.")
-            logger.log_sec(
-                f"Character Deleted: {key} (Account: {account})."  # , IP: {session.address})."  # noqa: E501
-            )
-            del caller.ndb._char_to_delete
+            logger.log_sec(f"Character Deleted: {key} (Account: {account}).")
 
-        match = match[0]
-        account.ndb._char_to_delete = match
-
-        # Return if caller has no permission to delete this
-        if not match.access(account, "delete"):
-            self.msg("You do not have permission to delete this character.")
-            return
-
-        prompt = f"|rThis will permanently delete |n'|w{match.key}|n'|r. This cannot be undone!|n Continue? |r[Y/n]|n"  # noqa: E501
-        get_input(account, prompt, _callback)
+        prompt = f"|rThis will permanently delete |n'|w{char_to_delete.key}|n'|r. This cannot be undone!|n Continue? |r[Y/n]|n"
+        get_input(account, prompt, _delete_character)
 
 
-# move this to characters eventually
-class CmdDisconnect(account.CmdOOC):
+class CmdDisconnect(Command):
     """
-    Command to disconnect a character from the game and go out-of-character
-    (OOC).
+    Command to disconnect a character from the game.
 
-    Usage: disconnect
+    Usage:
+      disconnect
 
-    This command allows a player to disconnect their character from the game
-    and go out-of-character. If the character is already OOC, a message will
-    be displayed indicating that. The command also logs the disconnection
-    and provides additional instructions if certain conditions are met.
+    This command allows a player to disconnect their character from the game,
+    effectively going out-of-character (OOC). The character will no longer be
+    visible or interactable in the game world.
     """
 
     key = "disconnect"
     aliases = ["disc", "unpuppet"]
+    help_category = "Account"
 
     def func(self):
         """Implement function"""
-
         account = self.account
         session = self.session
-        self.args = None
-
         old_char = account.get_puppet(session)
+
         if not old_char:
-            string = "You are already OOC."
-            self.msg(string)
+            self.msg("You are already OOC.")
             return
 
         account.db._last_puppet = old_char
 
-        # disconnect
         try:
             account.unpuppet_object(session)
             self.msg("\n|GYou go OOC.|n\n")
-
-            logger.log_sec(
-                f"{old_char} exits the game (Account: {account})."
-                # f"IP: {session.address})."
-            )
+            logger.log_sec(f"{old_char} exits the game (Account: {account}).")
 
             if _AUTO_PUPPET_ON_LOGIN and _MAX_NR_CHARACTERS == 1 and self.playable:
-                # only one character exists and is allowed - simplify
                 self.msg(
                     "You are out-of-character (OOC).\n"
                     "Use |wconnect|n to get back into the game."
                 )
-                return
-
-            self.msg(account.at_look(target=None, session=session))
+            else:
+                self.msg(account.at_look(target=None, session=session))
 
         except RuntimeError as exc:
             self.msg(f"|rCould not unpuppet from |c{old_char}|n: {exc}")
-            logger.log_sec(
-                f"{old_char} fails to exit the game (Account: {account})."
-                # f"IP: {session.address})."
-            )
+            logger.log_sec(f"{old_char} fails to exit the game (Account: {account}).")
 
 
-# note that this is inheriting from MuxAccountLookCommand,
-# and has the .playable property.
-class CmdOOCLook(account.MuxAccountLookCommand):
+class CmdOOCLook(Command):
     """
-    Command to look around while out-of-character (OOC).
+    Command to implement the OOC look functionality.
 
-    Syntax: look
+    Usage:
+        look
 
-    This command allows a player to look around the game world while
-    out-of-character. If the player is currently puppeting a character, this
-    command will display a message indicating that the character has no
-    ability to look around. If the player is not puppeting a character and
-    there is only one character available and allowed, a simplified message
-    will be displayed instructing the player to use the 'ic' command to get
-    back into the game. Otherwise, the command will call the on-account look
-    helper method to display the current surroundings.
-
-    Note: This command is only available while out-of-character (OOC).
+    This command allows players to look around when they are out-of-character (OOC).
     """
 
     key = "look"
     aliases = ["l", "ls"]
-    locks = "cmd:all()"
-    help_category = "General"
-
-    # this is used by the parent
+    locks = "cmd:is_ooc()"
+    help_category = "Account"
     account_caller = True
 
-    def func(self):
-        """implement the ooc look command"""
+    def parse(self):
+        playable = self.account.characters
+        # store playable property
+        if self.args:
+            self.playable = dict(
+                (utils.to_str(char.key.lower()), char) for char in playable
+            ).get(self.args.lower(), None)
+        else:
+            self.playable = playable
 
+    def func(self):
         if self.session.puppet:
-            # if we are puppeting, this is only reached in the case the that puppet
-            # has no look command on its own.
             self.msg("You currently have no ability to look around.")
             return
 
         if _AUTO_PUPPET_ON_LOGIN and _MAX_NR_CHARACTERS == 1 and self.playable:
-            # only one exists and is allowed - simplify
             self.msg(
                 "You are out-of-character (OOC).\nUse |wic|n to get back into the game."
             )
             return
 
-        # call on-account look helper method
-        self.msg(
-            self.account.at_look(account=self.playable, session=self.session),
-        )
+        self.msg(self.account.at_look(account=self.playable, session=self.session))
 
 
-class CmdOptions(account.CmdOption):
+class CmdOptions(Command):
     """
-    Syntax: options[/switch] [name = value]
+    Set an account option
 
-    Switches: save - Save the current option setting for future logins.
-              clear - Clear the saved options.
+    Usage:
+      options[/save] [name = value]
 
-    This command allows viewing and setting client interface settinggs. Note
-    that saved options may not be able to be used if later connecting with
-    a client with different capabilities.
+    Switches:
+      save - Save the current option settings for future logins.
+      clear - Clear the saved options.
+
+    This command allows for viewing and setting client interface
+    settings. Note that saved options may not be able to be used if
+    later connecting with a client with different capabilities.
     """
 
     key = "options"
-    aliases = ["option"]
+    aliases = "option"
+    switch_options = ("save", "clear")
+    locks = "cmd:all()"
+    help_category = "Account"
+
+    # this is used by the parent
+    account_caller = True
+
+    def func(self):
+        """
+        Implements the command
+        """
+        if self.session is None:
+            return
+
+        flags = self.session.protocol_flags
+
+        # Display current options
+        if not self.args:
+            # list the option settings
+
+            if "save" in self.switches:
+                # save all options
+                self.caller.db._saved_protocol_flags = flags
+                self.msg("|gSaved all options. Use option/clear to remove.|n")
+            if "clear" in self.switches:
+                # clear all saves
+                self.caller.db._saved_protocol_flags = {}
+                self.msg("|gCleared all saved options.")
+
+            options = dict(flags)  # make a copy of the flag dict
+            saved_options = dict(
+                self.caller.attributes.get("_saved_protocol_flags", default={})
+            )
+
+            if "SCREENWIDTH" in options:
+                if len(options["SCREENWIDTH"]) == 1:
+                    options["SCREENWIDTH"] = options["SCREENWIDTH"][0]
+                else:
+                    options["SCREENWIDTH"] = "  \n".join(
+                        "%s : %s" % (screenid, size)
+                        for screenid, size in options["SCREENWIDTH"].items()
+                    )
+            if "SCREENHEIGHT" in options:
+                if len(options["SCREENHEIGHT"]) == 1:
+                    options["SCREENHEIGHT"] = options["SCREENHEIGHT"][0]
+                else:
+                    options["SCREENHEIGHT"] = "  \n".join(
+                        "%s : %s" % (screenid, size)
+                        for screenid, size in options["SCREENHEIGHT"].items()
+                    )
+            options.pop("TTYPE", None)
+
+            header = ("Name", "Value", "Saved") if saved_options else ("Name", "Value")
+            table = self.styled_table(*header)
+            for key in sorted(options):
+                row = [key, options[key]]
+                if saved_options:
+                    saved = " |YYes|n" if key in saved_options else ""
+                    changed = (
+                        "|y*|n"
+                        if key in saved_options and flags[key] != saved_options[key]
+                        else ""
+                    )
+                    row.append("%s%s" % (saved, changed))
+                table.add_row(*row)
+            self.msg(f"|wClient settings ({self.session.protocol_key}):|n\n{table}|n")
+
+            return
+
+        if not self.rhs:
+            self.msg("Usage: option [name = [value]]")
+            return
+
+        # Try to assign new values
+
+        def validate_encoding(new_encoding):
+            # helper: change encoding
+            try:
+                codecs_lookup(new_encoding)
+            except LookupError:
+                raise RuntimeError(f"The encoding '|w{new_encoding}|n' is invalid. ")
+            return val
+
+        def validate_size(new_size):
+            return {0: int(new_size)}
+
+        def validate_bool(new_bool):
+            return True if new_bool.lower() in ("true", "on", "1") else False
+
+        def update(new_name, new_val, validator):
+            # helper: update property and report errors
+            try:
+                old_val = flags.get(new_name, False)
+                new_val = validator(new_val)
+                if old_val == new_val:
+                    self.msg(f"Option |w{new_name}|n was kept as '|w{old_val}|n'.")
+                else:
+                    flags[new_name] = new_val
+                    self.msg(
+                        f"Option |w{new_name}|n was changed from '|w{old_val}|n' to"
+                        f" '|w{new_val}|n'."
+                    )
+                return {new_name: new_val}
+            except Exception as err:
+                self.msg(f"|rCould not set option |w{new_name}|r:|n {err}")
+                return False
+
+        validators = {
+            "ANSI": validate_bool,
+            "CLIENTNAME": utils.to_str,
+            "ENCODING": validate_encoding,
+            "MCCP": validate_bool,
+            "NOGOAHEAD": validate_bool,
+            "MXP": validate_bool,
+            "NOCOLOR": validate_bool,
+            "NOPKEEPALIVE": validate_bool,
+            "OOB": validate_bool,
+            "RAW": validate_bool,
+            "SCREENHEIGHT": validate_size,
+            "SCREENWIDTH": validate_size,
+            "SCREENREADER": validate_bool,
+            "TERM": utils.to_str,
+            "UTF-8": validate_bool,
+            "XTERM256": validate_bool,
+            "INPUTDEBUG": validate_bool,
+            "FORCEDENDLINE": validate_bool,
+            "LOCALECHO": validate_bool,
+        }
+
+        name = self.lhs.upper()
+        val = self.rhs.strip()
+        optiondict = False
+        if val and name in validators:
+            optiondict = update(name, val, validators[name])
+        else:
+            self.msg("|rNo option named '|w%s|r'." % name)
+        if optiondict:
+            # a valid setting
+            if "save" in self.switches:
+                # save this option only
+                saved_options = self.account.attributes.get(
+                    "_saved_protocol_flags", default={}
+                )
+                saved_options.update(optiondict)
+                self.account.attributes.add("_saved_protocol_flags", saved_options)
+                for key in optiondict:
+                    self.msg(f"|gSaved option {key}.|n")
+            if "clear" in self.switches:
+                # clear this save
+                for key in optiondict:
+                    self.account.attributes.get("_saved_protocol_flags", {}).pop(
+                        key, None
+                    )
+                    self.msg(f"|gCleared saved {key}.")
+            self.session.update_flags(**optiondict)
 
 
 class CmdPassword(Command):
     """
-    Command for changing the password of an account.
+    Command to change the password of an account.
 
-    Syntax: password
+    Usage:
+      password
 
-    This command allows the player to change their account password.
-    The player will be prompted to enter their current password, and
-    then their new password. The new password will be validated
-    according to the account's password requirements. If the password
-    change is successful, the account's password will be updated and
-    saved.
-
-    Example:
-        > password
-        Enter your password: ********
-        Enter your new password: ********
-        Password changed.
+    This command allows the player to change their account password. It prompts the player
+    to enter their current password, then their new password. The new password is validated
+    to ensure it meets the account's password requirements. If the password change is
+    successful, the account's password is updated and saved.
     """
 
     key = "password"
     locks = "cmd:pperm(Player)"
+    help_category = "Account"
     account_caller = True
 
     def func(self):
         account = self.account
-        oldpass = yield ("Enter your password:")
 
-        if not oldpass:
-            self.msg("Password change aborted.")
-            return
-        if not account.check_password(oldpass):
-            self.msg("The specified password is incorrect.")
-            return
+        def get_input(prompt):
+            return (yield prompt)
 
-        newpass = yield ("Enter your new password:")
-        if not newpass:
-            self.msg("Password change aborted.")
-            return
-        validated, error = account.validate_password(newpass)
-        if not validated:
-            errors = [e for suberror in error.messages for e in error.messages]
-            string = "\n".join(errors)
-            self.msg(string)
-            return
+        def validate_password(password):
+            if not password:
+                self.msg("Password change aborted.")
+                return False
+            return True
 
-        account.set_password(newpass)
-        account.save()
-        self.msg("Password changed.")
-        logger.log_sec(
-            f"Password Changed: {account} (Caller: {account}, IP: {self.session.address})."  # noqa: E501
-        )
+        def change_password():
+            oldpass = yield from get_input("Enter your password:")
+            if not validate_password(oldpass):
+                return
+
+            if not account.check_password(oldpass):
+                self.msg("The specified password is incorrect.")
+                return
+
+            newpass = yield from get_input("Enter your new password:")
+            if not validate_password(newpass):
+                return
+
+            validated, error = account.validate_password(newpass)
+            if not validated:
+                errors = [e for suberror in error.messages for e in error.messages]
+                self.msg("\n".join(errors))
+                return
+
+            account.set_password(newpass)
+            account.save()
+            self.msg("Password changed.")
+            logger.log_sec(f"Password Changed: {account} (IP: {self.session.address}).")
+
+        yield from change_password()
 
 
 class CmdPlay(Command):
     """
-    Command to puppet a character and enter the game.
+    Command to play as a character.
 
     Usage:
-        play <character>
+      play <character>
 
-    This command allows a player to puppet a character and enter the game
-    world. The character must be a valid choice from the playable characters
-    list.
+    This command allows a player to switch to playing as a different character.
+    The player can specify the character they want to play as, and if the character
+    is valid and accessible to the player, they will be able to switch to that character.
     """
 
     key = "play"
     locks = "cmd:is_ooc()"
     aliases = ["connect", "ic", "puppet"]
-    help_category = "General"
+    help_category = "Account"
 
-    def func(self):
+    def get_character_candidates(self, account, args):
         """
-        Main puppet method
-        """
-        account = self.account
-        session = self.session
+        Get a list of character candidates based on the given arguments.
 
-        new_character = None
+        Args:
+            account (Account): The player's account.
+            args (str): The arguments provided by the player.
+
+        Returns:
+            list: A list of character candidates.
+
+        This method determines the character candidates based on the given arguments.
+        If no arguments are provided, it checks if the player has a main character or
+        a last puppet character. If arguments are provided, it searches for playable
+        characters that match the arguments. If the player has builder permissions, it
+        also searches for characters that can be puppeted by the player.
+        """
         character_candidates = []
 
-        if not self.args:
+        if not args:
             if account.db._main_character:
-                # if a main character is set, use that
                 character_candidates.append(account.db._main_character)
-            else:
-                character_candidates = (
-                    [account.db._last_puppet] if account.db._last_puppet else []
-                )
-            if not character_candidates:
-                self.msg("Syntax: ic <character>")
-                return
+            elif account.db._last_puppet:
+                character_candidates.append(account.db._last_puppet)
         else:
-            # argument given
-
             if account.db._playable_characters:
-                # look at the playable_characters list first
                 character_candidates.extend(
                     utils.make_iter(
                         account.search(
-                            self.args,
+                            args,
                             candidates=account.db._playable_characters,
                             search_object=True,
                             quiet=True,
@@ -476,133 +591,232 @@ class CmdPlay(Command):
                 )
 
             if account.locks.check_lockstring(account, "perm(Builder)"):
-                # builders and higher should be able to puppet more than their
-                # playable characters.
-                if session.puppet:
-                    # start by local search - this helps to avoid the user
-                    # getting locked into their playable characters should one
-                    # happen to be named the same as another. We replace the suggestion
-                    # from playable_characters here - this allows builders to puppet objects  # noqa: E501
-                    # with the same name as their playable chars should it be necessary
-                    # (by going to the same location).
+                if self.session.puppet:
                     character_candidates = [
                         char
-                        for char in session.puppet.search(self.args, quiet=True)
+                        for char in self.session.puppet.search(args, quiet=True)
                         if char.access(account, "puppet")
                     ]
-                if not character_candidates:
-                    # fall back to global search only if Builder+ has no
-                    # playable_characters in list and is not standing in a room
-                    # with a matching char.
+                else:
                     character_candidates.extend(
                         [
                             char
-                            for char in search.object_search(self.args)
+                            for char in search.object_search(args)
                             if char.access(account, "puppet")
                         ]
                     )
 
-        # handle possible candidates
-        if not character_candidates:
-            self.msg("That is not a valid character choice.")
-            return
-        if len(character_candidates) > 1:
-            self.msg(
-                "Multiple targets with the same name:\n %s"
-                % ", ".join(
-                    "%s(#%s)" % (obj.key, obj.id) for obj in character_candidates
-                )
-            )
-            return
-        else:
-            new_character = character_candidates[0]
+        return character_candidates
 
-        # do the puppet puppet
+    def func(self):
+        """
+        Execute the play command.
+
+        This method is called when the player executes the play command.
+        It retrieves the player's account and session, checks the arguments,
+        gets the character candidates, and performs the necessary actions
+        to switch to the chosen character.
+        """
+        account = self.account
+        session = self.session
+
+        if (
+            not self.args
+            and not account.db._main_character
+            and not account.db._last_puppet
+        ):
+            self.msg("Syntax: play <character>")
+            return
+
+        if account.db._main_character:
+            character_candidates = self.get_character_candidates(
+                account, account.db._main_character.key
+            )
+        elif account.db._last_puppet:
+            character_candidates = self.get_character_candidates(
+                account, account.db._last_puppet.key
+            )
+        else:
+            character_candidates = self.get_character_candidates(account, self.args)
+            if not character_candidates:
+                self.msg("That is not a valid character choice.")
+                return
+
+        new_character = character_candidates[0]
+
         try:
             account.puppet_object(session, new_character)
             account.db._last_puppet = new_character
-            logger.log_sec(
-                f"{new_character} enters the game (Account: {account})."
-                # f"IP: {self.session.address})."
-            )
+            logger.log_sec(f"{new_character} enters the game (Account: {account}).")
         except RuntimeError as exc:
             self.msg(f"|rYou cannot become |C{new_character.name}|n: {exc}")
             logger.log_sec(
                 f"{new_character} fails to enter the game (Account: {account})."
-                # f"IP: {self.session.address})."
             )
 
 
-class CmdQuit(account.CmdQuit):
+class CmdQuit(Command):
     """
-    Syntax: quit
+    Command class for quitting the game.
 
-    Switch:
-      all - disconnect all connected sessions
+    This command allows the player to quit the game. It provides options to quit
+    the current session or all sessions associated with the player's account.
 
-    Disconnect your current session from the game. Use /all to disconnect all
-    sessions.
+    Usage:
+      quit [all]
+
+    Switches:
+      all - Quit all sessions
+
+    Example usage:
+      quit        - Quit the current session
+      quit all    - Quit all sessions
     """
 
+    key = "quit"
+    switch_options = ("all",)
+    locks = "cmd:all()"
+    help_category = "Account"
+    account_caller = True
 
-class CmdSessions(account.CmdSessions):
-    """
-    Syntax: sessions
+    def func(self):
+        """Hook function"""
+        account = self.account
+        session = self.session
 
-    Lists the sessions currently connected to your account.
+        if "all" in self.switches:
+            self.quit_all_sessions(account, session)
+        else:
+            self.quit_current_session(account, session)
+
+    def quit_all_sessions(self, account, session):
+        """Quit all sessions"""
+        account.msg(
+            "|RQuitting|n all sessions. Hope to see you soon again.", session=session
+        )
+        reason = "quit/all"
+        for session in account.sessions.all():
+            account.disconnect_session_from_account(session, reason)
+
+    def quit_current_session(self, account, session):
+        """Quit the current session"""
+        nsess = account.sessions.count()
+        reason = "quit"
+
+        if nsess == 2:
+            message = "|RQuitting|n. One session is still connected."
+        elif nsess > 2:
+            message = f"|RQuitting|n. {nsess - 1} sessions are still connected."
+        else:
+            message = "|RQuitting|n. Hope to see you again, soon."
+
+        account.msg(message, session=session)
+        account.disconnect_session_from_account(session, reason)
+
+
+class CmdSessions(Command):
     """
+    Command to display the current sessions of the account.
+
+    Usage:
+      sessions
+
+    This command displays information about the current sessions of the account.
+    It shows the session ID, protocol, host, puppet/character, and location for each session.
+    """
+
+    key = "sessions"
+    locks = "cmd:all()"
+    help_category = "Account"
+    account_caller = True
+
+    def func(self):
+        """Implement function"""
+        account = self.account
+        sessions = sorted(account.sessions.all(), key=lambda x: x.sessid)
+
+        table = self.styled_table(
+            "|wsessid", "|wprotocol", "|whost", "|wpuppet/character", "|wlocation"
+        )
+
+        for sess in sessions:
+            char = account.get_puppet(sess)
+            host = sess.address[0] if isinstance(sess.address, tuple) else sess.address
+
+            table.add_row(
+                str(sess.sessid),
+                str(sess.protocol_key),
+                host,
+                str(char) if char else "None",
+                str(char.location) if char else "N/A",
+            )
+
+        self.msg(f"|wYour current session(s):|n\n{table}")
 
 
 class CmdSetMain(Command):
     """
-    Set the main character for the account.
+    Command to set the main character for an account.
 
-    Syntax: setmain
-            setmain <character>
+    Usage: setmain [character name]
 
-    If no arguments are provided, display the current main character.
-    If the argument is "none", set the main character to None.
-    If the argument matches multiple characters, display a list of the matching characters.
-    If the argument matches a single character, set it as the main character.
+    Arguments:
+        character name - The name of the character to set as the main character.
+                         Use "none" to unset the main character.
+
+    This command allows players to set their main character, which is the
+    character they primarily play with. The main character can be used for
+    various purposes within the game.
+
+    If no character name is provided, the current main character is displayed.
+    If the character name is set to "none", the main character is unset.
+
+    Examples:
+        setmain John - Sets the character named "John" as the main character.
+        setmain none - Unsets the main character.
+        main - Displays the current main character.
     """
 
     key = "setmain"
     aliases = ["main"]
     locks = "cmd:is_ooc()"
-    help_category = "General"
+    help_category = "Account"
     account_caller = True
 
     def func(self):
         account = self.account
+        playable_characters = account.db._playable_characters
 
-        if not account.db._playable_characters:
+        if not playable_characters:
             self.msg("You have no playable characters.")
             return
 
         if not self.args:
-            self.msg(f"Main Character: {account.db._main_character}.")
+            main_character = account.db._main_character
+            self.msg(f"Main Character: {main_character}.")
             return
 
-        if self.args.strip().lower() == "none":
+        args = self.args.strip().lower()
+        if args == "none":
             account.db._main_character = None
             self.msg("Main Character set to None.")
             logger.log_sec(f"Main Character Set: None (Account: {account}).")
             return
 
-        character = utils.make_iter(
-            account.search(
-                self.args,
-                candidates=account.db._playable_characters,
-                search_object=True,
-                quiet=True,
-            )
+        character = account.search(
+            self.args,
+            candidates=playable_characters,
+            search_object=True,
+            quiet=True,
         )
 
+        if not character:
+            self.msg("No matching character found.")
+            return
+
         if len(character) > 1:
-            self.msg(
-                "Multiple targets with the same name:\n %s"
-                % ", ".join("%s(#%s)" % (obj.key, obj.id) for obj in character)
-            )
+            character_list = ", ".join(f"{obj.key}(#{obj.id})" for obj in character)
+            self.msg(f"Multiple targets with the same name:\n {character_list}")
             return
 
         character = character[0]
@@ -616,21 +830,10 @@ class CmdSetMain(Command):
 
 
 class CmdWho(Command):
-    """
-    Command to display a list of connected players and administrators.
-
-    Usage: syntax
-
-    This command displays a formatted table showing the currently connected
-    players and administrators. Administrators are displayed at the top,
-    followed by the list of players. The table is dynamically adjusted to
-    fit the width of the client's screen.
-    """
-
     key = "who"
     aliases = ["wh"]
     locks = "cmd:all()"
-    help_category = "General"
+    help_category = "Account"
 
     def create_header(self, width):
         header_string = f"{self.get_header(width)}\n"
@@ -638,62 +841,36 @@ class CmdWho(Command):
         header_string += f"{self.get_admin_display(width)}\n"
         header_string += f"{self.format_admin(['Jake'], width)}\n"
         header_string += f"{self.get_player_display(width)}"
-
         return header_string
 
     def get_header(self, width):
-        return utils.pad(
-            " |145[ {} ]|n ".format(settings.SERVERNAME),
-            width=width + 6,
-            align="c",
-            fillchar="-",
-        )
+        return f" |145[ {settings.SERVERNAME} ]|n ".center(width + 6, "-")
 
     def get_time_display(self, width):
         current_time = datetime.now().strftime("%H:%M:%S %p, %A, %B %d, %Y")
-        return utils.pad(current_time, width=width, align="c", fillchar=" ")
+        return current_time.center(width)
 
     def get_admin_display(self, width):
-        return utils.pad(
-            " |r[ Administrators ]|n ", width=width + 4, align="c", fillchar="-"
-        )
+        return " |r[ Administrators ]|n ".center(width + 4, "-")
 
     def format_admin(self, names, width):
-        # Calculate the total length of the names
         total_names_length = sum(len(name) for name in names)
-
-        # Calculate the number of gaps between the names, and add 2 for the margins
-        num_gaps = len(names) - 1 + 2
-
-        # Calculate the total available space
+        num_gaps = len(names) + 1
         remaining_space = width - total_names_length
-
         if remaining_space <= 0:
-            return " ".join(names)[:width]  # Truncate if it doesn't fit
-
-        # Calculate the gap size, which will also be the margin size
-        gap = remaining_space // num_gaps
-
-        # Calculate any extra spaces that can't be evenly distributed
-        extra_space = remaining_space % num_gaps
-
-        # Create the formatted string with the left margin
-        formatted_string = " " * gap + names[0]
-        for name in names[1:]:
-            this_gap = gap + (1 if extra_space > 0 else 0)
-            formatted_string += " " * this_gap + name
+            return " ".join(names)[:width]
+        gap, extra_space = divmod(remaining_space, num_gaps)
+        formatted_string = " " * gap
+        for name in names:
+            formatted_string += name + " " * (gap + (1 if extra_space > 0 else 0))
             extra_space -= 1
-
-        # Add the right margin
-        formatted_string += " " * gap
-
         return formatted_string
 
     def get_player_display(self, width):
-        return utils.pad(" [ Players ] ", width=width, align="c", fillchar="-")
+        return " [ Players ] ".center(width, "-")
 
     def get_footer(self, width):
-        return utils.pad("", width=width, align="c", fillchar="-")
+        return "-" * width
 
     def add_row_to_table(self, table, session, caller):
         delta_cmd = time.time() - session.cmd_last_visible
@@ -701,16 +878,16 @@ class CmdWho(Command):
         session_account = session.get_account()
         puppet = session.get_puppet()
         location = puppet.location.key if puppet and puppet.location else "None"
-
         table.add_row(
             utils.crop(session_account.get_display_name(caller), width=25),
             utils.crop(location, width=25),
             utils.time_format(delta_conn, 0),
             utils.time_format(delta_cmd, 1),
-            # session.protocol_key,
-            isinstance(session.address, tuple)
-            and session.address[0]
-            or session.address,
+            (
+                session.address[0]
+                if isinstance(session.address, tuple)
+                else session.address
+            ),
         )
 
     def get_admin_and_table(self, session_list, caller, width):
@@ -720,7 +897,6 @@ class CmdWho(Command):
             "|wRoom",
             "|wOn for",
             "|wIdle",
-            # "|wProtocol",
             "|wHost",
             header=True,
             border="header",
@@ -728,55 +904,29 @@ class CmdWho(Command):
             width=width,
             evenwidth=False,
         )
-
         for session in session_list:
             if session.get_account().permissions.check("Admin"):
                 admin.append(session.get_account().get_display_name(caller))
-                continue
-
-            if not session.logged_in:
-                continue
-
-            self.add_row_to_table(table, session, caller)
-
+            elif session.logged_in:
+                self.add_row_to_table(table, session, caller)
         return admin, table
 
     def func(self):
-        """
-        Get all connected accounts by polling sessions.
-        """
         caller = self.caller
-        session_list = SESSIONS.get_sessions()
-        session_list = sorted(session_list, key=lambda x: x.account.key)
+        session_list = sorted(SESSIONS.get_sessions(), key=lambda x: x.account.key)
         width = 49 + 5 * ((self.client_width() - 49) // 5)
-
         if caller.permissions.check("Admin"):
-            # privileged info
             admin, table = self.get_admin_and_table(session_list, caller, width)
         else:
-            # width = 50 if self.client_width() >= 44 else self.client_width()
-            # Unprivileged table
-            # table = EvTable(header=False, border=None)
             table = self.styled_table(header=False, border=None, pad_left=2)
-
-            # Add players to list.
             admin = []
             for session in session_list:
-                # Separate admin from players
                 if session.get_account().permissions.check("Admin"):
                     admin.append(
                         strip_ansi(session.get_account().get_display_name(caller))
                     )
-                    continue
-
-                # Skip sessions that are not logged in.
-                if not session.logged_in:
-                    continue
-
-                # Add player to table.
-                session_account = session.get_account()
-                table.add_row(session_account.get_display_name(caller))
-
+                elif session.logged_in:
+                    table.add_row(session.get_account().get_display_name(caller))
         naccounts = SESSIONS.account_count()
         is_one = naccounts == 1
         header = self.create_header(width)
@@ -785,5 +935,4 @@ class CmdWho(Command):
         string += f"{naccounts} player{'s' if not is_one else ''} logged in.".rjust(
             width
         )
-
         caller.msg(string)

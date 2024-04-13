@@ -6,29 +6,30 @@ They are what you "see" in game. The Character class in this module
 is setup to be the "default" character type created by the default
 creation commands.
 
-Contributions:
-  Modified Genders (Griatch, Jake)
-
 """
 
-import os
-
 from django.conf import settings
-from evennia.objects.models import ObjectDB
-from evennia.objects.objects import DefaultCharacter
-from evennia.utils.utils import lazy_property, make_iter, to_str, variable_from_module
 from handlers import quests, traits
-from parsing.text import grammarize, wrap
 from server.conf import logger
-from world.characters import backgrounds, genders
+from utils.text import grammarize, wrap
+from world.characters import backgrounds
 
-from typeclasses import objects
-from typeclasses.mixins import living
+from evennia.objects.objects import DefaultCharacter
+from evennia.utils.utils import (
+    dbref,
+    lazy_property,
+    make_iter,
+    to_str,
+    variable_from_module,
+)
+
+from .mixins.living import LivingMixin
+from .objects import ObjectParent
 
 _AT_SEARCH_RESULT = variable_from_module(*settings.SEARCH_AT_RESULT.rsplit(".", 1))
 
 
-class Character(living.LivingMixin, DefaultCharacter, objects.Object):
+class Character(LivingMixin, ObjectParent, DefaultCharacter):
     """
     The Character defaults to reimplementing some of base Object's hook methods with the
     following functionality:
@@ -39,62 +40,28 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
                     (to change things, use at_object_creation() instead).
     at_post_move(source_location) - Launches the "look" command after every move.
     at_post_unpuppet(account) -  when Account disconnects from the Character, we
-                    store the current location in the pre_logout_location Attribute and
+                    store the current location in the prelogout_location Attribute and
                     move it to a None-location so the "unpuppeted" character
                     object does not need to stay on grid. Echoes "Account has disconnected"
                     to the room.
     at_pre_puppet - Just before Account re-connects, retrieves the character's
-                    pre_logout_location Attribute and move it back on the grid.
+                    prelogout_location Attribute and move it back on the grid.
     at_post_puppet - Echoes "AccountName has entered the game" to the room.
-    """  # noqa: E501
 
-    appearance_template = """
-{desc}
+    """
 
-{things}
-"""
-
-    #################
-    # Initial Setup #
-    #################
     def at_object_creation(self):
-        self.create_log_folder()
-        self.init_stats()
+        super(LivingMixin, self).at_object_creation()
         self.locks.add("msg:all()")
 
-    def create_log_folder(self):
-        """
-        Creates a log folder for the character.
-        """
-        char_log_dir = f"{settings.CHARACTER_LOG_DIR}/{self.key.lower()}/"
-        os.makedirs(char_log_dir, exist_ok=True)
-        self.attributes.add("_log_folder", f"characters/{self.key.lower()}/")
-
-    def init_stats(self):
-        self.stats.add("health", "Health", trait_type="gauge", base=100)
-        self.stats.add("mana", "Mana", trait_type="gauge", base=100)
-        self.stats.add("stamina", "Stamina", trait_type="gauge", base=100)
-
-        self.stats.add("strength", "Strength", trait_type="static", base=10)
-        self.stats.add("dexterity", "Dexterity", trait_type="static", base=10)
-        self.stats.add("constitution", "Constitution", trait_type="static", base=10)
-        self.stats.add("intelligence", "Intelligence", trait_type="static", base=10)
-        self.stats.add("wisdom", "Wisdom", trait_type="static", base=10)
-        self.stats.add("charisma", "Charisma", trait_type="static", base=10)
-
-        self.stats.add("wealth", "Wealth", trait_type="static", base=0)
-        self.stats.add("weight", "Weight", trait_type="counter", base=0, max=100)
-
-    # Handlers
     @lazy_property
     def appearance(self):
         return traits.TraitHandler(self, db_attribute_key="appearance")
 
     @lazy_property
     def quests(self):
-        return quests.QuestHandler(self)
+        return quests.QuestHandler(self, db_attribute_key="quests")
 
-    # Base Properties
     @property
     def background(self):
         return self.traits.get("background")
@@ -111,8 +78,8 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
         self.background.value = value
 
     @property
-    def log_folder(self):
-        return self.attributes.get("_log_folder", f"characters/{self.key.lower()}/")
+    def cls(self):
+        return self.traits.get("cls")
 
     # Hooks
     def at_pre_emote(self, message, **kwargs):
@@ -375,9 +342,7 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
                 custom_mapping,
             )
 
-    ###########
-    # Methods #
-    ###########
+    # Methods
     def msg(self, text=None, from_obj=None, session=None, options=None, **kwargs):
         """
         Emits something to a session attached to the object.
@@ -431,13 +396,13 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
                 except Exception:
                     text = repr(text)
 
-            if text and isinstance(text, tuple):
-                text = (
-                    genders._RE_GENDER_PRONOUN.sub(self.get_pronoun, text[0]),
-                    *text[1:],
-                )
-            else:
-                text = genders._RE_GENDER_PRONOUN.sub(self.get_pronoun, text)
+            # if text and isinstance(text, tuple):
+            #     text = (
+            #         genders._RE_GENDER_PRONOUN.sub(self.get_pronoun, text[0]),
+            #         *text[1:],
+            #     )
+            # else:
+            #     text = genders._RE_GENDER_PRONOUN.sub(self.get_pronoun, text)
 
             if kwargs.get("wrap") == "say":
                 msg = text[0]
@@ -452,23 +417,41 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
         for session in sessions:
             session.data_out(**kwargs)
 
-        # relay to watcher(s)
-        watchers = self.ndb._watchers or []
-        for watcher in watchers:
-            watcher.msg(text=kwargs["text"])
+    def handle_search_results(self, searchdata, results, **kwargs):
+        """
+        This method is called by the search method to allow for handling of the final search result.
 
-    def return_appearance(self, looker, **kwargs):
-        if not looker:
-            return ""
+        Args:
+            searchdata (str): The original search criterion (potentially modified by
+                `get_search_query_replacement`).
+            results (list): The list of results from the search.
+            **kwargs (any): These are the same as passed to the `search` method.
 
-        # populate the appearance_template string.
-        return self.format_appearance(
-            self.appearance_template.format(
-                desc=self.get_display_desc(looker, **kwargs),
-                things=self.get_display_things(looker, **kwargs),
-            ),
-            looker,
-            **kwargs,
+        Returns:
+            Object, None or list: Normally this is a single object, but if `quiet=True` it should be
+            a list.  If quiet=False and we have to handle a no/multi-match error (directly messaging
+            the user), this should return `None`.
+
+        """
+        if kwargs.get("quiet"):
+            # don't care about no/multi-match errors, just return list of whatever we have
+            return list(results)
+
+        # handle any error messages, otherwise return a single result
+
+        nofound_string = kwargs.get("nofound_string")
+        multimatch_string = kwargs.get("multimatch_string")
+        return_quantity = kwargs.get("return_quantity")
+        return_type = kwargs.get("return_type")
+
+        return _AT_SEARCH_RESULT(
+            results,
+            self,
+            query=searchdata,
+            nofound_string=nofound_string,
+            multimatch_string=multimatch_string,
+            return_quantity=return_quantity,
+            return_type=return_type,
         )
 
     def search(
@@ -484,151 +467,52 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
         candidates=None,
         use_locks=True,
         nofound_string=None,
-        number=1,
         multimatch_string=None,
         use_dbref=None,
         tags=None,
         stacked=0,
+        return_quantity=1,
+        return_type=None,
     ):
-        """
-        Returns an Object matching a search string/condition
+        # store input kwargs for sub-methods (this must be done first in this method)
+        input_kwargs = {
+            key: value
+            for key, value in locals().items()
+            if key not in ("self", "searchdata")
+        }
 
-        Perform a standard object search in the database, handling
-        multiple results and lack thereof gracefully. By default, only
-        objects in the current `location` of `self` or its inventory are searched for.
+        # replace incoming searchdata string with a potentially modified version
+        searchdata = self.get_search_query_replacement(searchdata, **input_kwargs)
 
-        Args:
-            searchdata (str or obj): Primary search criterion. Will be matched
-                against `object.key` (with `object.aliases` second) unless
-                the keyword attribute_name specifies otherwise.
+        # handle special input strings, like "me" or "here".
+        should_return, searchdata = self.get_search_direct_match(
+            searchdata, **input_kwargs
+        )
+        if should_return:
+            # we got an actual result, return it immediately
+            return [searchdata] if quiet else searchdata
 
-                Special keywords:
+        # if use_dbref is None, we use a lock to determine if dbref search is allowed
+        use_dbref = (
+            self.locks.check_lockstring(self, "_dummy:perm(Builder)")
+            if use_dbref is None
+            else use_dbref
+        )
 
-                - `#<num>`: search by unique dbref. This is always a global search.
-                - `me,self`: self-reference to this object
-                - `<num>-<string>` - can be used to differentiate
-                   between multiple same-named matches. The exact form of this input
-                   is given by `settings.SEARCH_MULTIMATCH_REGEX`.
+        # convert tags into tag tuples suitable for query
+        tags = [
+            (tagkey, tagcat[0] if tagcat else None)
+            for tagkey, *tagcat in make_iter(tags or [])
+        ]
 
-            global_search (bool): Search all objects globally. This overrules 'location' data.
-            use_nicks (bool): Use nickname-replace (nicktype "object") on `searchdata`.
-            typeclass (str or Typeclass, or list of either): Limit search only
-                to `Objects` with this typeclass. May be a list of typeclasses
-                for a broader search.
-            location (Object or list): Specify a location or multiple locations
-                to search. Note that this is used to query the *contents* of a
-                location and will not match for the location itself -
-                if you want that, don't set this or use `candidates` to specify
-                exactly which objects should be searched. If this nor candidates are
-                given, candidates will include caller's inventory, current location and
-                all objects in the current location.
-            attribute_name (str): Define which property to search. If set, no
-                key+alias search will be performed. This can be used
-                to search database fields (db_ will be automatically
-                prepended), and if that fails, it will try to return
-                objects having Attributes with this name and value
-                equal to searchdata. A special use is to search for
-                "key" here if you want to do a key-search without
-                including aliases.
-            quiet (bool): don't display default error messages - this tells the
-                search method that the user wants to handle all errors
-                themselves. It also changes the return value type, see
-                below.
-            exact (bool): if unset (default) - prefers to match to beginning of
-                string rather than not matching at all. If set, requires
-                exact matching of entire string.
-            candidates (list of objects): this is an optional custom list of objects
-                to search (filter) between. It is ignored if `global_search`
-                is given. If not set, this list will automatically be defined
-                to include the location, the contents of location and the
-                caller's contents (inventory).
-            use_locks (bool): If True (default) - removes search results which
-                fail the "search" lock.
-            nofound_string (str):  optional custom string for not-found error message.
-            multimatch_string (str): optional custom string for multimatch error header.
-            use_dbref (bool or None, optional): If `True`, allow to enter e.g. a query "#123"
-                to find an object (globally) by its database-id 123. If `False`, the string "#123"
-                will be treated like a normal string. If `None` (default), the ability to query by
-                #dbref is turned on if `self` has the permission 'Builder' and is turned off
-                otherwise.
-            tags (list or tuple): Find objects matching one or more Tags. This should be one or
-                more tag definitions on the form `tagname` or `(tagname, tagcategory)`.
-            stacked (int, optional): If > 0, multimatches will be analyzed to determine if they
-                only contains identical objects; these are then assumed 'stacked' and no multi-match
-                error will be generated, instead `stacked` number of matches will be returned. If
-                `stacked` is larger than number of matches, returns that number of matches. If
-                the found stack is a mix of objects, return None and handle the multi-match
-                error depending on the value of `quiet`.
+        # always use exact match for dbref/global searches
+        exact = True if global_search or dbref(searchdata) else exact
 
-        Returns:
-            Object, None or list: Will return an `Object` or `None` if `quiet=False`. Will return
-            a `list` with 0, 1 or more matches if `quiet=True`. If `stacked` is a positive integer,
-            this list may contain all stacked identical matches.
+        # get candidates
+        candidates = self.get_search_candidates(searchdata, **input_kwargs)
 
-        Notes:
-            To find Accounts, use eg. `evennia.account_search`. If
-            `quiet=False`, error messages will be handled by
-            `settings.SEARCH_AT_RESULT` and echoed automatically (on
-            error, return will be `None`). If `quiet=True`, the error
-            messaging is assumed to be handled by the caller.
-
-        """  # noqa: E501
-        is_string = isinstance(searchdata, str)
-
-        if is_string:
-            # searchdata is a string; wrap some common self-references
-            if searchdata.lower() in ("here",):
-                return [self.location] if quiet else self.location
-            if searchdata.lower() in ("me", "self"):
-                return [self] if quiet else self
-
-        if use_dbref is None:
-            use_dbref = self.locks.check_lockstring(self, "_dummy:perm(Builder)")
-
-        if use_nicks:
-            # do nick-replacement on search
-            searchdata = self.nicks.nickreplace(
-                searchdata, categories=("object", "account"), include_account=True
-            )
-
-        if global_search or (
-            is_string
-            and searchdata.startswith("#")
-            and len(searchdata) > 1
-            and searchdata[1:].isdigit()
-        ):
-            # only allow exact matching if searching the entire database
-            # or unique #dbrefs
-            exact = True
-            candidates = None
-
-        elif candidates is None:
-            # no custom candidates given - get them automatically
-            if location:
-                # location(s) were given
-                candidates = []
-                for obj in make_iter(location):
-                    candidates.extend(obj.contents)
-            else:
-                # local search. Candidates are taken from
-                # self.contents, self.location and
-                # self.location.contents
-                location = self.location
-                candidates = self.contents
-                if location:
-                    candidates = candidates + [location] + location.contents
-                else:
-                    # normally we don't need this since we are
-                    # included in location.contents
-                    candidates.append(self)
-
-        if tags:
-            tags = [
-                (tagkey, tagcat[0] if tagcat else None)
-                for tagkey, *tagcat in make_iter(tags)
-            ]
-
-        results = ObjectDB.objects.search_object(
+        # do the actual search
+        results = self.get_search_result(
             searchdata,
             attribute_name=attribute_name,
             typeclass=typeclass,
@@ -638,42 +522,17 @@ class Character(living.LivingMixin, DefaultCharacter, objects.Object):
             tags=tags,
         )
 
+        # filter out objects we are not allowed to search
         if use_locks:
             results = [
                 x for x in list(results) if x.access(self, "search", default=True)
             ]
 
-        if quiet:
-            # don't auto-handle error messaging
-            return list(results)
+        # handle stacked objects
+        is_stacked, results = self.get_stacked_results(results, **input_kwargs)
+        if is_stacked:
+            # we have a stacked result, return it immediately (a list)
+            return results
 
-        nresults = len(results)
-        if stacked > 0 and nresults > 1:
-            # handle stacks, disable multimatch errors
-            nstack = nresults
-            if not exact:
-                # we re-run exact match against one of the matches to
-                # make sure we were not catching partial matches not belonging
-                # to the stack
-                nstack = len(
-                    ObjectDB.objects.get_objs_with_key_or_alias(
-                        results[0].key,
-                        exact=True,
-                        candidates=list(results),
-                        typeclasses=[typeclass] if typeclass else None,
-                    )
-                )
-            if nstack == nresults:
-                # a valid stack, return multiple results
-                return list(results)[:stacked]
-        elif nresults > 1:
-            return list(results)[number - 1]
-
-        # handle error messages
-        return _AT_SEARCH_RESULT(
-            results,
-            self,
-            query=searchdata,
-            nofound_string=nofound_string,
-            multimatch_string=multimatch_string,
-        )
+        # handle the end (unstacked) results, returning a single object, a list or None
+        return self.handle_search_results(searchdata, results, **input_kwargs)

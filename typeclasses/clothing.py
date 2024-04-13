@@ -33,6 +33,11 @@ class Clothing(Object):
     Represents a piece of clothing in the game.
     """
 
+    _content_types = (
+        "clothing",
+        "object",
+    )
+
     def at_object_creation(self):
         self.db.covered_by = []
         self.db.covering = []
@@ -69,17 +74,6 @@ class Clothing(Object):
     @covering.setter
     def covering(self, value: list):
         self.db.covering = value
-
-    @property
-    def display_name(self):
-        """
-        Returns the display name of this object.
-        """
-        return self.attributes.get("display_name", self.key)
-
-    @display_name.setter
-    def display_name(self, value: str):
-        self.db.display_name = value
 
     @lazy_property
     def position(self):

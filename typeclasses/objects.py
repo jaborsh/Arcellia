@@ -12,11 +12,12 @@ inheritance.
 """
 
 import re
+from collections import defaultdict
 
 from django.utils.translation import gettext as _
 from evennia.objects.objects import DefaultObject
-
-from parsing.text import _INFLECT, strip_ansi
+from evennia.utils.utils import compress_whitespace, dedent, iter_to_str
+from utils.text import _INFLECT, strip_ansi
 
 
 class ObjectParent:
@@ -27,8 +28,51 @@ class ObjectParent:
     Just add any method that exists on `DefaultObject` to this class. If one
     of the derived classes has itself defined that same hook already, that will
     take precedence.
-
     """
+
+    @property
+    def display_name(self):
+        return self.attributes.get("display_name", self.name)
+
+    @display_name.setter
+    def display_name(self, value: str):
+        self.db.display_name = value
+
+    @property
+    def senses(self):
+        return self.attributes.get("senses", {})
+
+    @property
+    def feel(self):
+        return self.senses.get("feel", "You feel nothing interesting.")
+
+    @feel.setter
+    def feel(self, value: str):
+        self.senses["feel"] = value
+
+    @property
+    def smell(self):
+        return self.senses.get("smell", "You smell nothing interesting.")
+
+    @smell.setter
+    def smell(self, value: str):
+        self.senses["smell"] = value
+
+    @property
+    def sound(self):
+        return self.senses.get("sound", "You hear nothing interesting.")
+
+    @sound.setter
+    def sound(self, value: str):
+        self.senses["sound"] = value
+
+    @property
+    def taste(self):
+        return self.senses.get("taste", "You taste nothing interesting.")
+
+    @taste.setter
+    def taste(self, value: str):
+        self.senses["taste"] = value
 
 
 class Object(ObjectParent, DefaultObject):
@@ -177,64 +221,117 @@ class Object(ObjectParent, DefaultObject):
 
     """
 
-    def at_post_spawn(self):
-        pass
-
-    @property
-    def display_name(self):
-        return self.attributes.get("display_name", self.name)
-
-    @display_name.setter
-    def display_name(self, value: str):
-        self.attributes.add("display_name", value)
-
-    @property
-    def senses(self):
-        return self.attributes.get("senses", {})
-
-    @senses.setter
-    def senses(self, sense: str, value: str):
-        self.db.senses[sense] = value
-
-    @property
-    def feel(self):
-        return self.senses.get("feel", "You feel nothing interesting.")
-
-    @property
-    def smell(self):
-        return self.senses.get("smell", "You smell nothing interesting.")
-
-    @property
-    def sound(self):
-        return self.senses.get("sound", "You hear nothing interesting.")
-
-    @property
-    def taste(self):
-        return self.senses.get("taste", "You taste nothing interesting.")
+    appearance_template = dedent(
+        """
+        {desc}
+        {exits}
+        
+        {characters}
+        {things}
+        """
+    )
 
     def get_display_name(self, looker=None, **kwargs):
         """
         Displays the name of the object in a viewer-aware manner.
 
         Args:
-            looker (TypedObject): The object or account that is looking
-                at/getting inforamtion for this object. If not given, `.name` will be
-                returned, which can in turn be used to display colored data.
+            looker (DefaultObject): The object or account that is looking at or getting information
+                for this object.
 
         Returns:
-            str: A name to display for this object. This can contain color codes and may
-                be customized based on `looker`. By default this contains the `.key` of the object,
-                followed by the DBREF if this user is privileged to control said object.
+            str: A name to display for this object. By default this returns the `.name` of the object.
 
         Notes:
-            This function could be extended to change how object names appear to users in character,
-            but be wary. This function does not change an object's keys or aliases when searching,
-            and is expected to produce something useful for builders.
+            This function can be extended to change how object names appear to users in character,
+            but it does not change an object's keys or aliases when searching.
+        """
+        return self.display_name
+
+    def get_display_desc(self, looker, **kwargs):
+        """
+        Get the 'desc' component of the object description. Called by `return_appearance`.
+
+        Args:
+            looker (DefaultObject): Object doing the looking.
+            **kwargs: Arbitrary data for use when overriding.
+        Returns:
+            str: The desc display string.
+
+        """
+        return self.db.desc.strip() or "You see nothing special."
+
+    def get_extra_display_name_info(self, looker=None, **kwargs):
+        """
+        Adds any extra display information to the object's name. By default this is is the
+        object's dbref in parentheses, if the looker has permission to see it.
+
+        Args:
+            looker (DefaultObject): The object looking at this object.
+
+        Returns:
+            str: The dbref of this object, if the looker has permission to see it. Otherwise, an
+            empty string is returned.
+
+        Notes:
+            By default, this becomes a string (#dbref) attached to the object's name.
 
         """
         if looker and self.locks.check_lockstring(looker, "perm(Builder)"):
-            return "{}(#{})".format(self.display_name, self.id)
-        return self.display_name
+            return f"(#{self.id})"
+        return ""
+
+    def get_display_characters(self, looker, **kwargs):
+        """
+        Get the 'characters' component of the object description. Called by `return_appearance`.
+
+        Args:
+            looker (DefaultObject): Object doing the looking.
+            **kwargs: Arbitrary data for use when overriding.
+        Returns:
+            str: The character display data.
+
+        """
+        characters = self.filter_visible(
+            self.contents_get(content_type="character"), looker, **kwargs
+        )
+        character_names = iter_to_str(
+            char.get_display_name(looker, **kwargs) for char in characters
+        )
+
+        return f"|wCharacters:|n {character_names}" if character_names else ""
+
+    def get_display_things(self, looker=None, **kwargs):
+        """
+        Get the 'things' component of the object description. Called by `return_appearance`.
+
+        Args:
+            looker (DefaultObject): Object doing the looking.
+            **kwargs: Arbitrary data for use when overriding.
+        Returns:
+            str: The things display data.
+
+        """
+        # sort and handle same-named things
+        things = self.filter_visible(
+            self.contents_get(content_type="object"), looker, **kwargs
+        )
+
+        grouped_things = defaultdict(list)
+        for thing in things:
+            grouped_things[
+                thing.get_display_name(looker, **kwargs)
+                + thing.get_extra_display_name_info(looker, **kwargs)
+            ].append(thing)
+
+        thing_names = []
+        for thingname, thinglist in sorted(grouped_things.items()):
+            nthings = len(thinglist)
+            thing = thinglist[0]
+            singular, plural = thing.get_numbered_name(nthings, looker, key=thingname)
+            thing_names.append(singular if nthings == 1 else plural)
+        thing_names = "\n ".join(thing_names)
+        return f"|wYou see:|n\n {thing_names}" if thing_names else ""
 
     def get_numbered_name(self, count, looker, **kwargs):
         """
@@ -252,6 +349,7 @@ class Object(ObjectParent, DefaultObject):
         Keyword Args:
             key (str): Optional key to pluralize. If not given, the object's `.name` property is
                 used.
+            no_article (bool): If 'True', do not return an article if 'count' is 1.
 
         Returns:
             tuple: This is a tuple `(str, str)` with the singular and plural forms of the key
@@ -261,8 +359,7 @@ class Object(ObjectParent, DefaultObject):
             obj.get_numbered_name(3, looker, key="foo") -> ("a foo", "three foos")
         """
 
-        key = kwargs.get("key", self.display_name)
-
+        key = kwargs.get("key", self.get_display_name(looker))
         # Regular expression for color codes
         color_code_pattern = (
             r"(\|(r|g|y|b|m|c|w|x|R|G|Y|B|M|C|W|X|\d{3}|#[0-9A-Fa-f]{6}))"
@@ -331,33 +428,82 @@ class Object(ObjectParent, DefaultObject):
 
         return singular, plural
 
+    def return_appearance(self, looker, **kwargs):
+        """
+        Main callback used by 'look' for the object to describe itself.
+        This formats a description. By default, this looks for the `appearance_template`
+        string set on this class and populates it with formatting keys
+        'name', 'desc', 'exits', 'characters', 'things' as well as
+        (currently empty) 'header'/'footer'. Each of these values are
+        retrieved by a matching method `.get_display_*`, such as `get_display_name`,
+        `get_display_footer` etc.
+
+        Args:
+            looker (DefaultObject): Object doing the looking. Passed into all helper methods.
+            **kwargs (dict): Arbitrary, optional arguments for users
+                overriding the call. This is passed into all helper methods.
+
+        Returns:
+            str: The description of this entity. By default this includes
+            the entity's name, description and any contents inside it.
+
+        Notes:
+            To simply change the layout of how the object displays itself (like
+            adding some line decorations or change colors of different sections),
+            you can simply edit `.appearance_template`. You only need to override
+            this method (and/or its helpers) if you want to change what is passed
+            into the template or want the most control over output.
+
+        """
+
+        if not looker:
+            return ""
+
+        # populate the appearance_template string.
+        return compress_whitespace(
+            self.appearance_template.format(
+                desc=self.get_display_desc(looker, **kwargs),
+                exits=self.get_display_exits(looker, **kwargs),
+                characters=self.get_display_characters(looker, **kwargs),
+                things=self.get_display_things(looker, **kwargs),
+            ).strip(),
+            max_linebreaks=2,
+        )
+
     def announce_move_to(
         self, source_location, msg=None, mapping=None, move_type="move", **kwargs
     ):
         """
-        Called after the move if the move was not quiet. At this point
-        we are standing in the new location.
-        """
+        Announces the movement of the object to a new location.
 
+        Args:
+            source_location (Object): The previous location of the object.
+            msg (str, optional): Additional message to include in the announcement.
+            mapping (dict, optional): Mapping of variables for string formatting.
+            move_type (str, optional): Type of movement (e.g., "move", "teleport").
+
+        Returns:
+            None
+        """
         if not source_location and self.location.has_account:
-            string = _("You now have {name} in your possession.").format(
-                name=self.get_display_name(self.location)
+            self.location.msg(
+                _("You now have {name} in your possession.").format(
+                    name=self.get_display_name(self.location)
+                )
             )
-            self.location.msg(string)
             return
 
         origin = source_location
         destination = self.location
-        exits = []
-        if origin:
-            exits = [
-                o
-                for o in destination.contents
-                if o.location is destination and o.destination is origin
-            ]
+        exits = [
+            o
+            for o in destination.contents
+            if o.location is destination and o.destination is origin
+        ]
 
         if exits:
-            if exits[0].get_display_name(self.location) in [
+            exit_name = exits[0].get_display_name(self.location)
+            if exit_name in [
                 "north",
                 "west",
                 "south",
@@ -367,22 +513,20 @@ class Object(ObjectParent, DefaultObject):
                 "southwest",
                 "southeast",
             ]:
-                exit_traversed = f"the {exits[0].get_display_name(self.location)}"
-            elif exits[0].get_display_name(self.location) in ["up"]:
+                exit_traversed = f"the {exit_name}"
+            elif exit_name == "up":
                 exit_traversed = "above"
-            elif exits[0].get_display_name(self.location) in ["down"]:
+            elif exit_name == "down":
                 exit_traversed = "below"
             else:
-                exit_traversed = f"{exits[0].get_display_name(self.location)}"
+                exit_traversed = exit_name
             string = _("{object} arrives from {exit_traversed}.")
         elif origin:
             string = _("{object} arrives from {origin}.")
         else:
             string = _("{object} arrives to {destination}.")
 
-        if not mapping:
-            mapping = {}
-
+        mapping = mapping or {}
         mapping.update(
             {
                 "object": self,
@@ -403,17 +547,25 @@ class Object(ObjectParent, DefaultObject):
         self, destination, msg=None, mapping=None, move_type="move", **kwargs
     ):
         """
-        Called if the move is to be announced. This is
-        called while we are still standing in the old
-        location.
+        Announces the movement of the object from its current location to a destination.
+
+        Args:
+            destination (object): The destination object where the object is moving to.
+            msg (str, optional): The message to be displayed when announcing the movement. If not provided,
+                a default message will be used.
+            mapping (dict, optional): A dictionary containing additional variables to be used in the message
+                string. These variables can be referenced using placeholders in the message string.
+            move_type (str, optional): The type of movement being performed. Defaults to "move".
+            **kwargs: Additional keyword arguments that can be used to customize the behavior of the method.
+
+        Returns:
+            None
+
         """
         if not self.location:
             return
-        if msg:
-            string = msg
-        else:
-            string = "{object} leaves {exit_traversed}."
 
+        string = msg or "{object} leaves {exit_traversed}."
         location = self.location
         exits = [
             o
@@ -421,9 +573,7 @@ class Object(ObjectParent, DefaultObject):
             if o.location is location and o.destination is destination
         ]
 
-        if not mapping:
-            mapping = {}
-
+        mapping = mapping or {}
         mapping.update(
             {
                 "object": self,
@@ -439,3 +589,12 @@ class Object(ObjectParent, DefaultObject):
             from_obj=self,
             mapping=mapping,
         )
+
+
+class InteractiveObject(Object):
+    """
+    An interactive object.
+    """
+
+    def at_object_creation(self):
+        self.locks.add("get:false()")

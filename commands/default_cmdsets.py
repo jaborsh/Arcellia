@@ -16,17 +16,14 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 
 from evennia import CmdSet, default_cmds
 
-from commands import (
+from . import (
     account,
     admin,
     building,
-    clothing,
-    comms,
     developer,
     general,
     git,
     help,
-    mail,
     system,
     unloggedin,
 )
@@ -34,7 +31,13 @@ from commands import (
 
 def add_modules(self, modules):
     """
-    Add all commands from modules passed by argument.
+    Adds command classes from the given modules to the command set.
+
+    Args:
+        modules (dict): A dictionary containing module groups, where each group is a list of modules.
+
+    Returns:
+        None
     """
     for module_group in modules.values():
         for module in module_group:
@@ -58,14 +61,10 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         Populates the cmdset
         """
         modules = {
-            "Developer Modules": [developer, git],
-            "Admin Modules": [admin],
-            "Account Modules": [account],
-            "Building Modules": [building],
-            "Comm Modules": [comms],
-            "Help Modules": [help],
-            "System Modules": [system],
+            "Admin Modules": [admin, developer, git, system],
+            "Account Modules": [account, help],
         }
+
         add_modules(self, modules)
 
 
@@ -82,11 +81,15 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         """
         Populates the cmdset
         """
+        # super().at_cmdset_creation()
+        #
+        # any commands you add below will overload the default ones.
+        #
         modules = {
-            "General Modules": [general],
-            "Clothing Modules": [clothing],
-            "Mail Module": [mail],
+            "Builder Modules": [building],
+            "Character Modules": [general],
         }
+
         add_modules(self, modules)
 
 
@@ -101,7 +104,7 @@ class MobCmdSet(CmdSet):
     def at_cmdset_creation(self):
         modules = {
             "General Modules": [general],
-            "Merchant Modules": [clothing],
+            # "Merchant Modules": [clothing],
         }
         add_modules(self, modules)
 
@@ -122,7 +125,10 @@ class SessionCmdSet(default_cmds.SessionCmdSet):
         As and example we just add the empty base `Command` object.
         It prints some info.
         """
-        super().at_cmdset_creation()
+        # super().at_cmdset_creation()
+        #
+        # any commands you add below will overload the default ones.
+        #
 
 
 class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
@@ -137,5 +143,12 @@ class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
         """
         Populates the cmdset
         """
-        modules = {"Unloggedin Modules": [unloggedin]}
+        # super().at_cmdset_creation()
+        #
+        # any commands you add below will overload the default ones.
+        #
+        modules = {
+            "Unloggedin Modules": [unloggedin],
+        }
+
         add_modules(self, modules)

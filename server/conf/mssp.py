@@ -20,7 +20,7 @@ needed on the Evennia side.
 
 MSSPTable = {
     # Required fields
-    "NAME": "Mygame",  # usually the same as SERVERNAME
+    "NAME": "Arcellia",  # usually the same as SERVERNAME
     # Generic
     "CRAWL DELAY": "-1",  # limit how often crawler may update the listing. -1 for no limit
     "HOSTNAME": "",  # telnet hostname
@@ -35,7 +35,7 @@ MSSPTable = {
     "MINIMUM AGE": "0",  # set to 0 if not applicable
     "WEBSITE": "",  # http:// address to your game website
     # Categorisation
-    "FAMILY": "Custom",  # evennia goes under 'Custom'
+    "FAMILY": "Evennia",
     "GENRE": "None",  # Adult, Fantasy, Historical, Horror, Modern, None, or Science Fiction
     # Gameplay: Adventure, Educational, Hack and Slash, None,
     # Player versus Player, Player versus Environment,

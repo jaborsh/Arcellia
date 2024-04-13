@@ -16,9 +16,9 @@ except ImportError as err:
 
 from django.conf import settings
 from evennia.prototypes import prototypes as protlib
+from evennia.prototypes.spawner import flatten_prototype
 from evennia.utils import logger
 from evennia.utils.utils import is_iter, mod_import, variable_from_module
-from prototypes.spawner import flatten_prototype
 
 from world.xyzgrid import xyzmap_legend as xymap_legend
 from world.xyzgrid.utils import BIGVAL, MapError, MapParserError
@@ -36,8 +36,6 @@ MAP_DATA_KEYS = [
     "map",
     "legend",
     "prototypes",
-    "mobile_prototypes",
-    "item_prototypes",
     "options",
     "module_path",
 ]
@@ -204,10 +202,10 @@ class XYZMap:
 
                 {
                     "map": <str>,
-                    "zcoord": <int or str>, # optional
-                    "legend": <dict>,       # optional
-                    "prototypes": <dict>    # optional
-                    "options": <dict>       # optional
+                    "zcoord": <int or str>,   # optional
+                    "legend": <dict>,         # optional
+                    "prototypes": <dict>      # optional
+                    "options": <dict>         # optional
                 }
 
         """
@@ -266,8 +264,6 @@ class XYZMap:
         self.Z = mapdata.get("zcoord", self.Z)
         self.mapstring = mapdata["map"]
         self.prototypes = mapdata.get("prototypes", {})
-        self.mobile_prototypes = mapdata.get("mobile_prototypes", {})
-        self.item_prototypes = mapdata.get("item_prototypes", {})
         self.options = mapdata.get("options", {})
 
         # merge the custom legend onto the default legend to allow easily
@@ -628,7 +624,7 @@ class XYZMap:
         # (re)build nodes (will not build already existing rooms)
         for node in sorted(self.node_index_map.values(), key=lambda n: (n.Y, n.X)):
             if (x in (wildcard, node.X)) and (y in (wildcard, node.Y)):
-                node.spawn(mobiles=self.mobile_prototypes)
+                node.spawn()
                 spawned.append(node)
         return spawned
 
@@ -659,28 +655,6 @@ class XYZMap:
         for node in nodes:
             if (x in (wildcard, node.X)) and (y in (wildcard, node.Y)):
                 node.spawn_links(directions=directions)
-
-    def spawn_mobiles(self, xy=("*", "*"), nodes=None):
-        """
-        Convert mobiles of this XYMap into actual in-game mobiles by spawning their related
-        prototypes. It's possible to only spawn a specific mobile by specifying the node.
-
-        Args:
-            xy (tuple, optional): An (X,Y) coordinate. `'*'` acts as a wildcard.
-        """
-        x, y = xy
-        wildcard = "*"
-        if not nodes:
-            nodes = sorted(self.node_index_map.values(), key=lambda n: (n.Z, n.Y, n.X))
-
-        for node in nodes:
-            if (x in (wildcard, node.X)) and (y in (wildcard, node.Y)):
-                filtered_mobs = {
-                    key: value
-                    for key, value in self.mobile_prototypes.items()
-                    if value["location"] == (node.X, node.Y)
-                }
-                node.spawn_mobiles(filtered_mobs)
 
     def get_node_from_coord(self, xy):
         """

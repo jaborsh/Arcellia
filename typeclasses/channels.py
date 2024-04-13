@@ -12,12 +12,7 @@ to be modified.
 
 """
 
-import os
-
-from django.conf import settings
 from evennia.comms.comms import DefaultChannel
-
-from server.conf import logger
 
 
 class Channel(DefaultChannel):
@@ -64,41 +59,4 @@ class Channel(DefaultChannel):
 
     """
 
-    log_file = "channels/{channelname}/channel_{channelname}.log"
-
-    def at_channel_creation(self):
-        """
-        Called once, when the channel is first created.
-
-        """
-        self.create_log_folder()
-
-    def create_log_folder(self):
-        """
-        Creates a log folder for the channel.
-        """
-        chan_log_dir = f"{settings.CHANNEL_LOG_DIR}/{self.key.lower()}/"
-        os.makedirs(chan_log_dir, exist_ok=True)
-
-    def at_post_msg(self, message, **kwargs):
-        """
-        This is called after sending to *all* valid recipients. It is normally
-        used for logging/channel history.
-
-        Args:
-            message (str): The message sent.
-            **kwargs (any): Keywords passed on from `msg`, including `senders`.
-        """
-
-        # save channel history to log file
-        log_file = self.get_log_filename()
-        if log_file:
-            senders = ",".join(sender.key for sender in kwargs.get("senders", []))
-            senders = f"{senders}" if senders else ""
-            if message.startswith(";"):
-                senders += " "
-                message = message[1:]
-            else:
-                senders += ": "
-            message = f"{senders}{message}"
-            logger.log_file(message, log_file)
+    pass

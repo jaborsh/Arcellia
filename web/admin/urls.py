@@ -6,7 +6,8 @@ The main web/urls.py includes these routes for all urls starting with `admin/`
 
 """
 
-from django.urls import path  # noqa: F401
+from django.urls import path
+
 from evennia.web.admin.urls import urlpatterns as evennia_admin_urlpatterns
 
 # add patterns here

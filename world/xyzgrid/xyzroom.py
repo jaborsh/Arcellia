@@ -18,7 +18,6 @@ MAP_X_TAG_CATEGORY = "room_x_coordinate"
 MAP_Y_TAG_CATEGORY = "room_y_coordinate"
 MAP_Z_TAG_CATEGORY = "room_z_coordinate"
 
-
 GET_XYZGRID = None
 
 CLIENT_DEFAULT_WIDTH = settings.CLIENT_DEFAULT_WIDTH
@@ -66,7 +65,7 @@ class XYZRoom(DefaultRoom):
 
     def __repr__(self):
         x, y, z = self.xyz
-        return f"<XYZRoom '{self.db_key}', XYZ=({x},{y},{z})>"
+        return f"<{self.__class__.__name__} '{self.db_key}', XYZ=({x},{y},{z})>"
 
     @property
     def xyz(self):
@@ -173,10 +172,3 @@ class XYZRoom(DefaultRoom):
             x, y, z = self.xyz
             return f"{self.name}[#{self.id}({x},{y},{z})]"
         return self.name
-
-    def at_post_spawn(self):
-        """
-        Called just after the object is spawned and attributes
-        and tags have been initialized.
-        """
-        self.spawn_contents()

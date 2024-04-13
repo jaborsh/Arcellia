@@ -4,8 +4,6 @@ from evennia.utils.utils import variable_from_module
 
 from world.xyzgrid.xyzexit import XYZExit
 from world.xyzgrid.xyzmap import XYZMap
-
-# from world.xyzgrid.xyzmob import XYZMob
 from world.xyzgrid.xyzroom import XYZRoom
 
 
@@ -92,22 +90,6 @@ class XYGrid(DefaultScript):
         kwargs["db_key"] = name
         return XYZExit.objects.filter_xyz_exit(xyz=xyz, **kwargs)
 
-    def get_mob(self, xyz, name="*", **kwargs):
-        """
-        Get one or more mob objects at coordinate.
-
-        Args:
-            xyz (tuple): X,Y,Z coordinate of the room the
-                         mob should be in. '*' acts as wildcard.
-            name (str): The full name of the mob, e.g. 'goblin' or 'orc'.
-                        The '*' acts as a wildcard.
-
-        Returns:
-            Queryset: A queryset of XYZMob(s) found.
-        """
-        kwargs["db_key"] = name
-        return XYZMob.objects.filter_xyz_mob(xyz=xyz, **kwargs)
-
     def maps_from_module(self, module_path):
         """
         Load map data from module. The loader will look for a dict XYMAP_DATA or a list of
@@ -136,7 +118,6 @@ class XYGrid(DefaultScript):
     def reload(self):
         """
         Reload and rebuild the grid. This is done on a server reload.
-
         """
         self.log("(Re)loading grid ...")
         self.ndb.grid = {}
@@ -279,11 +260,6 @@ class XYGrid(DefaultScript):
         for zcoord, xymap in xymaps.items():
             self.log(f"spawning/updating links for Z='{zcoord}' ...")
             xymap.spawn_links(xy=(x, y), directions=directions)
-
-        # next build all the mobiles within nodes
-        # for zcoord, xymap in xymaps.items():
-        #     self.log(f"spawning/updating mobiles for Z='{zcoord}' ...")
-        #     xymap.spawn_mobiles(xy=(x, y))
 
 
 def get_xyzgrid(print_errors=True):

@@ -9,13 +9,13 @@ from evennia.objects.models import ObjectDB
 from evennia.utils import class_from_module, utils
 from evennia.utils.eveditor import EvEditor
 from evennia.utils.utils import dbref, inherits_from, list_to_string
-from parsing.colors import strip_ansi
+from menus import building_menu
 from server.conf import logger
-from world.xyzgrid import commands as xyzcommands
+from typeclasses.characters import Character as CharacterTypeclass
+from utils.colors import strip_ansi
+from world.xyzgrid import xyzcommands
 from world.xyzgrid.xyzroom import XYZRoom
 
-# from typeclasses.rooms import XYZRoom
-from commands import building_menu
 from commands.command import Command
 
 CHAR_TYPECLASS = settings.BASE_CHARACTER_TYPECLASS
@@ -42,6 +42,7 @@ __all__ = (
     "CmdLockstring",
     "CmdMap",
     "CmdMvAttr",
+    "CmdPurge",
     "CmdRename",
     "CmdRoomState",
     "CmdSetAlias",
@@ -548,18 +549,21 @@ class CmdExamine(building.CmdExamine):
     aliases = ["ex", "exam"]
 
 
-class CmdFind(building.CmdFind):
+class CmdFind(Command):
     """
-    Syntax: find[/switches] <name or dbref or *account> [= dbrefmin[-dbrefmax]]
-            locate - this is a shorthand for using the /loc switch.
+    search the database for objects
+
+    Usage:
+      find[/switches] <name or dbref or *account> [= dbrefmin[-dbrefmax]]
+      locate - this is a shorthand for using the /loc switch.
 
     Switches:
-        room       - only look for rooms (location=None)
-        exit       - only look for exits (destination!=None)
-        char       - only look for characters (BASE_CHARACTER_TYPECLASS)
-        exact      - only exact matches are returned.
-        loc        - display object location if exists and match has one result
-        startswith - search for names starting with the string, rather than containing
+      room       - only look for rooms (location=None)
+      exit       - only look for exits (destination!=None)
+      char       - only look for characters (BASE_CHARACTER_TYPECLASS)
+      exact      - only exact matches are returned.
+      loc        - display object location if exists and match has one result
+      startswith - search for names starting with the string, rather than containing
 
     Searches the database for an object of a particular name or exact #dbref.
     Use *accountname to search for an account. The switches allows for
@@ -570,6 +574,9 @@ class CmdFind(building.CmdFind):
 
     key = "find"
     aliases = ["search", "locate", "where"]
+    switch_options = ("room", "exit", "char", "exact", "loc", "startswith")
+    locks = "cmd:perm(find) or perm(Builder)"
+    help_category = "Building"
 
     def func(self):
         """Search functionality"""
@@ -665,10 +672,14 @@ class CmdFind(building.CmdFind):
                 )
             else:
                 result = result[0]
-                string += f"\n   {result.get_display_name(caller)} - {result.path}|n"
+                string += (
+                    f"\n|g   {result.get_display_name(caller)}"
+                    f"{result.get_extra_display_name_info(caller)} - {result.path}|n"
+                )
                 if "loc" in self.switches and not is_account and result.location:
                     string += (
-                        f" (|wlocation|n: {result.location.get_display_name(caller)}|n)"
+                        f" (|wlocation|n: |g{result.location.get_display_name(caller)}"
+                        f"{result.get_extra_display_name_info(caller)}|n)"
                     )
         else:
             # Not an account/dbref search but a wider search; build a queryset.
@@ -735,9 +746,12 @@ class CmdFind(building.CmdFind):
                 string = f"|w{header}|n(#{low}-#{high}{restrictions}):"
                 res = None
                 for res in results:
-                    string += f"\n  {res.get_display_name(caller)}"
-                    if res.location:
-                        string += f" - {res.location.get_display_name(caller)}"
+                    string += (
+                        "\n  "
+                        f" |g{res.get_display_name(caller)}"
+                        f"{res.get_extra_display_name_info(caller)} -"
+                        f" {res.path}|n"
+                    )
                 if (
                     "loc" in self.switches
                     and nresults == 1
@@ -745,7 +759,9 @@ class CmdFind(building.CmdFind):
                     and getattr(res, "location", None)
                 ):
                     string += (
-                        f" (|wlocation|n: |g{res.location.get_display_name(caller)}|n)"
+                        " (|wlocation|n:"
+                        f" |g{res.location.get_display_name(caller)}"
+                        f"{res.get_extra_display_name_info(caller)}|n)"
                     )
             else:
                 string = f"|wNo Matches|n(#{low}-#{high}{restrictions}):"
@@ -941,6 +957,43 @@ class CmdMvAttr(building.CmdMvAttr):
 
     key = "mvattr"
     aliases = ["moveattr"]
+
+
+class CmdPurge(Command):
+    """
+    Command to delete all characters in the current location.
+
+    Usage:
+      purge
+
+    This command deletes all characters (objects that inherit from the CharacterTypeclass)
+    in the current location. It requires the caller to have the 'Builder' permission.
+
+    """
+
+    key = "purge"
+    locks = "cmd:perm(Builder)"
+    help_category = "Building"
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+
+        if not args:
+            for obj in caller.location.contents:
+                if inherits_from(obj, CharacterTypeclass):
+                    continue
+
+                obj.delete()
+
+        if inherits_from(obj, CharacterTypeclass):
+            return
+
+        target = caller.search(args)
+        if not target:
+            return
+
+        target.delete()
 
 
 class CmdRename(building.ObjManipCommand):

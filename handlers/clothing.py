@@ -1,5 +1,25 @@
-from handlers.handler import Handler
 from typeclasses.clothing import ClothingType
+
+from handlers.handler import Handler
+
+CLOTHING_DEFAULTS = {
+    ClothingType.HEADWEAR: [],
+    ClothingType.EYEWEAR: [],
+    ClothingType.EARRING: [],
+    ClothingType.NECKWEAR: [],
+    ClothingType.UNDERSHIRT: [],
+    ClothingType.TOP: [],
+    ClothingType.OUTERWEAR: [],
+    ClothingType.FULLBODY: [],
+    ClothingType.WRISTWEAR: [],
+    ClothingType.HANDWEAR: [],
+    ClothingType.RING: [],
+    ClothingType.BELT: [],
+    ClothingType.UNDERWEAR: [],
+    ClothingType.BOTTOM: [],
+    ClothingType.HOSIERY: [],
+    ClothingType.FOOTWEAR: [],
+}
 
 CLOTHING_OVERALL_LIMIT = 20
 
@@ -48,41 +68,6 @@ CLOTHING_TYPE_ORDER = [
 
 
 class ClothingHandler(Handler):
-    clothing_defaults = {
-        ClothingType.HEADWEAR: [],
-        ClothingType.EYEWEAR: [],
-        ClothingType.EARRING: [],
-        ClothingType.NECKWEAR: [],
-        ClothingType.UNDERSHIRT: [],
-        ClothingType.TOP: [],
-        ClothingType.OUTERWEAR: [],
-        ClothingType.FULLBODY: [],
-        ClothingType.WRISTWEAR: [],
-        ClothingType.HANDWEAR: [],
-        ClothingType.RING: [],
-        ClothingType.BELT: [],
-        ClothingType.UNDERWEAR: [],
-        ClothingType.BOTTOM: [],
-        ClothingType.HOSIERY: [],
-        ClothingType.FOOTWEAR: [],
-    }
-
-    def __init__(self, obj, db_attribute="clothing"):
-        """
-        Initializes the QuestHandler attached to a game object.
-
-        Args:
-            obj: The game object this handler is attached to.
-            db_attribute (str): The database attribute used for storing quest data.
-        """
-
-        if not obj.attributes.get(db_attribute, None):
-            obj.attributes.add(db_attribute, self.clothing_defaults.copy())
-
-        self.data = obj.attributes.get(db_attribute)
-        self.obj = obj
-        self.db_attribute = db_attribute
-
     def all(self, exclude_covered=False):
         """
         Returns a list of all clothing items in the ClothingHandler.
@@ -94,7 +79,7 @@ class ClothingHandler(Handler):
             list: A sorted list of clothing items, sorted based on the order defined in CLOTHING_TYPE_ORDER.
 
         """
-        clothes = [item for sublist in self.data.values() for item in sublist]
+        clothes = [item for sublist in self._data.values() for item in sublist]
 
         if exclude_covered:
             clothes = [item for item in clothes if not item.covered_by]
@@ -127,7 +112,7 @@ class ClothingHandler(Handler):
         Example:
             handler.remove(item)
         """
-        for clothing_type, items in self.data.items():
+        for clothing_type, items in self._data.items():
             if item in items:
                 items.remove(item)
                 break
@@ -173,12 +158,12 @@ class ClothingHandler(Handler):
             return
 
         clothing_type = item.clothing_type
-        self.data[clothing_type].append(item)
+        self._data[clothing_type].append(item)
         self._save()
 
         message = f"$You() $conj(wear) {item.get_display_name(self.obj)}"
         self.obj.location.msg_contents(message + ".", from_obj=self.obj)
 
     def reset(self):
-        self.data = self.clothing_defaults.copy()
+        self._data = self.default_data.copy()
         self._save()

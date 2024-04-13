@@ -1,25 +1,53 @@
 import re
 
-from parsing.text import _INFLECT
-from typeclasses.mixins.items import ItemMixin
+from utils.text import _INFLECT
+
 from typeclasses.objects import Object
-from world.items.rarity import ItemRarity
 
 
-class Currency(ItemMixin, Object):
-    def at_post_spawn(self):
-        # Do not manually call since attributes are removed after initial run.
-        price = self.attributes.get("price", 1)
-        rarity = self.attributes.get("rarity", ItemRarity.COMMON)
-        weight = self.attributes.get("weight", 0)
+class Currency(Object):
+    @property
+    def price(self):
+        return self.db.price
 
-        self.traits.add("price", "Price", trait_type="static", base=price)
-        self.traits.add("rarity", "Rarity", value=rarity)
-        self.traits.add("weight", "Weight", trait_type="static", base=weight)
+    def at_pre_get(self, getter, **kwargs):
+        """
+        Called by the default `get` command before this object has been
+        picked up.
 
-        self.attributes.remove("price")
-        self.attributes.remove("rarity")
-        self.attributes.remove("weight")
+        Args:
+            getter (DefaultObject): The object about to get this object.
+            **kwargs: Arbitrary, optional arguments for users
+                overriding the call (unused by default).
+
+        Returns:
+            bool: If the object should be gotten or not.
+
+        Notes:
+            If this method returns False/None, the getting is cancelled
+            before it is even started.
+        """
+        if quantity := kwargs.get("quantity", self.db.price):
+            if quantity < self.db.price:
+                getter.db.wealth += quantity
+                self.db.price -= quantity
+
+                getter.location.msg_contents(
+                    f"$You() $conj(get) {quantity} {self.get_display_name(getter)}.",
+                    from_obj=getter,
+                )
+                return False
+            elif quantity >= self.db.price:
+                quantity = self.db.price
+                getter.db.wealth += quantity
+                getter.location.msg_contents(
+                    f"$You() $conj(get) {quantity} {self.get_display_name(getter)}.",
+                    from_obj=getter,
+                )
+                self.delete()
+                return False
+
+        return True
 
     def at_get(self, getter, **kwargs):
         """
@@ -35,9 +63,7 @@ class Currency(ItemMixin, Object):
             This hook cannot stop the pickup from happening. Use
             permissions or the at_pre_get() hook for that.
         """
-
-        getter.wealth.base += self.traits.get("price").value
-        self.delete()
+        pass
 
     def get_numbered_name(self, count, looker, **kwargs):
         """
@@ -106,7 +132,7 @@ class Currency(ItemMixin, Object):
                     split_segment = segment.split(" ")
                     singular_segment = (
                         singular_segments[1]
-                        + _INFLECT.number_to_words(int(self.price.value))
+                        + _INFLECT.number_to_words(int(self.price))
                         + " "
                         + " ".join(split_segment[1:])
                     )

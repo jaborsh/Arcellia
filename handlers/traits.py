@@ -457,6 +457,7 @@ from functools import total_ordering
 from time import time
 
 from django.conf import settings
+
 from evennia.utils import logger
 from evennia.utils.dbserialize import _SaverDict
 from evennia.utils.utils import (
@@ -1310,7 +1311,7 @@ class CounterTrait(Trait):
                 )
         # set up rate
         if trait_data["rate"] != 0:
-            trait_data["last_update"] = time()
+            trait_data["last_update"] = trait_data.get("last_update", time())
         else:
             trait_data["last_update"] = None
         return trait_data

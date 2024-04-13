@@ -1,3 +1,8 @@
+from copy import copy
+
+from evennia.utils import dbserialize
+
+
 class Handler:
     """
     A class that handles data for a specific attribute of an object.
@@ -15,9 +20,9 @@ class Handler:
         get(self, key): Returns the value associated with the given key in the data dictionary.
     """
 
-    __slots__ = ("data", "db_attribute", "obj")
-
-    def __init__(self, obj, db_attribute):
+    def __init__(
+        self, obj, db_attribute_key, db_attribute_category=None, default_data={}
+    ):
         """
         Initializes a Handler object.
 
@@ -30,47 +35,18 @@ class Handler:
             db_attribute (str): The name of the attribute in the object's attributes dictionary.
             obj (object): The object for which the data is being handled.
         """
-        if not obj.attributes.get(db_attribute, None):
-            obj.attributes.add(db_attribute, {})
-
-        self.data = obj.attributes.get(db_attribute)
         self.obj = obj
-        self.db_attribute = db_attribute
+        self._db_attr = db_attribute_key
+        self._db_cat = db_attribute_category
+        self._data = copy(default_data)
+        self._load()
 
     def _load(self):
-        """
-        Loads the data from the object's attributes dictionary.
-
-        This method retrieves the data associated with the attribute from the object's attributes dictionary and assigns it to the 'data' attribute of the Handler object.
-
-        Parameters:
-            None
-
-        Returns:
-            None
-
-        Raises:
-            None
-        """
-        self.data = self.obj.attributes.get(self.db_attribute, default={})
+        if data := self.obj.attributes.get(self._db_attr, category=self._db_cat):
+            self._data = dbserialize.deserialize(data)
 
     def _save(self):
-        """
-        Saves the data to the object's attributes dictionary.
-
-        This method saves the data associated with the attribute to the object's attributes dictionary. It uses the 'add' method of the 'attributes' object to add the data with the specified attribute name. After saving the data, it calls the '_load' method to update the 'data' attribute of the Handler object.
-
-        Parameters:
-            None
-
-        Returns:
-            None
-
-        Raises:
-            None
-        """
-        self.obj.attributes.add(self.db_attribute, self.data)
-        self._load()
+        self.obj.attributes.add(self._db_attr, self._data, category=self._db_cat)
 
     def all(self):
         """
@@ -85,7 +61,7 @@ class Handler:
         Raises:
             None
         """
-        return self.data
+        return self._data
 
     def get(self, key):
         """
@@ -100,4 +76,4 @@ class Handler:
         Raises:
             None
         """
-        return self.data.get(key, None)
+        return self._data.get(key, None)

@@ -11,7 +11,6 @@ from evennia.utils.utils import (
 )
 
 _ACCOUNT = class_from_module(settings.BASE_ACCOUNT_TYPECLASS)
-_CONNECTION_SCREEN_MODULE = settings.CONNECTION_SCREEN_MODULE
 
 
 def node_enter_username(caller, raw_text, **kwargs):

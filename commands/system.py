@@ -1,6 +1,10 @@
+from evennia import syscmdkeys
 from evennia.commands.default import building, system
 
+from commands.command import Command
+
 __all__ = (
+    "CmdNoInput",
     "CmdAccounts",
     "CmdObjects",
     "CmdPy",
@@ -10,6 +14,22 @@ __all__ = (
     "CmdShutdown",
     "CmdTasks",
 )
+
+
+class CmdNoInput(Command):
+    """
+    Command class for handling cases where no input is provided.
+
+    This command is triggered when the player enters a command without any input.
+    It does not perform any action and simply returns without doing anything.
+    """
+
+    key = syscmdkeys.CMD_NOINPUT
+    locks = "cmd:all()"
+    auto_help = False
+
+    def func(self):
+        pass
 
 
 class CmdAccounts(system.CmdAccounts):
@@ -27,6 +47,7 @@ class CmdAccounts(system.CmdAccounts):
 
     key = "accounts"
     aliases = ["account"]
+    help_category = "System"
 
 
 class CmdObjects(building.CmdObjects):
@@ -88,6 +109,7 @@ class CmdPy(system.CmdPy):
 
     key = "py"
     aliases = ["!"]
+    help_category = "System"
 
 
 class CmdReload(system.CmdReload):
@@ -101,6 +123,7 @@ class CmdReload(system.CmdReload):
 
     key = "reload"
     aliases = ["restart"]
+    help_category = "System"
 
 
 class CmdReset(system.CmdReset):
@@ -122,6 +145,7 @@ class CmdReset(system.CmdReset):
 
     key = "reset"
     aliases = ["reboot"]
+    help_category = "System"
 
 
 class CmdService(system.CmdService):
@@ -143,6 +167,7 @@ class CmdService(system.CmdService):
 
     key = "service"
     aliases = ["services"]
+    help_category = "System"
 
 
 class CmdShutdown(system.CmdShutdown):
@@ -153,6 +178,7 @@ class CmdShutdown(system.CmdShutdown):
     """
 
     key = "shutdown"
+    help_category = "System"
 
 
 class CmdTasks(system.CmdTasks):
@@ -184,3 +210,4 @@ class CmdTasks(system.CmdTasks):
 
     key = "tasks"
     aliases = ["delays", "task"]
+    help_category = "System"

@@ -4,7 +4,7 @@ Evennia settings file.
 The available options are found in the default settings file found
 here:
 
-/Users/jake/Evennia/evenv/lib/python3.11/site-packages/evennia/settings_default.py
+https://www.evennia.com/docs/latest/Setup/Settings-Default.html
 
 Remember:
 
@@ -27,7 +27,7 @@ put secret game- or server-specific settings in secret_settings.py.
 import os
 
 # Use the defaults from Evennia unless explicitly overridden
-from evennia.settings_default import *  # noqa: F403
+from evennia.settings_default import *
 
 ######################################################################
 # Evennia base server config
@@ -35,31 +35,6 @@ from evennia.settings_default import *  # noqa: F403
 
 # This is the name of your game. Make it catchy!
 SERVERNAME = "Arcellia"
-# Short one-sentence blurb describing your game. Shown under the title
-# on the website and could be used in online listings of your game etc.
-GAME_SLOGAN = None
-
-# This needs to be set to your website address for django or you'll receive a
-# CSRF error when trying to log on to the web portal
-# CSRF_TRUSTED_ORIGINS = secret_settings.CSRF_TRUSTED_ORIGINS or ["https://arcellia.com"]
-
-# Interface addresses to listen to. If 0.0.0.0, listen to all. Use :: for IPv6.
-WEBSOCKET_CLIENT_INTERFACE = "127.0.0.1"
-# Actual URL for webclient component to reach the websocket. You only need
-# to set this if you know you need it, like using some sort of proxy setup.
-# If given it must be on the form "ws[s]://hostname[:port]". If left at None,
-# the client will itself figure out this url based on the server's hostname.
-# e.g. ws://external.example.com or wss://external.example.com:443
-# WEBSOCKET_CLIENT_URL = (
-#    secret_settings.WEBSOCKET_CLIENT_URL or "wss://arcellia.com:4002/"
-# )
-# This is a security setting protecting against host poisoning
-# attacks.  It defaults to allowing all. In production, make
-# sure to change this to your actual host addresses/IPs.
-# ALLOWED_HOSTS = secret_settings.ALLOWED_HOSTS or [".arcellia.com"]
-
-# uncomment if you want to lock the server down for maintenance.
-# LOCKDOWN_MODE = True
 
 # Place to put log files, how often to rotate the log and how big each log file
 # may become before rotating.
@@ -70,7 +45,6 @@ HTTP_LOG_FILE = os.path.join(LOG_DIR, "http", "http_requests.log")
 LOCKWARNING_LOG_FILE = os.path.join(LOG_DIR, "lockwarning", "lockwarnings.log")
 ACCOUNT_LOG_DIR = os.path.join(LOG_DIR, "accounts")
 CHANNEL_LOG_DIR = os.path.join(LOG_DIR, "channels")
-CHARACTER_LOG_DIR = os.path.join(LOG_DIR, "characters")
 
 log_files = [
     SERVER_LOG_FILE,
@@ -79,7 +53,6 @@ log_files = [
     LOCKWARNING_LOG_FILE,
     ACCOUNT_LOG_DIR,
     CHANNEL_LOG_DIR,
-    CHARACTER_LOG_DIR,
 ]
 for log_file in log_files:
     log_dir = os.path.dirname(log_file)
@@ -108,22 +81,29 @@ MAX_CHAR_LIMIT_WARNING = (
 )
 
 ######################################################################
-# Evennia pluggable modules
+# Default command sets and commands
 ######################################################################
-# Plugin modules extend Evennia in various ways. In the cases with no
-# existing default, there are examples of many of these modules
-# in contrib/examples.
+COMMAND_DEFAULT_CLASS = "commands.command.Command"
+EXTRA_LAUNCHER_COMMANDS["xyzgrid"] = "world.xyzgrid.launchcmd.xyzcommand"
+PROTOTYPE_MODULES += [
+    "prototypes.common_prototypes",
+    "prototypes.containers",
+    "prototypes.currencies",
+    "prototypes.gemstones",
+    "world.nautilus.prototypes",
+    "world.xyzgrid.prototypes",
+]
 
 # On a multi-match when search objects or commands, the user has the
 # ability to search again with an index marker that differentiates
-# the results. If multiple "box" objects are found, they can by default
-# can be separated as box 1, box 2.
-# The regex must have one have two capturing groups:
-# (?P<number>...) and (?P<name>...)
-# the default parser expects this. It should also involve a number
-# starting from 1. When changing this you must also update
-# SEARCH_MULTIMATCH_TEMPLATE to properly describe the syntax.
-SEARCH_MULTIMATCH_REGEX = r"(?P<name>[^-]*) (?P<number>[0-9]+)(?P<args>.*)"
+# the results. If multiple "box" objects
+# are found, they can by default be separated as 1-box, 2-box. Below you
+# can change the regular expression used. The regex must have one
+# have two capturing groups (?P<number>...) and (?P<name>...) - the default
+# parser expects this. It should also involve a number starting from 1.
+# When changing this you must also update SEARCH_MULTIMATCH_TEMPLATE
+# to properly describe the syntax.
+SEARCH_MULTIMATCH_REGEX = r"(?P<name>[^\s]*)\s(?P<number>[0-9]+)(?P<args>.*)"
 # To display multimatch errors in various listings we must display
 # the syntax in a way that matches what SEARCH_MULTIMATCH_REGEX understand.
 # The template will be populated with data and expects the following markup:
@@ -131,18 +111,13 @@ SEARCH_MULTIMATCH_REGEX = r"(?P<name>[^-]*) (?P<number>[0-9]+)(?P<args>.*)"
 # name (key) of the multimatched entity; {aliases} - eventual
 # aliases for the entity; {info} - extra info like #dbrefs for staff. Don't
 # forget a line break if you want one match per line.
-# SEARCH_MULTIMATCH_TEMPLATE = " {name} {number}{aliases}{info}\n"
+SEARCH_MULTIMATCH_TEMPLATE = " {name} {number}{aliases}{info}\n"
+# The handler that outputs errors when using any API-level search
+# (not manager methods). This function should correctly report errors
+# both for command- and object-searches. This allows full control
+# over the error output (it uses SEARCH_MULTIMATCH_TEMPLATE by default).
+SEARCH_AT_RESULT = "server.conf.at_search.at_search_result"
 
-EXTRA_LAUNCHER_COMMANDS["xyzgrid"] = "world.xyzgrid.launchcmd.xyzcommand"
-PROTOTYPE_MODULES += ["world.xyzgrid.prototypes"]
-
-######################################################################
-# Default command sets and commands
-######################################################################
-COMMAND_DEFAULT_CLASS = "commands.command.Command"
-
-# The start position for new characters. Default is Limbo (#2).
-START_LOCATION = "#3"
 ######################################################################
 # Game Time setup
 ######################################################################
@@ -172,6 +147,9 @@ TIME_IGNORE_DOWNTIMES = True
 ######################################################################
 # Default Account setup and access
 ######################################################################
+# The start position for new characters. Default is Creation (#3).
+START_LOCATION = "#3"
+
 # Different Multisession modes allow a player (=account) to connect to the
 # game simultaneously with multiple clients (=sessions).
 #  0 - single session per account (if reconnecting, disconnect old session)
@@ -223,79 +201,6 @@ LOGIN_THROTTLE_LIMIT = 0
 # LOGIN_THROTTLE_TIMEOUT = 5 * 60
 
 ######################################################################
-# In-game Channels created from server start
-######################################################################
-# New accounts will auto-sub to the default channels given below (but they can
-# unsub at any time). Traditionally, at least 'public' should exist. Entries
-# will be (re)created on the next reload, but removing or updating a same-key
-# channel from this list will NOT automatically change/remove it in the game,
-# that needs to be done manually. Note: To create other, non-auto-subbed
-# channels, create them manually in server/conf/at_initial_setup.py.
-DEFAULT_CHANNELS = [
-    {
-        "key": "Chat",
-        "desc": "The casual chat channel.",
-        "locks": "control:perm(Admin);listen:all();send:all()",
-    },
-    {
-        "key": "Question",
-        "desc": "The official help & question channel.",
-        "locks": "control:perm(Admin);listen:all();send:all()",
-    },
-    {
-        "key": "Staff",
-        "desc": "The official staff channel.",
-        "locks": "control:perm(Developer);listen:perm(Admin);send:perm(Admin)",
-    },
-]
-
-######################################################################
-# External Connections
-######################################################################
-# Discord (discord.com) is a popular communication service for many, especially
-# for game communities. Evennia's channels can be connected to Discord channels
-# and relay messages between Evennia and Discord. To use, you will need to create
-# your own Discord application and bot.
-# Discord also requires installing the pyopenssl library.
-# Full step-by-step instructions are available in the official Evennia documentation.
-# DISCORD_ENABLED = False
-
-# The authentication token for the Discord bot. This should be kept secret and
-# put in your secret_settings file.
-# DISCORD_BOT_TOKEN = secret_settings.DISCORD_BOT_TOKEN
-
-######################################################################
-# Evennia components
-######################################################################
-# Password validation plugins
-# https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
-AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"  # noqa: E501
-    },
-    # {
-    #     "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    #     "OPTIONS": {"min_length": 8},
-    # },
-]
-
-# Username validation plugins
-AUTH_USERNAME_VALIDATORS = [
-    {"NAME": "django.contrib.auth.validators.ASCIIUsernameValidator"},
-    {
-        "NAME": "django.core.validators.MinLengthValidator",
-        "OPTIONS": {"limit_value": 3},
-    },
-    {
-        "NAME": "django.core.validators.MaxLengthValidator",
-        "OPTIONS": {"limit_value": 16},
-    },
-    {"NAME": "evennia.server.validators.EvenniaUsernameAvailabilityValidator"},
-]
-
-######################################################################
 # Networking Replaceables
 ######################################################################
 # Telnet Protocol inherits from whatever above BASE_SESSION_CLASS is specified.
@@ -314,9 +219,36 @@ SERVER_SESSION_CLASS = "server.conf.serversession.ServerSession"
 SERVER_SESSION_HANDLER_CLASS = "server.conf.sessionhandler.ServerSessionHandler"
 
 ######################################################################
+# Evennia components
+######################################################################
+# Password validation plugins
+# https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"  # noqa: E501
+    },
+]
+
+# Username validation plugins
+AUTH_USERNAME_VALIDATORS = [
+    {"NAME": "django.contrib.auth.validators.ASCIIUsernameValidator"},
+    {
+        "NAME": "django.core.validators.MinLengthValidator",
+        "OPTIONS": {"limit_value": 3},
+    },
+    {
+        "NAME": "django.core.validators.MaxLengthValidator",
+        "OPTIONS": {"limit_value": 16},
+    },
+    {"NAME": "evennia.server.validators.EvenniaUsernameAvailabilityValidator"},
+]
+
+######################################################################
 # Settings given in secret_settings.py override those in this file.
 ######################################################################
 try:
-    from server.conf.secret_settings import *  # noqa: F403
+    from server.conf.secret_settings import *
 except ImportError:
     print("secret_settings.py file not found or failed to import.")

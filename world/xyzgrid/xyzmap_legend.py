@@ -9,10 +9,9 @@ import uuid
 from collections import defaultdict
 
 from django.core import exceptions as django_exceptions
+from evennia.prototypes import spawner
 from evennia.utils.utils import class_from_module
-from prototypes import spawner
 
-from world.tutorial.prototypes.mobs import __all__ as MOB_PROTOTYPES
 from world.xyzgrid.utils import (
     BIGVAL,
     MAPSCAN,
@@ -20,15 +19,11 @@ from world.xyzgrid.utils import (
     MapError,
     MapParserError,
 )
-from world.xyzgrid.xyzbuilder import XYZMobBuilder
 
-ExitTypeclass = None
 NodeTypeclass = None
-MobileTypeclass = None
+ExitTypeclass = None
 
 UUID_XYZ_NAMESPACE = uuid.uuid5(uuid.UUID(int=0), "xyzgrid")
-
-XYZMobBuilder = XYZMobBuilder()
 
 
 class MapNode:
@@ -292,7 +287,7 @@ class MapNode:
             return (key, *aliases)
         return key
 
-    def spawn(self, mobiles={}):
+    def spawn(self):
         """
         Build an actual in-game room from this node.
 
@@ -331,7 +326,6 @@ class MapNode:
                 raise RuntimeError(err)
         else:
             self.log(f"  updating existing room (if changed) at xyz={xyz}")
-            self.spawn_mobiles(nodeobj, mobiles)
 
         if not self.prototype.get("prototype_key"):
             # make sure there is a prototype_key in prototype
@@ -436,86 +430,6 @@ class MapNode:
             spawner.batch_update_objects_with_prototype(
                 maplinks[key.lower()][3].prototype, objects=[linkobj], exact=False
             )
-
-    def spawn_mobiles(self, nodeobj, mobiles):
-        """
-        Build actual in-game mobiles based on the nodes of the map.
-
-        This should be called after all `sync_node_to_grid` operations have finished across
-        the entire XYZgrid. This creates/syncs all mobiles to their locations.
-        """
-
-        # no mobs spawn in a 'virtual' node.
-        if not self.prototype:
-            return
-
-        existing_mobs = nodeobj.contents_get(content_type="mob")
-        if existing_mobs:
-            for proto in MOB_PROTOTYPES:
-                for mob in existing_mobs:
-                    if proto["prototype"] == mob.db.prototype:
-                        self.update_mobile(mob, proto)
-            return  # TODO: Improve this to not be so absolute.
-
-        filtered_mobs = {
-            key: value
-            for key, value in mobiles.items()
-            if value["location"] == (self.X, self.Y)
-        }
-
-        if not filtered_mobs:
-            return
-
-        type_path = ""
-        for k, v in filtered_mobs.items():
-            if isinstance(v, dict):
-                for k2, v2 in v.items():
-                    XYZMobBuilder.set(k2, v2)
-            else:
-                if k == "typeclass":
-                    type_path = v
-                XYZMobBuilder.set(k, v)
-        XYZMobBuilder.set("location", nodeobj)
-        self.log(f"  spawning mob at xyz=({self.X}, {self.Y}, {self.Z}) ({type_path})")
-        XYZMobBuilder.build()
-
-    def update_mobile(self, mob, proto):
-        self.log(f"  updating existing mob {mob.key}")
-        for key, value in proto.items():
-            if isinstance(value, dict):
-                if key == "senses":
-                    for key2, value2 in value.items():
-                        mob.senses[key2] = value2
-                elif key == "stats":
-                    for key2, value2 in value.items():
-                        if key2 in ["health", "mana", "stamina"]:
-                            mob.stats.add(
-                                key2,
-                                key2.capitalize(),
-                                trait_type="counter",
-                                base=value2,
-                                max=value2,
-                            )
-                        else:
-                            mob.stats.add(
-                                key2, key2.capitalize(), trait_type="static", base=value
-                            )
-            elif key in [
-                "key",
-                "typeclass",
-                "location",
-                "tags",
-                "locks",
-                "quantity",
-                "aliases",
-            ]:
-                pass
-            elif key == "name":
-                mob.attributes.add("display_name", value)
-            else:
-                mob.attributes.add(key, value)
-
-        # May need to implement location changing in the future.
 
     def unspawn(self):
         """
