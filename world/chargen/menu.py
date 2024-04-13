@@ -1,6 +1,6 @@
 from evennia.utils import dedent
 
-from world.characters import appearances, backgrounds, classes, genders, races
+from world.characters import appearances, backgrounds, classes, genders, races, score
 from world.xyzgrid.xyzroom import XYZRoom
 
 _BACKGROUND_INFO_DICT = backgrounds.BACKGROUND_INFO_DICT
@@ -220,6 +220,42 @@ def chargen_class(caller, raw_string, **kwargs):
             return "chargen_welcome"
 
         caller.traits.add("cls", "Class", value=cls)
+        caller.stats.add(
+            "strength",
+            "Strength",
+            trait_type="static",
+            base=cls.recommended_stats[score.AbilityScore.STRENGTH],
+        )
+        caller.stats.add(
+            "dexterity",
+            "Dexterity",
+            trait_type="static",
+            base=cls.recommended_stats[score.AbilityScore.DEXTERITY],
+        )
+        caller.stats.add(
+            "constitution",
+            "Constitution",
+            trait_type="static",
+            base=cls.recommended_stats[score.AbilityScore.CONSTITUTION],
+        )
+        caller.stats.add(
+            "intelligence",
+            "Intelligence",
+            trait_type="static",
+            base=cls.recommended_stats[score.AbilityScore.INTELLIGENCE],
+        )
+        caller.stats.add(
+            "wisdom",
+            "Wisdom",
+            trait_type="static",
+            base=cls.recommended_stats[score.AbilityScore.WISDOM],
+        )
+        caller.stats.add(
+            "charisma",
+            "Charisma",
+            trait_type="static",
+            base=cls.recommended_stats[score.AbilityScore.CHARISMA],
+        )
         return "chargen_background"
 
     selected_class = kwargs.get("selected_class", None)
@@ -969,12 +1005,5 @@ def chargen_desc(caller, raw_string, **kwargs):
 
 
 def chargen_finalize(caller, raw_string):
-    caller.stats.add("strength", "Strength", trait_type="static", base=10)
-    caller.stats.add("dexterity", "Dexterity", trait_type="static", base=10)
-    caller.stats.add("constitution", "Constitution", trait_type="static", base=10)
-    caller.stats.add("intelligence", "Intelligence", trait_type="static", base=10)
-    caller.stats.add("wisdom", "Wisdom", trait_type="static", base=10)
-    caller.stats.add("charisma", "Charisma", trait_type="static", base=10)
-
     caller.move_to(XYZRoom.objects.get_xyz(xyz=("1", "1", "nautilus")), quiet=True)
     return "", ""

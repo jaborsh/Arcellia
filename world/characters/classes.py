@@ -16,6 +16,8 @@ from random import randint
 
 from class_registry import ClassRegistry
 
+from .score import AbilityScore
+
 ClsRegistry = ClassRegistry("cls")
 
 CLASS_INFO_DICT = {
@@ -36,6 +38,14 @@ CLASS_INFO_DICT = {
 
 class Cls:
     cls = "cls"
+    recommended_stats = {
+        AbilityScore.STRENGTH: 10,
+        AbilityScore.DEXTERITY: 10,
+        AbilityScore.CONSTITUTION: 10,
+        AbilityScore.INTELLIGENCE: 10,
+        AbilityScore.WISDOM: 10,
+        AbilityScore.CHARISMA: 10,
+    }
 
     def __init__(
         self,
@@ -67,6 +77,15 @@ class Cls:
 class Barbarian(Cls):
     cls = "barbarian"
 
+    recommended_stats = {
+        AbilityScore.STRENGTH: 20,
+        AbilityScore.DEXTERITY: 12,
+        AbilityScore.CONSTITUTION: 16,
+        AbilityScore.INTELLIGENCE: 8,
+        AbilityScore.WISDOM: 8,
+        AbilityScore.CHARISMA: 8,
+    }
+
     def __init__(self, level=1, health=12, mana=4, hit_dice=(7, 12), mana_dice=(2, 5)):
         super().__init__(level, health, mana, hit_dice, mana_dice)
 
@@ -74,6 +93,15 @@ class Barbarian(Cls):
 @ClsRegistry.register
 class Bard(Cls):
     cls = "bard"
+
+    recommended_stats = {
+        AbilityScore.STRENGTH: 8,
+        AbilityScore.DEXTERITY: 16,
+        AbilityScore.CONSTITUTION: 12,
+        AbilityScore.INTELLIGENCE: 8,
+        AbilityScore.WISDOM: 8,
+        AbilityScore.CHARISMA: 20,
+    }
 
     def __init__(self, level=1, health=8, mana=12, hit_dice=(5, 8), mana_dice=(15, 16)):
         super().__init__(level, health, mana, hit_dice, mana_dice)
@@ -83,6 +111,15 @@ class Bard(Cls):
 class Cleric(Cls):
     cls = "cleric"
 
+    recommended_stats = {
+        AbilityScore.STRENGTH: 8,
+        AbilityScore.DEXTERITY: 14,
+        AbilityScore.CONSTITUTION: 16,
+        AbilityScore.INTELLIGENCE: 8,
+        AbilityScore.WISDOM: 18,
+        AbilityScore.CHARISMA: 8,
+    }
+
     def __init__(self, level=1, health=8, mana=12, hit_dice=(5, 8), mana_dice=(5, 16)):
         super().__init__(level, health, mana, hit_dice, mana_dice)
 
@@ -90,6 +127,15 @@ class Cleric(Cls):
 @ClsRegistry.register
 class Druid(Cls):
     cls = "druid"
+
+    recommended_stats = {
+        AbilityScore.STRENGTH: 8,
+        AbilityScore.DEXTERITY: 16,
+        AbilityScore.CONSTITUTION: 14,
+        AbilityScore.INTELLIGENCE: 8,
+        AbilityScore.WISDOM: 18,
+        AbilityScore.CHARISMA: 8,
+    }
 
     def __init__(self, level=1, health=8, mana=2, hit_dice=(5, 8), mana_dice=(9, 15)):
         super().__init__(level, health, mana, hit_dice, mana_dice)
@@ -99,6 +145,15 @@ class Druid(Cls):
 class Fighter(Cls):
     cls = "fighter"
 
+    recommended_stats = {
+        AbilityScore.STRENGTH: 16,
+        AbilityScore.DEXTERITY: 16,
+        AbilityScore.CONSTITUTION: 16,
+        AbilityScore.INTELLIGENCE: 8,
+        AbilityScore.WISDOM: 8,
+        AbilityScore.CHARISMA: 8,
+    }
+
     def __init__(self, level=1, health=10, mana=4, hit_dice=(6, 10), mana_dice=(2, 5)):
         super().__init__(level, health, mana, hit_dice, mana_dice)
 
@@ -106,6 +161,15 @@ class Fighter(Cls):
 @ClsRegistry.register
 class Monk(Cls):
     cls = "monk"
+
+    recommended_stats = {
+        AbilityScore.STRENGTH: 8,
+        AbilityScore.DEXTERITY: 18,
+        AbilityScore.CONSTITUTION: 14,
+        AbilityScore.INTELLIGENCE: 8,
+        AbilityScore.WISDOM: 16,
+        AbilityScore.CHARISMA: 8,
+    }
 
     def __init__(self, level=1, health=8, mana=6, hit_dice=(5, 8), mana_dice=(2, 5)):
         super().__init__(level, health, mana, hit_dice, mana_dice)
@@ -115,6 +179,15 @@ class Monk(Cls):
 class Paladin(Cls):
     cls = "paladin"
 
+    recommended_stats = {
+        AbilityScore.STRENGTH: 16,
+        AbilityScore.DEXTERITY: 12,
+        AbilityScore.CONSTITUTION: 12,
+        AbilityScore.INTELLIGENCE: 8,
+        AbilityScore.WISDOM: 8,
+        AbilityScore.CHARISMA: 16,
+    }
+
     def __init__(self, level=1, health=10, mana=6, hit_dice=(6, 10), mana_dice=(5, 10)):
         super().__init__(level, health, mana, hit_dice, mana_dice)
 
@@ -122,6 +195,15 @@ class Paladin(Cls):
 @ClsRegistry.register
 class Ranger(Cls):
     cls = "ranger"
+
+    recommended_stats = {
+        AbilityScore.STRENGTH: 10,
+        AbilityScore.DEXTERITY: 16,
+        AbilityScore.CONSTITUTION: 14,
+        AbilityScore.INTELLIGENCE: 8,
+        AbilityScore.WISDOM: 16,
+        AbilityScore.CHARISMA: 8,
+    }
 
     def __init__(self, level=1, health=10, mana=6, hit_dice=(6, 10), mana_dice=(7, 10)):
         super().__init__(level, health, mana, hit_dice, mana_dice)
@@ -131,6 +213,15 @@ class Ranger(Cls):
 class Rogue(Cls):
     cls = "rogue"
 
+    recommended_stats = {
+        AbilityScore.STRENGTH: 8,
+        AbilityScore.DEXTERITY: 20,
+        AbilityScore.CONSTITUTION: 12,
+        AbilityScore.INTELLIGENCE: 8,
+        AbilityScore.WISDOM: 10,
+        AbilityScore.CHARISMA: 14,
+    }
+
     def __init__(self, level=1, health=8, mana=4, hit_dice=(5, 8), mana_dice=(2, 5)):
         super().__init__(level, health, mana, hit_dice, mana_dice)
 
@@ -138,6 +229,15 @@ class Rogue(Cls):
 @ClsRegistry.register
 class Sorcerer(Cls):
     cls = "sorcerer"
+
+    recommended_stats = {
+        AbilityScore.STRENGTH: 8,
+        AbilityScore.DEXTERITY: 14,
+        AbilityScore.CONSTITUTION: 12,
+        AbilityScore.INTELLIGENCE: 8,
+        AbilityScore.WISDOM: 10,
+        AbilityScore.CHARISMA: 20,
+    }
 
     def __init__(self, level=1, health=6, mana=12, hit_dice=(4, 6), mana_dice=(13, 16)):
         super().__init__(level, health, mana, hit_dice, mana_dice)
@@ -147,6 +247,15 @@ class Sorcerer(Cls):
 class Warlock(Cls):
     cls = "warlock"
 
+    recommended_stats = {
+        AbilityScore.STRENGTH: 8,
+        AbilityScore.DEXTERITY: 16,
+        AbilityScore.CONSTITUTION: 12,
+        AbilityScore.INTELLIGENCE: 8,
+        AbilityScore.WISDOM: 8,
+        AbilityScore.CHARISMA: 20,
+    }
+
     def __init__(self, level=1, health=8, mana=6, hit_dice=(5, 8), mana_dice=(13, 13)):
         super().__init__(level, health, mana, hit_dice, mana_dice)
 
@@ -154,6 +263,15 @@ class Warlock(Cls):
 @ClsRegistry.register
 class Wizard(Cls):
     cls = "wizard"
+
+    recommended_stats = {
+        AbilityScore.STRENGTH: 8,
+        AbilityScore.DEXTERITY: 14,
+        AbilityScore.CONSTITUTION: 14,
+        AbilityScore.INTELLIGENCE: 20,
+        AbilityScore.WISDOM: 8,
+        AbilityScore.CHARISMA: 8,
+    }
 
     def __init__(self, level=1, health=6, mana=12, hit_dice=(4, 6), mana_dice=(16, 28)):
         super().__init__(level, health, mana, hit_dice, mana_dice)
