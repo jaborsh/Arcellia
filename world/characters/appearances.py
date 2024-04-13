@@ -80,16 +80,3 @@ class CharacterMouthType(Enum):
     SMALL = "small"
     THIN = "thin"
     WIDE = "wide"
-
-
-class CharacterJawType(Enum):
-    POINTED = "pointed"
-    ROUND = "round"
-    SQUARE = "square"
-
-
-class CharacterEyebrowType(Enum):
-    ARCHED = "arched"
-    STRAIGHT = "straight"
-    THICK = "thick"
-    THIN = "thin"

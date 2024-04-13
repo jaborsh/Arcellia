@@ -1,5 +1,6 @@
 from evennia.utils import dedent
-from world.characters import backgrounds, classes, genders, races
+
+from world.characters import appearances, backgrounds, classes, genders, races
 from world.xyzgrid.xyzroom import XYZRoom
 
 _BACKGROUND_INFO_DICT = backgrounds.BACKGROUND_INFO_DICT
@@ -384,6 +385,45 @@ def chargen_appearance(caller, raw_string, **kwargs):
         )
 
     def _set_appearance(caller, **kwargs):
+        caller.appearance.add(
+            "bodytype",
+            "Body Type",
+            value=appearances.CharacterBodyType(kwargs.get("body")),
+        )
+        caller.appearance.add(
+            "height", "Height", value=appearances.CharacterHeight(kwargs.get("height"))
+        )
+        caller.appearance.add(
+            "eyecolor",
+            "Eye Color",
+            value=appearances.CharacterEyeColor(kwargs.get("eye_color")),
+        )
+        caller.appearance.add(
+            "haircolor",
+            "Hair Color",
+            value=appearances.CharacterHairColor(kwargs.get("hair_color")),
+        )
+        caller.appearance.add(
+            "skintype",
+            "Skin Type",
+            value=appearances.CharacterSkinType(kwargs.get("skin_type")),
+        )
+        caller.appearance.add(
+            "eyetype",
+            "Eye Type",
+            value=appearances.CharacterEyeType(kwargs.get("eye_type")),
+        )
+        caller.appearance.add(
+            "nosetype",
+            "Nose Type",
+            value=appearances.CharacterNoseType(kwargs.get("nose_type")),
+        )
+        caller.appearance.add(
+            "mouthtype",
+            "Mouth Type",
+            value=appearances.CharacterMouthType(kwargs.get("mouth_type")),
+        )
+
         desc = dedent(
             """
             {identity}, standing with {height} stature, embodies the life they've lived through the form of their {body} physique. Their {skin} skin, a canvas of their heritage, captures and plays with the light, be it the golden touch of the sun or the moon's soft glow. {eye_type} eyes, rich in {eye_color}, reveal the depths of their experiences. Hair, in varying shades of {hair_color}, crowns their head, a well-proportioned {nose} nose finds harmony with a {mouth} mouth, together sketching the visage of character.
