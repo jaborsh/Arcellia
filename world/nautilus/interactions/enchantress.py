@@ -34,7 +34,7 @@ def node_start(caller):
 def node_enchantress_1_1(caller):
     def _callback(caller):
         caller.msg(
-            'The enchantress allows a sliver of solemnity to pierce her erstwhile amused facade. "Because I\'m trapped..." she admits, the words leaving her lips with a weight that seems to draw the very air from the cell. She takes another pull from her ephemeral cigarette, the act now stripped of its previous nonchalance. The faint glimmer of amusement in her eyes fades, replaced by reality.\n'
+            'The enchantress allows a sliver of solemnity to pierce her erstwhile amused facade. "Because I\'m trapped..." she admits, the words leaving her lips with a weight that seems to draw the very air from the cell.\n'
         )
         return "node_enchantress_hub"
 
@@ -119,7 +119,11 @@ def node_enchantress_2_2(caller):
 
 
 def node_enchantress_hub(caller):
-    text = ""
+    text = dedent(
+        """
+        She takes another pull from her ephemeral cigarette.
+        """
+    )
 
     options = {
         "desc": "How long have you been here?",
@@ -191,20 +195,16 @@ def node_enchantress_vomit(caller):
 
 
 def node_enchantress_hub_1_2(caller):
-    text = dedent(
-        """\
-        The enchantress meets your question with a thoughtful pause, her gaze drifting momentarily throughout the shadowed confines of her cell, as if the answer might be found in the murkiness that surrounds her. "I couldn't say," she admits, her voice reflecting a mixture of puzzlement and resignation. "In truth... so far, the sailors have sailed and drank. I can't say I've seen you before."
-
-        Her response, candid and tinged with uncertainty, mirrors the enigma that wraps itself around the vessel's purpose and your presence upon it. It's a revelation that, while not illuminating, confirms the oddity of your situation. You're both adrift in a sea of questions with few answers in sight, navigating through the unknown with nothing.
-        """
+    caller.msg(
+        "The enchantress meets your question with a thoughtful pause, her gaze drifting momentarily throughout the shadowed confines of her cell, as if the answer might be found in the murkiness that surrounds her. \"I couldn't say,\" she admits, her voice reflecting a mixture of puzzlement and resignation. \"In truth... so far, the sailors have sailed and drank. I can't say I've seen you before.\"\n\nHer response, candid and tinged with uncertainty, mirrors the enigma that wraps itself around the vessel's purpose and your presence upon it. It's a revelation that, while not illuminating, confirms the oddity of your situation. You're both adrift in a sea of questions with few answers in sight, navigating through the unknown with nothing."
     )
 
     if roll_handler.check("1d20", dc=11, stat=caller.intelligence):
-        text += "\n|CYou have no doubt about the drinking, but do you strike yourself as a tight-lipped drunk? Surely, in an atmopshere loosened by drink, words must have flowed as freely as the spirits themselves. She must have heard something: a slip of the tongue, a whispered rumor, or even a shouted declaration."
+        caller.msg(
+            "\n|CYou have no doubt about the drinking, but do you strike yourself as a tight-lipped drunk? Surely, in an atmopshere loosened by drink, words must have flowed as freely as the spirits themselves. She must have heard something: a slip of the tongue, a whispered rumor, or even a shouted declaration."
+        )
 
-    options = {"desc": "[TEMP] Continue.", "goto": "node_enchantress_intro"}
-
-    return text, options
+    return "", {}
 
 
 # Post-Freedom
@@ -219,8 +219,6 @@ def node_enchantress_intro(caller):
         caller.quests.add_details("Nautilus", {"enchantress_freed": True})
         text = dedent(
             """
-            The air between you thickens with your assertion, a flicker of resolve igniting within you despite the sea of uncertainty you're adrift in. The words spill from your lips. The enchantress, still as a statue, regards you with a newfound intensity. Her eyes, previously clouded with resignation, now shimmer with a glint of something akin to respect.
-
             She leans closer, her voice lowering to a conspiratorial whisper. "There are demons here," she confides, her gaze locking onto yours. "One of the sailors has been performing rituals for a week now. The others thought nothing of it and ignored him." Her words hang in the air, heavy with implication.
 
             The enchantress watches you, her expression somber yet laced with a subtle urging. It's clear she believes your arrival is no mere twist of fate. Silence stretches between you, broken only by the distant, mournful cry of the sea.
@@ -232,26 +230,32 @@ def node_enchantress_intro(caller):
                 "\n|mShe speaks matter-of-factly, but there's a sadness in her voice.|n"
             )
     else:
-        text = ""
+        text = dedent(
+            """
+        She takes a pull from her ephemeral cigarette.
+        """
+        )
 
     options = [
         {
-            "desc": "And why didn't you just tell me about the rituals?",
+            "desc": "Why didn't you just tell me about the rituals?",
             "goto": _callback1,
         },
         {
             "desc": "I don't remember anything that's happened on the ship.",
             "goto": "node_enchantress_intro_1_1",
         },
-        {
-            "desc": "|m[Let her know you want her. Physically.]|n",
-            "goto": "node_enchantress_intro_2_1",
-        },
     ]
 
-    options.append(
-        {"desc": "I should get going now. [Leave]", "goto": "node_quit"},
-    )
+    if not caller.quests.get_detail("Nautilus", "enchantress_seduced"):
+        options.append(
+            {
+                "desc": "|m[Let her know you want her. Physically.]|n",
+                "goto": "node_enchantress_intro_2_1",
+            }
+        )
+
+    options.append({"desc": "I should get going now. [Leave]", "goto": "node_quit"})
 
     return text, options
 
@@ -293,6 +297,8 @@ def node_enchantress_intro_1_1(caller):
 
 
 def node_enchantress_intro_2_1(caller):
+    caller.quests.add_detail("Nautilus", "enchantress_seduced", True)
+
     def _callback_success(caller):
         caller.msg(
             '|mPerched on the precipice of the unknown, where the veil between life and shadow grows thin, your thoughts, sparked by desperation and the surreal calm of impending doom, spill forth unguarded.\n\nThe enchantress, her presence a constant amidst the chaos, regards you with a depth of understanding. "You seek comfort," she acknowledges, her voice soft, carrying the warmth of empathy as a balm to the soul. "It\'s only natural."|n\n'
@@ -384,7 +390,7 @@ def node_enchantress_seduce_failure_3(caller):
         """
     )
 
-    options = ()
+    options = {"desc": "Continue.", "goto": "node_enchantress_intro"}
 
     return text, options
 

@@ -105,7 +105,6 @@ NAUTILUS_LEFT_LEVER = {
         "sound": "The gentle creaking of the ship's timbers and the distant lapping of waves against the hull fill the air.",
         "taste": "The tang of salt on the lips and the mentallic taste of the lever linger.",
     },
-    "interaction": "world.nautilus.interactions.left_lever",
 }
 
 NAUTILUS_RIGHT_LEVER = {
@@ -121,7 +120,6 @@ NAUTILUS_RIGHT_LEVER = {
         "sound": "The ominous groaning of tortured metal echo in the vicinity.",
         "taste": "The bitter, coppery tang of blood coats the tongue.",
     },
-    "interaction": "world.nautilus.interactions.right_lever",
 }
 
 # Weapons

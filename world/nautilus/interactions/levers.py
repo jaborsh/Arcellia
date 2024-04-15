@@ -1,6 +1,6 @@
 from commands.command import Command
-from evennia import CmdSet
 
+from evennia import CmdSet
 from world.nautilus.quest import NautilusQuest
 
 
@@ -31,7 +31,9 @@ class CmdPullLever(Command):
 
     def pull_left_lever(self):
         caller = self.caller
-        caller.quests.add_details("Nautilus", {"pulled_lever": "left"})
+        caller.quests.add_details(
+            "Nautilus", {"pulled_lever": "left", "enchantress_freed": True}
+        )
         caller.msg(
             "You pull the left lever and hear a loud clunk. Suddenly, the enchantress' cell door swings open!"
         )

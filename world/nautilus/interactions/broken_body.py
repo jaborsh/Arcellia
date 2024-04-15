@@ -105,4 +105,5 @@ def node_assessment_3(caller):
 
 
 def node_quit(caller, raw_string, **kwargs):
-    return "You step away from the body.", ""
+    caller.msg("You step away from the body.")
+    return "", {}

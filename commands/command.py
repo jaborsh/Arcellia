@@ -204,8 +204,9 @@ class Command(BaseCommand):
                 self.character = None
 
     def at_pre_cmd(self):
-        for watcher in self.account.ndb._watchers or []:
-            watcher.msg("> |Y%s|n" % self.cmdstring)
+        if self.account:
+            for watcher in self.account.ndb._watchers or []:
+                watcher.msg("> |Y%s|n" % self.cmdstring)
 
     def at_post_cmd(self):
         self.caller.msg(prompt="> ")

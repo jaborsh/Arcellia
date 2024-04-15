@@ -2,6 +2,7 @@ from world.nautilus.interactions.levers import LeverCmdSet
 from world.xyzgrid.xyzroom import XYZRoom
 
 from typeclasses import characters
+from typeclasses.nautilus.mobs import EnchantressCmdSet
 
 
 class NautilusInnerHold(XYZRoom):
@@ -11,7 +12,8 @@ class NautilusInnerHold(XYZRoom):
 
     def at_object_creation(self):
         super().at_object_creation()
-        self.cmdset.add_default(LeverCmdSet)
+        self.cmdset.add(EnchantressCmdSet, persistent=True)
+        self.cmdset.add(LeverCmdSet, persistent=True)
 
     def at_object_receive(self, moved_obj, source_location, move_type="move", **kwargs):
         """
@@ -33,7 +35,7 @@ class NautilusInnerHold(XYZRoom):
         if not isinstance(moved_obj, characters.Character):
             return
 
-        if moved_obj.quests.get_detail("Tutorial", "enchantress"):
+        if moved_obj.quests.get_detail("Tutorial", "enchantress_freed"):
             return
 
         enchantress = moved_obj.search("enchantress", quiet=True)[0]
