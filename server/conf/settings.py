@@ -36,6 +36,46 @@ from evennia.settings_default import *
 # This is the name of your game. Make it catchy!
 SERVERNAME = "Arcellia"
 
+# open to the internet: 4000, 4001, 4002
+# closed to the internet (internal use): 4005, 4006
+TELNET_PORTS = [4000]
+WEBSOCKET_CLIENT_PORT = 4002
+WEBSERVER_PORTS = [(4001, 4005)]
+AMP_PORT = 4006
+
+# This needs to be set to your website address for django or you'll receive a
+# CSRF error when trying to log on to the web portal
+CSRF_TRUSTED_ORIGINS = ["https://arcellia.com"]
+
+# Optional - security measures limiting interface access
+# (don't set these before you know things work without them)
+TELNET_INTERFACES = ["127.0.0.1"]
+WEBSOCKET_CLIENT_INTERFACE = "127.0.0.1"
+WEBSOCKET_CLIENT_URL = "wss://arcellia.com:4002/"
+ALLOWED_HOSTS = [".arcellia.com"]
+
+# Determine how many commands per second a given Session is allowed
+# to send to the Portal via a connected protocol. Too high rate will
+# drop the command and echo a warning. Note that this will also cap
+# OOB messages so don't set it too low if you expect a lot of events
+# from the client! To turn the limiter off, set to <= 0.
+MAX_COMMAND_RATE = 60
+# The warning to echo back to users if they send commands too fast
+COMMAND_RATE_WARNING = (
+    "|RYou're entering commands too fast. Wait a moment and try again.|n"
+)
+
+# Determine how large of a string can be sent to the server in number
+# of characters. If they attempt to enter a string over this character
+# limit, we stop them and send a message. To make unlimited, set to
+# 0 or less.
+MAX_CHAR_LIMIT = 1600  # 80 characters * 20 lines, previously 6000.
+# The warning to echo back to users if they enter a very large string
+MAX_CHAR_LIMIT_WARNING = (
+    "|RYou've entered a string that is too long. "
+    "Please break it up into multiple parts.|n"
+)
+
 # Place to put log files, how often to rotate the log and how big each log file
 # may become before rotating.
 LOG_DIR = os.path.join(GAME_DIR, "server", "logs")
