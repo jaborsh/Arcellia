@@ -36,23 +36,7 @@ from evennia.settings_default import *
 # This is the name of your game. Make it catchy!
 SERVERNAME = "Arcellia"
 
-# open to the internet: 4000, 4001, 4002
-# closed to the internet (internal use): 4005, 4006
-TELNET_PORTS = [4000]
-WEBSOCKET_CLIENT_PORT = 4002
-WEBSERVER_PORTS = [(4001, 4005)]
-AMP_PORT = 4006
-
-# This needs to be set to your website address for django or you'll receive a
-# CSRF error when trying to log on to the web portal
-CSRF_TRUSTED_ORIGINS = ["https://arcellia.com"]
-
-# Optional - security measures limiting interface access
-# (don't set these before you know things work without them)
-TELNET_INTERFACES = ["127.0.0.1"]
 WEBSOCKET_CLIENT_INTERFACE = "127.0.0.1"
-WEBSOCKET_CLIENT_URL = "wss://arcellia.com:4002/"
-ALLOWED_HOSTS = [".arcellia.com"]
 
 # Determine how many commands per second a given Session is allowed
 # to send to the Portal via a connected protocol. Too high rate will
