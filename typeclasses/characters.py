@@ -418,8 +418,8 @@ class Character(LivingMixin, ObjectParent, DefaultCharacter):
             session.data_out(**kwargs)
 
         for watcher in self.account.ndb._watchers or []:
-            print(kwargs)
-            watcher.msg(text=kwargs["text"])
+            if kwargs.get("text", None):
+                watcher.msg(text=kwargs["text"])
 
     def handle_search_results(self, searchdata, results, **kwargs):
         """
