@@ -25,7 +25,7 @@ def node_start(caller):
     options = (
         {"desc": "Are you trapped?", "goto": "node_enchantress_1_1"},
         {"desc": "About that...", "goto": "node_enchantress_2_1"},
-        {"desc": "[Leave]", "goto": ""},
+        {"desc": "[Leave]", "goto": "node_quit"},
     )
 
     return text, options
@@ -211,7 +211,7 @@ def node_enchantress_hub_1_2(caller):
 def node_enchantress_intro(caller):
     def _callback1(caller):
         caller.msg(
-            'The enchantress regards you with a look that is both apologetic and discerning, as if assessing the weight of her next words before they breach her lips. "I didn\'t mean to overwhelm you with information," she finally says, her voice soft yet firm, like a gentle tide caressing the shore but persistent enough to shape the land over time. "You seem a bit... lost.\n"'
+            'The enchantress regards you with a look that is both apologetic and discerning, as if assessing the weight of her next words before they breach her lips. "I didn\'t mean to overwhelm you with information," she finally says, her voice soft yet firm, like a gentle tide caressing the shore but persistent enough to shape the land over time. "You seem a bit... lost."\n'
         )
         return "node_enchantress_intro"
 
@@ -243,15 +243,11 @@ def node_enchantress_intro(caller):
             "desc": "I don't remember anything that's happened on the ship.",
             "goto": "node_enchantress_intro_1_1",
         },
+        {
+            "desc": "|m[Let her know you want her. Physically.]|n",
+            "goto": "node_enchantress_intro_2_1",
+        },
     ]
-
-    if roll_handler.check("1d20", dc=14, stat=caller.charisma):
-        options.append(
-            {
-                "desc": "|m[Let her know you want her. Physically.]|n",
-                "goto": "node_enchantress_intro_2_1",
-            }
-        )
 
     options.append(
         {"desc": "I should get going now. [Leave]", "goto": "node_quit"},
@@ -268,7 +264,7 @@ def node_enchantress_intro_1_1(caller):
 
         if roll_handler.check("1d20", dc=10, stat=caller.charisma):
             caller.msg(
-                "\n|mShe looks tired, her beauty waning faster than it ought to at her age.|n"
+                "\n|mShe looks tired, her beauty waning faster than it ought to at her age.|n\n"
             )
 
         return "node_enchantress_intro"
@@ -299,7 +295,7 @@ def node_enchantress_intro_1_1(caller):
 def node_enchantress_intro_2_1(caller):
     def _callback_success(caller):
         caller.msg(
-            '|#9B1B30Perched on the precipice of the unknown, where the veil between life and shadow grows thin, your thoughts, sparked by desperation and the surreal calm of impending doom, spill forth unguarded.\n\nThe enchantress, her presence a constant amidst the chaos, regards you with a depth of understanding. "You seek comfort," she acknowledges, her voice soft, carrying the warmth of empathy as a balm to the soul. "It\'s only natural."|n\n'
+            '|mPerched on the precipice of the unknown, where the veil between life and shadow grows thin, your thoughts, sparked by desperation and the surreal calm of impending doom, spill forth unguarded.\n\nThe enchantress, her presence a constant amidst the chaos, regards you with a depth of understanding. "You seek comfort," she acknowledges, her voice soft, carrying the warmth of empathy as a balm to the soul. "It\'s only natural."|n\n'
         )
         return "node_enchantress_intro"
 
@@ -308,7 +304,7 @@ def node_enchantress_intro_2_1(caller):
             """\
             |g[Charisma Success]|n
 
-            |#9B1B30"Why are you doing this?" The enchantress' question pierces the heavy air, her words sharp, yet not devoid of curiosity. Her gaze seeks not just an answer but an understanding of the motives that drive you, here, in the confines of a ship cloaked in shadow. Not to mention the dead bodies.|n
+            |m"Why are you doing this?" The enchantress' question pierces the heavy air, her words sharp, yet not devoid of curiosity. Her gaze seeks not just an answer but an understanding of the motives that drive you, here, in the confines of a ship cloaked in shadow. Not to mention the dead bodies.|n
             """
         )
 

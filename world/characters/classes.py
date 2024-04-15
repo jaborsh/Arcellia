@@ -130,10 +130,10 @@ class Druid(Cls):
 
     recommended_stats = {
         AbilityScore.STRENGTH: 8,
-        AbilityScore.DEXTERITY: 16,
-        AbilityScore.CONSTITUTION: 14,
+        AbilityScore.DEXTERITY: 12,
+        AbilityScore.CONSTITUTION: 16,
         AbilityScore.INTELLIGENCE: 8,
-        AbilityScore.WISDOM: 18,
+        AbilityScore.WISDOM: 20,
         AbilityScore.CHARISMA: 8,
     }
 

@@ -1,6 +1,6 @@
-from evennia.utils import dedent
 from handlers.rolls import RollHandler
 
+from evennia.utils import dedent
 from world.nautilus.quest import NautilusQuest
 
 roll_handler = RollHandler()
@@ -31,7 +31,7 @@ def node_start(caller):
 def node_investigate(caller, **kwargs):
     text = dedent(
         """\
-        The scene before you burns with a haunting clarity despite the haze that shrouds your vision, as if mists of the mind seek to shield you from the starkness of reality. Yet there, in the midst of shadows and half-light, the figure of a man presents itself, its mortal journey concluded, yet within those sightless eyes a narrative seems to linger: a tale suspended in the glass of death's own gaze.|/|/A shiver winds its way down your spine. The heart aches, whether from the chill that grips the air or from the specter of a story left untold, and you find yourself beckoned by those dead eyes to peer into the abyss and comprehend the truths that lie within their ever-still watch.
+        The scene before you burns with a haunting clarity despite the haze that shrouds your vision, as if mists of the mind seek to shield you from the starkness of reality. In the midst of shadows and half-light, the figure of a man presents itself, its mortal journey concluded. Within those sightless eyes a narrative seems to linger: a tale suspended in the glass of death's own gaze.|/|/A shiver winds its way down your spine. The heart aches, whether from the chill that grips the air or from the specter of a story left untold, and you find yourself beckoned by those dead eyes to peer into the abyss and comprehend the truths that lie within their ever-still watch.
         """
     )
 
@@ -68,7 +68,7 @@ def node_assessment(caller):
             """
             |r[Intelligence Failure]|n
             
-            What do you mean *assess the damage*? How would you do that? What am you even trying to do?
+            What do you mean *assess the damage*? How would you do that? What are you even trying to do?
             """
         )
 
