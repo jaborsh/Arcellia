@@ -39,7 +39,7 @@ PROTOTYPES = {
     (0, 1): {
         "prototype_parent": "xyz_room",
         "key": "|CThe Nautilus - Berthing|n",
-        "desc": "The berthing's western alcove holds a desk, its sturdy oak a witness to the room's forlorn ambiance. Years beneath the sea have darkened its grain. Atop it rests an assemblage of |#ffd700|nletters, their edges curled from the embrace of the damp sea air, each character inscribed with careful precision now tinged with the golden patina of age. The desk, surrounded by the immutable repose of the room's deceased occupants, feels like an archive of unfished stories, holding fast to the last thoughts of those doomed to sleep beneath the waves.",
+        "desc": "The berthing's western alcove holds a desk, its sturdy oak a witness to the room's forlorn ambiance. Years beneath the sea have darkened its grain. Atop it rests an assemblage of |#ffd700|nletters, their edges curled from the embrace of the damp sea air, each character inscribed with careful precision now tinged with the golden patina of age. The desk, surrounded by the immutable repose of the room's deceased occupants, feels like an archive of unfinished stories, holding fast to the last thoughts of those doomed to sleep beneath the waves.",
         "senses": {
             "feel": "The cool, still air bears the weight of the ocean's depth, offering a tranquil yet unnerving caress.",
             "smell": "The scent of aged wood and ink faintly permeates the space, redolent of history and secrets kept.",
