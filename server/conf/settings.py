@@ -49,8 +49,8 @@ CSRF_TRUSTED_ORIGINS = ["https://arcellia.com"]
 
 # Optional - security measures limiting interface access
 # (don't set these before you know things work without them)
-TELNET_INTERFACES = ["127.0.0.1"]
-WEBSOCKET_CLIENT_INTERFACE = "127.0.0.1"
+# TELNET_INTERFACES = ["127.0.0.1"]
+# WEBSOCKET_CLIENT_INTERFACE = "127.0.0.1"
 WEBSOCKET_CLIENT_URL = "wss://arcellia.com:4002/"
 ALLOWED_HOSTS = [".arcellia.com"]
 
