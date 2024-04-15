@@ -62,7 +62,7 @@ PROTOTYPES = {
             "taste": "The taste of metal and salt hangs in the air, vestiges of the coins and navigational tools left to languor.",
         },
         "details": {
-            "locket": "The locket, its once lustrous surface now dulled to a somber silver, lies open, reveleaing a miniature painted portrait protected by a thin sheet of cloudy glass. Weathered by both time and tide, the likeness within gazes out with colors that struggle against the encroachment of decay, their vibrancy a faint whisper of past affections.",
+            "locket": "The locket, its once lustrous surface now dulled to a somber silver, lies open, revealing a miniature painted portrait protected by a thin sheet of cloudy glass. Weathered by both time and tide, the likeness within gazes out with colors that struggle against the encroachment of decay, their vibrancy a faint whisper of past affections.",
             "compass": "The compass, encased in a copper shell turned verdigris at the edges, sits heavy and immobile. Its face still gleams faintly when caught by stray shafts of light, the cardinal points etched deeply into the medal as a lasting declaration of direction in a world on the waves.",
             "coins": "Surrounding the other artifacts, coins spill across the chest, their diversity a small treasure trove of tales from afar but ultimately foreign and useless to you. Each disc, whether gilt or silvery or possessing the burnished warmth of copper, carries upon it the countenance of a soverign or the sigil of a distant land, the raised details catching the dim light as if holding one last time to the days above the deep.",
         },
@@ -117,7 +117,7 @@ PROTOTYPES = {
     (2, 2): {
         "prototype_parent": "xyz_room",
         "key": "|CThe Nautilus - Map Room|n",
-        "desc": "The map room extends towards an observatory area, engineered for the study of stars and the celestial paths that guide a vessel's course. The domed ceiling welcomes, intended to welcome the light of the heavens, now broods under a veil of darkness, an opaque shroud denying any glimpse of the sky. |cAstrolabes|n and other devices of aged brass lay abandoned. Their intricate gears lock in a silent, cryptic dialogue. One large, circular |wwindow|n stares out into the abyss, its glass cracked in a spiderweb of silvered lines that reflect the feeble luminscence of the deep. The very air whistles quietly through the fissures, thick with an unsettled tension.",
+        "desc": "The map room extends towards an observatory area, engineered for the study of stars and the celestial paths that guide a vessel's course. The domed ceiling which once welcomed light from the heavens, now broods under a veil of darkness, an opaque shroud denying any glimpse of the sky. |cAstrolabes|n and other devices of aged brass lay abandoned. Their intricate gears lock in a silent, cryptic dialogue. One large, circular |wwindow|n stares out into the abyss, its glass cracked in a spiderweb of silvered lines that reflect the feeble luminscence of the deep. The very air whistles quietly through the fissures, thick with an unsettled tension.",
         "senses": {
             "feel": "An ominous presence pervades, charging the air with an electric tingle that raises the nape's fine hairs with its unvoiced threat.",
             "smell": "The metallic tang of damaged equipment mingles with the staleness of a space long sealed from the outside world, an aroma both chilling and foreboding.",

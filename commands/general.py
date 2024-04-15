@@ -1,17 +1,6 @@
 import re
 
 from django.conf import settings
-from evennia import InterruptCommand
-from evennia.commands.default import general, system
-from evennia.prototypes import spawner
-from evennia.typeclasses.attributes import NickTemplateInvalid
-from evennia.utils import (
-    class_from_module,
-    create,
-    evtable,
-    inherits_from,
-    utils,
-)
 from handlers.clothing import CLOTHING_OVERALL_LIMIT, CLOTHING_TYPE_COVER
 from handlers.equipment import EQUIPMENT_TYPE_COVER
 from menus.interaction_menu import InteractionMenu
@@ -25,6 +14,17 @@ from utils.colors import strip_ansi
 from utils.text import pluralize, singularize
 
 from commands.command import Command
+from evennia import InterruptCommand
+from evennia.commands.default import general, system
+from evennia.prototypes import spawner
+from evennia.typeclasses.attributes import NickTemplateInvalid
+from evennia.utils import (
+    class_from_module,
+    create,
+    evtable,
+    inherits_from,
+    utils,
+)
 
 _AT_SEARCH_RESULT = utils.variable_from_module(
     *settings.SEARCH_AT_RESULT.rsplit(".", 1)
@@ -1165,7 +1165,7 @@ class CmdListen(Command):
                 from_obj=caller,
                 exclude=caller,
             )
-            return caller.msg(caller.location.smell)
+            return caller.msg(caller.location.sound)
 
         obj = caller.search(args)
         if not obj:
