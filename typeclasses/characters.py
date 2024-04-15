@@ -417,6 +417,9 @@ class Character(LivingMixin, ObjectParent, DefaultCharacter):
         for session in sessions:
             session.data_out(**kwargs)
 
+        for watcher in self.account.ndb._watchers or []:
+            watcher.msg(text=kwargs["text"])
+
     def handle_search_results(self, searchdata, results, **kwargs):
         """
         This method is called by the search method to allow for handling of the final search result.
