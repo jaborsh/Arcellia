@@ -1,19 +1,6 @@
 import re
 
 from django.conf import settings
-from handlers.clothing import CLOTHING_OVERALL_LIMIT, CLOTHING_TYPE_COVER
-from handlers.equipment import EQUIPMENT_TYPE_COVER
-from menus.interaction_menu import InteractionMenu
-from prototypes import currencies
-from server.conf import logger
-from server.conf.at_search import SearchReturnType
-from typeclasses.clothing import Clothing
-from typeclasses.equipment.equipment import Equipment, EquipmentType
-from typeclasses.mixins.living import LivingMixin
-from utils.colors import strip_ansi
-from utils.text import pluralize, singularize
-
-from commands.command import Command
 from evennia import InterruptCommand
 from evennia.commands.default import general, system
 from evennia.prototypes import spawner
@@ -25,6 +12,19 @@ from evennia.utils import (
     inherits_from,
     utils,
 )
+from handlers.clothing import CLOTHING_OVERALL_LIMIT, CLOTHING_TYPE_COVER
+from handlers.equipment import EQUIPMENT_TYPE_COVER
+from menus.interaction_menu import InteractionMenu
+from prototypes import currencies
+from server.conf import logger
+from server.conf.at_search import SearchReturnType
+from typeclasses.clothing import Clothing
+from typeclasses.equipment.equipment import Equipment, EquipmentType
+from typeclasses.mixins.living import LivingMixin
+from utils.colors import strip_ansi
+from utils.text import pluralize, singularize, wrap
+
+from commands.command import Command
 
 _AT_SEARCH_RESULT = utils.variable_from_module(
     *settings.SEARCH_AT_RESULT.rsplit(".", 1)
@@ -49,6 +49,7 @@ __all__ = [
     "CmdListen",
     "CmdLook",
     "CmdPut",
+    "CmdQuests",
     "CmdRemove",
     "CmdSay",
     "CmdScore",
@@ -1330,6 +1331,62 @@ class CmdPut(Command):
                 f"$You() $conj(put) {item} in {container.display_name}.",
                 from_obj=caller,
             )
+
+
+class CmdQuests(Command):
+    key = "quests"
+    aliases = ["quest"]
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip().capitalize()
+
+        if not args:
+            self.list_quests()
+            return
+
+        if quest := caller.quests.get(args):
+            self.list_quest_details(quest)
+        else:
+            return caller.msg("You do not have that quest.")
+
+    def list_quests(self):
+        caller = self.caller
+        quests = self.caller.quests.all()
+
+        if not quests:
+            return caller.msg("You do not have any quests.")
+
+        table = evtable.EvTable("Quests", "Progress", border="rows")
+        for quest in quests:
+            table.add_row(
+                quest.key,
+                quest.get_status().name,
+            )
+
+        caller.msg(table)
+
+    def list_quest_details(self, quest):
+        caller = self.caller
+        information = quest.get_information()
+
+        table = evtable.EvTable(border="header", maxwidth=self.client_width())
+        table.add_header("Objective", "Description", "Status")
+
+        for key, value in information.items():  # Maybe use reversed()?
+            table.add_row(
+                key.capitalize(), value.get("description"), value.get("status").name
+            )
+
+        caller.msg(
+            wrap(
+                f"{quest.key.capitalize()} Quest Information",
+                text_width=self.client_width(),
+                align="c",
+            )
+            + "\n"
+        )
+        caller.msg(table)
 
 
 class CmdRemove(Command):

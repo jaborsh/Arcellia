@@ -14,13 +14,13 @@ class TestQuest(Quest):
             "name": "Test Objective",
             "description": "Test Description",
             "hidden": False,
-            "completed": False,
+            "status": QuestProgress.UNSTARTED,
         },
         "TestHiddenObjective": {
             "name": "Test Hidden Objective",
             "description": "Test Hidden Description",
             "hidden": True,
-            "completed": False,
+            "status": QuestProgress.UNSTARTED,
         },
     }
 
@@ -28,8 +28,7 @@ class TestQuest(Quest):
 class TestQuestHandler(EvenniaTest):
     def test_add_new_quest(self):
         self.char1.quests.add(TestQuest)
-        self.assertIn("TestQuest", self.char1.quests.all())
-        self.assertIsInstance(self.char1.quests.get("TestQuest"), Quest)
+        self.assertIsInstance(self.char1.quests.get("TestQuest"), TestQuest)
 
     def test_add_detail(self):
         self.char1.quests.add(TestQuest)
@@ -47,22 +46,26 @@ class TestQuestHandler(EvenniaTest):
 
     def test_set_objective(self):
         self.char1.quests.add(TestQuest)
-        self.char1.quests.set_objective("TestQuest", "TestObjective", "completed", True)
+        self.char1.quests.set_objective(
+            "TestQuest", "TestObjective", "status", QuestProgress.COMPLETED
+        )
         objective = self.char1.quests.get_objective("TestQuest", "TestObjective")
-        self.assertEqual(objective["completed"], True)
+        self.assertEqual(objective["status"], QuestProgress.COMPLETED)
 
     def test_update_objectives(self):
         self.char1.quests.add(TestQuest)
         self.char1.quests.update_objectives(
             "TestQuest",
             {
-                "TestObjective": {"completed": True},
-                "TestHiddenObjective": {"completed": True},
+                "TestObjective": {"status": QuestProgress.COMPLETED},
+                "TestHiddenObjective": {"status": QuestProgress.COMPLETED},
             },
         )
         objectives = self.char1.quests.get_objectives("TestQuest")
-        self.assertEqual(objectives["TestObjective"]["completed"], True)
-        self.assertEqual(objectives["TestHiddenObjective"]["completed"], True)
+        self.assertEqual(objectives["TestObjective"]["status"], QuestProgress.COMPLETED)
+        self.assertEqual(
+            objectives["TestHiddenObjective"]["status"], QuestProgress.COMPLETED
+        )
 
     def test_set_status(self):
         self.char1.quests.add(TestQuest)
@@ -72,23 +75,23 @@ class TestQuestHandler(EvenniaTest):
 
     def test_remove_quest(self):
         self.char1.quests.add(TestQuest)
-        self.assertIn("TestQuest", self.char1.quests.all())
+        self.assertEquals(len(self.char1.quests.all()), 1)
         self.char1.quests.remove("TestQuest")
-        self.assertNotIn("TestQuest", self.char1.quests.all())
+        self.assertEquals(len(self.char1.quests.all()), 0)
 
     def test_clear_quests(self):
         self.char1.quests.add(TestQuest)
-        self.assertIn("TestQuest", self.char1.quests.all())
+        self.assertEquals(len(self.char1.quests.all()), 1)
         self.char1.quests.clear()
-        self.assertEqual(self.char1.quests.all(), {})
+        self.assertEquals(len(self.char1.quests.all()), 0)
 
     def test_quest_complete(self):
         self.char1.quests.add(TestQuest)
         self.char1.quests.update_objectives(
             "TestQuest",
             {
-                "TestObjective": {"completed": True},
-                "TestHiddenObjective": {"completed": True},
+                "TestObjective": {"status": QuestProgress.COMPLETED},
+                "TestHiddenObjective": {"status": QuestProgress.COMPLETED},
             },
         )
         self.char1.quests.get("TestQuest").is_complete()

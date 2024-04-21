@@ -50,7 +50,7 @@ class QuestHandler(Handler):
     """
 
     def all(self):
-        return self._data
+        return [self.get(quest) for quest in self._data]
 
     def add(self, quest_cls):
         """
@@ -66,6 +66,7 @@ class QuestHandler(Handler):
         """
         quest = quest_cls(self.obj)
         self._data[quest.key] = quest
+        self._save()
 
     def add_detail(self, quest, detail, value):
         if quest := self._data.get(quest, None):
@@ -232,6 +233,10 @@ class QuestHandler(Handler):
             quest.set_status(new_status)
             self._save()
 
+    def get_quest_information(self, quest):
+        quest = self._data.get(quest)
+        return quest.get_information() if quest else None
+
     def remove(self, quest):
         """
         Removes a quest from the QuestHandler.
@@ -261,6 +266,7 @@ class QuestHandler(Handler):
             None
         """
         self._data.clear()
+        self._save()
 
 
 class Quest:
@@ -381,6 +387,18 @@ class Quest:
         """
         return self.details
 
+    def get_information(self):
+        information = dict()
+
+        for objective, data in self.objectives.items():
+            if (
+                data["status"] == QuestProgress.COMPLETED
+                or data["status"] == QuestProgress.IN_PROGRESS
+            ) and not data["hidden"]:
+                information[objective] = data
+
+        return information
+
     def get_objective(self, objective):
         """
         Retrieve the value associated with the given key for the specified objective.
@@ -462,11 +480,22 @@ class Quest:
 
         objectives = self.get_objectives()
 
-        if not all(objectives[objective]["completed"] for objective in objectives):
+        if not all(
+            objectives[objective]["status"] == QuestProgress.COMPLETED
+            for objective in objectives
+        ):
             return False
 
         self.complete()
         return True
+
+    def start(self):
+        """
+        Marks the quest as started.
+
+        This method updates the status of the quest to 'IN_PROGRESS'.
+        """
+        self.status = QuestProgress.IN_PROGRESS
 
     def complete(self):
         """

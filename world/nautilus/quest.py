@@ -1,4 +1,4 @@
-from handlers.quests import Quest
+from handlers.quests import Quest, QuestProgress
 
 
 class NautilusQuest(Quest):
@@ -12,27 +12,25 @@ class NautilusQuest(Quest):
     }
     initial_objectives = {
         "escape": {
-            "name": "Find a way to escape the Nautilus",
+            "name": "Escape the Nautilus",
             "description": "You've awoken in a strange place. You need to find a way to escape.",
             "hidden": False,
-            "completed": False,
+            "status": QuestProgress.UNSTARTED,
         },
         "helm": {
             "name": "Find the Nautilus' Helm",
-            "description": "You've met the Enchantress. She's told you to find the Nautilus' Helm and sail to safety.",
-            "hidden": True,
-            "completed": False,
+            "description": "You've met the Enchantress. She's told you to find the Nautilus' Helm and set sail to Elm.",
+            "hidden": False,
+            "status": QuestProgress.UNSTARTED,
         },
         "freedom": {
             "name": "Sail to Freedom",
-            "description": "You've escaped the Nautilus.",
-            "hidden": True,
-            "completed": False,
-        },
-        "finished": {
-            "name": "Quest Complete",
-            "description": "You've completed the Nautilus quest.",
-            "hidden": True,
-            "completed": False,
+            "description": "Sail away to Elm.",
+            "hidden": False,
+            "status": QuestProgress.UNSTARTED,
         },
     }
+
+    def start(self):
+        super().start()
+        self.objectives["escape"]["status"] = QuestProgress.IN_PROGRESS
