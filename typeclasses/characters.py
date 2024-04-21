@@ -9,11 +9,6 @@ creation commands.
 """
 
 from django.conf import settings
-from handlers import quests, traits
-from server.conf import logger
-from utils.text import grammarize, wrap
-from world.characters import backgrounds
-
 from evennia.objects.objects import DefaultCharacter
 from evennia.utils.utils import (
     dbref,
@@ -22,6 +17,10 @@ from evennia.utils.utils import (
     to_str,
     variable_from_module,
 )
+from handlers import quests, traits
+from server.conf import logger
+from utils.text import grammarize, wrap
+from world.characters import backgrounds
 
 from .mixins.living import LivingMixin
 from .objects import ObjectParent
@@ -416,6 +415,9 @@ class Character(LivingMixin, ObjectParent, DefaultCharacter):
         sessions = make_iter(session) if session else self.sessions.all()
         for session in sessions:
             session.data_out(**kwargs)
+
+        if not self.account:
+            return
 
         for watcher in self.account.ndb._watchers or []:
             if kwargs.get("text", None):

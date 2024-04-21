@@ -1,6 +1,6 @@
 from evennia.utils.test_resources import EvenniaTest
 
-from .classes import ClsRegistry
+from ..classes import ClsRegistry
 
 
 class TestClsRegistry(EvenniaTest):
