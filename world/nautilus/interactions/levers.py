@@ -1,7 +1,8 @@
 from commands.command import Command
+from handlers.quests import QuestProgress
 
 from evennia import CmdSet
-from world.nautilus.quest import NautilusQuest
+from world.nautilus.quest import NautilusObjective
 
 
 class CmdPullLever(Command):
@@ -13,10 +14,12 @@ class CmdPullLever(Command):
         caller = self.caller
         args = self.args.strip()
 
-        if not (caller.quests.get("Nautilus")):
-            caller.quests.add(NautilusQuest)
-
-        if caller.quests.get_detail("Nautilus", "pulled_lever"):
+        if (
+            not caller.quests.get_objective_status(
+                "Nautilus", NautilusObjective.FREE_ENCHANTRESS
+            )
+            == QuestProgress.UNSTARTED
+        ):
             return caller.msg("The lever does not budge.")
 
         if not args:
@@ -31,8 +34,11 @@ class CmdPullLever(Command):
 
     def pull_left_lever(self):
         caller = self.caller
-        caller.quests.add_details(
-            "Nautilus", {"pulled_lever": "left", "enchantress_freed": True}
+        caller.quests.set_objective(
+            "Nautilus",
+            NautilusObjective.FREE_ENCHANTRESS,
+            "status",
+            QuestProgress.COMPLETED,
         )
         caller.msg(
             "You pull the left lever and hear a loud clunk. Suddenly, the enchantress' cell door swings open!"
@@ -40,10 +46,14 @@ class CmdPullLever(Command):
 
     def pull_right_lever(self):
         caller = self.caller
-        caller.quests.add_details("Nautilus", {"pulled_lever": "right"})
-        caller.quests._save()
+        caller.quests.set_objective(
+            "Nautilus",
+            NautilusObjective.FREE_ENCHANTRESS,
+            "status",
+            QuestProgress.FAILED,
+        )
         caller.msg(
-            "You pull the right lever and hear a loud clunk. Psionic energy radiates from the enchantress' cell and a sense of dread washes over you."
+            "You pull the right lever and hear a loud clunk. Psionic energy radiates from the enchantress' cell and she disintegrates into thin air."
         )
 
 

@@ -68,7 +68,68 @@ class QuestHandler(Handler):
         self._data[quest.key].start()
         self._save()
 
+    def update(self, quest):
+        """
+        Updates a quest with any new elements from the quest class.
+
+        This method checks if there are any new elements in the quest class that are not already present in the quest object. If there are new elements, they are added to the quest object without overwriting existing elements.
+
+        Parameters:
+            quest (str): The name of the quest to be updated.
+
+        Returns:
+            None
+        """
+        if quest := self._data.get(quest, None):
+            quest_cls = quest.__class__
+
+            # Update attributes
+            existing_elements = quest.__dict__.keys()
+            new_elements = [
+                element
+                for element in quest_cls.__dict__.keys()
+                if element not in existing_elements
+            ]
+            for element in new_elements:
+                setattr(quest, element, getattr(quest_cls, element))
+
+            # Update details
+            existing_details = quest.details.keys()
+            new_details = dict()
+
+            for detail, value in quest_cls.initial_details.items():
+                if detail not in existing_details:
+                    new_details[detail] = value
+
+            quest.add_details(new_details)
+
+            # Update objectives
+            existing_objectives = quest.objectives.keys()
+            new_objectives = dict()
+
+            for objective, data in quest_cls.initial_objectives.items():
+                if objective not in existing_objectives:
+                    new_objectives[objective] = data
+
+            quest.update_objectives(new_objectives)
+
+            self._save()
+
     def add_detail(self, quest, detail, value):
+        """
+        Adds a detail to the specified quest with the given value.
+
+        Args:
+            quest (str): The name of the quest.
+            detail (str): The detail to add.
+            value: The value associated with the detail.
+
+        Raises:
+            None
+
+        Returns:
+            None
+        """
         if quest := self._data.get(quest, None):
             if quest.status == QuestProgress.UNSTARTED:
                 quest.status = QuestProgress.IN_PROGRESS
@@ -143,6 +204,10 @@ class QuestHandler(Handler):
         """
         quest = self._data.get(quest)
         return quest.get_objective(objective) if quest else None
+
+    def get_objective_status(self, quest, objective):
+        quest = self._data.get(quest)
+        return quest.get_objective_status(objective) if quest else None
 
     def set_objective(self, quest, objective, key, value):
         """
@@ -234,6 +299,17 @@ class QuestHandler(Handler):
             self._save()
 
     def get_quest_information(self, quest):
+        """
+        Retrieve the information for a given quest.
+
+        Args:
+            quest (str): The name or identifier of the quest.
+
+        Returns:
+            dict or None: A dictionary containing the information of the quest,
+                          or None if the quest does not exist.
+
+        """
         quest = self._data.get(quest)
         return quest.get_information() if quest else None
 
@@ -352,7 +428,12 @@ class Quest:
         Returns:
             None
         """
-        self.details[new_detail] = value
+        if isinstance(new_detail, Enum):
+            self.details[new_detail] = value
+        elif isinstance(new_detail, str):
+            for det in self.details:
+                if det.value == new_detail:
+                    self.details[det] = value
 
     def add_details(self, new_details):
         """
@@ -376,7 +457,13 @@ class Quest:
         Returns:
             Any or None: The value of the specific detail from the specified quest, or None if the quest or the detail does not exist.
         """
-        return self.details.get(detail)
+        if isinstance(detail, Enum):
+            return self.details.get(detail)
+        elif isinstance(detail, str):
+            for det in self.objectives:
+                if det.value == detail:
+                    return self.details.get(det)
+        return None
 
     def get_details(self):
         """
@@ -388,6 +475,14 @@ class Quest:
         return self.details
 
     def get_information(self):
+        """
+        Retrieve information about the objectives of the quest.
+
+        Returns:
+            dict: A dictionary containing information about the objectives.
+                  The keys are the objective names, and the values are dictionaries
+                  containing the objective data.
+        """
         information = dict()
 
         for objective, data in self.objectives.items():
@@ -411,7 +506,14 @@ class Quest:
             The value associated with the given key for the specified objective.
 
         """
-        return self.objectives.get(objective)
+        if isinstance(objective, Enum):
+            return self.objectives.get(objective)
+        elif isinstance(objective, str):
+            for obj in self.objectives:
+                if obj.value == objective:
+                    return self.objectives[obj]
+
+        return None
 
     def set_objective(self, objective, key, value):
         """
@@ -425,7 +527,12 @@ class Quest:
         Returns:
             None
         """
-        self.objectives[objective][key] = value
+        if isinstance(objective, Enum):
+            self.objectives[objective][key] = value
+        elif isinstance(objective, str):
+            for obj in self.objectives:
+                if obj.value == objective:
+                    self.objectives[obj][key] = value
 
     def get_objectives(self):
         """
@@ -448,6 +555,25 @@ class Quest:
             None
         """
         self.objectives.update(new_objectives)
+
+    def get_objective_status(self, objective):
+        """
+        Get the status of a specific objective.
+
+        Args:
+            objective (str): The name of the objective.
+
+        Returns:
+            enum or None: The status of the objective, or None if the objective doesn't exist.
+
+        """
+        if isinstance(objective, Enum):
+            return self.objectives.get(objective, None).get("status", None)
+        elif isinstance(objective, str):
+            for obj in self.objectives:
+                if obj.value == objective:
+                    return self.objectives.get(obj, None).get("status", None)
+        return None
 
     def get_status(self):
         """

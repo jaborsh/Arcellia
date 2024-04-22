@@ -1,16 +1,14 @@
+from handlers.quests import QuestProgress
 from handlers.rolls import RollHandler
 
 from evennia.utils import dedent
-from world.nautilus.quest import NautilusQuest
+from world.nautilus.quest import NautilusObjective
 
 roll_handler = RollHandler()
 
 
 def node_start(caller):
-    if not (caller.quests.get("Nautilus")):
-        caller.quests.add(NautilusQuest)
-
-    caller.ndb._evmenu.quest = caller.quests.get("Nautilus")
+    quest = caller.quests.get("Nautilus")
 
     text = dedent(
         """\
@@ -20,7 +18,10 @@ def node_start(caller):
 
     options = [{"desc": "Investigate the Corpse", "goto": "node_investigate"}]
 
-    if not caller.ndb._evmenu.quest.get_detail("body_assessment"):
+    if (
+        quest.get_objective_status(NautilusObjective.ASSESS_BODY)
+        == QuestProgress.UNSTARTED
+    ):
         options.append({"desc": "Assess the Damage", "goto": "node_assessment"})
 
     options.append({"desc": "Leave", "goto": "node_quit"})
@@ -29,6 +30,8 @@ def node_start(caller):
 
 
 def node_investigate(caller, **kwargs):
+    quest = caller.quests.get("Nautilus")
+
     text = dedent(
         """\
         The scene before you burns with a haunting clarity despite the haze that shrouds your vision, as if mists of the mind seek to shield you from the starkness of reality. In the midst of shadows and half-light, the figure of a man presents itself, its mortal journey concluded. Within those sightless eyes a narrative seems to linger: a tale suspended in the glass of death's own gaze.|/|/A shiver winds its way down your spine. The heart aches, whether from the chill that grips the air or from the specter of a story left untold, and you find yourself beckoned by those dead eyes to peer into the abyss and comprehend the truths that lie within their ever-still watch.
@@ -37,7 +40,10 @@ def node_investigate(caller, **kwargs):
 
     options = []
 
-    if not caller.ndb._evmenu.quest.get_detail("body_assessment"):
+    if (
+        quest.get_objective_status(NautilusObjective.ASSESS_BODY)
+        == QuestProgress.UNSTARTED
+    ):
         options.append({"desc": "Assess the Damage", "goto": "node_assessment"})
 
     options.append({"desc": "Leave", "goto": "node_quit"})
@@ -46,7 +52,9 @@ def node_investigate(caller, **kwargs):
 
 
 def node_assessment(caller):
-    caller.quests.add_details("Nautilus", {"body_assessment": True})
+    caller.quests.set_objective(
+        "Nautilus", NautilusObjective.ASSESS_BODY, "status", QuestProgress.COMPLETED
+    )
 
     if roll_handler.check("1d20", dc=10, stat=caller.intelligence):
         text = dedent(

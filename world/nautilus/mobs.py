@@ -1,9 +1,9 @@
 from commands.command import Command
 from menus.interaction_menu import InteractionMenu
+from typeclasses.mobs import Mob
 
 from evennia import CmdSet
 from evennia.utils import delay
-from typeclasses.mobs import Mob
 
 
 class Enchantress(Mob):
