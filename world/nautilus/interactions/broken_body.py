@@ -52,8 +52,8 @@ def node_investigate(caller, **kwargs):
 
 
 def node_assessment(caller):
-    caller.quests.set_objective(
-        "Nautilus", NautilusObjective.ASSESS_BODY, "status", QuestProgress.COMPLETED
+    caller.quests.set_objective_status(
+        "Nautilus", NautilusObjective.ASSESS_BODY, QuestProgress.COMPLETED
     )
 
     if roll_handler.check("1d20", dc=10, stat=caller.intelligence):

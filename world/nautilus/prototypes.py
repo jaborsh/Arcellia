@@ -79,7 +79,7 @@ NAUTILUS_BROKEN_BODY = {
     "key": "broken body",
     "display_name": "|#9E768FBroken Body|n",
     "aliases": ["body", "corpse"],
-    "desc": "The figure is a tragic centerpiece amidst the room's cartographic splendor. Seated with their cranium partially exposed to the whims of cruel fate, their visage is frozen in an eerie semblance of ponderous thought. The soft, vulnerable tissue of the brain is a stark contrast to the rigid discipline of the maps that encircle them. Traces of blood, now dry and darkened, have painted rivulets along their weathered skin - a macabre depiction of the body's fragility.",
+    "desc": "The figure is a tragic centerpiece amidst the room's cartographic splendor. Seated with their cranium partially exposed to the whims of cruel fate, their visage is frozen in an eerie semblance of ponderous thought. The soft, vulnerable tissue of the brain is a stark contrast to the rigid discipline of the maps that encircle them. Traces of blood, now dry and darkened, have painted rivulets along their weathered skin - a macabre depiction of the body's fragility.|/|/|y[Hint]|n: Maybe you can |C'interact'|n with the body.",
     "locks": "get:pperm(Admin)",
     "prototype_tags": [("nautilus", "zone")],
     "tags": ["interactive"],
@@ -235,3 +235,21 @@ NAUTILUS_ELVISH_CORPSE = {
         "taste": "The bitter taste of loss lingers on the tongue.",
     },
 }
+
+PROTOTYPES = [
+    NAUTILUS_FIEND,
+    NAUTILUS_ENCHANTRESS,
+    NAUTILUS_CULTIST,
+    NAUTILUS_BEHEMOTH,
+    NAUTILUS_COMMANDER,
+    NAUTILUS_BROKEN_BODY,
+    NAUTILUS_LEFT_LEVER,
+    NAUTILUS_RIGHT_LEVER,
+    NAUTILUS_EMBERWISP_BLADE,
+    NAUTILUS_ASCETIC_ROBES,
+    NAUTILUS_WOODEN_CHEST,
+    NAUTILUS_GOBLIN_CORPSE,
+    NAUTILUS_SAILOR_CORPSE,
+    NAUTILUS_CULTIST_CORPSE,
+    NAUTILUS_ELVISH_CORPSE,
+]
