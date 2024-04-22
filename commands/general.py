@@ -226,7 +226,7 @@ class CmdAlias(general.CmdNick):
                 nicktypes = ("object", "account", "inputline")
             for nicktype in nicktypes:
                 if nicktype == "account":
-                    obj = account  # noqa: F821
+                    obj = account  # type: ignore # noqa: F821
                 else:
                     obj = caller
                 nicks = utils.make_iter(
@@ -251,7 +251,7 @@ class CmdAlias(general.CmdNick):
                 nicktypes = ("object", "account", "inputline")
             for nicktype in nicktypes:
                 if nicktype == "account":
-                    obj = account  # noqa: F821
+                    obj = account  # type: ignore # noqa: F821
                 else:
                     obj = caller
                 nicks = utils.make_iter(
