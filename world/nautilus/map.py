@@ -1,8 +1,13 @@
 from . import prototypes
 
+NAUTILUS_START_ROOM = {
+    "prototype_key": "xyz_room",
+    "typeclass": "world.nautilus.rooms.NautilusStartRoom",
+}
+
 NAUTILUS_INNER_HOLD = {
     "prototype_key": "xyz_room",
-    "typeclass": "typeclasses.nautilus.rooms.NautilusInnerHold",
+    "typeclass": "world.nautilus.rooms.NautilusInnerHold",
 }
 
 TUTORIAL_MAP = r"""
@@ -24,6 +29,7 @@ TUTORIAL_MAP = r"""
 PROTOTYPES = {
     (1, 1): {
         "prototype_parent": "xyz_room",
+        "typeclass": "world.nautilus.rooms.NautilusStartRoom",
         "key": "|CThe Nautilus - Berthing|n",
         "desc": "In the dim gloom of the ship's berthing, a solitary soul stirs amongst the vestiges of slumbering shadows. It's a chamber somber and forlorn, where mortality hangs heavy in the stagnant air. Bunks line the narrow space, their iron frames wrapped in the icy embrace of the deep, each a silent cradle for a life departed. Death's chill lingers, a long, unbreaking vigil held by those who slumber without end. Linen once white drapes the forms that did not wake, pale and still beneath forever's sleep. Above, timbers groan, a lament for souls lost to the deep's unfathomed heart, where no light dares to linger or hope to pierce the oppressive darkness.",
         "senses": {
@@ -165,7 +171,7 @@ PROTOTYPES = {
     },
     (4, 2): {
         "prototype_parent": NAUTILUS_INNER_HOLD,
-        "typeclass": "typeclasses.nautilus.rooms.NautilusInnerHold",
+        "typeclass": "world.nautilus.rooms.NautilusInnerHold",
         "key": "|CThe Nautilus - Inner Hold|n",
         "desc": "Shrouded in insidious darkness, the hold below betrays its purpose with an unyielding grimness. Corrosion grips the iron lattice of cell doors, the once unwavering barriers succumbing to a relentless siege by salt and moisture. Narrow confines serve as punitive chambers - stark, unfurnished save for the barest necessities of a cot bolted firmly to the wall, a hard wooden bench, and a chamber pot. The air hangs thick with a stagnant heaviness as if suffused with the muted laments of souls once held within these oppressive walls. Long-dead lanterns spaced methodically along the corridor offer no relief from the pervasive umbrage, their glassy eyes mirroring the void where hope's light has long since dwindled.",
         "senses": {

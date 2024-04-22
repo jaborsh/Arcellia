@@ -2,7 +2,6 @@ from copy import copy
 from enum import Enum
 
 from evennia.utils import dbserialize
-
 from handlers.handler import Handler
 
 
@@ -66,6 +65,7 @@ class QuestHandler(Handler):
         """
         quest = quest_cls(self.obj)
         self._data[quest.key] = quest
+        self._data[quest.key].start()
         self._save()
 
     def add_detail(self, quest, detail, value):

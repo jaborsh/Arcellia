@@ -18,7 +18,7 @@ NAUTILUS_FIEND = {
 NAUTILUS_ENCHANTRESS = {
     "key": "enchantress",
     "display_name": "|cEnchantress|n",
-    "typeclass": "typeclasses.nautilus.mobs.Enchantress",
+    "typeclass": "world.nautilus.mobs.Enchantress",
     "desc": "With eyes like the twilight sky after a storm, she holds a universe of wisdom veiled beneath a countenance marked by trials unknown. Her visage, fair as the last bloom of winter, carries the freckles of a warrior painted by the brush of skirmish. Trapped as she is, behind the gnarled ironwork of her cell, there's an insidious darkness that shrouds her form. The hold's malignant grimness mocks her with its unyielding decay, the iron lattice of her door sealed by salt and moisture.",
     "prototype_tags": [("nautilus", "zone")],
     "senses": {
@@ -127,7 +127,7 @@ NAUTILUS_EMBERWISP_BLADE = {
     "key": "blade",
     "display_name": "|rEmberwisp Blade|n",
     "aliases": ["emberwisp", "emberwisp blade"],
-    "typeclass": "typeclasses.nautilus.weapons.EmberwispBlade",
+    "typeclass": "world.nautilus.weapons.EmberwispBlade",
     "desc": "This sword is a union of lethality and enchantment, its metal forged in the breath of a dragon's smoldering heart. While dormant within its scabbard, the appearance of the weapon is unassuming, its potential for inferno veiled. However, at the moment of unsheathing, a marvel unfolds: silent flames awaken and run along the blade's edge, a visual serenade of fire. The steel surface alights with an ethereal blaze that mimics the auroras in the night sky - crimson, gold, and scarlet coalescing into a visual choir.",
     "prototype_tags": [("nautilus", "zone")],
     "senses": {

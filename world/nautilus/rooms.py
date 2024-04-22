@@ -1,8 +1,23 @@
+from typeclasses import characters
+
 from world.nautilus.interactions.levers import LeverCmdSet
+from world.nautilus.mobs import EnchantressCmdSet
+from world.nautilus.quest import NautilusQuest
 from world.xyzgrid.xyzroom import XYZRoom
 
-from typeclasses import characters
-from typeclasses.nautilus.mobs import EnchantressCmdSet
+
+class NautilusStartRoom(XYZRoom):
+    def at_object_creation(self):
+        super().at_object_creation()
+
+    def at_object_receive(self, moved_obj, source_location, move_type="move", **kwargs):
+        if not isinstance(moved_obj, characters.Character):
+            return
+
+        if source_location.tags.get(
+            category="room_z_coordinate"
+        ) == "chargen" and not moved_obj.quests.get("Nautilus"):
+            moved_obj.quests.add(NautilusQuest)
 
 
 class NautilusInnerHold(XYZRoom):
