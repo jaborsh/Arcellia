@@ -1,6 +1,5 @@
 from collections import defaultdict
 
-from handlers.quests import QuestProgress
 from typeclasses import characters
 
 from world.nautilus.interactions.levers import LeverCmdSet
@@ -53,7 +52,9 @@ class NautilusInnerHold(XYZRoom):
         if not isinstance(moved_obj, characters.Character):
             return
 
-        if moved_obj.quests.get_detail("Tutorial", "enchantress_freed"):
+        if moved_obj.quests.get_objective_completed(
+            "Nautilus", NautilusObjective.FREE_ENCHANTRESS
+        ):
             return
 
         enchantress = moved_obj.search("enchantress", quiet=True)[0]
@@ -77,10 +78,9 @@ class NautilusInnerHold(XYZRoom):
                 for obj in obj_list
                 if obj != looker
                 and obj.access(looker, "view")
-                and not looker.quests.get_objective_status(
+                and not looker.quests.get_objective_failed(
                     "Nautilus", NautilusObjective.FREE_ENCHANTRESS
                 )
-                == QuestProgress.FAILED
             ]
 
         mobs = _filter_visible(self.contents_get(content_type="mob"))

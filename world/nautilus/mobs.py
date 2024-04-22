@@ -1,9 +1,11 @@
 from commands.command import Command
+from handlers.quests import QuestProgress
 from menus.interaction_menu import InteractionMenu
 from typeclasses.mobs import Mob
 
 from evennia import CmdSet
 from evennia.utils import delay
+from world.nautilus.quest import NautilusObjective
 
 
 class Enchantress(Mob):
@@ -43,8 +45,19 @@ class CmdEnchantressInteract(Command):
                 )
 
         if (
+            caller.quests.get_objective_status(
+                "Nautilus", NautilusObjective.FREE_ENCHANTRESS
+            )
+            == QuestProgress.FAILED
+        ):
+            return caller.msg("The enchantress has been disintegrated.")
+
+        if (
             interaction == "world.nautilus.interactions.enchantress"
-            and caller.quests.get_detail("Nautilus", "pulled_lever") == "left"
+            and caller.quests.get_objective_status(
+                "Nautilus", NautilusObjective.FREE_ENCHANTRESS
+            )
+            == QuestProgress.COMPLETED
         ):
             InteractionMenu(
                 caller,

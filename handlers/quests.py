@@ -209,6 +209,38 @@ class QuestHandler(Handler):
         quest = self._data.get(quest)
         return quest.get_objective_status(objective) if quest else None
 
+    def get_objective_unstarted(self, quest, objective):
+        quest = self._data.get(quest)
+        return (
+            quest.get_objective_status(objective) == QuestProgress.UNSTARTED
+            if quest
+            else None
+        )
+
+    def get_objective_in_progress(self, quest, objective):
+        quest = self._data.get(quest)
+        return (
+            quest.get_objective_status(objective) == QuestProgress.IN_PROGRESS
+            if quest
+            else None
+        )
+
+    def get_objective_completed(self, quest, objective):
+        quest = self._data.get(quest)
+        return (
+            quest.get_objective_status(objective) == QuestProgress.COMPLETED
+            if quest
+            else None
+        )
+
+    def get_objective_failed(self, quest, objective):
+        quest = self._data.get(quest)
+        return (
+            quest.get_objective_status(objective) == QuestProgress.FAILED
+            if quest
+            else None
+        )
+
     def set_objective(self, quest, objective, key, value):
         """
         Sets the objective of a quest.
@@ -232,6 +264,22 @@ class QuestHandler(Handler):
             if quest.is_complete():
                 quest.complete()
 
+            self._save()
+
+    def set_objective_status(self, quest, objective, status):
+        """
+        Set the status of a specific objective.
+
+        Args:
+            quest (str): The name of the quest.
+            objective (str): The name of the objective.
+            status (str): The new status to set for the objective.
+
+        Returns:
+            None
+        """
+        if quest := self._data.get(quest, None):
+            quest.set_objective_status(objective, status)
             self._save()
 
     def get_objectives(self, quest):
@@ -574,6 +622,24 @@ class Quest:
                 if obj.value == objective:
                     return self.objectives.get(obj, None).get("status", None)
         return None
+
+    def set_objective_status(self, objective, status):
+        """
+        Set the status of a specific objective.
+
+        Args:
+            objective (str): The name of the objective.
+            status (str): The new status to set for the objective.
+
+        Returns:
+            None
+        """
+        if isinstance(objective, Enum):
+            self.objectives[objective]["status"] = status
+        elif isinstance(objective, str):
+            for obj in self.objectives:
+                if obj.value == objective:
+                    self.objectives[obj]["status"] = status
 
     def get_status(self):
         """

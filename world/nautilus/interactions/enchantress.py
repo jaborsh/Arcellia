@@ -1,17 +1,13 @@
+from handlers.quests import QuestProgress
 from handlers.rolls import RollHandler
 
 from evennia.utils import dedent
-from world.nautilus.quest import NautilusQuest
+from world.nautilus.quest import NautilusDetail, NautilusObjective
 
 roll_handler = RollHandler()
 
 
 def node_start(caller):
-    if not (caller.quests.get("Nautilus")):
-        caller.quests.add(NautilusQuest)
-
-    caller.ndb._evmenu.quest = caller.quests.get("Nautilus")
-
     text = dedent(
         """\
         A figure catches your eye - a young enchantress bound by cold iron chains, her presence a stark contrast to the grim surroundings. As she lifts a phantom cigarette to her lips, an action more of habit than need, you notice her eyes are brown and her face is speckled with birthmarks. 
@@ -119,6 +115,9 @@ def node_enchantress_2_2(caller):
 
 
 def node_enchantress_hub(caller):
+    caller.quests.set_objective_status(
+        "Nautilus", NautilusObjective.FREE_ENCHANTRESS, QuestProgress.IN_PROGRESS
+    )
     text = dedent(
         """
         She takes another pull from her ephemeral cigarette.
@@ -138,7 +137,6 @@ def node_enchantress_hub_1_1(caller):
         text = "|#C7C10CShe's right. Something wants to come out -- through your mouth. But you can keep it down because your body does not control you.|n\n\n"
 
         if roll_handler.check("1d20", dc=10, stat=caller.constitution):
-            caller.quests.add_details("Nautilus", {"enchantress_vomit": False})
             text += dedent(
                 """\
             |g[Constitution Success]|n
@@ -147,7 +145,7 @@ def node_enchantress_hub_1_1(caller):
             """
             )
         else:
-            caller.quests.add_details("Nautilus", {"enchantress_vomit": True})
+            caller.quests.add_detail("Nautilus", NautilusDetail.PLAYER_VOMIT, True)
             text += dedent(
                 """\
                 |r[Constitution Failure]|n
@@ -172,7 +170,7 @@ def node_enchantress_hub_1_1(caller):
 
 
 def node_enchantress_vomit(caller):
-    if caller.quests.get_detail("Nautilus", "enchantress_vomit"):
+    if caller.quests.get_detail("Nautilus", NautilusDetail.PLAYER_VOMIT):
         text = dedent(
             """\
             Her concern deepening at the sight of your distress, she watches you closely. "Friend?", she begins, the uncertainty in her voice clear as she braces for what might come next.
@@ -204,6 +202,10 @@ def node_enchantress_hub_1_2(caller):
             "\n|CYou have no doubt about the drinking, but do you strike yourself as a tight-lipped drunk? Surely, in an atmopshere loosened by drink, words must have flowed as freely as the spirits themselves. She must have heard something: a slip of the tongue, a whispered rumor, or even a shouted declaration."
         )
 
+    caller.msg(
+        "\n|y[HINT]|n: Maybe you should look at those levers. One of them might free her and she'll say more."
+    )
+
     return "", {}
 
 
@@ -215,8 +217,18 @@ def node_enchantress_intro(caller):
         )
         return "node_enchantress_intro"
 
-    if not caller.quests.get_detail("Nautilus", "enchantress_freed"):
-        caller.quests.add_details("Nautilus", {"enchantress_freed": True})
+    if (
+        not caller.quests.get_objective_status(
+            "Nautilus", NautilusObjective.FREE_ENCHANTRESS
+        )
+        == QuestProgress.COMPLETED
+    ):
+        caller.quests.set_objective(
+            "Nautilus",
+            NautilusObjective.FREE_ENCHANTRESS,
+            "status",
+            QuestProgress.COMPLETED,
+        )
         text = dedent(
             """
             She leans closer, her voice lowering to a conspiratorial whisper. "There are demons here," she confides, her gaze locking onto yours. "One of the sailors has been performing rituals for a week now. The others thought nothing of it and ignored him." Her words hang in the air, heavy with implication.
@@ -238,7 +250,7 @@ def node_enchantress_intro(caller):
 
     options = [
         {
-            "desc": "Why didn't you just tell me about the rituals?",
+            "desc": "So, what's actually going on here?",
             "goto": _callback1,
         },
         {
@@ -247,7 +259,12 @@ def node_enchantress_intro(caller):
         },
     ]
 
-    if not caller.quests.get_detail("Nautilus", "enchantress_seduced"):
+    if (
+        caller.quests.get_objective_status(
+            "Nautilus", NautilusObjective.SEDUCE_ENCHANTRESS
+        )
+        == QuestProgress.UNSTARTED
+    ):
         options.append(
             {
                 "desc": "|m[Let her know you want her. Physically.]|n",
@@ -297,8 +314,6 @@ def node_enchantress_intro_1_1(caller):
 
 
 def node_enchantress_intro_2_1(caller):
-    caller.quests.add_detail("Nautilus", "enchantress_seduced", True)
-
     def _callback_success(caller):
         caller.msg(
             '|mPerched on the precipice of the unknown, where the veil between life and shadow grows thin, your thoughts, sparked by desperation and the surreal calm of impending doom, spill forth unguarded.\n\nThe enchantress, her presence a constant amidst the chaos, regards you with a depth of understanding. "You seek comfort," she acknowledges, her voice soft, carrying the warmth of empathy as a balm to the soul. "It\'s only natural."|n\n'
@@ -306,6 +321,12 @@ def node_enchantress_intro_2_1(caller):
         return "node_enchantress_intro"
 
     if roll_handler.check("1d20", dc=14, stat=caller.charisma):
+        caller.quests.set_objective(
+            "Nautilus",
+            NautilusObjective.SEDUCE_ENCHANTRESS,
+            "status",
+            QuestProgress.COMPLETED,
+        )
         text = dedent(
             """\
             |g[Charisma Success]|n
@@ -321,6 +342,12 @@ def node_enchantress_intro_2_1(caller):
             },
         )
     else:
+        caller.quests.set_objective(
+            "Nautilus",
+            NautilusObjective.SEDUCE_ENCHANTRESS,
+            "status",
+            QuestProgress.FAILED,
+        )
         text = dedent(
             """\
             |r[Charisma Failure]|n

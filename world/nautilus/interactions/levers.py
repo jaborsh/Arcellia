@@ -18,7 +18,7 @@ class CmdPullLever(Command):
             not caller.quests.get_objective_status(
                 "Nautilus", NautilusObjective.FREE_ENCHANTRESS
             )
-            == QuestProgress.UNSTARTED
+            == QuestProgress.IN_PROGRESS
         ):
             return caller.msg("The lever does not budge.")
 

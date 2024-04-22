@@ -11,6 +11,7 @@ class NautilusObjective(Enum):
     ESCAPE = "escape"
     ASSESS_BODY = "assess body"
     FREE_ENCHANTRESS = "free enchantress"
+    SEDUCE_ENCHANTRESS = "seduce enchantress"
     REACH_HELM = "reach helm"
     SAIL_TO_ELM = "sail to elm"
 
@@ -38,6 +39,12 @@ class NautilusQuest(Quest):
             "name": "Free the Enchantress",
             "description": "You've found the Enchantress. She's trapped in a cage. You should free her.",
             "hidden": False,
+            "status": QuestProgress.UNSTARTED,
+        },
+        NautilusObjective.SEDUCE_ENCHANTRESS: {
+            "name": "Seduce the Enchantress",
+            "description": "Seduce the Enchantress?",
+            "hidden": True,
             "status": QuestProgress.UNSTARTED,
         },
         NautilusObjective.REACH_HELM: {

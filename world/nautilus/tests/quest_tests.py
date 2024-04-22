@@ -27,6 +27,9 @@ class TestNautilusQuest(EvenniaTest):
 class TestNautilusLevers(EvenniaCommandTest):
     def test_free_enchantress(self):
         self.char1.quests.add(NautilusQuest)
+        self.char1.quests.set_objective_status(
+            "Nautilus", NautilusObjective.FREE_ENCHANTRESS, QuestProgress.IN_PROGRESS
+        )
         self.call(
             CmdPullLever(),
             "left",
@@ -41,13 +44,13 @@ class TestNautilusLevers(EvenniaCommandTest):
 
     def test_kill_enchantress(self):
         self.char1.quests.add(NautilusQuest)
-        self.char1.quests.get("Nautilus").set_objective(
-            NautilusObjective.FREE_ENCHANTRESS, "status", QuestProgress.UNSTARTED
+        self.char1.quests.get("Nautilus").set_objective_status(
+            NautilusObjective.FREE_ENCHANTRESS, QuestProgress.IN_PROGRESS
         )
         self.call(
             CmdPullLever(),
             "right",
-            "You pull the right lever and hear a loud clunk. Psionic energy radiates from the enchantress' cell and a sense of dread washes over you.",
+            "You pull the right lever and hear a loud clunk. Psionic energy radiates from the enchantress' cell and she disintegrates into thin air.",
         )
         self.assertTrue(
             self.char1.quests.get("Nautilus").get_objective_status(
