@@ -46,10 +46,10 @@ __all__ = [
     "CmdInteract",
     "CmdInteractions",
     "CmdInventory",
+    "CmdJournal",
     "CmdListen",
     "CmdLook",
     "CmdPut",
-    "CmdQuests",
     "CmdRemove",
     "CmdSay",
     "CmdScore",
@@ -1146,6 +1146,93 @@ class CmdInventory(Command):
         return "|x" + "-" * self.max_length + "|n"
 
 
+class CmdJournal(Command):
+    """
+    This command allows the player to view their quests and quest details.
+
+    Usage:
+      journal - Lists all quests.
+      journal <quest_name> - Shows details of the specified quest.
+    """
+
+    key = "journal"
+    aliases = ["quests", "quest"]
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip().capitalize()
+
+        if not args:
+            self.list_quests()
+            return
+
+        if quest := caller.quests.get(args):
+            self.list_quest_details(quest)
+        else:
+            return caller.msg("You do not have that quest.")
+
+    def list_quests(self):
+        """
+        Display a list of quests and their progress for the caller.
+
+        Args:
+            self (Command): The command instance.
+
+        Returns:
+            None
+
+        """
+        caller = self.caller
+        quests = self.caller.quests.all()
+
+        if not quests:
+            return caller.msg("You do not have any quests.")
+
+        table = evtable.EvTable("Quests", "Progress", border="rows")
+        for quest in quests:
+            table.add_row(
+                quest.key,
+                quest.get_status().name,
+            )
+
+        caller.msg(table)
+
+    def list_quest_details(self, quest):
+        """
+        Display the details of a quest.
+
+        Args:
+            quest (Quest): The quest object to display details for.
+
+        Returns:
+            None
+        """
+        caller = self.caller
+        information = quest.get_information()
+
+        table = evtable.EvTable(
+            border="header", maxwidth=self.client_width(), pad_width=1
+        )
+        table.add_header("Objective", "Description", "Status")
+
+        for key, value in information.items():  # Maybe use reversed()?
+            table.add_row(
+                value.get("name"),
+                value.get("description"),
+                value.get("status").name,
+            )
+
+        caller.msg(
+            wrap(
+                f"{quest.key.capitalize()} Quest Information",
+                text_width=self.client_width(),
+                align="c",
+            )
+            + "\n"
+        )
+        caller.msg(table)
+
+
 class CmdListen(Command):
     """
     Syntax: listen
@@ -1331,66 +1418,6 @@ class CmdPut(Command):
                 f"$You() $conj(put) {item} in {container.display_name}.",
                 from_obj=caller,
             )
-
-
-class CmdQuests(Command):
-    key = "quests"
-    aliases = ["quest"]
-
-    def func(self):
-        caller = self.caller
-        args = self.args.strip().capitalize()
-
-        if not args:
-            self.list_quests()
-            return
-
-        if quest := caller.quests.get(args):
-            self.list_quest_details(quest)
-        else:
-            return caller.msg("You do not have that quest.")
-
-    def list_quests(self):
-        caller = self.caller
-        quests = self.caller.quests.all()
-
-        if not quests:
-            return caller.msg("You do not have any quests.")
-
-        table = evtable.EvTable("Quests", "Progress", border="rows")
-        for quest in quests:
-            table.add_row(
-                quest.key,
-                quest.get_status().name,
-            )
-
-        caller.msg(table)
-
-    def list_quest_details(self, quest):
-        caller = self.caller
-        information = quest.get_information()
-
-        table = evtable.EvTable(
-            border="header", maxwidth=self.client_width(), pad_width=1
-        )
-        table.add_header("Objective", "Description", "Status")
-
-        for key, value in information.items():  # Maybe use reversed()?
-            table.add_row(
-                value.get("name"),
-                value.get("description"),
-                value.get("status").name,
-            )
-
-        caller.msg(
-            wrap(
-                f"{quest.key.capitalize()} Quest Information",
-                text_width=self.client_width(),
-                align="c",
-            )
-            + "\n"
-        )
-        caller.msg(table)
 
 
 class CmdRemove(Command):
