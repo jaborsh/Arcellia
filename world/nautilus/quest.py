@@ -13,7 +13,7 @@ class NautilusObjective(Enum):
     FREE_ENCHANTRESS = "free enchantress"
     SEDUCE_ENCHANTRESS = "seduce enchantress"
     REACH_HELM = "reach helm"
-    SAIL_TO_ELM = "sail to elm"
+    SAIL_AWAY = "sail away"
 
 
 class NautilusQuest(Quest):
@@ -24,7 +24,7 @@ class NautilusQuest(Quest):
 
     initial_objectives = {
         NautilusObjective.ESCAPE: {
-            "name": "Escape the Nautilus",
+            "name": "Escape!",
             "description": "You've awoken in a strange place. You need to find a way to escape.",
             "hidden": False,
             "status": QuestProgress.UNSTARTED,
@@ -48,14 +48,14 @@ class NautilusQuest(Quest):
             "status": QuestProgress.UNSTARTED,
         },
         NautilusObjective.REACH_HELM: {
-            "name": "Reach the Nautilus' Helm",
-            "description": "You've met the Enchantress. She's told you to find the Nautilus' Helm and set sail to Elm.",
+            "name": "Reach the Helm",
+            "description": "You've met the Enchantress. She's told you to find the Nautilus' Helm and set sail.",
             "hidden": False,
             "status": QuestProgress.UNSTARTED,
         },
-        NautilusObjective.SAIL_TO_ELM: {
-            "name": "Sail to Freedom",
-            "description": "Sail away to Elm.",
+        NautilusObjective.SAIL_AWAY: {
+            "name": "Sail Away!",
+            "description": "Sail away!",
             "hidden": False,
             "status": QuestProgress.UNSTARTED,
         },

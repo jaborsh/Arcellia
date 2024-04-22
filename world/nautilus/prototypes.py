@@ -96,7 +96,7 @@ NAUTILUS_LEFT_LEVER = {
     "key": "left lever",
     "aliases": ["lever"],
     "display_name": "|#0047ABLeft Lever|n",
-    "desc": "Its polished steel handle catches the eye like a diamond in the rough. The lever's base is firmly anchored to the ship's hull. The smooth metal bears the patina of age.",
+    "desc": "Its polished steel handle catches the eye like a diamond in the rough. The lever's base is firmly anchored to the ship's hull. The smooth metal bears the patina of age.\n\n|y[Hint]|n: Maybe you can |C'pull'|n the lever.",
     "locks": "get:pperm(Admin)",
     "prototype_tags": [("nautilus", "zone")],
     "senses": {
@@ -111,7 +111,7 @@ NAUTILUS_RIGHT_LEVER = {
     "key": "right lever",
     "aliases": ["lever"],
     "display_name": "|#4B7F52|nRight Lever|n",
-    "desc": "Lurking in the shadows, the right lever looms like a sinister specter. Its tarnished steel handle seems to recoil from the light as if harboring dark secrets. The lever's base is haphazardly welded to the ship's hull, a cruel mockery of its counterpart's steadfast purpose.",
+    "desc": "Lurking in the shadows, the right lever looms like a sinister specter. Its tarnished steel handle seems to recoil from the light as if harboring dark secrets. The lever's base is haphazardly welded to the ship's hull, a cruel mockery of its counterpart's steadfast purpose.\n\n|y[Hint]|n: You should probably not |C'pull'|n this lever.",
     "locks": "get:pperm(Admin)",
     "prototype_tags": [("nautilus", "zone")],
     "senses": {

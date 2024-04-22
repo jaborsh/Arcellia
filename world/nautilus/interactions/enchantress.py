@@ -213,40 +213,26 @@ def node_enchantress_hub_1_2(caller):
 def node_enchantress_intro(caller):
     def _callback1(caller):
         caller.msg(
-            'The enchantress regards you with a look that is both apologetic and discerning, as if assessing the weight of her next words before they breach her lips. "I didn\'t mean to overwhelm you with information," she finally says, her voice soft yet firm, like a gentle tide caressing the shore but persistent enough to shape the land over time. "You seem a bit... lost."\n'
-        )
-        return "node_enchantress_intro"
-
-    if (
-        not caller.quests.get_objective_status(
-            "Nautilus", NautilusObjective.FREE_ENCHANTRESS
-        )
-        == QuestProgress.COMPLETED
-    ):
-        caller.quests.set_objective(
-            "Nautilus",
-            NautilusObjective.FREE_ENCHANTRESS,
-            "status",
-            QuestProgress.COMPLETED,
-        )
-        text = dedent(
-            """
-            She leans closer, her voice lowering to a conspiratorial whisper. "There are demons here," she confides, her gaze locking onto yours. "One of the sailors has been performing rituals for a week now. The others thought nothing of it and ignored him." Her words hang in the air, heavy with implication.
-
-            The enchantress watches you, her expression somber yet laced with a subtle urging. It's clear she believes your arrival is no mere twist of fate. Silence stretches between you, broken only by the distant, mournful cry of the sea.
-            """
+            'The enchantress regards you with a look that is both apologetic and discerning, as if assessing the weight of her next words before they breach her lips. "I didn\'t mean to overwhelm you with information," she finally says, her voice soft yet firm, like a gentle tide caressing the shore but persistent enough to shape the land over time. "You seem a bit... lost."\n\nShe leans closer, her voice lowering to a conspiratorial whisper. "There are demons here," she confides, her gaze locking onto yours. "One of the sailors has been performing rituals for a week now. The others thought nothing of it and ignored him." Her words hang in the air, heavy with implication.\n\nThe enchantress watches you, her expression somber yet laced with a subtle urging. It\'s clear she believes your arrival is no mere twist of fate. Silence stretches between you, broken only by the distant, mournful cry of the sea.'
         )
 
         if roll_handler.check("1d20", dc=11, stat=caller.charisma):
-            text += (
+            caller.msg(
                 "\n|mShe speaks matter-of-factly, but there's a sadness in her voice.|n"
             )
-    else:
-        text = dedent(
-            """
+        return "node_enchantress_intro"
+
+    def _callback2(caller):
+        caller.msg(
+            "She looks at you, her gaze piercing. \"You need to reach the helm and sail us to shore.\"\n\n|y[Hint]|n: Try the |C'journal'|n command to see your quests. Use |C'journal nautilus'|n to see your current objectives.\n"
+        )
+        return "node_enchantress_intro"
+
+    text = dedent(
+        """
         She takes a pull from her ephemeral cigarette.
         """
-        )
+    )
 
     options = [
         {
@@ -256,6 +242,10 @@ def node_enchantress_intro(caller):
         {
             "desc": "I don't remember anything that's happened on the ship.",
             "goto": "node_enchantress_intro_1_1",
+        },
+        {
+            "desc": "How do we escape?",
+            "goto": _callback2,
         },
     ]
 

@@ -1316,7 +1316,7 @@ class CmdLook(general.CmdLook):
                     _AT_SEARCH_RESULT(target, caller, self.args, quiet=False)
                 return
             # otherwise, run normal search result handling
-            target = caller.search(self.args)
+            target = caller.search(self.args, return_type=SearchReturnType.ONE)
             if not target:
                 return
         desc = caller.at_look(target)
