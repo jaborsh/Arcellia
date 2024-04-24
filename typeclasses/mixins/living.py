@@ -38,6 +38,10 @@ class LivingMixin:
         return traits.TraitHandler(self, db_attribute_key="traits")
 
     @property
+    def combat(self):
+        return self.location.combat
+
+    @property
     def gender(self):
         return self.traits.get("gender")
 

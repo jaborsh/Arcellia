@@ -8,8 +8,10 @@ Rooms are simple containers that has no location of their own.
 from collections import defaultdict
 from textwrap import dedent
 
+from handlers import combat
+
 from evennia.objects.objects import DefaultRoom
-from evennia.utils.utils import iter_to_str
+from evennia.utils.utils import iter_to_str, lazy_property
 
 from .mixins.extended_room import ExtendedRoomMixin
 from .objects import ObjectParent
@@ -56,6 +58,10 @@ class Room(ExtendedRoomMixin, ObjectParent, DefaultRoom):
         {characters}{mobs}{things}
         """
     )
+
+    @lazy_property
+    def combat(self):
+        return combat.CombatHandler(self, db_attribute_key="combat")
 
     def get_display_desc(self, looker, **kwargs):
         """

@@ -341,10 +341,10 @@ class CmdAttack(Command):
         if not inherits_from(target, LivingMixin):
             return caller.msg("You can't attack that.")
 
-        caller.combat.add_enemy(target)
-        target.combat.add_enemy(caller)
-        caller.combat.start_combat()
-        target.combat.start_combat()
+        if target == caller:
+            return caller.msg("You cannot attack yourself.")
+
+        caller.combat.engage(caller, target)
 
 
 class CmdAttackStop(Command):
@@ -352,7 +352,7 @@ class CmdAttackStop(Command):
     locks = "cmd:all()"
 
     def func(self):
-        self.caller.combat.stop_combat()
+        self.caller.combat.disengage(self.caller)
         self.caller.msg("You stop combat.")
 
 

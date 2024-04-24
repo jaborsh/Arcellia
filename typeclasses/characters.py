@@ -9,6 +9,11 @@ creation commands.
 """
 
 from django.conf import settings
+from handlers import quests, traits
+from server.conf import logger
+from utils.text import grammarize, wrap
+from world.characters import backgrounds
+
 from evennia.objects.objects import DefaultCharacter
 from evennia.utils.utils import (
     dbref,
@@ -17,10 +22,6 @@ from evennia.utils.utils import (
     to_str,
     variable_from_module,
 )
-from handlers import quests, traits
-from server.conf import logger
-from utils.text import grammarize, wrap
-from world.characters import backgrounds
 
 from .mixins.living import LivingMixin
 from .objects import ObjectParent
@@ -542,3 +543,12 @@ class Character(LivingMixin, ObjectParent, DefaultCharacter):
 
         # handle the end (unstacked) results, returning a single object, a list or None
         return self.handle_search_results(searchdata, results, **input_kwargs)
+
+    # Combat
+    def execute_combat_turn(self):
+        if not self.ndb.combat_action:
+            self.msg("You attack.")
+            return
+
+        # Perform combat action
+        pass
