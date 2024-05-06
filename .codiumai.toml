@@ -8,7 +8,7 @@
 ##  Javascript / Typescript: Jest, Mocha, Vitest, Karma, Jasmine, QUnit, React Testing Library
 ##    HOWEVER: running tests in JS / TS is at the moment only supported
 ##    for Jest, Mocha, Vitest, and React Testing Library
-# framework = "Jest"
+framework = "Unittest"
 
 ## An additional Javascript utility library used to test your code, if any. 
 ## Possible values are None, Testing Library, Enzyme, or Chai. Not applicable to Python projects.
