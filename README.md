@@ -65,7 +65,7 @@ Guidelines for contributing to your MUD repository, including how to submit pull
 
 ## License
 
-This project is licensed under the [Apache License 2.0](LICENSE).
+This project is licensed under the [Creative Commons NonCommercial License](LICENSE).
 
 ## Acknowledgements
 Special thanks to [Griatch](https://github.com/griatch) for maintaining the Evennia framework, which Arcellia is built upon. You can learn more about Evennia at [evennia.com](https://www.evennia.com/).
