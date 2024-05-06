@@ -1,21 +1,18 @@
 import re
 import time
 
-from evennia.commands.default import account, admin, batchprocess, building
-from evennia.server.models import ServerConfig
 from server.conf import logger
 
 from commands.command import Command
+from evennia.commands.default import account, admin, building
+from evennia.server.models import ServerConfig
 
 __all__ = (
     "CmdBan",
     "CmdUnban",
-    "CmdBatchCommands",
-    "CmdBatchCode",
     "CmdBoot",
     "CmdListCmdSets",
     "CmdQuell",
-    "CmdScripts",
     "CmdSetPassword",
     "CmdSetPerm",
 )
@@ -153,48 +150,6 @@ class CmdUnban(Command):
             )
 
 
-class CmdBatchCommands(batchprocess.CmdBatchCommands):
-    """
-    Syntax: batchcommands[/interactive] <python.path.to.file>
-
-    Switch:
-       interactive - this mode will offer more control when
-                     executing the batch file, like stepping,
-                     skipping, reloading etc.
-
-    Runs batches of commands from a batch-cmd text file (*.ev).
-    """
-
-    key = "batchcommands"
-    aliases = ["batchcommand", "batchcmd"]
-    switch_options = ("interactive",)
-    locks = "cmd:pperm(Developer)"
-    help_category = "System"
-
-
-class CmdBatchCode(batchprocess.CmdBatchCode):
-    """
-    Syntax: batchcode[/interactive] <python path to file>
-
-    Switch:
-       interactive - this mode will offer more control when
-                     executing the batch file, like stepping,
-                     skipping, reloading etc.
-       debug - auto-delete all objects that has been marked as
-               deletable in the script file (see example files for
-               syntax). This is useful so as to to not leave multiple
-               object copies behind when testing out the script.
-
-    Runs batches of commands from a batch-code text file (*.py).
-    """
-
-    key = "batchcode"
-    aliases = ["batchcodes"]
-    switch_options = ("interactive", "debug")
-    locks = "cmd:superuser()"
-    help_category = "System"
-
-
 class CmdBoot(admin.CmdBoot):
     """
     Syntax: boot[/switches] <target> [:reason]
@@ -208,7 +163,7 @@ class CmdBoot(admin.CmdBoot):
     """
 
     locks = "cmd:pperm(Developer)"
-    help_category = "System"
+    help_category = "Developer"
 
 
 class CmdListCmdSets(building.CmdListCmdSets):
@@ -220,7 +175,7 @@ class CmdListCmdSets(building.CmdListCmdSets):
 
     key = "cmdsets"
     locks = "cmd:pperm(Developer)"
-    help_category = "System"
+    help_category = "Developer"
 
 
 class CmdQuell(account.CmdQuell):
@@ -241,51 +196,7 @@ class CmdQuell(account.CmdQuell):
     """
 
     locks = "cmd:pperm(Developer)"
-    help_category = "System"
-
-
-class CmdScripts(building.CmdScripts):
-    """
-    Syntax: script[/switches] [script-#dbref, key, script.path]
-            script[/start||stop] <obj> = [<script.path or script-key>]
-
-    Switches:
-        start - start/unpause an existing script's timer.
-        stop - stops an existing script's timer
-        pause - pause a script's timer
-        delete - deletes script. This will also stop the timer as needed
-
-    Examples:
-        script                            - list all scripts
-        script foo.bar.Script             - create a new global Script
-        script/pause foo.bar.Script       - pause global script
-        script scriptname|#dbref          - examine named existing global script
-        script/delete #dbref[-#dbref]     - delete script or range by #dbref
-
-        script myobj =                    - list all scripts on object
-        script myobj = foo.bar.Script     - create and assign script to object
-        script/stop myobj = name|#dbref   - stop named script on object
-        script/delete myobj = name|#dbref - delete script on object
-        script/delete myobj =             - delete ALL scripts on object
-
-    When given with an `<obj>` as left-hand-side, this creates and
-    assigns a new script to that object. Without an `<obj>`, this
-    manages and inspects global scripts.
-
-    If no switches are given, this command just views all active
-    scripts. The argument can be either an object, at which point it
-    will be searched for all scripts defined on it, or a script name
-    or #dbref. For using the /stop switch, a unique script #dbref is
-    required since whole classes of scripts often have the same name.
-
-    Use the `script` build-level command for managing scripts attached to
-    objects.
-    """
-
-    key = "scripts"
-    aliases = ["script"]
-    locks = "cmd:perm(Developer)"
-    help_category = "System"
+    help_category = "Developer"
 
 
 class CmdSetPassword(Command):
@@ -298,7 +209,7 @@ class CmdSetPassword(Command):
     key = "setpass"
     aliases = ["setpassword"]
     locks = "cmd:perm(Developer)"
-    help_category = "System"
+    help_category = "Developer"
 
 
 class CmdSetPerm(admin.CmdPerm):
@@ -316,4 +227,4 @@ class CmdSetPerm(admin.CmdPerm):
     key = "setperm"
     aliases = ["perm"]
     locks = "cmd:perm(Developer)"
-    help_category = "System"
+    help_category = "Developer"

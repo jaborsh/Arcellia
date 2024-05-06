@@ -12,8 +12,6 @@ include a statement on your work that it is “compatible with fifth edition” 
 Section 5 of CC-BY-4.0 includes a Disclaimer of Warranties and Limitation of Liability that limits our liability to you.
 """
 
-from random import randint
-
 from class_registry import ClassRegistry
 
 from .score import AbilityScore
@@ -38,6 +36,7 @@ CLASS_INFO_DICT = {
 
 class Cls:
     cls = "cls"
+
     recommended_stats = {
         AbilityScore.STRENGTH: 10,
         AbilityScore.DEXTERITY: 10,
@@ -50,27 +49,14 @@ class Cls:
     def __init__(
         self,
         level=1,
-        health=10,
-        mana=10,
-        stamina=10,
-        hit_dice=(10, 10),
-        mana_dice=(10, 10),
-        stamina_dice=(10, 10),
+        health=100,
+        mana=100,
+        stamina=100,
     ):
         self.level = level
         self.health = health
         self.mana = mana
         self.stamina = stamina
-        self.hit_dice = hit_dice
-        self.mana_dice = mana_dice
-        self.stamina_dice = stamina_dice
-
-    def level_up(self):
-        self.level += 1
-        self.health += max(self.hit_dice[0], randint(1, self.hit_dice[1]))
-        self.mana += max(self.mana_dice[0], randint(1, self.mana_dice[1]))
-        self.stamina += max(self.stamina_dice[0], randint(1, self.stamina_dice[1]))
-        return self.health, self.mana, self.stamina
 
 
 @ClsRegistry.register
@@ -86,9 +72,6 @@ class Barbarian(Cls):
         AbilityScore.CHARISMA: 8,
     }
 
-    def __init__(self, level=1, health=12, mana=4, hit_dice=(7, 12), mana_dice=(2, 5)):
-        super().__init__(level, health, mana, hit_dice, mana_dice)
-
 
 @ClsRegistry.register
 class Bard(Cls):
@@ -102,9 +85,6 @@ class Bard(Cls):
         AbilityScore.WISDOM: 8,
         AbilityScore.CHARISMA: 20,
     }
-
-    def __init__(self, level=1, health=8, mana=12, hit_dice=(5, 8), mana_dice=(15, 16)):
-        super().__init__(level, health, mana, hit_dice, mana_dice)
 
 
 @ClsRegistry.register
@@ -120,9 +100,6 @@ class Cleric(Cls):
         AbilityScore.CHARISMA: 8,
     }
 
-    def __init__(self, level=1, health=8, mana=12, hit_dice=(5, 8), mana_dice=(5, 16)):
-        super().__init__(level, health, mana, hit_dice, mana_dice)
-
 
 @ClsRegistry.register
 class Druid(Cls):
@@ -136,9 +113,6 @@ class Druid(Cls):
         AbilityScore.WISDOM: 20,
         AbilityScore.CHARISMA: 8,
     }
-
-    def __init__(self, level=1, health=8, mana=2, hit_dice=(5, 8), mana_dice=(9, 15)):
-        super().__init__(level, health, mana, hit_dice, mana_dice)
 
 
 @ClsRegistry.register
@@ -154,9 +128,6 @@ class Fighter(Cls):
         AbilityScore.CHARISMA: 8,
     }
 
-    def __init__(self, level=1, health=10, mana=4, hit_dice=(6, 10), mana_dice=(2, 5)):
-        super().__init__(level, health, mana, hit_dice, mana_dice)
-
 
 @ClsRegistry.register
 class Monk(Cls):
@@ -170,9 +141,6 @@ class Monk(Cls):
         AbilityScore.WISDOM: 16,
         AbilityScore.CHARISMA: 8,
     }
-
-    def __init__(self, level=1, health=8, mana=6, hit_dice=(5, 8), mana_dice=(2, 5)):
-        super().__init__(level, health, mana, hit_dice, mana_dice)
 
 
 @ClsRegistry.register
@@ -188,9 +156,6 @@ class Paladin(Cls):
         AbilityScore.CHARISMA: 16,
     }
 
-    def __init__(self, level=1, health=10, mana=6, hit_dice=(6, 10), mana_dice=(5, 10)):
-        super().__init__(level, health, mana, hit_dice, mana_dice)
-
 
 @ClsRegistry.register
 class Ranger(Cls):
@@ -204,9 +169,6 @@ class Ranger(Cls):
         AbilityScore.WISDOM: 16,
         AbilityScore.CHARISMA: 8,
     }
-
-    def __init__(self, level=1, health=10, mana=6, hit_dice=(6, 10), mana_dice=(7, 10)):
-        super().__init__(level, health, mana, hit_dice, mana_dice)
 
 
 @ClsRegistry.register
@@ -222,9 +184,6 @@ class Rogue(Cls):
         AbilityScore.CHARISMA: 14,
     }
 
-    def __init__(self, level=1, health=8, mana=4, hit_dice=(5, 8), mana_dice=(2, 5)):
-        super().__init__(level, health, mana, hit_dice, mana_dice)
-
 
 @ClsRegistry.register
 class Sorcerer(Cls):
@@ -238,9 +197,6 @@ class Sorcerer(Cls):
         AbilityScore.WISDOM: 10,
         AbilityScore.CHARISMA: 20,
     }
-
-    def __init__(self, level=1, health=6, mana=12, hit_dice=(4, 6), mana_dice=(13, 16)):
-        super().__init__(level, health, mana, hit_dice, mana_dice)
 
 
 @ClsRegistry.register
@@ -256,9 +212,6 @@ class Warlock(Cls):
         AbilityScore.CHARISMA: 20,
     }
 
-    def __init__(self, level=1, health=8, mana=6, hit_dice=(5, 8), mana_dice=(13, 13)):
-        super().__init__(level, health, mana, hit_dice, mana_dice)
-
 
 @ClsRegistry.register
 class Wizard(Cls):
@@ -272,6 +225,3 @@ class Wizard(Cls):
         AbilityScore.WISDOM: 8,
         AbilityScore.CHARISMA: 8,
     }
-
-    def __init__(self, level=1, health=6, mana=12, hit_dice=(4, 6), mana_dice=(16, 28)):
-        super().__init__(level, health, mana, hit_dice, mana_dice)

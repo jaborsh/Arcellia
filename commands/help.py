@@ -1,8 +1,9 @@
+from utils.colors import strip_ansi
+from utils.text import format_grid
+
 from evennia.commands.default import help as default_help
 from evennia.utils.ansi import ANSIString
 from evennia.utils.utils import dedent, pad
-from utils.colors import strip_ansi
-from utils.text import format_grid
 
 __all__ = ("CmdHelp", "CmdSetHelp")
 
@@ -142,7 +143,7 @@ class CmdHelp(default_help.CmdHelp):
 
         # only show the main separators if there are actually both cmd and db-based help
         if cmd_grid and db_grid:
-            help_index = f"{sep1}\n{cmd_grid}\n{sep2}\n{db_grid}"
+            help_index = f"{sep1}{cmd_grid}\n\n{sep2}{db_grid}"
         else:
             help_index = f"{cmd_grid}{db_grid}\n{footer}"
 
