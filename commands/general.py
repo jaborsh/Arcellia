@@ -324,6 +324,15 @@ class CmdAlias(general.CmdNick):
 
 
 class CmdAttack(Command):
+    """
+    Command to initiate an attack on a target.
+
+    Usage:
+      attack <target>
+
+    This command allows you to attack a specified target. The target must be a valid living entity.
+    """
+
     key = "attack"
     locks = "cmd:all()"
 
@@ -348,6 +357,15 @@ class CmdAttack(Command):
 
 
 class CmdAttackStop(Command):
+    """
+    Command to stop the combat for the caller.
+
+    Usage:
+        attackstop
+
+    This command allows the caller to disengage from combat, effectively stopping any ongoing combat actions.
+    """
+
     key = "attackstop"
     locks = "cmd:all()"
 
