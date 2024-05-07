@@ -172,3 +172,17 @@ class Sickle(Weapon):
     def at_object_creation(self):
         super().at_object_creation()
         self.versatility = WeaponVersatility.ONE_HANDED
+
+
+# Ranged
+class HandCrossbow(Weapon):
+    """
+    A one-handed hand crossbow weapon.
+
+    Attributes:
+        versatility (WeaponVersatility): The versatility of the weapon, indicating it is a one-handed weapon.
+    """
+
+    def at_object_creation(self):
+        super().at_object_creation()
+        self.versatility = WeaponVersatility.ONE_HANDED

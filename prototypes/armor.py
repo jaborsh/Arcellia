@@ -1,3 +1,17 @@
+BARBARIAN_ARMOR = {
+    "key": "barbarian armor",
+    "aliases": ["armor"],
+    "display_name": "|YBarbarian Armor|n",
+    "typeclass": "typeclasses.equipment.armor.Armor",
+    "desc": "A rough combination of furs, leathers, and supple fabrics made for a life outside civilization. The garments are a patchwork of necessity and resourcefulness, stitched together with coarse threads. Once belonging to wild beasts, the furs now serve as a shield against the cold and the elements. The leathers bear the scars of hunts and the marks of life lived on the fringes of society.",
+    "senses": {
+        "feel": "The textures are rough and uneven.",
+        "smell": "The scent of smoke, sweat, and the musky odor of animal hides mingle together.",
+        "sound": "The soft creak of leather and the whisper of fabric against skin create a symphony of movement.",
+        "taste": "The taste of the wild lingers on the tongue: a hint of gamy flavors and the bitter tang of foraged herbs.",
+    },
+}
+
 # Armor
 CHAIN_SHIRT = {
     "key": "chain shirt",
@@ -13,6 +27,35 @@ CHAIN_SHIRT = {
     },
 }
 
+SCALE_MAIL = {
+    "key": "scale mail",
+    "aliases": ["mail"],
+    "display_name": "|YScale Mail|n",
+    "typeclass": "typeclasses.equipment.armor.Armor",
+    "desc": "Upon first glance, the scale mail appears as a magnificent cascade of interlocking metal scales, each forged with meticulous care to form a protective mantle against the adversities of fate. The shirt is hefty, suggesting its capability to bear the brunt of fierce engagements. Its construction is such that it moves with an almost fluidic grace, despite its imposing appearance. The edges of the mail are trimmed with a softer material to prevent chafing.",
+    "senses": {
+        "feel": "The surface of the scale mail is cool and smooth to the touch, each scale moving slightly under pressure.",
+        "smell": "There is a faint metallic tang, mixed with the scent of leather from the trim.",
+        "sound": "When in motion, the scales produce a low, soothing rustle.",
+        "taste": "It carries a metallic essence, almost like tasting the air after a storm.",
+    },
+}
+
+SIMPLE_JERKIN = {
+    "key": "simple jerkin",
+    "aliases": ["jerkin"],
+    "display_name": "Simple Jerkin",
+    "typeclass": "typeclasses.equipment.armor.Armor",
+    "desc": "The leather breastplate bears the passage of time. Its surface is deeply etched with scars and scratches. The rich hue of the leather has faded, giving way to a mottled palette of browns and tans.",
+    "senses": {
+        "feel": "Smooth yet textured, bearing the imprints of time and the weight of its history.",
+        "smell": "A musky, earthy scent.",
+        "sound": "As the jerkin shifts, its leather creaks softly, like the distant echo of a final breath.",
+        "taste": "You taste dust.",
+    },
+}
+
+# Headwear
 CIRCLET = {
     "key": "circlet",
     "display_name": "|wSimple Circlet|n",
@@ -26,6 +69,8 @@ CIRCLET = {
     },
 }
 
+
+# Footware
 LEATHER_BOOTS = {
     "key": "boots",
     "display_name": "|YLeather Boots|n",
@@ -36,19 +81,5 @@ LEATHER_BOOTS = {
         "smell": "The boots carry the faint, musty scent of well-worn leather, mingling with the earthy aroma of dust, dirt, and the faint traces of polish applied with a loving hand.",
         "sound": "With each step, the boots emit a soft, rhythmic creaking, the leather whispering its stories as it flexes and bends.",
         "taste": "The boots carry a faint, leathery flavor, almost imperceptible.",
-    },
-}
-
-SCALE_MAIL = {
-    "key": "scale mail",
-    "aliases": ["mail"],
-    "display_name": "|YScale Mail|n",
-    "typeclass": "typeclasses.equipment.armor.Armor",
-    "desc": "Upon first glance, the scale mail appears as a magnificent cascade of interlocking metal scales, each forged with meticulous care to form a protective mantle against the adversities of fate. The shirt is hefty, suggesting its capability to bear the brunt of fierce engagements. Its construction is such that it moves with an almost fluidic grace, despite its imposing appearance. The edges of the mail are trimmed with a softer material to prevent chafing.",
-    "senses": {
-        "feel": "The surface of the scale mail is cool and smooth to the touch, each scale moving slightly under pressure.",
-        "smell": "There is a faint metallic tang, mixed with the scent of leather from the trim.",
-        "sound": "When in motion, the scales produce a low, soothing rustle.",
-        "taste": "It carries a metallic essence, almost like tasting the air after a storm.",
     },
 }

@@ -1,4 +1,4 @@
-from prototypes import common_prototypes, currencies, gemstones
+from prototypes import armor, currencies, gemstones
 from utils.random import randint
 
 from world.nautilus import prototypes
@@ -23,9 +23,9 @@ mobs = [
         "prototype": prototypes.NAUTILUS_ENCHANTRESS,
         "room_coords": (4, 2, z),
         "equipment": [
-            common_prototypes.CIRCLET,
-            common_prototypes.CHAIN_SHIRT,
-            common_prototypes.LEATHER_BOOTS,
+            armor.CIRCLET,
+            armor.CHAIN_SHIRT,
+            armor.LEATHER_BOOTS,
         ],
         "clothing": [
             prototypes.NAUTILUS_ASCETIC_ROBES,
@@ -40,7 +40,7 @@ mobs = [
         "room_coords": (3, 4, z),
         "equipment": [
             prototypes.NAUTILUS_EMBERWISP_BLADE,
-            common_prototypes.SCALE_MAIL,
+            armor.SCALE_MAIL,
         ],
     },
 ]

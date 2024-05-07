@@ -12,7 +12,12 @@ include a statement on your work that it is “compatible with fifth edition” 
 Section 5 of CC-BY-4.0 includes a Disclaimer of Warranties and Limitation of Liability that limits our liability to you.
 """
 
+from copy import copy
+
 from class_registry import ClassRegistry
+from handlers.equipment import EQUIPMENT_DEFAULTS
+from prototypes import armor, weapons
+from typeclasses.equipment.equipment import EquipmentType
 
 from .score import AbilityScore
 
@@ -63,6 +68,11 @@ class Cls:
 class Barbarian(Cls):
     cls = "barbarian"
 
+    default_equipment = copy(EQUIPMENT_DEFAULTS)
+    default_equipment[EquipmentType.WEAPON] = [weapons.GREATAXE]
+    default_equipment[EquipmentType.ARMOR] = armor.BARBARIAN_ARMOR
+    default_equipment[EquipmentType.FOOTWEAR] = armor.LEATHER_BOOTS
+
     recommended_stats = {
         AbilityScore.STRENGTH: 20,
         AbilityScore.DEXTERITY: 12,
@@ -76,6 +86,11 @@ class Barbarian(Cls):
 @ClsRegistry.register
 class Bard(Cls):
     cls = "bard"
+
+    default_equipment = copy(EQUIPMENT_DEFAULTS)
+    default_equipment[EquipmentType.WEAPON] = [weapons.HAND_CROSSBOW]
+    default_equipment[EquipmentType.ARMOR] = armor.SIMPLE_JERKIN
+    default_equipment[EquipmentType.FOOTWEAR] = armor.LEATHER_BOOTS
 
     recommended_stats = {
         AbilityScore.STRENGTH: 8,

@@ -1,0 +1,29 @@
+GREATAXE = {
+    "key": "greataxe",
+    "aliases": ["axe"],
+    "display_name": "Greataxe",
+    "typeclass": "typeclasses.equipment.weapons.two_handed.Greataxe",
+    "desc": "The grain of the wood twists and undulates like the sinews of a seasoned warrior's arm. The head of the axe gleams with a dull, menacing sheen. Its edges are sharpened to a sicked, biting fineness.",
+    "senses": {
+        "feel": "The weathered, unvarnished haft of the axe is rough against the palm, its textured surface providing a steadfast grip.",
+        "smell": "The greataxe carries the faint, metallic scent of cold iron mingled with the earthy aroma of well-worn wood.",
+        "sound": "When the axe cleaves the air, it emits a low, ominous hum, the keening of its razor-sharp edge thirsting for the din of combat.",
+        "taste": "The greataxe carries a subtle, metallic tang, almost imperceptible upon the tongue.",
+    },
+    "weight": 6,
+}
+
+HAND_CROSSBOW = {
+    "key": "hand crossbow",
+    "aliases": ["crossbow", "bow"],
+    "display_name": "|YHand Crossbow|n",
+    "typeclass": "typeclasses.equipment.weapons.one_handed.HandCrossbow",
+    "desc": "The weapon's arms curve gracefully forward, their tips adorned with intricately engraved silver accents that catch the light. A slender, razor-sharp bolt sits nestled in the groove, its fletching a trio of precisely trimmed raven feathers.",
+    "senses": {
+        "feel": "The crossbow's weight settles reassuringly in the hand, the stock's contours conforming perfectly to the grip as if tailor-made.",
+        "smell": "The faintt, earthy scent of well-oiled wood and metal mingles with the crisp aroma of freshly cut feathers.",
+        "sound": "The spring locks back with the tiniest, most satisfying click.",
+        "taste": "Cold steel and the faintest hint of wood linger on the tongue.",
+    },
+    "weight": 2,
+}
