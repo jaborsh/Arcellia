@@ -28,6 +28,20 @@ HAND_CROSSBOW = {
     "weight": 2,
 }
 
+LONGSWORD = {
+    "key": "longsword",
+    "aliases": ["sword"],
+    "display_name": "Longsword",
+    "typeclass": "typeclasses.equipment.weapons.versatile.Longsword",
+    "desc": "Its blade carries nicks and scratches found in dozens. The worn hilt surely has been smoothed by a hundred hands.",
+    "senses": {
+        "feel": "Molded by the hands of its wielders, the grip feels like a familiar handshake.",
+        "smell": "A faint metallic scent clings to the blade.",
+        "sound": "The sword sings a soft, mournful song as it slices through the air.",
+        "taste": "Cold steel and the faintest hint of wood linger on the tongue.",
+    },
+}
+
 MACE = {
     "key": "mace",
     "display_name": "Mace",

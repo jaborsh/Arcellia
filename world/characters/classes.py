@@ -145,6 +145,11 @@ class Druid(Cls):
 class Fighter(Cls):
     cls = "fighter"
 
+    default_equipment = copy(EQUIPMENT_DEFAULTS)
+    default_equipment[EquipmentType.WEAPON] = [weapons.LONGSWORD]
+    default_equipment[EquipmentType.ARMOR] = armor.SCALE_MAIL
+    default_equipment[EquipmentType.FOOTWEAR] = armor.LEATHER_BOOTS
+
     recommended_stats = {
         AbilityScore.STRENGTH: 16,
         AbilityScore.DEXTERITY: 16,
