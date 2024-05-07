@@ -83,3 +83,17 @@ LEATHER_BOOTS = {
         "taste": "The boots carry a faint, leathery flavor, almost imperceptible.",
     },
 }
+
+# Shields
+STUDDED_SHIELD = {
+    "key": "shield",
+    "display_name": "Studded Shield",
+    "typeclass": "typeclasses.equipment.shields.Shield",
+    "desc": "The metal bears the patina of age. Yet admist the weathered expanse, a peculiar detail catches the eye - a portion of the shield slightly lighter in hue, as if a piece had been carefully excised and replaced with meticulous precision.",
+    "senses": {
+        "feel": "The surface is cool and smooth to the touch, the occasional nick or dent betraying the shield's history.",
+        "smell": "The shield carries the scent of metal and age.",
+        "sound": "As one runs their fingers along the shield's surface, it emits a soft, metallic whisper.",
+        "taste": "The shield carries a faint, metallic tang.",
+    },
+}

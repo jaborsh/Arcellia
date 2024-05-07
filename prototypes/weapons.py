@@ -27,3 +27,17 @@ HAND_CROSSBOW = {
     },
     "weight": 2,
 }
+
+MACE = {
+    "key": "mace",
+    "display_name": "Mace",
+    "typeclass": "typeclasses.equipment.weapons.one_handed.Mace",
+    "desc": "Its form is unassuming: a stout wooden handle married to a solid iron head. The mace is adorned with a series of blunt, angular protrusions.",
+    "senses": {
+        "feel": "The mace's handle is worn smooth by countless grips, the wood warm and reassuring in the hand.",
+        "smell": "The faint scent of smoke and hot metal lingers on the mace.",
+        "sound": "The mace cuts through the air with a low, menacing hum.",
+        "taste": "The taste of iron seems to fill the mouth.",
+    },
+    "weight": 4,
+}
