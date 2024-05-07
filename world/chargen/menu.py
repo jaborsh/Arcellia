@@ -542,7 +542,16 @@ def chargen_appearance(caller, raw_string, **kwargs):
         },
     )
 
-    if len(kwargs) == 10:
+    if (
+        height
+        and body
+        and eye_color
+        and hair_color
+        and skin_type
+        and eye_type
+        and nose_type
+        and mouth_type
+    ):
         options += (
             {
                 "key": ("9", "f", "finalize"),
@@ -573,7 +582,7 @@ def appearance_height(caller, raw_string, **kwargs):
             "desc": "Tall",
             "goto": ("chargen_appearance", kwargs | {"height": "tall"}),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": ("chargen_appearance", kwargs)},
     )
 
     return text, options
@@ -608,7 +617,7 @@ def appearance_body(caller, raw_string, **kwargs):
             "desc": "Robust",
             "goto": ("chargen_appearance", kwargs | {"body": "robust"}),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": ("chargen_appearance", kwargs)},
     )
 
     return text, options
@@ -708,7 +717,7 @@ def appearance_eye_color(caller, raw_string, **kwargs):
             "desc": "White",
             "goto": ("chargen_appearance", kwargs | {"eye_color": "white"}),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": ("chargen_appearance", kwargs)},
     )
 
     return text, options
@@ -788,7 +797,7 @@ def appearance_hair_color(caller, raw_string, **kwargs):
             "desc": "Yellow",
             "goto": ("chargen_appearance", kwargs | {"hair_color": "yellow"}),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": ("chargen_appearance", kwargs)},
     )
 
     return text, options
@@ -821,7 +830,7 @@ def appearance_skin_type(caller, raw_string, **kwargs):
                 kwargs | {"skin_type": "unblemished"},
             ),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": ("chargen_appearance", kwargs)},
     )
 
     return text, options
@@ -846,7 +855,7 @@ def appearance_eye_type(caller, raw_string, **kwargs):
             "desc": "Round",
             "goto": ("chargen_appearance", kwargs | {"eye_type": "round"}),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": ("chargen_appearance", kwargs)},
     )
 
     return text, options
@@ -876,7 +885,7 @@ def appearance_nose_type(caller, raw_string, **kwargs):
             "desc": "Wide",
             "goto": ("chargen_appearance", kwargs | {"nose_type": "wide"}),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": ("chargen_appearance", kwargs)},
     )
 
     return text, options
@@ -906,7 +915,7 @@ def appearance_mouth_type(caller, raw_string, **kwargs):
             "desc": "Wide",
             "goto": ("chargen_appearance", kwargs | {"mouth_type": "wide"}),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": ("chargen_appearance", kwargs)},
     )
 
     return text, options
@@ -931,7 +940,7 @@ def appearance_jaw_type(caller, raw_string, **kwargs):
             "desc": "Square",
             "goto": ("chargen_appearance", kwargs | {"jaw_type": "square"}),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": ("chargen_appearance", kwargs)},
     )
 
     return text, options
@@ -967,7 +976,7 @@ def appearance_eyebrow_type(caller, raw_string, **kwargs):
             "desc": "Thin",
             "goto": ("chargen_appearance", kwargs | {"eyebrow_type": "thin"}),
         },
-        {"key": "_default", "goto": "chargen_appearance"},
+        {"key": "_default", "goto": ("chargen_appearance", kwargs)},
     )
 
     return text, options
