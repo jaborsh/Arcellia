@@ -68,3 +68,16 @@ QUARTERSTAFF = {
         "taste": "Though one would not typically taste the wood, the plank carries an earthy bitterness.",
     },
 }
+
+WARHAMMER = {
+    "key": "warhammer",
+    "aliases": ["hammer"],
+    "typeclass": "typeclasses.equipment.weapons.versatile.Warhammer",
+    "desc": "The hammer bears the scars of neglect and disregard. Its wooden handle is splintered and cracked. The head is pitted and rusted, its surface marred by a patchwork of dings and dents. Yet, for all its apparent decrepitude, the hammer maintains a certain gravitas born of its sheer mass.",
+    "senses": {
+        "feel": "Despite its cracks and splinters, the handle feels solid and substantial in the grip, the weight of the head pulling downward with a reassuring heft.",
+        "smell": "The haammer carries the faint, metallic scent of rust and old iron.",
+        "sound": "When struck against a surface, the hammer produces a dull, authoritative thud.",
+        "taste": "Though not a sensory experience one would typically associate with a hammer, the tang of metal and the bitterness oof rust dance upon the tongue, should one be so bold as to place their lips upon its weathered surface.",
+    },
+}
