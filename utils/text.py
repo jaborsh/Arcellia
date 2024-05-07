@@ -3,11 +3,22 @@ import re
 
 import inflect
 from django.conf import settings
+
 from evennia.utils.utils import display_len, percentile, to_str
 
 from .colors import strip_ansi
 
 _INFLECT = inflect.engine()
+
+SINGULARIZE_EXCEPTIONS = [
+    "boots",
+    "gloves",
+    "pants",
+    "shorts",
+    "trousers",
+    "shoes",
+    "socks",
+]
 
 
 def grammarize(message):
@@ -76,6 +87,9 @@ def grammarize(message):
 
 
 def singularize(word):
+    if word in SINGULARIZE_EXCEPTIONS:
+        return False
+
     return _INFLECT.singular_noun(word)
 
 
