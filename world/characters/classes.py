@@ -12,12 +12,8 @@ include a statement on your work that it is “compatible with fifth edition” 
 Section 5 of CC-BY-4.0 includes a Disclaimer of Warranties and Limitation of Liability that limits our liability to you.
 """
 
-from copy import copy
-
 from class_registry import ClassRegistry
-from handlers.equipment import EQUIPMENT_DEFAULTS
 from prototypes import armor, weapons
-from typeclasses.equipment.equipment import EquipmentType
 
 from .score import AbilityScore
 
@@ -68,10 +64,7 @@ class Cls:
 class Barbarian(Cls):
     cls = "barbarian"
 
-    default_equipment = copy(EQUIPMENT_DEFAULTS)
-    default_equipment[EquipmentType.WEAPON] = [weapons.GREATAXE]
-    default_equipment[EquipmentType.ARMOR] = armor.BARBARIAN_ARMOR
-    default_equipment[EquipmentType.FOOTWEAR] = armor.LEATHER_BOOTS
+    default_equipment = [weapons.GREATAXE, armor.BARBARIAN_ARMOR, armor.LEATHER_BOOTS]
 
     recommended_stats = {
         AbilityScore.STRENGTH: 20,
@@ -87,10 +80,7 @@ class Barbarian(Cls):
 class Bard(Cls):
     cls = "bard"
 
-    default_equipment = copy(EQUIPMENT_DEFAULTS)
-    default_equipment[EquipmentType.WEAPON] = [weapons.HAND_CROSSBOW]
-    default_equipment[EquipmentType.ARMOR] = armor.SIMPLE_JERKIN
-    default_equipment[EquipmentType.FOOTWEAR] = armor.LEATHER_BOOTS
+    default_equipment = [weapons.SHORTSWORD, armor.LEATHER_ARMOR, armor.LEATHER_BOOTS]
 
     recommended_stats = {
         AbilityScore.STRENGTH: 8,
@@ -106,11 +96,12 @@ class Bard(Cls):
 class Cleric(Cls):
     cls = "cleric"
 
-    default_equipment = copy(EQUIPMENT_DEFAULTS)
-    default_equipment[EquipmentType.WEAPON] = [weapons.MACE]
-    default_equipment[EquipmentType.SHIELD] = armor.STUDDED_SHIELD
-    default_equipment[EquipmentType.ARMOR] = armor.SIMPLE_JERKIN
-    default_equipment[EquipmentType.FOOTWEAR] = armor.LEATHER_BOOTS
+    default_equipment = [
+        weapons.MACE,
+        armor.STUDDED_SHIELD,
+        armor.SIMPLE_JERKIN,
+        armor.LEATHER_BOOTS,
+    ]
 
     recommended_stats = {
         AbilityScore.STRENGTH: 8,
@@ -126,10 +117,7 @@ class Cleric(Cls):
 class Druid(Cls):
     cls = "druid"
 
-    default_equipment = copy(EQUIPMENT_DEFAULTS)
-    default_equipment[EquipmentType.WEAPON] = [weapons.QUARTERSTAFF]
-    default_equipment[EquipmentType.ARMOR] = armor.SIMPLE_JERKIN
-    default_equipment[EquipmentType.FOOTWEAR] = armor.LEATHER_BOOTS
+    default_equipment = [weapons.QUARTERSTAFF, armor.SIMPLE_JERKIN, armor.LEATHER_BOOTS]
 
     recommended_stats = {
         AbilityScore.STRENGTH: 8,
@@ -145,10 +133,7 @@ class Druid(Cls):
 class Fighter(Cls):
     cls = "fighter"
 
-    default_equipment = copy(EQUIPMENT_DEFAULTS)
-    default_equipment[EquipmentType.WEAPON] = [weapons.LONGSWORD]
-    default_equipment[EquipmentType.ARMOR] = armor.SCALE_MAIL
-    default_equipment[EquipmentType.FOOTWEAR] = armor.LEATHER_BOOTS
+    default_equipment = [weapons.LONGSWORD, armor.SCALE_MAIL, armor.LEATHER_BOOTS]
 
     recommended_stats = {
         AbilityScore.STRENGTH: 16,
@@ -164,10 +149,7 @@ class Fighter(Cls):
 class Monk(Cls):
     cls = "monk"
 
-    default_equipment = copy(EQUIPMENT_DEFAULTS)
-    default_equipment[EquipmentType.WEAPON] = [weapons.QUARTERSTAFF]
-    default_equipment[EquipmentType.ARMOR] = armor.SIMPLE_JERKIN
-    default_equipment[EquipmentType.FOOTWEAR] = armor.LEATHER_BOOTS
+    default_equipment = [weapons.QUARTERSTAFF, armor.SIMPLE_JERKIN, armor.LEATHER_BOOTS]
 
     recommended_stats = {
         AbilityScore.STRENGTH: 8,
@@ -183,10 +165,7 @@ class Monk(Cls):
 class Paladin(Cls):
     cls = "paladin"
 
-    default_equipment = copy(EQUIPMENT_DEFAULTS)
-    default_equipment[EquipmentType.WEAPON] = [weapons.WARHAMMER]
-    default_equipment[EquipmentType.ARMOR] = armor.SCALE_MAIL
-    default_equipment[EquipmentType.FOOTWEAR] = armor.LEATHER_BOOTS
+    default_equipment = [weapons.WARHAMMER, armor.SCALE_MAIL, armor.LEATHER_BOOTS]
 
     recommended_stats = {
         AbilityScore.STRENGTH: 16,
@@ -202,6 +181,8 @@ class Paladin(Cls):
 class Ranger(Cls):
     cls = "ranger"
 
+    default_equipment = [weapons.SHORTBOW, armor.LEATHER_ARMOR, armor.LEATHER_BOOTS]
+
     recommended_stats = {
         AbilityScore.STRENGTH: 10,
         AbilityScore.DEXTERITY: 16,
@@ -215,6 +196,8 @@ class Ranger(Cls):
 @ClsRegistry.register
 class Rogue(Cls):
     cls = "rogue"
+
+    default_equipment = [weapons.SHORTSWORD, armor.LEATHER_ARMOR, armor.LEATHER_BOOTS]
 
     recommended_stats = {
         AbilityScore.STRENGTH: 8,
@@ -230,6 +213,8 @@ class Rogue(Cls):
 class Sorcerer(Cls):
     cls = "sorcerer"
 
+    default_equipment = [weapons.QUARTERSTAFF, armor.SIMPLE_JERKIN, armor.LEATHER_BOOTS]
+
     recommended_stats = {
         AbilityScore.STRENGTH: 8,
         AbilityScore.DEXTERITY: 14,
@@ -244,6 +229,8 @@ class Sorcerer(Cls):
 class Warlock(Cls):
     cls = "warlock"
 
+    default_equipment = [weapons.LONGSWORD, armor.SIMPLE_JERKIN, armor.LEATHER_BOOTS]
+
     recommended_stats = {
         AbilityScore.STRENGTH: 8,
         AbilityScore.DEXTERITY: 16,
@@ -257,6 +244,8 @@ class Warlock(Cls):
 @ClsRegistry.register
 class Wizard(Cls):
     cls = "wizard"
+
+    default_equipment = [weapons.QUARTERSTAFF, armor.SIMPLE_JERKIN, armor.LEATHER_BOOTS]
 
     recommended_stats = {
         AbilityScore.STRENGTH: 8,

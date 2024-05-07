@@ -1,5 +1,5 @@
+from evennia.prototypes import spawner
 from evennia.utils import dedent
-
 from world.characters import appearances, backgrounds, classes, genders, races, score
 from world.xyzgrid.xyzroom import XYZRoom
 
@@ -1005,5 +1005,10 @@ def chargen_desc(caller, raw_string, **kwargs):
 
 
 def chargen_finalize(caller, raw_string):
+    for prot in caller.cls.value.default_equipment:
+        obj = spawner.spawn(prot)[0]
+        obj.location = caller
+        obj.home = caller
+        caller.equipment.wear(obj)
     caller.move_to(XYZRoom.objects.get_xyz(xyz=("1", "1", "nautilus")), quiet=True)
     return "", ""

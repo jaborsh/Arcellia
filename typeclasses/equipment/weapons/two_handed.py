@@ -98,3 +98,17 @@ class Greatclub(Weapon):
     def at_object_creation(self):
         super().at_object_creation()
         self.versatility = WeaponVersatility.TWO_HANDED
+
+
+# Ranged
+class Shortbow(Weapon):
+    """
+    A two-handed shortbow weapon.
+
+    Attributes:
+        versatility (WeaponVersatility): The versatility of the weapon, set to `WeaponVersatility.TWO_HANDED`.
+    """
+
+    def at_object_creation(self):
+        super().at_object_creation()
+        self.versatility = WeaponVersatility.TWO_HANDED

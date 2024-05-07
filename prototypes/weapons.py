@@ -69,6 +69,32 @@ QUARTERSTAFF = {
     },
 }
 
+SHORTBOW = {
+    "key": "shortbow",
+    "aliases": ["bow"],
+    "typeclass": "typeclasses.equipment.weapons.two_handed.Shortbow",
+    "desc": "The shortbow gleams with a polished elegance, its slender limbs curving gracefully like the swings of a swallow in flight. The rich, honey-hued wood is adorned with intricate elven carvings that dance along its length. The bowstring shimmers with an otherworldly iridescence, a gossamer thread of elven hair.",
+    "senses": {
+        "feel": "The bow's grip molds to the hand like a familiar embrace.",
+        "smell": "The bow carries the faint, earthy scent of the forest, of dew-kissed leaves and ancient bark.",
+        "sound": "The bowstring hums with a soft, musical note as it is drawn back.",
+        "taste": "The bow tastes crisp and clean, tinged with the faintest hint of wild herbs and blooming flowers.",
+    },
+}
+
+SHORTSWORD = {
+    "key": "shortsword",
+    "aliases": ["sword"],
+    "typeclass": "typeclasses.equipment.weapons.one_handed.Shortsword",
+    "desc": "The shortsword gleams with a polished sheen, its blade a sharpened sliver of steel that tapers to a deadly point. The hilt is wrapped in well-worn leather, molded by countless grips. A crossguard of study brass spans the width of the blade while ethe pommel bears the weight of the sword with a solid presence.",
+    "senses": {
+        "feel": "The leather-wrapped hilt molds to the hand with a comforting familiarity.",
+        "smell": "The oiled blade carries the faint scent of a whetstone's kiss.",
+        "sound": "With each movement, the shortsword whispers a soft sibilance.",
+        "taste": "The sword evokes a metallic tang.",
+    },
+}
+
 WARHAMMER = {
     "key": "warhammer",
     "aliases": ["hammer"],

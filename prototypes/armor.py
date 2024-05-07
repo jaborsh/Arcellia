@@ -27,6 +27,19 @@ CHAIN_SHIRT = {
     },
 }
 
+LEATHER_ARMOR = {
+    "key": "armor",
+    "display_name": "|YLeather Armor|n",
+    "typeclass": "typeclasses.equipment.armor.Armor",
+    "desc": "Dark, messy stains line the armholes of the well-used leather breastplate. The once supple leather is now cracked and worn. The stains seep into the creases and crevices.",
+    "senses": {
+        "feel": "The leather feels rough and brittle under the fingertips.",
+        "smell": "A faint metallic scent mingles with the musty aroma of aged leather.",
+        "sound": "The breastplate creaks softly with each movement.",
+        "taste": "The breastplate carries a hint of salt, as if the leather has absorbed the sweat of its wearer.",
+    },
+}
+
 SCALE_MAIL = {
     "key": "scale mail",
     "aliases": ["mail"],
