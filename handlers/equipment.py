@@ -73,6 +73,15 @@ class EquipmentHandler(Handler):
         reset(self): Resets the equipment to its default values.
     """
 
+    def __init__(
+        self,
+        obj,
+        db_attribute_key,
+        db_attribute_category=None,
+        default_data=EQUIPMENT_DEFAULTS,
+    ):
+        super().__init__(obj, db_attribute_key, db_attribute_category, default_data)
+
     def all(self):
         """
         Returns a list of all equipped items.

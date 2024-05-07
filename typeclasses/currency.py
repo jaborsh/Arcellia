@@ -29,7 +29,7 @@ class Currency(Object):
         """
         if quantity := kwargs.get("quantity", self.db.price):
             if quantity < self.db.price:
-                getter.db.wealth += quantity
+                getter.wealth += quantity
                 self.db.price -= quantity
 
                 getter.location.msg_contents(
@@ -39,7 +39,7 @@ class Currency(Object):
                 return False
             elif quantity >= self.db.price:
                 quantity = self.db.price
-                getter.db.wealth += quantity
+                getter.wealth += quantity
                 getter.location.msg_contents(
                     f"$You() $conj(get) {quantity} {self.get_display_name(getter)}.",
                     from_obj=getter,

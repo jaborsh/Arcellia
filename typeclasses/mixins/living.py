@@ -100,6 +100,10 @@ class LivingMixin:
     def wealth(self):
         return self.attributes.get("wealth", 0)
 
+    @wealth.setter
+    def wealth(self, value):
+        self.attributes.add("wealth", value)
+
     appearance_template = dedent(
         """
         {desc}

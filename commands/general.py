@@ -859,7 +859,7 @@ class CmdGet(Command):
                 continue
 
             if not obj.at_pre_get(caller):
-                continue
+                return
 
             obj.move_to(caller, quiet=True, move_type="get")
             obj.at_get(caller)

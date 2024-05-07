@@ -47,10 +47,6 @@ mobs = [
 
 objects = [
     {
-        "prototype": prototypes.NAUTILUS_CULTIST_CORPSE,
-        "room_coords": (0, 1, z),
-    },
-    {
         "prototype": prototypes.NAUTILUS_BROKEN_BODY,
         "room_coords": (1, 2, z),
     },
@@ -73,14 +69,6 @@ objects = [
     },
     {
         "prototype": prototypes.NAUTILUS_RIGHT_LEVER,
-        "room_coords": (4, 2, z),
-    },
-    {
-        "prototype": prototypes.NAUTILUS_CULTIST_CORPSE,
-        "room_coords": (4, 2, z),
-    },
-    {
-        "prototype": prototypes.NAUTILUS_ELVISH_CORPSE,
         "room_coords": (4, 2, z),
     },
     {
