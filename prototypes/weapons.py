@@ -41,3 +41,16 @@ MACE = {
     },
     "weight": 4,
 }
+
+QUARTERSTAFF = {
+    "key": "quarterstaff",
+    "display_name": "Quarterstaff",
+    "typeclass": "typeclasses.equipment.weapons.versatile.Quarterstaff",
+    "desc": "The weathered plank bears the marks of a mysterious hand. Thirty-seven lines are etched into the unyielding grain. The grooves are precise and deliberate, as if the creator poured their very essence into each stroke. The wood around the lines is smooth and worn, polished by the passage of fingers tracing the enigmatic patterns.",
+    "senses": {
+        "feel": "The carved lines are smooth to the touch, yet the surrounding wood is rough and weathered, creating a contrast begging to be explored by curious fingers.",
+        "smell": "The quarterstaff emanates a faint scent of aged wood.",
+        "sound": "As a finger traces the grooves, a soft, rhythmic scaping can be heard.",
+        "taste": "Though one would not typically taste the wood, the plank carries an earthy bitterness.",
+    },
+}

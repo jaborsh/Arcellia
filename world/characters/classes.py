@@ -126,6 +126,11 @@ class Cleric(Cls):
 class Druid(Cls):
     cls = "druid"
 
+    default_equipment = copy(EQUIPMENT_DEFAULTS)
+    default_equipment[EquipmentType.WEAPON] = [weapons.QUARTERSTAFF]
+    default_equipment[EquipmentType.ARMOR] = armor.SIMPLE_JERKIN
+    default_equipment[EquipmentType.FOOTWEAR] = armor.LEATHER_BOOTS
+
     recommended_stats = {
         AbilityScore.STRENGTH: 8,
         AbilityScore.DEXTERITY: 12,
