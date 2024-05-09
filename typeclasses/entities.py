@@ -56,16 +56,13 @@ class Entity(ObjectParent):
 
     @lazy_property
     def clothing(self):
-        return clothing.ClothingHandler(
-            self, db_attribute_key="clothing", default_data=clothing.CLOTHING_DEFAULTS
-        )
+        return clothing.ClothingHandler(self, db_attribute_key="clothing")
 
     @lazy_property
     def equipment(self):
         return equipment.EquipmentHandler(
             self,
             db_attribute_key="equipment",
-            default_data=equipment.EQUIPMENT_DEFAULTS,
         )
 
     @lazy_property

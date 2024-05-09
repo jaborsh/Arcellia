@@ -1,3 +1,5 @@
+from copy import copy
+
 from typeclasses.clothing import ClothingType
 from typeclasses.equipment.equipment import EquipmentType
 from typeclasses.equipment.weapons.weapons import WeaponVersatility
@@ -10,9 +12,9 @@ EQUIPMENT_DEFAULTS = {
     EquipmentType.CLOAK: None,
     EquipmentType.ARMOR: None,
     EquipmentType.HANDWEAR: None,
-    EquipmentType.RING: [],
+    EquipmentType.RING: None,
     EquipmentType.FOOTWEAR: None,
-    EquipmentType.WEAPON: [],
+    EquipmentType.WEAPON: None,
     EquipmentType.SHIELD: None,
 }
 
@@ -78,7 +80,7 @@ class EquipmentHandler(Handler):
         obj,
         db_attribute_key,
         db_attribute_category=None,
-        default_data=EQUIPMENT_DEFAULTS,
+        default_data=copy(EQUIPMENT_DEFAULTS),
     ):
         super().__init__(obj, db_attribute_key, db_attribute_category, default_data)
 
@@ -176,7 +178,9 @@ class EquipmentHandler(Handler):
         return True
 
     def _check_weapon_constraints(self, item):
-        if len(self._data[EquipmentType.WEAPON]) >= 2:
+        if self._data[EquipmentType.WEAPON] is None:
+            return True
+        elif len(self._data[EquipmentType.WEAPON]) >= 2:
             self.obj.msg("You are already wielding two weapons.")
             return False
         elif item.versatility == WeaponVersatility.TWO_HANDED and (
@@ -220,6 +224,7 @@ class EquipmentHandler(Handler):
         if equipment_type == EquipmentType.WEAPON:
             if not self._check_weapon_constraints(item):
                 return
+
         elif equipment_type == EquipmentType.RING:
             if not self._check_ring_constraints(item):
                 return
@@ -230,7 +235,12 @@ class EquipmentHandler(Handler):
             if not self._check_equipment_constraints(item):
                 return
 
-        if isinstance(self._data[equipment_type], list):
+        if self._data[equipment_type] is None and equipment_type in (
+            EquipmentType.WEAPON,
+            EquipmentType.RING,
+        ):
+            self._data[equipment_type] = [item]
+        elif isinstance(self._data[equipment_type], list):
             self._data[equipment_type].append(item)
         else:
             self._data[equipment_type] = item

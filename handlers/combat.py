@@ -9,6 +9,11 @@ class TurnState(Enum):
     DONE = auto()
 
 
+class PlayerCombatHandler(Handler):
+    def __init__(self, obj, db_attribute_key, db_attribute_category=None):
+        super().__init__(obj, db_attribute_key, db_attribute_category, default_data={})
+
+
 class CombatHandler(Handler):
     def __init__(self, obj, db_attribute_key, db_attribute_category=None):
         """Initialize combat handler with reference to the parent object."""
@@ -36,6 +41,7 @@ class CombatHandler(Handler):
         """
         if combatant not in self.combatants:
             self.combatants[combatant] = {"enemies": set(), "state": TurnState.WAITING}
+            combatant.ndb.combat_action = None
 
         self.add_enemy_relationship(combatant, enemies)
         self._update_turn_queue()
@@ -50,6 +56,7 @@ class CombatHandler(Handler):
 
             if enemy not in self.combatants:
                 self.combatants[enemy] = {"enemies": set(), "state": TurnState.WAITING}
+                enemy.ndb.combat_action = None
 
             self.combatants[enemy]["enemies"].add(combatant)
 

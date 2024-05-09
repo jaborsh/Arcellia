@@ -1448,7 +1448,7 @@ class CmdRemove(Command):
     """
 
     key = "remove"
-    aliases = ["rem"]
+    aliases = ["rem", "unwear", "unwield"]
 
     def remove_clothing(self, item):
         caller = self.caller

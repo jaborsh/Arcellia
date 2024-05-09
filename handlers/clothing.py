@@ -1,24 +1,26 @@
+from copy import copy
+
 from typeclasses.clothing import ClothingType
 
 from handlers.handler import Handler
 
 CLOTHING_DEFAULTS = {
-    ClothingType.HEADWEAR: [],
-    ClothingType.EYEWEAR: [],
-    ClothingType.EARRING: [],
-    ClothingType.NECKWEAR: [],
-    ClothingType.UNDERSHIRT: [],
-    ClothingType.TOP: [],
-    ClothingType.OUTERWEAR: [],
-    ClothingType.FULLBODY: [],
-    ClothingType.WRISTWEAR: [],
-    ClothingType.HANDWEAR: [],
-    ClothingType.RING: [],
-    ClothingType.BELT: [],
-    ClothingType.UNDERWEAR: [],
-    ClothingType.BOTTOM: [],
-    ClothingType.HOSIERY: [],
-    ClothingType.FOOTWEAR: [],
+    ClothingType.HEADWEAR: None,
+    ClothingType.EYEWEAR: None,
+    ClothingType.EARRING: None,
+    ClothingType.NECKWEAR: None,
+    ClothingType.UNDERSHIRT: None,
+    ClothingType.TOP: None,
+    ClothingType.OUTERWEAR: None,
+    ClothingType.FULLBODY: None,
+    ClothingType.WRISTWEAR: None,
+    ClothingType.HANDWEAR: None,
+    ClothingType.RING: None,
+    ClothingType.BELT: None,
+    ClothingType.UNDERWEAR: None,
+    ClothingType.BOTTOM: None,
+    ClothingType.HOSIERY: None,
+    ClothingType.FOOTWEAR: None,
 }
 
 CLOTHING_OVERALL_LIMIT = 20
@@ -68,6 +70,15 @@ CLOTHING_TYPE_ORDER = [
 
 
 class ClothingHandler(Handler):
+    def __init__(
+        self,
+        obj,
+        db_attribute_key,
+        db_attribute_category=None,
+        default_data=copy(CLOTHING_DEFAULTS),
+    ):
+        super().__init__(obj, db_attribute_key, db_attribute_category, default_data)
+
     def all(self, exclude_covered=False):
         """
         Returns a list of all clothing items in the ClothingHandler.
@@ -79,7 +90,12 @@ class ClothingHandler(Handler):
             list: A sorted list of clothing items, sorted based on the order defined in CLOTHING_TYPE_ORDER.
 
         """
-        clothes = [item for sublist in self._data.values() for item in sublist]
+        clothes = [
+            item
+            for sublist in self._data.values()
+            if sublist is not None
+            for item in sublist
+        ]
 
         if exclude_covered:
             clothes = [item for item in clothes if not item.covered_by]
@@ -158,7 +174,11 @@ class ClothingHandler(Handler):
             return
 
         clothing_type = item.clothing_type
-        self._data[clothing_type].append(item)
+
+        if self._data[clothing_type] is None:
+            self._data[clothing_type] = [item]
+        else:
+            self._data[clothing_type].append(item)
         self._save()
 
         message = f"$You() $conj(wear) {item.get_display_name(self.obj)}"

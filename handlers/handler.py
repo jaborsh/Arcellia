@@ -39,7 +39,6 @@ class Handler:
         self._db_attr = db_attribute_key
         self._db_cat = db_attribute_category
         self._data = copy(default_data)
-        self._save()
         self._load()
 
     def _load(self):
