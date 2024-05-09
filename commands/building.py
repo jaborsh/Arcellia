@@ -2,13 +2,6 @@ import re
 
 from django.conf import settings
 from django.db.models import Max, Min, Q
-from evennia import InterruptCommand
-from evennia.commands.default import building, system
-from evennia.locks.lockhandler import LockException
-from evennia.objects.models import ObjectDB
-from evennia.utils import class_from_module, utils
-from evennia.utils.eveditor import EvEditor
-from evennia.utils.utils import dbref, inherits_from, list_to_string
 from menus import building_menu
 from server.conf import logger
 from typeclasses.characters import Character as CharacterTypeclass
@@ -17,6 +10,13 @@ from world.xyzgrid import xyzcommands
 from world.xyzgrid.xyzroom import XYZRoom
 
 from commands.command import Command
+from evennia import InterruptCommand
+from evennia.commands.default import building, system
+from evennia.locks.lockhandler import LockException
+from evennia.objects.models import ObjectDB
+from evennia.utils import class_from_module, utils
+from evennia.utils.eveditor import EvEditor
+from evennia.utils.utils import dbref, inherits_from, list_to_string
 
 CHAR_TYPECLASS = settings.BASE_CHARACTER_TYPECLASS
 ROOM_TYPECLASS = settings.BASE_ROOM_TYPECLASS
@@ -1280,11 +1280,11 @@ class CmdSetGender(Command):
                 "Syntax: gender [m]ale || [f]emale || [n]eutral || [a]mbiguous"
             )
 
-        target.gender = self.gender_map[gender[0]]
+        target.gender.value = self.gender_map[gender[0]]
         caller.msg(
-            f"{target.display_name} has been assigned the {target.gender} gender."
+            f"{target.display_name} has been assigned the {target.gender.value} gender."
         )
-        target.msg(f"You've been assigned the {target.gender} gender.")
+        target.msg(f"You've been assigned the {target.gender.value} gender.")
 
 
 class CmdSpawn(building.CmdSpawn):

@@ -8,8 +8,8 @@ from prototypes import currencies
 from server.conf import logger
 from server.conf.at_search import SearchReturnType
 from typeclasses.clothing import Clothing
+from typeclasses.entities import Entity
 from typeclasses.equipment.equipment import Equipment, EquipmentType
-from typeclasses.mixins.living import LivingMixin
 from utils.colors import strip_ansi
 from utils.text import pluralize, singularize, wrap
 
@@ -347,7 +347,7 @@ class CmdAttack(Command):
         if not target:
             return
 
-        if not inherits_from(target, LivingMixin):
+        if not inherits_from(target, Entity):
             return caller.msg("You can't attack that.")
 
         if target == caller:

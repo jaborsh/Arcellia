@@ -1,13 +1,14 @@
 from commands.default_cmdsets import MobCmdSet
 
-from .mixins.living import LivingMixin
+from .entities import Entity
 from .objects import Object
 
 
-class Mob(LivingMixin, Object):
+class Mob(Entity, Object):
     _content_types = ("mob",)
 
     def at_object_creation(self):
+        super().at_object_creation()
         self.cmdset.add(MobCmdSet, persistent=True)
 
     def basetype_setup(self):
@@ -18,11 +19,11 @@ class Mob(LivingMixin, Object):
         You normally don't need to change this unless you change some
         fundamental things like names of permission groups.
 
+        the default security setup fallback for a generic
+        object. Overload in child for a custom setup. Also creation
+        commands may set this (create an item and you should be its
+        controller, for example)
         """
-        # the default security setup fallback for a generic
-        # object. Overload in child for a custom setup. Also creation
-        # commands may set this (create an item and you should be its
-        # controller, for example)
 
         self.locks.add(
             ";".join(
