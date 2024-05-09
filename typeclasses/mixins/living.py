@@ -14,6 +14,9 @@ class LivingMixin:
         self.stats.add("intelligence", "Intelligence", trait_type="static", base=10)
         self.stats.add("wisdom", "Wisdom", trait_type="static", base=10)
         self.stats.add("charisma", "Charisma", trait_type="static", base=10)
+        self.stats.add("health", "Health", trait_type="gauge", base=100)
+        self.stats.add("mana", "Mana", trait_type="gauge", base=100)
+        self.stats.add("stamina", "Stamina", trait_type="gauge", base=100)
 
     @lazy_property
     def clothing(self):
@@ -95,6 +98,18 @@ class LivingMixin:
     @property
     def charisma(self):
         return self.stats.get("charisma")
+
+    @property
+    def health(self):
+        return self.stats.get("health")
+
+    @property
+    def mana(self):
+        return self.stats.get("mana")
+
+    @property
+    def stamina(self):
+        return self.stats.get("stamina")
 
     @property
     def wealth(self):

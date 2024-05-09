@@ -51,7 +51,8 @@ class Character(LivingMixin, ObjectParent, DefaultCharacter):
     """
 
     def at_object_creation(self):
-        super(LivingMixin, self).at_object_creation()
+        LivingMixin.at_object_creation(self)
+        self.msg("Ok.")
         self.locks.add("msg:all()")
 
     @lazy_property

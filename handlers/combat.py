@@ -1,112 +1,99 @@
+from collections import deque
+from enum import Enum, auto
+
 from .handler import Handler
 
 
+class TurnState(Enum):
+    WAITING = auto()
+    DONE = auto()
+
+
 class CombatHandler(Handler):
-    """
-    A class that handles combat-related operations.
+    def __init__(self, obj, db_attribute_key, db_attribute_category=None):
+        """Initialize combat handler with reference to the parent object."""
+        super().__init__(obj, db_attribute_key, db_attribute_category, default_data={})
+        self.combatants = self._data
+        self.turn_queue = deque()
 
-    Attributes:
-        _data (dict): A dictionary that stores the combat data.
+    def _update_turn_queue(self):
+        """Update the turn order based on combatant dexterity and state."""
+        sorted_combatants = sorted(
+            self.combatants.keys(),
+            key=lambda combatant: (
+                self.combatants[combatant]["state"] == TurnState.WAITING,
+                -combatant.stats.get("dexterity").value,
+            ),
+        )
 
-    Methods:
-        engage(initiator, target): Engages two entities in combat.
-        disengage(entity, **kwargs): Disengages an entity from combat.
-        is_engaged(entity, target): Checks if an entity is engaged with a target.
-        get_combatants(entity): Returns the set of combatants for a given entity.
-        all_combatants(): Returns a list of all entities engaged in combat.
-    """
+        self.turn_queue = deque(sorted_combatants)
 
-    # def __init__(
-    #     self, obj, db_attribute_key, db_attribute_category=None, default_data={}
-    # ):
-    #     self._combat_active = False
-    #     super().__init__(obj, db_attribute_key, db_attribute_category, default_data)
-
-    def engage(self, initiator, target):
-        """
-        Engages two entities in combat.
+    def add_combatant(self, combatant, enemies):
+        """Add a new combatant to the handler if not already present.
 
         Args:
-            initiator: The entity initiating the combat.
-            target: The entity being targeted for combat.
+            combatant: An instance representing a character or creature.
         """
-        if initiator not in self._data:
-            self._data[initiator] = set()
+        if combatant not in self.combatants:
+            self.combatants[combatant] = {"enemies": set(), "state": TurnState.WAITING}
 
-        if target not in self._data:
-            self._data[target] = set()
-
-        self._data[initiator].add(target)
-        self._data[target].add(initiator)
-
-        # if not self._combat_active:
-        #     self._combat_active = True
-
+        self.add_enemy_relationship(combatant, enemies)
+        self._update_turn_queue()
         self._save()
 
-    def disengage(self, entity, **kwargs):
-        """
-        Disengages an entity from combat.
+    def add_enemy_relationship(self, combatant, enemies):
+        if not isinstance(enemies, (list, set)):
+            enemies = [enemies]
+
+        for enemy in enemies:
+            self.combatants[combatant]["enemies"].add(enemy)
+
+            if enemy not in self.combatants:
+                self.combatants[enemy] = {"enemies": set(), "state": TurnState.WAITING}
+
+            self.combatants[enemy]["enemies"].add(combatant)
+
+    def remove_combatant(self, combatant):
+        """Remove a combatant from the handler.
 
         Args:
-            entity: The entity to disengage from combat.
-            targets (optional): A list of specific targets to disengage from. If not provided, disengages from all targets.
+            combatant: An instance representing a character or creature.
         """
-        targets = kwargs.get("targets", None)
+        if combatant in self.combatants:
+            del self.combatants[combatant]
+            if combatant in self.turn_queue:
+                self.turn_queue.remove(combatant)
 
-        if not targets:
-            if entity in self._data:
-                for opponent in list(self._data[entity]):
-                    self._data[opponent].remove(entity)
-                    if not self._data[opponent]:
-                        del self._data[opponent]
-                del self._data[entity]
-        else:
-            for target in targets:
-                if entity in self._data:
-                    self._data[entity].remove(target)
-                if target in self._data:
-                    self._data[target].remove(entity)
-                if not self._data[target]:
-                    del self._data[target]
-            if not self._data[entity]:
-                del self._data[entity]
+            # Create a list of keys to safely remove elements during iteration
+            for other_combatant in list(self.combatants):
+                self.combatants[other_combatant]["enemies"].discard(combatant)
+                if not self.combatants[other_combatant]["enemies"]:
+                    del self.combatants[other_combatant]
 
+        self._update_turn_queue()
         self._save()
 
-    def is_engaged(self, entity, target):
-        """
-        Checks if an entity is engaged with a target.
+    def start_round(self):
+        """Start a new round of combat."""
+        for combatant in self.combatants:
+            self.combatants[combatant]["state"] = TurnState.WAITING
 
-        Args:
-            entity: The entity to check.
-            target: The target entity to check against.
+        self._update_turn_queue()
+        self._save()
 
-        Returns:
-            bool: True if the entity is engaged with the target, False otherwise.
-        """
-        return target in self._data.get(entity, set())
+        while self.turn_queue:
+            combatant = self.turn_queue.popleft()
+            self.execute_turn(combatant)
 
-    def get_combatants(self, entity):
-        """
-        Returns the set of combatants for a given entity.
+        self.end_round()
 
-        Args:
-            entity: The entity to get the combatants for.
+    def execute_turn(self, combatant):
+        print(f"{combatant.key} attacks!")
+        self.combatants[combatant]["state"] = TurnState.DONE
 
-        Returns:
-            set: A set of combatant entities.
-        """
-        return self._data.get(entity, set())
+    def end_round(self):
+        """End the current round of combat."""
+        print("The round has ended.")
 
-    def get_ordered_combatants(self):
-        return sorted(self._data.keys(), key=lambda entity: entity.dexterity)
-
-    def all_combatants(self):
-        """
-        Returns a list of all entities engaged in combat.
-
-        Returns:
-            list: A list of entities engaged in combat.
-        """
-        return list(self._data.keys())
+    def end_combat(self):
+        pass
