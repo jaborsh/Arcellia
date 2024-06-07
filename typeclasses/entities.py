@@ -4,6 +4,7 @@ from server.conf import logger
 from utils.text import grammarize, wrap
 from world.characters import genders
 
+from evennia.contrib.rpg import buffs
 from evennia.utils.utils import (
     dbref,
     dedent,
@@ -53,6 +54,10 @@ class Entity(ObjectParent):
     @lazy_property
     def appearance(self):
         return traits.TraitHandler(self, db_attribute_key="appearance")
+
+    @lazy_property
+    def buffs(self):
+        return buffs.BuffHandler(self, dbkey="buffs")
 
     @lazy_property
     def clothing(self):
