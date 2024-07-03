@@ -115,7 +115,7 @@ PROTOTYPE_MODULES += [
     "prototypes.currencies",
     "prototypes.gemstones",
     "world.nautilus.prototypes",
-    "world.xyzgrid.prototypes",
+    "world.xyzgrid.xyzprototypes",
 ]
 
 # On a multi-match when search objects or commands, the user has the

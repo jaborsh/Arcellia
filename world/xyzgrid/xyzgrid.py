@@ -1,7 +1,6 @@
 from evennia.scripts.scripts import DefaultScript
 from evennia.utils import logger
 from evennia.utils.utils import variable_from_module
-
 from world.xyzgrid.xyzexit import XYZExit
 from world.xyzgrid.xyzmap import XYZMap
 from world.xyzgrid.xyzroom import XYZRoom
@@ -260,6 +259,11 @@ class XYGrid(DefaultScript):
         for zcoord, xymap in xymaps.items():
             self.log(f"spawning/updating links for Z='{zcoord}' ...")
             xymap.spawn_links(xy=(x, y), directions=directions)
+
+        # next build all contents within nodes
+        for zcoord, xymap in xymaps.items():
+            self.log(f"spawning/updating contents for Z='{zcoord}' ...")
+            xymap.spawn_contents(xy=(x, y))
 
 
 def get_xyzgrid(print_errors=True):

@@ -348,14 +348,6 @@ class MapNode:
         if not self.prototype.get("prototype_key"):
             self.prototype["prototype_key"] = self.generate_prototype_key()
 
-    def apply_prototype(self, nodeobj):
-        """
-        Apply the prototype to the node.
-        """
-        spawner.batch_update_objects_with_prototype(
-            self.prototype, objects=[nodeobj], exact=False
-        )
-
     def spawn_links(self, directions=None):
         """
         Build actual in-game exits based on the links out of this room.
@@ -462,6 +454,43 @@ class MapNode:
         if err:
             raise RuntimeError(err)
         linkobjs[key.lower()] = exi
+
+    def spawn_contents(self):
+        """
+        Spawn the contents for this node.
+        """
+
+        if not self.prototype:
+            # no contents to spawn out of a 'virtual' node.
+            return
+
+        xyz = (self.X, self.Y, self.Z)
+        content_prototypes = self.prototype.get("contents", [])
+        for content in content_prototypes:
+            typeclass = content.get("typeclass")
+            if typeclass is None:
+                raise MapError(
+                    f"The prototype {content} for this node has no 'typeclass' key.",
+                    self,
+                )
+            self.log(f"  spawning content at xyz={xyz} ({typeclass})")
+
+            Typeclass = class_from_module(typeclass)
+            obj, err = Typeclass.create(content.get("key", "Unnamed content"), xyz=xyz)
+            if err:
+                raise RuntimeError(err)
+
+            spawner.batch_update_objects_with_prototype(
+                content, objects=[obj], exact=False
+            )
+
+    def apply_prototype(self, nodeobj):
+        """
+        Apply the prototype to the node.
+        """
+        spawner.batch_update_objects_with_prototype(
+            self.prototype, objects=[nodeobj], exact=False
+        )
 
     def apply_prototypes(self, maplinks, linkobjs):
         """

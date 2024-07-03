@@ -15,11 +15,11 @@ except ImportError as err:
     )
 
 from django.conf import settings
+
 from evennia.prototypes import prototypes as protlib
 from evennia.prototypes.spawner import flatten_prototype
 from evennia.utils import logger
 from evennia.utils.utils import is_iter, mod_import, variable_from_module
-
 from world.xyzgrid import xyzmap_legend as xymap_legend
 from world.xyzgrid.utils import BIGVAL, MapError, MapParserError
 
@@ -122,7 +122,9 @@ class XYZMap:
         if not _LOADED_PROTOTYPES:
             # inject default prototypes, but don't override prototype-keys loaded from
             # settings, if they exist (that means the user wants to replace the defaults)
-            protlib.load_module_prototypes("world.xyzgrid.prototypes", override=False)
+            protlib.load_module_prototypes(
+                "world.xyzgrid.xyzprototypes", override=False
+            )
             _LOADED_PROTOTYPES = True
 
         self.Z = Z
@@ -655,6 +657,26 @@ class XYZMap:
         for node in nodes:
             if (x in (wildcard, node.X)) and (y in (wildcard, node.Y)):
                 node.spawn_links(directions=directions)
+
+    def spawn_contents(self, xy=("*", "*")):
+        """
+        Spawn contents (items and mobs) for nodes in this XYMap.
+
+        Args:
+            xy (tuple, optional): An (X,Y) coordinate of node(s). `'*'` acts as a wildcard.
+
+        Returns:
+            list: A list of nodes that had contents spawned.
+        """
+        x, y = xy
+        wildcard = "*"
+        spawned = []
+
+        for node in sorted(self.node_index_map.values(), key=lambda n: (n.Y, n.X)):
+            if (x in (wildcard, node.X)) and (y in (wildcard, node.Y)):
+                node.spawn_contents()
+                spawned.append(node)
+        return spawned
 
     def get_node_from_coord(self, xy):
         """
