@@ -9,9 +9,9 @@ import uuid
 from collections import defaultdict
 
 from django.core import exceptions as django_exceptions
+
 from evennia.prototypes import spawner
 from evennia.utils.utils import class_from_module
-
 from world.xyzgrid.utils import (
     BIGVAL,
     MAPSCAN,
@@ -296,43 +296,62 @@ class MapNode:
         to their destinations.
 
         """
-        global NodeTypeclass
-        if not NodeTypeclass:
-            from .xyzroom import XYZRoom as NodeTypeclass
-
         if not self.prototype:
             # no prototype means we can't spawn anything -
             # a 'virtual' node.
             return
 
         xyz = self.get_spawn_xyz()
+        nodeobj = self.get_or_create_node(xyz)
+        self.ensure_prototype_key()
+        self.apply_prototype(nodeobj)
+
+    def get_or_create_node(self, xyz):
+        """
+        Get an existing node or create a new one if it does not exist.
+        """
+        global NodeTypeclass
+        if not NodeTypeclass:
+            from .xyzroom import XYZRoom as NodeTypeclass
         try:
             nodeobj = NodeTypeclass.objects.get_xyz(xyz=xyz)
-        except django_exceptions.ObjectDoesNotExist:
-            # create a new entity, using the specified typeclass (if there's one) and
-            # with proper coordinates etc
-            typeclass = self.prototype.get("typeclass")
-            if typeclass is None:
-                raise MapError(
-                    f"The prototype {self.prototype} for this node has no 'typeclass' key.",
-                    self,
-                )
-            self.log(f"  spawning room at xyz={xyz} ({typeclass})")
-            Typeclass = class_from_module(typeclass)
-            nodeobj, err = Typeclass.create(
-                self.prototype.get("key", "An empty room"), xyz=xyz
-            )
-            if err:
-                raise RuntimeError(err)
-        else:
             self.log(f"  updating existing room (if changed) at xyz={xyz}")
+            return nodeobj
+        except django_exceptions.ObjectDoesNotExist:
+            return self.create_node(xyz)
 
+    def create_node(self, xyz):
+        """
+        Create a new node with the specified typeclass and coordinates.
+        """
+        # create a new entity, using the specified typeclass (if there's one) and
+        # with proper coordinates etc
+        typeclass = self.prototype.get("typeclass")
+        if typeclass is None:
+            raise MapError(
+                f"The prototype {self.prototype} for this node has no 'typeclass' key.",
+                self,
+            )
+        self.log(f"  spawning room at xyz={xyz} ({typeclass})")
+        Typeclass = class_from_module(typeclass)
+        nodeobj, err = Typeclass.create(
+            self.prototype.get("key", "An empty room"), xyz=xyz
+        )
+        if err:
+            raise RuntimeError(err)
+        return nodeobj
+
+    def ensure_prototype_key(self):
+        """
+        Ensure the prototype has a `prototype_key`.
+        """
         if not self.prototype.get("prototype_key"):
-            # make sure there is a prototype_key in prototype
             self.prototype["prototype_key"] = self.generate_prototype_key()
 
-        # apply prototype to node. This will not override the XYZ tags since
-        # these are not in the prototype and exact=False
+    def apply_prototype(self, nodeobj):
+        """
+        Apply the prototype to the node.
+        """
         spawner.batch_update_objects_with_prototype(
             self.prototype, objects=[nodeobj], exact=False
         )
@@ -355,21 +374,40 @@ class MapNode:
             return
 
         xyz = (self.X, self.Y, self.Z)
-        direction_limits = directions
+        maplinks = self.build_maplinks(directions)
+        linkobjs = self.remove_duplicate_exits(xyz)
+        differing_keys = self.find_differing_keys(maplinks, linkobjs)
 
-        global ExitTypeclass
-        if not ExitTypeclass:
-            from .xyzexit import XYZExit as ExitTypeclass
+        for differing_key in differing_keys:
+            if differing_key not in maplinks:
+                self.delete_exit(linkobjs, differing_key, xyz)
+            else:
+                self.create_or_update_exit(
+                    maplinks, differing_key, xyz, directions, linkobjs
+                )
 
+        self.apply_prototypes(maplinks, linkobjs)
+
+    def build_maplinks(self, directions):
+        """
+        Build a dictionary of map links for exit creation and syncronization.
+        """
         maplinks = {}
         for direction, link in self.first_links.items():
             key, *aliases = self.get_exit_spawn_name(direction)
             if not link.prototype.get("prototype_key"):
-                # generate a deterministic prototype_key if it doesn't exist
                 link.prototype["prototype_key"] = self.generate_prototype_key()
             maplinks[key.lower()] = (key, aliases, direction, link)
+        return maplinks
 
-        # remove duplicates
+    def remove_duplicate_exits(self, xyz):
+        """
+        Remove duplicate exits for the given coordinates.
+        """
+        global ExitTypeclass
+        if not ExitTypeclass:
+            from .xyzexit import XYZExit as ExitTypeclass
+
         linkobjs = defaultdict(list)
         for exitobj in ExitTypeclass.objects.filter_xyz(xyz=xyz):
             linkobjs[exitobj.key].append(exitobj)
@@ -377,56 +415,59 @@ class MapNode:
             for exitobj in exitobjs[1:]:
                 self.log(f"  deleting duplicate {exitkey}")
                 exitobj.delete()
-
-        # we need to search for exits in all directions since some
-        # may have been removed since last sync
-        linkobjs = {
+        return {
             exi.db_key.lower(): exi for exi in ExitTypeclass.objects.filter_xyz(xyz=xyz)
         }
 
-        # figure out if the topology changed between grid and map (will always
-        # build all exits first run)
-        differing_keys = set(maplinks.keys()).symmetric_difference(set(linkobjs.keys()))
-        for differing_key in differing_keys:
-            if differing_key not in maplinks:
-                # an exit without a maplink - delete the exit-object
-                self.log(f"  deleting exit at xyz={xyz}, direction={differing_key}")
+    def find_differing_keys(self, maplinks, linkobjs):
+        """
+        Find keys that differ between maplinks and linkobjs.
+        """
+        return set(maplinks.keys()).symmetric_difference(set(linkobjs.keys()))
 
-                linkobjs.pop(differing_key).delete()
-            else:
-                # missing in linkobjs - create a new exit
-                key, aliases, direction, link = maplinks[differing_key]
+    def delete_exit(self, linkobjs, differing_key, xyz):
+        """
+        Delete an exit that no longer has a corresponding map link.
+        """
+        self.log(f"  deleting exit at xyz={xyz}, direction={differing_key}")
+        linkobjs.pop(differing_key).delete()
 
-                if direction_limits and direction not in direction_limits:
-                    continue
+    def create_or_update_exit(
+        self, maplinks, differing_key, xyz, direction_limits, linkobjs
+    ):
+        """
+        Create or update an exit based on the map link.
+        """
+        key, aliases, direction, link = maplinks[differing_key]
+        if direction_limits and direction not in direction_limits:
+            return
 
-                exitnode = self.links[direction]
-                prot = maplinks[key.lower()][3].prototype
-                typeclass = prot.get("typeclass")
-                if typeclass is None:
-                    raise MapError(
-                        f"The prototype {prot} for this node has no 'typeclass' key.",
-                        self,
-                    )
-                self.log(
-                    f"  spawning/updating exit xyz={xyz}, direction={key} ({typeclass})"
-                )
+        exitnode = self.links[direction]
+        prot = link.prototype
+        typeclass = prot.get("typeclass")
+        if typeclass is None:
+            raise MapError(
+                f"The prototype {prot} for this node has no 'typeclass' key.",
+                self,
+            )
+        self.log(f"  spawning/updating exit xyz={xyz}, direction={key} ({typeclass})")
 
-                Typeclass = class_from_module(typeclass)
-                exi, err = Typeclass.create(
-                    key,
-                    xyz=xyz,
-                    xyz_destination=exitnode.get_spawn_xyz(),
-                    aliases=aliases,
-                )
-                if err:
-                    raise RuntimeError(err)
+        Typeclass = class_from_module(typeclass)
+        exi, err = Typeclass.create(
+            key,
+            xyz=xyz,
+            xyz_destination=exitnode.get_spawn_xyz(),
+            aliases=aliases,
+        )
+        if err:
+            raise RuntimeError(err)
+        linkobjs[key.lower()] = exi
 
-                linkobjs[key.lower()] = exi
-
-        # apply prototypes to catch any changes
+    def apply_prototypes(self, maplinks, linkobjs):
+        """
+        Apply prototypes to catch any changes.
+        """
         for key, linkobj in linkobjs.items():
-            # print(maplinks[key.lower()][3].prototype)
             spawner.batch_update_objects_with_prototype(
                 maplinks[key.lower()][3].prototype, objects=[linkobj], exact=False
             )
