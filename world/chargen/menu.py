@@ -1019,5 +1019,7 @@ def chargen_finalize(caller, raw_string):
         obj.location = caller
         obj.home = caller
         caller.equipment.wear(obj)
-    caller.move_to(XYZRoom.objects.get_xyz(xyz=("1", "1", "nautilus")), quiet=True)
+    caller.move_to(
+        XYZRoom.objects.get_xyz(xyz=("0", "4", "sunwreck_shores")), quiet=True
+    )
     return "", ""

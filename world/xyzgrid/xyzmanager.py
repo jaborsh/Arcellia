@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db.models import Q
+
 from evennia.objects.manager import ObjectManager
 
 # name of all tag categories. Note that the Z-coordinate is
@@ -255,3 +256,11 @@ class XYZExitManager(XYZManager):
             raise self.model.DoesNotExist(
                 f"{self.model.__name__} matching query {inp} does not exist."
             )
+
+
+class XYZMobManager(XYZManager):
+    def filter_xyz_mob():
+        pass
+
+    def get_xyz_mob():
+        pass

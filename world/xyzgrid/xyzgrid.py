@@ -260,10 +260,10 @@ class XYGrid(DefaultScript):
             self.log(f"spawning/updating links for Z='{zcoord}' ...")
             xymap.spawn_links(xy=(x, y), directions=directions)
 
-        # next build all contents within nodes
+        # next build all mobs within nodes/rooms.
         for zcoord, xymap in xymaps.items():
-            self.log(f"spawning/updating contents for Z='{zcoord}' ...")
-            xymap.spawn_contents(xy=(x, y))
+            self.log(f"spawning/updating mobs for Z='{zcoord}' ...")
+            xymap.spawn_mobs(xy=(x, y))
 
 
 def get_xyzgrid(print_errors=True):

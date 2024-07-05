@@ -36,6 +36,7 @@ MAP_DATA_KEYS = [
     "map",
     "legend",
     "prototypes",
+    "mob_prototypes",
     "options",
     "module_path",
 ]
@@ -137,6 +138,7 @@ class XYZMap:
         self.map_module_or_dict = map_module_or_dict
 
         self.prototypes = None
+        self.mob_prototypes = None
         self.options = None
 
         # transitional mapping
@@ -261,11 +263,18 @@ class XYZMap:
                     "coordinate (X, Y) for nodes or (X, Y, direction) for links; "
                     "where direction is a supported direction string ('n', 'ne', etc)."
                 )
+        for key, prototype in mapdata.get("mob_prototypes", {}).items():
+            if not (is_iter(key) and (2 <= len(key) <= 3)):
+                raise MapError(
+                    f"Mob prototype override key {key} is malformed: It must be a "
+                    "coordinate (X, Y) for mobs."
+                )
 
         # store/update result
         self.Z = mapdata.get("zcoord", self.Z)
         self.mapstring = mapdata["map"]
         self.prototypes = mapdata.get("prototypes", {})
+        self.mob_prototypes = mapdata.get("mob_prototypes", {})
         self.options = mapdata.get("options", {})
 
         # merge the custom legend onto the default legend to allow easily
@@ -658,25 +667,35 @@ class XYZMap:
             if (x in (wildcard, node.X)) and (y in (wildcard, node.Y)):
                 node.spawn_links(directions=directions)
 
-    def spawn_contents(self, xy=("*", "*")):
-        """
-        Spawn contents (items and mobs) for nodes in this XYMap.
+    def spawn_mobs(self, xy=("*", "*")):
+        x_filter, y_filter = xy
 
-        Args:
-            xy (tuple, optional): An (X,Y) coordinate of node(s). `'*'` acts as a wildcard.
+        def match(coord, filter_val):
+            return filter_val == "*" or coord == filter_val
 
-        Returns:
-            list: A list of nodes that had contents spawned.
-        """
-        x, y = xy
-        wildcard = "*"
-        spawned = []
+        # Create a reverse map for node_index_map with the match filter
+        node_index_reverse_map = {
+            (node.X, node.Y): node
+            for node in self.node_index_map.values()
+            if match(node.X, x_filter) and match(node.Y, y_filter)
+        }
 
-        for node in sorted(self.node_index_map.values(), key=lambda n: (n.Y, n.X)):
-            if (x in (wildcard, node.X)) and (y in (wildcard, node.Y)):
-                node.spawn_contents()
-                spawned.append(node)
-        return spawned
+        # Filter the mob_prototypes dictionary based on the xy argument and the match filter
+        filtered_mob_prototypes = {
+            key: entities
+            for key, entities in self.mob_prototypes.items()
+            if match(key[0], x_filter) and match(key[1], y_filter)
+        }
+
+        # Iterate through the filtered mob_prototypes and access nodes using the reverse map
+        for key, entities in filtered_mob_prototypes.items():
+            node = node_index_reverse_map.get(key)
+            if not node:
+                raise MapError(
+                    f"[Mob: {entities[0]['key']}] has a coordinate {key} that "
+                    "does not exist in the map."
+                )
+            node.spawn_mobs(entities)
 
     def get_node_from_coord(self, xy):
         """

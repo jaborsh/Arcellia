@@ -1,11 +1,10 @@
 from collections import defaultdict
 
 from typeclasses import characters
-
-from world.nautilus.interactions.levers import LeverCmdSet
-from world.nautilus.mobs import EnchantressCmdSet
-from world.nautilus.quest import NautilusObjective, NautilusQuest
 from world.xyzgrid.xyzroom import XYZRoom
+from world.zones.nautilus.interactions.levers import LeverCmdSet
+from world.zones.nautilus.mobs import EnchantressCmdSet
+from world.zones.nautilus.quest import NautilusObjective, NautilusQuest
 
 
 class NautilusStartRoom(XYZRoom):

@@ -2,10 +2,10 @@ from commands.command import Command
 from handlers.quests import QuestProgress
 from menus.interaction_menu import InteractionMenu
 from typeclasses.mobs import Mob
+from world.zones.nautilus.quest import NautilusObjective
 
 from evennia import CmdSet
 from evennia.utils import delay
-from world.nautilus.quest import NautilusObjective
 
 
 class Enchantress(Mob):

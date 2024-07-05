@@ -116,6 +116,8 @@ class MapNode:
         if symbol is not None:
             self.symbol = symbol
 
+        # this indicates the nodeobj itself
+        self.nodeobj = None
         # this indicates linkage in 8 cardinal directions on the string-map,
         # n,ne,e,se,s,sw,w,nw and link that to a node (always)
         self.links = {}
@@ -305,6 +307,7 @@ class MapNode:
         nodeobj = self.get_or_create_node(xyz)
         self.ensure_prototype_key()
         self.apply_prototype(nodeobj)
+        self.nodeobj = nodeobj
 
     def get_or_create_node(self, xyz):
         """
@@ -455,9 +458,9 @@ class MapNode:
             raise RuntimeError(err)
         linkobjs[key.lower()] = exi
 
-    def spawn_contents(self):
+    def spawn_mobs(self, entities=[]):
         """
-        Spawn the contents for this node.
+        Spawn the mobs for this node.
         """
 
         if not self.prototype:
@@ -465,23 +468,23 @@ class MapNode:
             return
 
         xyz = (self.X, self.Y, self.Z)
-        content_prototypes = self.prototype.get("contents", [])
-        for content in content_prototypes:
-            typeclass = content.get("typeclass")
+
+        for entity in entities:
+            typeclass = entity.get("typeclass")
             if typeclass is None:
                 raise MapError(
-                    f"The prototype {content} for this node has no 'typeclass' key.",
-                    self,
+                    f"The prototype {entity.get('prototype_key')} for this node has no 'typeclass'."
                 )
-            self.log(f"  spawning content at xyz={xyz} ({typeclass})")
+            self.log(f"  spawning {entity.get('key')} at xyz={xyz} ({typeclass})")
 
+            prot = spawner.flatten_prototype(entity)
             Typeclass = class_from_module(typeclass)
-            obj, err = Typeclass.create(content.get("key", "Unnamed content"), xyz=xyz)
+            obj, err = Typeclass.create(prot.get("key", "Unnamed mob"), xyz=xyz)
             if err:
                 raise RuntimeError(err)
 
             spawner.batch_update_objects_with_prototype(
-                content, objects=[obj], exact=False
+                prot, objects=[obj], exact=False
             )
 
     def apply_prototype(self, nodeobj):
