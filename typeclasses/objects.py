@@ -17,6 +17,7 @@ from collections import defaultdict
 from django.utils.translation import gettext as _
 from evennia.objects.objects import DefaultObject
 from evennia.utils.utils import compress_whitespace, dedent, iter_to_str
+
 from utils.text import _INFLECT, strip_ansi
 
 
@@ -328,7 +329,9 @@ class Object(ObjectParent, DefaultObject):
         for thingname, thinglist in sorted(grouped_things.items()):
             nthings = len(thinglist)
             thing = thinglist[0]
-            singular, plural = thing.get_numbered_name(nthings, looker, key=thingname)
+            singular, plural = thing.get_numbered_name(
+                nthings, looker, key=thingname
+            )
             thing_names.append(singular if nthings == 1 else plural)
         thing_names = "\n ".join(thing_names)
         return f"|wYou see:|n\n {thing_names}" if thing_names else ""
@@ -388,14 +391,18 @@ class Object(ObjectParent, DefaultObject):
             else:
                 # Apply pluralization to text segment
                 plural_segment = (
-                    _INFLECT.plural(segment, count) if segment.strip() else segment
+                    _INFLECT.plural(segment, count)
+                    if segment.strip()
+                    else segment
                 )
                 plural_segments.append(plural_segment)
 
                 # Apply singularization to text segment
                 if len(singular_segments) == 2:
                     # Special handling when singular_segments has exactly two elements
-                    segment = _INFLECT.an(segment) if segment.strip() else segment
+                    segment = (
+                        _INFLECT.an(segment) if segment.strip() else segment
+                    )
                     split_segment = segment.split(" ")
                     singular_segment = (
                         strip_ansi(split_segment[0])
@@ -471,7 +478,12 @@ class Object(ObjectParent, DefaultObject):
         )
 
     def announce_move_to(
-        self, source_location, msg=None, mapping=None, move_type="move", **kwargs
+        self,
+        source_location,
+        msg=None,
+        mapping=None,
+        move_type="move",
+        **kwargs,
     ):
         """
         Announces the movement of the object to a new location.
