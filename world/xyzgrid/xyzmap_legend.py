@@ -9,9 +9,9 @@ import uuid
 from collections import defaultdict
 
 from django.core import exceptions as django_exceptions
-
 from evennia.prototypes import spawner
 from evennia.utils.utils import class_from_module
+
 from world.xyzgrid.utils import (
     BIGVAL,
     MAPSCAN,
@@ -22,6 +22,7 @@ from world.xyzgrid.utils import (
 
 NodeTypeclass = None
 ExitTypeclass = None
+MobTypeclass = None
 
 UUID_XYZ_NAMESPACE = uuid.uuid5(uuid.UUID(int=0), "xyzgrid")
 
@@ -137,7 +138,9 @@ class MapNode:
         self.closest_neighbor_names = {}
 
     def __str__(self):
-        return f"<MapNode '{self.symbol}' {self.node_index} XY=({self.X},{self.Y})"
+        return (
+            f"<MapNode '{self.symbol}' {self.node_index} XY=({self.X},{self.Y})"
+        )
 
     def __repr__(self):
         return str(self)
@@ -152,7 +155,9 @@ class MapNode:
         needing a separate new name for every one.
 
         """
-        return str(uuid.uuid5(UUID_XYZ_NAMESPACE, str((self.X, self.Y, self.Z))))
+        return str(
+            uuid.uuid5(UUID_XYZ_NAMESPACE, str((self.X, self.Y, self.Z)))
+        )
 
     def build_links(self):
         """
@@ -181,7 +186,9 @@ class MapNode:
 
                 # just because there is a link here, doesn't mean it has a
                 # connection in this direction. If so, the `end_node` will be None.
-                end_node, weight, steps = link.traverse(REVERSE_DIRECTIONS[direction])
+                end_node, weight, steps = link.traverse(
+                    REVERSE_DIRECTIONS[direction]
+                )
 
                 if end_node:
                     # the link could be followed to an end node!
@@ -256,7 +263,9 @@ class MapNode:
             By default, just setting .display_symbol is enough.
 
         """
-        return self.symbol if self.display_symbol is None else self.display_symbol
+        return (
+            self.symbol if self.display_symbol is None else self.display_symbol
+        )
 
     def get_spawn_xyz(self):
         """
@@ -283,7 +292,8 @@ class MapNode:
 
         """
         key, *aliases = self.first_links[direction].spawn_aliases.get(
-            direction, self.direction_spawn_defaults.get(direction, ("unknown",))
+            direction,
+            self.direction_spawn_defaults.get(direction, ("unknown",)),
         )
         if return_aliases:
             return (key, *aliases)
@@ -411,7 +421,8 @@ class MapNode:
                 self.log(f"  deleting duplicate {exitkey}")
                 exitobj.delete()
         return {
-            exi.db_key.lower(): exi for exi in ExitTypeclass.objects.filter_xyz(xyz=xyz)
+            exi.db_key.lower(): exi
+            for exi in ExitTypeclass.objects.filter_xyz(xyz=xyz)
         }
 
     def find_differing_keys(self, maplinks, linkobjs):
@@ -445,7 +456,9 @@ class MapNode:
                 f"The prototype {prot} for this node has no 'typeclass' key.",
                 self,
             )
-        self.log(f"  spawning/updating exit xyz={xyz}, direction={key} ({typeclass})")
+        self.log(
+            f"  spawning/updating exit xyz={xyz}, direction={key} ({typeclass})"
+        )
 
         Typeclass = class_from_module(typeclass)
         exi, err = Typeclass.create(
@@ -462,30 +475,70 @@ class MapNode:
         """
         Spawn the mobs for this node.
         """
+        global MobTypeclass
+        if not MobTypeclass:
+            from .xyzmob import XYZMob as MobTypeclass
 
         if not self.prototype:
             # no contents to spawn out of a 'virtual' node.
             return
 
         xyz = (self.X, self.Y, self.Z)
-
+        existing_mobs = self.get_existing_mobs(xyz)
         for entity in entities:
-            typeclass = entity.get("typeclass")
-            if typeclass is None:
-                raise MapError(
-                    f"The prototype {entity.get('prototype_key')} for this node has no 'typeclass'."
-                )
-            self.log(f"  spawning {entity.get('key')} at xyz={xyz} ({typeclass})")
+            self.process_entity(entity, existing_mobs, xyz)
 
-            prot = spawner.flatten_prototype(entity)
-            Typeclass = class_from_module(typeclass)
-            obj, err = Typeclass.create(prot.get("key", "Unnamed mob"), xyz=xyz)
-            if err:
-                raise RuntimeError(err)
+    def get_existing_mobs(self, xyz):
+        global MobTypeclass
+        if not MobTypeclass:
+            from .xyzmob import XYZMob as MobTypeclass
+        return MobTypeclass.objects.get_xyz_mobs(xyz=xyz)
 
-            spawner.batch_update_objects_with_prototype(
-                prot, objects=[obj], exact=False
+    def process_entity(self, entity, existing_mobs, xyz):
+        typeclass = self.validate_entity(entity)
+        prot = spawner.flatten_prototype(entity)
+
+        for mob in existing_mobs:
+            if mob.tags.get(category="from_prototype") == prot.get(
+                "prototype_key"
+            ):
+                self.update_mob(mob, prot, entity, xyz, typeclass)
+                return
+
+        self.spawn_new_mob(prot, entity, xyz, typeclass)
+
+    def validate_entity(self, entity):
+        """
+        Validate that the entity has a typeclass.
+        """
+        typeclass = entity.get("typeclass")
+        if typeclass is None:
+            raise MapError(
+                f"The prototype {entity.get('prototype_key')} for this node has no 'typeclass'."
             )
+        return typeclass
+
+    def update_mob(self, mob, prot, entity, xyz, typeclass):
+        """
+        Update an existing mob.
+        """
+        self.log(f"  updating {entity.get('key')} at xyz={xyz} ({typeclass}).")
+        spawner.batch_update_objects_with_prototype(
+            prot, objects=[mob], exact=False
+        )
+
+    def spawn_new_mob(self, prot, entity, xyz, typeclass):
+        """
+        Spawn a new mob.
+        """
+        self.log(f"  spawning {entity.get('key')} at xyz={xyz} ({typeclass})")
+        Typeclass = class_from_module(typeclass)
+        obj, err = Typeclass.create(prot.get("key", "Unnamed mob"), xyz=xyz)
+        if err:
+            raise RuntimeError(err)
+        spawner.batch_update_objects_with_prototype(
+            prot, objects=[obj], exact=False
+        )
 
     def apply_prototype(self, nodeobj):
         """
@@ -501,7 +554,9 @@ class MapNode:
         """
         for key, linkobj in linkobjs.items():
             spawner.batch_update_objects_with_prototype(
-                maplinks[key.lower()][3].prototype, objects=[linkobj], exact=False
+                maplinks[key.lower()][3].prototype,
+                objects=[linkobj],
+                exact=False,
             )
 
     def unspawn(self):
@@ -560,7 +615,9 @@ class TransitionMapNode(MapNode):
         the exit to this node (since the prototype is None, this node itself will not be built).
 
         """
-        if any(True for coord in self.target_map_xyz if coord in (None, "unset")):
+        if any(
+            True for coord in self.target_map_xyz if coord in (None, "unset")
+        ):
             raise MapParserError(
                 f"(Z={self.xymap.Z}) has not defined its "
                 "`.target_map_xyz` property. It must point "
@@ -574,7 +631,9 @@ class TransitionMapNode(MapNode):
         """Check so we don't have too many links"""
         super().build_links()
         if len(self.links) > 1:
-            raise MapParserError("may have at most one link connecting to it.", self)
+            raise MapParserError(
+                "may have at most one link connecting to it.", self
+            )
 
 
 class MapLink:
@@ -720,7 +779,9 @@ class MapLink:
             *args (str): These are used to further seed the key.
 
         """
-        return str(uuid.uuid5(UUID_XYZ_NAMESPACE, str((self.X, self.Y, self.Z, *args))))
+        return str(
+            uuid.uuid5(UUID_XYZ_NAMESPACE, str((self.X, self.Y, self.Z, *args)))
+        )
 
     def traverse(self, start_direction, _weight=0, _linklen=1, _steps=None):
         """
@@ -821,7 +882,9 @@ class MapLink:
                 # there is is something there, we need to check if it is either
                 # a map node or a link connecting in our direction
                 node_or_link = xygrid[end_x][end_y]
-                if node_or_link.multilink or node_or_link.get_direction(direction):
+                if node_or_link.multilink or node_or_link.get_direction(
+                    direction
+                ):
                     links[direction] = node_or_link
         return links
 
@@ -893,7 +956,9 @@ class MapLink:
             By default, just setting .display_symbol is enough.
 
         """
-        return self.symbol if self.display_symbol is None else self.display_symbol
+        return (
+            self.symbol if self.display_symbol is None else self.display_symbol
+        )
 
 
 class SmartRerouterMapLink(MapLink):
@@ -1030,11 +1095,16 @@ class SmartTeleporterMapLink(MapLink):
             found_teleporters = []
             for iy, line in xygrid.items():
                 for ix, node_or_link in xygrid[iy].items():
-                    if node_or_link.symbol == symbol and node_or_link is not self:
+                    if (
+                        node_or_link.symbol == symbol
+                        and node_or_link is not self
+                    ):
                         found_teleporters.append(node_or_link)
 
             if not found_teleporters:
-                raise MapParserError("found no matching teleporter to link to.", self)
+                raise MapParserError(
+                    "found no matching teleporter to link to.", self
+                )
             if len(found_teleporters) > 1:
                 raise MapParserError(
                     "found too many matching teleporters (must be exactly one more): "
@@ -1074,7 +1144,10 @@ class SmartTeleporterMapLink(MapLink):
             if start_direction == direction_name:
                 # called while traversing another teleport
                 # - we must make sure we can always access/leave the teleport.
-                self.directions = {direction_name: direction, direction: direction_name}
+                self.directions = {
+                    direction_name: direction,
+                    direction: direction_name,
+                }
             else:
                 # called while traversing a normal link
                 self.directions = {
@@ -1224,12 +1297,15 @@ class InvisibleSmartMapLink(SmartMapLink):
         if not hasattr(self, "_cached_display_symbol"):
             legend = self.xymap.legend
             default_symbol = (
-                self.symbol if self.display_symbol is None else self.display_symbol
+                self.symbol
+                if self.display_symbol is None
+                else self.display_symbol
             )
             self._cached_display_symbol = default_symbol
 
             dirtuple = tuple(
-                (key, self.directions[key]) for key in sorted(self.directions.keys())
+                (key, self.directions[key])
+                for key in sorted(self.directions.keys())
             )
 
             replacement_symbol = self.display_symbol_aliases.get(
@@ -1393,7 +1469,9 @@ class DownMapLink(UpMapLink):
         "w": symbol,
         "nw": symbol,
     }
-    spawn_aliases = {direction: ("down", "d") for direction in direction_aliases}
+    spawn_aliases = {
+        direction: ("down", "d") for direction in direction_aliases
+    }
     prototype = "xyz_exit"
 
 

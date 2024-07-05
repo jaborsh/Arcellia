@@ -7,7 +7,7 @@ MOB_PROTOTYPES = {
             "key": "aeum",
             "display_name": "|CAeum|n",
             "typeclass": "world.xyzgrid.xyzmob.XYZMob",
-            "desc": "This is Aeum.",
+            "desc": "This is Aeum!",
         },
     ],
 }

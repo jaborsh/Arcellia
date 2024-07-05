@@ -259,8 +259,35 @@ class XYZExitManager(XYZManager):
 
 
 class XYZMobManager(XYZManager):
-    def filter_xyz_mob():
-        pass
+    def filter_xyz_mob(self, xyz=("*", "*", "*"), **kwargs):
+        x, y, z = xyz
+        wildcard = "*"
 
-    def get_xyz_mob():
-        pass
+        return (
+            self.filter_family(**kwargs)
+            .filter(
+                Q()
+                if x == wildcard
+                else Q(db_tags__db_key=str(x), db_tags__db_category=MAP_X_TAG_CATEGORY)
+            )
+            .filter(
+                Q()
+                if y == wildcard
+                else Q(db_tags__db_key=str(y), db_tags__db_category=MAP_Y_TAG_CATEGORY)
+            )
+            .filter(
+                Q()
+                if z == wildcard
+                else Q(
+                    db_tags__db_key__iexact=str(z),
+                    db_tags__db_category=MAP_Z_TAG_CATEGORY,
+                )
+            )
+        )
+
+    def get_xyz_mob(self, xyz=(0, 0, "map"), **kwargs):
+        return self.get_xyz_mobs(xyz=xyz, **kwargs).first()
+
+    def get_xyz_mobs(self, xyz=(0, 0, "map"), **kwargs):
+        query = self.filter_xyz_mob(xyz=xyz, **kwargs)
+        return query
