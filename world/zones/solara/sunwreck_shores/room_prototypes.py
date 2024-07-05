@@ -3,7 +3,7 @@ ROOM_PROTOTYPES = {
         "prototype_parent": "xyz_room",
         "key": "|YSunwreck Shores|n",
     },
-    (4, 1): {  # Shadowheart
+    (4, 1): {  # Aeum
         "prototype_parent": "xyz_room",
         "key": "|YSunwreck Shores|n",
     },
@@ -39,7 +39,7 @@ ROOM_PROTOTYPES = {
         "prototype_parent": "xyz_room",
         "key": "|YSunwreck Shores|n",
     },
-    (2, 5): {  # Battle
+    (2, 5): {  # Brain Leech Battle
         "prototype_parent": "xyz_room",
         "key": "|rSunwreck Shores - Shipwreck|n",
     },
