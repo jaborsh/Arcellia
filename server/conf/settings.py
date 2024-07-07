@@ -172,7 +172,7 @@ TIME_IGNORE_DOWNTIMES = True
 # Default Account setup and access
 ######################################################################
 # The start position for new characters. Default is Creation (#3).
-START_LOCATION = "#3"
+START_LOCATION = "#2"
 
 # Different Multisession modes allow a player (=account) to connect to the
 # game simultaneously with multiple clients (=sessions).
@@ -249,7 +249,9 @@ SERVER_SESSION_HANDLER_CLASS = "server.conf.sessionhandler.ServerSessionHandler"
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"
+    },
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"  # noqa: E501
     },
