@@ -557,6 +557,9 @@ class CmdWatch(Command):
         elif caller.ndb._watching == target:
             self.msg(f"You are already watching {target.name}.")
             return
+        elif target.ndb._watching == caller:
+            self.msg(f"{target.name} is already watching you.")
+            return
 
         if caller.ndb._watching:
             self._stop_watching(caller)
