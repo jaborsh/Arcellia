@@ -192,7 +192,7 @@ AUTO_CREATE_CHARACTER_WITH_ACCOUNT = False
 # MULTISESSION_MODE=0, AUTO_CREATE_CHARACTER_WITH_ACCOUNT=True and this value to
 # mimic a legacy mud with minimal difference between Account and Character. Disable
 # this and AUTO_PUPPET to get a chargen/character select screen on login.
-AUTO_PUPPET_ON_LOGIN = True
+AUTO_PUPPET_ON_LOGIN = False
 # How many *different* characters an account can puppet *at the same time*. A value
 # above 1 only makes a difference together with MULTISESSION_MODE > 1.
 MAX_NR_SIMULTANEOUS_PUPPETS = None
@@ -200,7 +200,7 @@ MAX_NR_SIMULTANEOUS_PUPPETS = None
 # char-creation command. This can be seen as how big of a 'stable' of characters
 # an account can have (not how many you can puppet at the same time). Set to
 # None for no limit.
-MAX_NR_CHARACTERS = 3
+MAX_NR_CHARACTERS = 2
 # The access hierarchy, in climbing order. A higher permission in the
 # hierarchy includes access of all levels below it. Used by the perm()/pperm()
 # lock functions, which accepts both plural and singular (Admin & Admins)
