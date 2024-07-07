@@ -552,7 +552,7 @@ class CmdWatch(Command):
             self.msg("Character not found.")
             return
 
-        if caller == target:
+        if caller.account == target:
             return self.msg("You cannot watch yourself.")
         elif caller.ndb._watching == target:
             return self.msg(f"You are already watching {target.name}.")
