@@ -26,8 +26,6 @@ import os
 
 from django.conf import settings
 from django.utils.translation import gettext as _
-from server.conf import logger
-
 from evennia.accounts.accounts import DefaultAccount, DefaultGuest
 from evennia.objects.models import ObjectDB
 from evennia.server.signals import SIGNAL_OBJECT_POST_PUPPET
@@ -37,6 +35,8 @@ from evennia.utils.utils import (
     make_iter,
     to_str,
 )
+
+from server.conf import logger
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
 _MAX_NR_SIMULTANEOUS_PUPPETS = settings.MAX_NR_SIMULTANEOUS_PUPPETS
@@ -187,9 +187,7 @@ class Account(DefaultAccount):
         # Log the login event
         addr = session.address or "unknown"
         sessions_count = self.sessions.count()
-        sessions_str = (
-            f"{sessions_count} session{'s' if sessions_count != 1 else ''} total"
-        )
+        sessions_str = f"{sessions_count} session{'s' if sessions_count != 1 else ''} total"
         logger.send_mudinfo(
             ("|GLogged in: {key} ({addr}) ({sessions})|n").format(
                 key=self.key, addr=addr, sessions=sessions_str
@@ -212,7 +210,11 @@ class Account(DefaultAccount):
         ]
 
         # Display the character selection screen or account look
-        target = self.db._playable_characters if settings.AUTO_PUPPET_ON_LOGIN else None
+        target = (
+            self.db._playable_characters
+            if settings.AUTO_PUPPET_ON_LOGIN
+            else None
+        )
         self.msg(self.at_look(target=target, session=session), session=session)
 
     def at_look(self, target=None, session=None, **kwargs):
@@ -267,7 +269,9 @@ class Account(DefaultAccount):
         width = 56
         for isess, sess in enumerate(sessions, start=1):
             ip_addr = (
-                sess.address[0] if isinstance(sess.address, tuple) else sess.address
+                sess.address[0]
+                if isinstance(sess.address, tuple)
+                else sess.address
             )
             addr = f"{sess.protocol_flags['CLIENTNAME']} ({ip_addr})"
             sess_str = (
@@ -279,7 +283,9 @@ class Account(DefaultAccount):
             sess_strings.append(f"  {sess_str} {addr}")
 
         if not characters:
-            txt_characters = "You don't have a character yet. Use |wcharcreate|n."
+            txt_characters = (
+                "You don't have a character yet. Use |wcharcreate|n."
+            )
         else:
             max_chars = (
                 "unlimited"
@@ -291,7 +297,11 @@ class Account(DefaultAccount):
                 csessions = char.sessions.all()
                 if csessions:
                     for sess in csessions:
-                        sid = sessions.index(sess) + 1 if sess in sessions else None
+                        sid = (
+                            sessions.index(sess) + 1
+                            if sess in sessions
+                            else None
+                        )
                         if sess and sid:
                             char_strings.append(
                                 f"  - |G{char.name}|n [{', '.join(char.permissions.all())}] "
@@ -343,7 +353,9 @@ class Account(DefaultAccount):
         Character = class_from_module(character_typeclass)
 
         if "location" not in kwargs:
-            kwargs["location"] = ObjectDB.objects.get_id(settings.START_LOCATION)
+            kwargs["location"] = ObjectDB.objects.get_id(
+                settings.START_LOCATION
+            )
 
         # Create the character
         character, errs = Character.create(
@@ -371,13 +383,13 @@ class Account(DefaultAccount):
         if obj.sessions.count():
             if _MULTISESSION_MODE in (1, 3):
                 txt1 = f"Sharing |c{obj.name}|n with another of your sessions."
-                txt2 = (
-                    f"|c{obj.name}|n|G is now shared from another of your sessions.|n"
-                )
+                txt2 = f"|c{obj.name}|n|G is now shared from another of your sessions.|n"
                 self.msg(txt1, session=session)
                 self.msg(txt2, session=obj.sessions.all())
             else:
-                txt1 = f"Taking over |c{obj.name}|n from another of your sessions."
+                txt1 = (
+                    f"Taking over |c{obj.name}|n from another of your sessions."
+                )
                 txt2 = f"|c{obj.name}|n|R is now acted from another of your sessions.|n"
                 self.msg(txt1, session=session)
                 self.msg(txt2, session=obj.sessions.all())
@@ -406,9 +418,9 @@ class Account(DefaultAccount):
                 self._handle_self_puppeting(obj, session)
             elif obj.account.is_connected and not self.is_superuser:
                 self.msg(
-                    _("|c{key}|R is already puppeted by another Account.").format(
-                        key=obj.key
-                    )
+                    _(
+                        "|c{key}|R is already puppeted by another Account."
+                    ).format(key=obj.key)
                 )
                 return
 
@@ -441,9 +453,13 @@ class Account(DefaultAccount):
         session.puppet = obj
         obj.locks.cache_lock_bypass(obj)
         obj.at_post_puppet()
-        SIGNAL_OBJECT_POST_PUPPET.send(sender=obj, account=self, session=session)
+        SIGNAL_OBJECT_POST_PUPPET.send(
+            sender=obj, account=self, session=session
+        )
 
-    def msg(self, text=None, from_obj=None, session=None, options=None, **kwargs):
+    def msg(
+        self, text=None, from_obj=None, session=None, options=None, **kwargs
+    ):
         """
         Send a message to the account.
 
@@ -497,10 +513,6 @@ class Account(DefaultAccount):
         sessions = make_iter(session) if session else self.sessions.all()
         for session in sessions:
             session.data_out(**kwargs)
-
-        # Watcher relay
-        for watcher in self.ndb._watchers or []:
-            watcher.msg(text=kwargs["text"])
 
 
 class Guest(DefaultGuest):

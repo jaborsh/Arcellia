@@ -147,7 +147,11 @@ class Command(BaseCommand):
                     plural = "" if len(unused_switches) == 1 else "es"
                     self.msg(
                         '|g%s|n: |wExtra switch%s "/|C%s|w" ignored.'
-                        % (self.cmdstring, plural, "|n, /|C".join(unused_switches))
+                        % (
+                            self.cmdstring,
+                            plural,
+                            "|n, /|C".join(unused_switches),
+                        )
                     )
                 switches = valid_switches  # Only include valid_switches in command function call
         arglist = [arg.strip() for arg in args.split()]
@@ -172,8 +176,12 @@ class Command(BaseCommand):
         rhs = rhs.strip() if rhs is not None else None
         lhs = lhs.strip()
         # Further split left/right sides by comma delimiter
-        lhslist = [arg.strip() for arg in lhs.split(",")] if lhs is not None else []
-        rhslist = [arg.strip() for arg in rhs.split(",")] if rhs is not None else []
+        lhslist = (
+            [arg.strip() for arg in lhs.split(",")] if lhs is not None else []
+        )
+        rhslist = (
+            [arg.strip() for arg in rhs.split(",")] if rhs is not None else []
+        )
         # save to object properties:
         self.raw = raw
         self.switches = switches
@@ -205,8 +213,10 @@ class Command(BaseCommand):
 
     def at_pre_cmd(self):
         if self.account:
-            for watcher in self.account.ndb._watchers or []:
-                watcher.msg("> |Y%s|n" % self.cmdstring)
+            for watcher in self.caller.ndb._watchers or []:
+                watcher.msg(
+                    f"|y[{self.caller}]|Y> {self.cmdstring}{self.args}|n"
+                )
 
     def at_post_cmd(self):
         self.caller.msg(prompt="> ")

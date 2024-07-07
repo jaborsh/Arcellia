@@ -9,18 +9,20 @@ creation commands.
 """
 
 from django.conf import settings
-from handlers import quests
-
 from evennia.objects.objects import DefaultCharacter
 from evennia.utils.utils import (
     lazy_property,
     variable_from_module,
 )
 
+from handlers import quests
+
 from .entities import Entity
 from .objects import ObjectParent
 
-_AT_SEARCH_RESULT = variable_from_module(*settings.SEARCH_AT_RESULT.rsplit(".", 1))
+_AT_SEARCH_RESULT = variable_from_module(
+    *settings.SEARCH_AT_RESULT.rsplit(".", 1)
+)
 
 
 class Character(Entity, ObjectParent, DefaultCharacter):

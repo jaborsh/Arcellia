@@ -1,9 +1,4 @@
 from django.conf import settings
-from handlers import clothing, equipment, traits
-from server.conf import logger
-from utils.text import grammarize, wrap
-from world.characters import genders
-
 from evennia.contrib.rpg import buffs
 from evennia.utils.utils import (
     dbref,
@@ -14,9 +9,16 @@ from evennia.utils.utils import (
     variable_from_module,
 )
 
+from handlers import clothing, equipment, traits
+from server.conf import logger
+from utils.text import grammarize, wrap
+from world.characters import genders
+
 from .objects import ObjectParent
 
-_AT_SEARCH_RESULT = variable_from_module(*settings.SEARCH_AT_RESULT.rsplit(".", 1))
+_AT_SEARCH_RESULT = variable_from_module(
+    *settings.SEARCH_AT_RESULT.rsplit(".", 1)
+)
 
 
 class Entity(ObjectParent):
@@ -37,8 +39,12 @@ class Entity(ObjectParent):
         # Scores
         self.stats.add("strength", "Strength", trait_type="static", base=10)
         self.stats.add("dexterity", "Dexterity", trait_type="static", base=10)
-        self.stats.add("constitution", "Constitution", trait_type="static", base=10)
-        self.stats.add("intelligence", "Intelligence", trait_type="static", base=10)
+        self.stats.add(
+            "constitution", "Constitution", trait_type="static", base=10
+        )
+        self.stats.add(
+            "intelligence", "Intelligence", trait_type="static", base=10
+        )
         self.stats.add("wisdom", "Wisdom", trait_type="static", base=10)
         self.stats.add("charisma", "Charisma", trait_type="static", base=10)
 
@@ -238,7 +244,9 @@ class Entity(ObjectParent):
         def format_receivers(self, receiver, receivers, type):
             """Format the receivers' list into a readable string."""
             if type == "self":
-                display_names = [recv.get_display_name(self) for recv in receivers]
+                display_names = [
+                    recv.get_display_name(self) for recv in receivers
+                ]
             elif type == "receiver":
                 display_names = [
                     (
@@ -249,7 +257,9 @@ class Entity(ObjectParent):
                     for character in receivers
                 ]
             else:
-                display_names = [recv.get_display_name(receiver) for recv in receivers]
+                display_names = [
+                    recv.get_display_name(receiver) for recv in receivers
+                ]
 
             if len(display_names) > 2:
                 return (
@@ -264,14 +274,22 @@ class Entity(ObjectParent):
             return ""
 
         def construct_self_message(
-            self, receivers, location, message, msg_self, msg_type, custom_mapping
+            self,
+            receivers,
+            location,
+            message,
+            msg_self,
+            msg_type,
+            custom_mapping,
         ):
             all_receivers = format_receivers(self, self, receivers, "self")
             self_mapping = {
                 "self": "You",
                 "to": " to " if receivers else "",
                 "object": self.get_display_name(self),
-                "location": location.get_display_name(self) if location else None,
+                "location": location.get_display_name(self)
+                if location
+                else None,
                 "receiver": None,
                 "all_receivers": all_receivers,
                 "speech": message,
@@ -288,13 +306,17 @@ class Entity(ObjectParent):
             self, receivers, location, message, msg_receivers, msg_type
         ):
             for receiver in receivers:
-                all_receivers = format_receivers(self, receiver, receivers, "receiver")
+                all_receivers = format_receivers(
+                    self, receiver, receivers, "receiver"
+                )
                 receiver_mapping = {
                     "self": "You",
                     "to": " to " if receivers else "",
                     "object": self.get_display_name(receiver),
                     "location": (
-                        location.get_display_name(receiver) if location else None
+                        location.get_display_name(receiver)
+                        if location
+                        else None
                     ),
                     "receiver": None,
                     "all_receivers": all_receivers,
@@ -378,7 +400,13 @@ class Entity(ObjectParent):
             location = None
         if msg_self:
             construct_self_message(
-                self, receivers, location, message, msg_self, msg_type, custom_mapping
+                self,
+                receivers,
+                location,
+                message,
+                msg_self,
+                msg_type,
+                custom_mapping,
             )
         if receivers and msg_receivers:
             construct_receiver_messages(
@@ -395,7 +423,9 @@ class Entity(ObjectParent):
                 custom_mapping,
             )
 
-    def msg(self, text=None, from_obj=None, session=None, options=None, **kwargs):
+    def msg(
+        self, text=None, from_obj=None, session=None, options=None, **kwargs
+    ):
         """
         Emits something to a session attached to the object.
 
@@ -460,7 +490,9 @@ class Entity(ObjectParent):
                 msg = text[0]
                 pre_text = msg.split('"')[0] + '"'
                 msg = '"'.join(msg.split('"')[1:])
-                msg = wrap(msg, text_width=kwargs.get("width", None), pre_text=pre_text)
+                msg = wrap(
+                    msg, text_width=kwargs.get("width", None), pre_text=pre_text
+                )
                 text = msg
             kwargs["text"] = text
 
@@ -469,10 +501,7 @@ class Entity(ObjectParent):
         for session in sessions:
             session.data_out(**kwargs)
 
-        if not self.account:
-            return
-
-        for watcher in self.account.ndb._watchers or []:
+        for watcher in self.ndb._watchers or []:
             if kwargs.get("text", None):
                 watcher.msg(text=kwargs["text"])
 
@@ -542,7 +571,9 @@ class Entity(ObjectParent):
 
         def _filter_visible(obj_list):
             return [
-                obj for obj in obj_list if obj != looker and obj.access(looker, "view")
+                obj
+                for obj in obj_list
+                if obj != looker and obj.access(looker, "view")
             ]
 
         equipment = _filter_visible(self.equipment.all())
@@ -551,7 +582,9 @@ class Entity(ObjectParent):
 
         string = "|wEquipment:|n"
         max_position = (
-            max([len(item.position) for item in equipment]) + 8 if equipment else 0
+            max([len(item.position) for item in equipment]) + 8
+            if equipment
+            else 0
         )
 
         for item in equipment:
@@ -575,7 +608,9 @@ class Entity(ObjectParent):
 
         def _filter_visible(obj_list):
             return [
-                obj for obj in obj_list if obj != looker and obj.access(looker, "view")
+                obj
+                for obj in obj_list
+                if obj != looker and obj.access(looker, "view")
             ]
 
         clothing = _filter_visible(self.clothing.all())
@@ -584,7 +619,9 @@ class Entity(ObjectParent):
 
         string = "|wClothing:|n"
         max_position = (
-            max([len(item.position) for item in clothing]) + 8 if clothing else 0
+            max([len(item.position) for item in clothing]) + 8
+            if clothing
+            else 0
         )
 
         for item in clothing:
@@ -592,9 +629,7 @@ class Entity(ObjectParent):
             if item.covered_by and looker is not self:
                 continue
 
-            line = (
-                f" |x<worn {item.position}>|n{spaces} {item.get_display_name(looker)}"
-            )
+            line = f" |x<worn {item.position}>|n{spaces} {item.get_display_name(looker)}"
             if item.covered_by:
                 line += " |x(hidden)|n"
             string += f"\n{line}"
@@ -711,7 +746,9 @@ class Entity(ObjectParent):
         }
 
         # replace incoming searchdata string with a potentially modified version
-        searchdata = self.get_search_query_replacement(searchdata, **input_kwargs)
+        searchdata = self.get_search_query_replacement(
+            searchdata, **input_kwargs
+        )
 
         # handle special input strings, like "me" or "here".
         should_return, searchdata = self.get_search_direct_match(
@@ -754,7 +791,9 @@ class Entity(ObjectParent):
         # filter out objects we are not allowed to search
         if use_locks:
             results = [
-                x for x in list(results) if x.access(self, "search", default=True)
+                x
+                for x in list(results)
+                if x.access(self, "search", default=True)
             ]
 
         # handle stacked objects

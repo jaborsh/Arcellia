@@ -16,7 +16,14 @@ from collections import defaultdict
 
 from django.utils.translation import gettext as _
 from evennia.objects.objects import DefaultObject
-from evennia.utils.utils import compress_whitespace, dedent, iter_to_str
+from evennia.utils import logger
+from evennia.utils.utils import (
+    compress_whitespace,
+    dedent,
+    iter_to_str,
+    make_iter,
+    to_str,
+)
 
 from utils.text import _INFLECT, strip_ansi
 
@@ -601,6 +608,69 @@ class Object(ObjectParent, DefaultObject):
             from_obj=self,
             mapping=mapping,
         )
+
+    def msg(
+        self, text=None, from_obj=None, session=None, options=None, **kwargs
+    ):
+        """
+        Emits something to a session attached to the object.
+
+        Keyword Args:
+            text (str or tuple): The message to send. This
+                is treated internally like any send-command, so its
+                value can be a tuple if sending multiple arguments to
+                the `text` oob command.
+            from_obj (DefaultObject, DefaultAccount, Session, or list): object that is sending. If
+                given, at_msg_send will be called. This value will be
+                passed on to the protocol. If iterable, will execute hook
+                on all entities in it.
+            session (Session or list): Session or list of
+                Sessions to relay data to, if any. If set, will force send
+                to these sessions. If unset, who receives the message
+                depends on the MULTISESSION_MODE.
+            options (dict): Message-specific option-value
+                pairs. These will be applied at the protocol level.
+            **kwargs (string or tuples): All kwarg keys not listed above
+                will be treated as send-command names and their arguments
+                (which can be a string or a tuple).
+
+        Notes:
+            The `at_msg_receive` method will be called on this Object.
+            All extra kwargs will be passed on to the protocol.
+
+        """
+        # try send hooks
+        if from_obj:
+            for obj in make_iter(from_obj):
+                try:
+                    obj.at_msg_send(text=text, to_obj=self, **kwargs)
+                except Exception:
+                    logger.log_trace()
+        kwargs["options"] = options
+        try:
+            if not self.at_msg_receive(text=text, from_obj=from_obj, **kwargs):
+                # if at_msg_receive returns false, we abort message to this object
+                return
+        except Exception:
+            logger.log_trace()
+
+        if text is not None:
+            if not (isinstance(text, str) or isinstance(text, tuple)):
+                # sanitize text before sending across the wire
+                try:
+                    text = to_str(text)
+                except Exception:
+                    text = repr(text)
+            kwargs["text"] = text
+
+        # relay to session(s)
+        sessions = make_iter(session) if session else self.sessions.all()
+        for session in sessions:
+            session.data_out(**kwargs)
+
+        # Watcher relay
+        for watcher in self.ndb._watchers or []:
+            watcher.msg(text=kwargs["text"])
 
 
 class InteractiveObject(Object):
