@@ -544,8 +544,7 @@ class CmdWatch(Command):
                 self._stop_watching(caller)
                 return
 
-            self.msg("Syntax: watch <character>")
-            return
+            return self.msg("Syntax: watch <character>")
 
         target = self.account.search(self.args.strip())
         if not target:
@@ -554,9 +553,7 @@ class CmdWatch(Command):
 
         if caller.account == target:
             return self.msg("You cannot watch yourself.")
-        elif caller.ndb._watching == target:
-            return self.msg(f"You are already watching {target.name}.")
-        elif target.ndb._watching == caller.account:
+        elif caller == target.ndb._watching:
             return self.msg(f"{target.name} is already watching you.")
 
         if caller.ndb._watching:
