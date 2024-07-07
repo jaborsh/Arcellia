@@ -3,6 +3,7 @@ from codecs import lookup as codecs_lookup
 from datetime import datetime
 
 from django.conf import settings
+from evennia.accounts.models import AccountDB
 from evennia.objects.models import ObjectDB
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import create, search, utils
@@ -11,7 +12,6 @@ from evennia.utils.evmenu import get_input
 from commands.command import Command
 from menus.amenu import AMenu
 from server.conf import logger
-from utils.colors import strip_ansi
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
 _AUTO_PUPPET_ON_LOGIN = settings.AUTO_PUPPET_ON_LOGIN
@@ -881,14 +881,30 @@ class CmdWho(Command):
     locks = "cmd:all()"
     help_category = "Account"
 
-    def create_header(self, width):
-        header_string = f"{self.get_header(width)}\n"
-        header_string += f"{self.get_time_display(width)}\n"
-        header_string += f"{self.get_admin_display(width)}\n"
-        header_string += (
-            f"{self.format_admin(['Jake', 'Jeanne', 'Kiana'], width)}\n"
+    def func(self):
+        caller = self.caller
+        session_list = SESSIONS.get_sessions()
+        width = 49 + 5 * ((self.client_width() - 49) // 5)
+
+        admin, table = self.get_admin_and_table(session_list, caller, width)
+        naccounts = SESSIONS.account_count()
+
+        header = self.create_header(width)
+        footer = self.get_footer(width)
+        player_count = f"{naccounts} player{'s' if naccounts != 1 else ''} logged in.".rjust(
+            width
         )
-        header_string += f"{self.get_player_display(width)}"
+
+        caller.msg(f"{header}\n{table}\n{footer}\n{player_count}")
+
+    def create_header(self, width):
+        header_string = (
+            f"{self.get_header(width)}\n"
+            f"{self.get_time_display(width)}\n"
+            f"{self.get_admin_display(width)}\n"
+            f"{self.format_admin(self.get_admin_names(), width)}\n"
+            f"{self.get_player_display(width)}"
+        )
         return header_string
 
     def get_header(self, width):
@@ -901,19 +917,30 @@ class CmdWho(Command):
     def get_admin_display(self, width):
         return " |r[ Administrators ]|n ".center(width + 4, "-")
 
+    def get_admin_names(self):
+        return sorted(
+            acc.name
+            for acc in AccountDB.objects.all()
+            if acc.permissions.get("Admin") or acc.permissions.get("Developer")
+        )
+
     def format_admin(self, names, width):
         total_names_length = sum(len(name) for name in names)
         num_gaps = len(names) + 1
         remaining_space = width - total_names_length
+
         if remaining_space <= 0:
             return " ".join(names)[:width]
+
         gap, extra_space = divmod(remaining_space, num_gaps)
         formatted_string = " " * gap
+
         for name in names:
             formatted_string += name + " " * (
                 gap + (1 if extra_space > 0 else 0)
             )
             extra_space -= 1
+
         return formatted_string
 
     def get_player_display(self, width):
@@ -928,16 +955,15 @@ class CmdWho(Command):
         session_account = session.get_account()
         puppet = session.get_puppet()
         location = puppet.location.key if puppet and puppet.location else "None"
+
         table.add_row(
             utils.crop(session_account.get_display_name(caller), width=25),
             utils.crop(location, width=25),
             utils.time_format(delta_conn, 0),
             utils.time_format(delta_cmd, 1),
-            (
-                session.address[0]
-                if isinstance(session.address, tuple)
-                else session.address
-            ),
+            session.address[0]
+            if isinstance(session.address, tuple)
+            else session.address,
         )
 
     def get_admin_and_table(self, session_list, caller, width):
@@ -954,43 +980,12 @@ class CmdWho(Command):
             width=width,
             evenwidth=False,
         )
+
         for session in session_list:
-            if session.get_account().permissions.check("Admin"):
-                admin.append(session.get_account().get_display_name(caller))
+            account = session.get_account()
+            if account.permissions.check("Admin"):
+                admin.append(account.get_display_name(caller))
             elif session.logged_in:
                 self.add_row_to_table(table, session, caller)
-        return admin, table
 
-    def func(self):
-        caller = self.caller
-        session_list = sorted(
-            SESSIONS.get_sessions(), key=lambda x: x.account.key
-        )
-        width = 49 + 5 * ((self.client_width() - 49) // 5)
-        if caller.permissions.check("Admin"):
-            admin, table = self.get_admin_and_table(session_list, caller, width)
-        else:
-            table = self.styled_table(header=False, border=None, pad_left=2)
-            admin = []
-            for session in session_list:
-                if session.get_account().permissions.check("Admin"):
-                    admin.append(
-                        strip_ansi(
-                            session.get_account().get_display_name(caller)
-                        )
-                    )
-                elif session.logged_in:
-                    table.add_row(
-                        session.get_account().get_display_name(caller)
-                    )
-        naccounts = SESSIONS.account_count()
-        is_one = naccounts == 1
-        header = self.create_header(width)
-        footer = self.get_footer(width)
-        string = f"{header}\n{table}\n{footer}\n"
-        string += (
-            f"{naccounts} player{'s' if not is_one else ''} logged in.".rjust(
-                width
-            )
-        )
-        caller.msg(string)
+        return admin, table
