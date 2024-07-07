@@ -883,11 +883,19 @@ class CmdWho(Command):
 
     def func(self):
         caller = self.caller
-        session_list = SESSIONS.get_sessions()
+        session_list = [
+            sess for sess in SESSIONS.get_sessions() if sess.get_puppet()
+        ]
         width = 49 + 5 * ((self.client_width() - 49) // 5)
 
-        admin, table = self.get_admin_and_table(session_list, caller, width)
-        naccounts = SESSIONS.account_count()
+        if self.account.permissions.check("Admin"):
+            admin, table = self.get_admin_and_table(session_list, caller, width)
+        else:
+            admin, table = self.get_admin_and_player_table(
+                session_list, caller, width
+            )
+
+        naccounts = SESSIONS.account_count() - len(admin)
 
         header = self.create_header(width)
         footer = self.get_footer(width)
@@ -981,11 +989,36 @@ class CmdWho(Command):
             evenwidth=False,
         )
 
+        session_list = sorted(session_list, key=lambda x: x.get_puppet().name)
         for session in session_list:
             account = session.get_account()
             if account.permissions.check("Admin"):
                 admin.append(account.get_display_name(caller))
             elif session.logged_in:
                 self.add_row_to_table(table, session, caller)
+
+        return admin, table
+
+    def get_admin_and_player_table(self, session_list, caller, width):
+        admin = []
+        table = self.styled_table(
+            header=True,
+            border="header",
+            pad_left=2,
+            width=width,
+            evenwidth=False,
+        )
+
+        session_list = sorted(session_list, key=lambda x: x.get_puppet().name)
+        for session in session_list:
+            account = session.get_account()
+            if account.permissions.check("Admin"):
+                admin.append(account.get_display_name(caller))
+            elif session.logged_in:
+                table.add_row(
+                    utils.crop(
+                        session.get_puppet().get_display_name(caller), width=25
+                    )
+                )
 
         return admin, table
