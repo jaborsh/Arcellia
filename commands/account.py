@@ -3,15 +3,15 @@ from codecs import lookup as codecs_lookup
 from datetime import datetime
 
 from django.conf import settings
-from menus.amenu import AMenu
-from server.conf import logger
-from utils.colors import strip_ansi
-
-from commands.command import Command
 from evennia.objects.models import ObjectDB
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import create, search, utils
 from evennia.utils.evmenu import get_input
+
+from commands.command import Command
+from menus.amenu import AMenu
+from server.conf import logger
+from utils.colors import strip_ansi
 
 _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
 _AUTO_PUPPET_ON_LOGIN = settings.AUTO_PUPPET_ON_LOGIN
@@ -123,9 +123,13 @@ class CmdCreate(Command):
             try:
                 account.puppet_object(session, new_character)
                 account.db._last_puppet = new_character
-                logger.log_sec(f"{new_character} enters the game (Account: {account}).")
+                logger.log_sec(
+                    f"{new_character} enters the game (Account: {account})."
+                )
             except RuntimeError as error:
-                self.msg(f"|rYou cannot become |C{new_character.name}|n: {error}")
+                self.msg(
+                    f"|rYou cannot become |C{new_character.name}|n: {error}"
+                )
                 logger.log_sec(
                     f"{new_character} fails to enter the game (Account: {account})."
                 )
@@ -208,7 +212,9 @@ class CmdDelete(Command):
 
             key = char_to_delete.key
             account.db._playable_characters = [
-                pc for pc in account.db._playable_characters if pc != char_to_delete
+                pc
+                for pc in account.db._playable_characters
+                if pc != char_to_delete
             ]
             char_to_delete.delete()
             self.msg(f"Character '|w{key}|n' permanently deleted.")
@@ -251,7 +257,11 @@ class CmdDisconnect(Command):
             self.msg("\n|GYou go OOC.|n\n")
             logger.log_sec(f"{old_char} exits the game (Account: {account}).")
 
-            if _AUTO_PUPPET_ON_LOGIN and _MAX_NR_CHARACTERS == 1 and self.playable:
+            if (
+                _AUTO_PUPPET_ON_LOGIN
+                and _MAX_NR_CHARACTERS == 1
+                and self.playable
+            ):
                 self.msg(
                     "You are out-of-character (OOC).\n"
                     "Use |wconnect|n to get back into the game."
@@ -261,7 +271,9 @@ class CmdDisconnect(Command):
 
         except RuntimeError as exc:
             self.msg(f"|rCould not unpuppet from |c{old_char}|n: {exc}")
-            logger.log_sec(f"{old_char} fails to exit the game (Account: {account}).")
+            logger.log_sec(
+                f"{old_char} fails to exit the game (Account: {account})."
+            )
 
 
 class CmdOOCLook(Command):
@@ -301,7 +313,9 @@ class CmdOOCLook(Command):
             )
             return
 
-        self.msg(self.account.at_look(account=self.playable, session=self.session))
+        self.msg(
+            self.account.at_look(account=self.playable, session=self.session)
+        )
 
 
 class CmdOptions(Command):
@@ -374,7 +388,11 @@ class CmdOptions(Command):
                     )
             options.pop("TTYPE", None)
 
-            header = ("Name", "Value", "Saved") if saved_options else ("Name", "Value")
+            header = (
+                ("Name", "Value", "Saved")
+                if saved_options
+                else ("Name", "Value")
+            )
             table = self.styled_table(*header)
             for key in sorted(options):
                 row = [key, options[key]]
@@ -382,12 +400,15 @@ class CmdOptions(Command):
                     saved = " |YYes|n" if key in saved_options else ""
                     changed = (
                         "|y*|n"
-                        if key in saved_options and flags[key] != saved_options[key]
+                        if key in saved_options
+                        and flags[key] != saved_options[key]
                         else ""
                     )
                     row.append("%s%s" % (saved, changed))
                 table.add_row(*row)
-            self.msg(f"|wClient settings ({self.session.protocol_key}):|n\n{table}|n")
+            self.msg(
+                f"|wClient settings ({self.session.protocol_key}):|n\n{table}|n"
+            )
 
             return
 
@@ -402,7 +423,9 @@ class CmdOptions(Command):
             try:
                 codecs_lookup(new_encoding)
             except LookupError:
-                raise RuntimeError(f"The encoding '|w{new_encoding}|n' is invalid. ")
+                raise RuntimeError(
+                    f"The encoding '|w{new_encoding}|n' is invalid. "
+                )
             return val
 
         def validate_size(new_size):
@@ -417,7 +440,9 @@ class CmdOptions(Command):
                 old_val = flags.get(new_name, False)
                 new_val = validator(new_val)
                 if old_val == new_val:
-                    self.msg(f"Option |w{new_name}|n was kept as '|w{old_val}|n'.")
+                    self.msg(
+                        f"Option |w{new_name}|n was kept as '|w{old_val}|n'."
+                    )
                 else:
                     flags[new_name] = new_val
                     self.msg(
@@ -466,15 +491,17 @@ class CmdOptions(Command):
                     "_saved_protocol_flags", default={}
                 )
                 saved_options.update(optiondict)
-                self.account.attributes.add("_saved_protocol_flags", saved_options)
+                self.account.attributes.add(
+                    "_saved_protocol_flags", saved_options
+                )
                 for key in optiondict:
                     self.msg(f"|gSaved option {key}.|n")
             if "clear" in self.switches:
                 # clear this save
                 for key in optiondict:
-                    self.account.attributes.get("_saved_protocol_flags", {}).pop(
-                        key, None
-                    )
+                    self.account.attributes.get(
+                        "_saved_protocol_flags", {}
+                    ).pop(key, None)
                     self.msg(f"|gCleared saved {key}.")
             self.session.update_flags(**optiondict)
 
@@ -524,14 +551,18 @@ class CmdPassword(Command):
 
             validated, error = account.validate_password(newpass)
             if not validated:
-                errors = [e for suberror in error.messages for e in error.messages]
+                errors = [
+                    e for suberror in error.messages for e in error.messages
+                ]
                 self.msg("\n".join(errors))
                 return
 
             account.set_password(newpass)
             account.save()
             self.msg("Password changed.")
-            logger.log_sec(f"Password Changed: {account} (IP: {self.session.address}).")
+            logger.log_sec(
+                f"Password Changed: {account} (IP: {self.session.address})."
+            )
 
         yield from change_password()
 
@@ -637,7 +668,9 @@ class CmdPlay(Command):
                 account, account.db._last_puppet.key
             )
         else:
-            character_candidates = self.get_character_candidates(account, self.args)
+            character_candidates = self.get_character_candidates(
+                account, self.args
+            )
             if not character_candidates:
                 self.msg("That is not a valid character choice.")
                 return
@@ -647,7 +680,9 @@ class CmdPlay(Command):
         try:
             account.puppet_object(session, new_character)
             account.db._last_puppet = new_character
-            logger.log_sec(f"{new_character} enters the game (Account: {account}).")
+            logger.log_sec(
+                f"{new_character} enters the game (Account: {account})."
+            )
         except RuntimeError as exc:
             self.msg(f"|rYou cannot become |C{new_character.name}|n: {exc}")
             logger.log_sec(
@@ -692,7 +727,8 @@ class CmdQuit(Command):
     def quit_all_sessions(self, account, session):
         """Quit all sessions"""
         account.msg(
-            "|RQuitting|n all sessions. Hope to see you soon again.", session=session
+            "|RQuitting|n all sessions. Hope to see you soon again.",
+            session=session,
         )
         reason = "quit/all"
         for session in account.sessions.all():
@@ -736,12 +772,20 @@ class CmdSessions(Command):
         sessions = sorted(account.sessions.all(), key=lambda x: x.sessid)
 
         table = self.styled_table(
-            "|wsessid", "|wprotocol", "|whost", "|wpuppet/character", "|wlocation"
+            "|wsessid",
+            "|wprotocol",
+            "|whost",
+            "|wpuppet/character",
+            "|wlocation",
         )
 
         for sess in sessions:
             char = account.get_puppet(sess)
-            host = sess.address[0] if isinstance(sess.address, tuple) else sess.address
+            host = (
+                sess.address[0]
+                if isinstance(sess.address, tuple)
+                else sess.address
+            )
 
             table.add_row(
                 str(sess.sessid),
@@ -815,7 +859,9 @@ class CmdSetMain(Command):
             return
 
         if len(character) > 1:
-            character_list = ", ".join(f"{obj.key}(#{obj.id})" for obj in character)
+            character_list = ", ".join(
+                f"{obj.key}(#{obj.id})" for obj in character
+            )
             self.msg(f"Multiple targets with the same name:\n {character_list}")
             return
 
@@ -839,7 +885,9 @@ class CmdWho(Command):
         header_string = f"{self.get_header(width)}\n"
         header_string += f"{self.get_time_display(width)}\n"
         header_string += f"{self.get_admin_display(width)}\n"
-        header_string += f"{self.format_admin(['Jake'], width)}\n"
+        header_string += (
+            f"{self.format_admin(['Jake', 'Jeanne', 'Kiana'], width)}\n"
+        )
         header_string += f"{self.get_player_display(width)}"
         return header_string
 
@@ -862,7 +910,9 @@ class CmdWho(Command):
         gap, extra_space = divmod(remaining_space, num_gaps)
         formatted_string = " " * gap
         for name in names:
-            formatted_string += name + " " * (gap + (1 if extra_space > 0 else 0))
+            formatted_string += name + " " * (
+                gap + (1 if extra_space > 0 else 0)
+            )
             extra_space -= 1
         return formatted_string
 
@@ -913,7 +963,9 @@ class CmdWho(Command):
 
     def func(self):
         caller = self.caller
-        session_list = sorted(SESSIONS.get_sessions(), key=lambda x: x.account.key)
+        session_list = sorted(
+            SESSIONS.get_sessions(), key=lambda x: x.account.key
+        )
         width = 49 + 5 * ((self.client_width() - 49) // 5)
         if caller.permissions.check("Admin"):
             admin, table = self.get_admin_and_table(session_list, caller, width)
@@ -923,16 +975,22 @@ class CmdWho(Command):
             for session in session_list:
                 if session.get_account().permissions.check("Admin"):
                     admin.append(
-                        strip_ansi(session.get_account().get_display_name(caller))
+                        strip_ansi(
+                            session.get_account().get_display_name(caller)
+                        )
                     )
                 elif session.logged_in:
-                    table.add_row(session.get_account().get_display_name(caller))
+                    table.add_row(
+                        session.get_account().get_display_name(caller)
+                    )
         naccounts = SESSIONS.account_count()
         is_one = naccounts == 1
         header = self.create_header(width)
         footer = self.get_footer(width)
         string = f"{header}\n{table}\n{footer}\n"
-        string += f"{naccounts} player{'s' if not is_one else ''} logged in.".rjust(
-            width
+        string += (
+            f"{naccounts} player{'s' if not is_one else ''} logged in.".rjust(
+                width
+            )
         )
         caller.msg(string)
