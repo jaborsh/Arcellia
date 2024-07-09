@@ -11,10 +11,6 @@ from world.characters import (
 )
 from world.xyzgrid.xyzroom import XYZRoom
 
-_BACKGROUND_INFO_DICT = backgrounds.BACKGROUND_INFO_DICT
-
-_CLASS_INFO_DICT = classes.CLASS_INFO_DICT
-
 _GENDER_INFO_DICT = genders.GENDER_INFO_DICT
 
 _RACE_INFO_DICT = races.RACE_INFO_DICT
@@ -35,7 +31,7 @@ def chargen_welcome(caller):
 
         An endless expanse of primordial soup, thicker than molasses and blacker than black. Your excuse for a soul is nothing more than a speck, a mote, an infinitesimal crumb of half-formed thought bobbing around in this cosmic stew.
 
-        This is it, kiddo. The big nothing. The grand finale. The ultimate \"Screw you!\" to existence itself.
+        This is it, kiddo. The big nothing. The grand finale. The ultimate \"Fuck you!\" to existence itself.
 
         |CDo you use a screenreader?|n
         """
@@ -52,96 +48,70 @@ def chargen_welcome(caller):
 
 
 def chargen_gender(caller, raw_string, **kwargs):
-    def _set_gender(caller):
-        selected_gender = kwargs.get("selected_gender", None)
-        if selected_gender == "male":
-            caller.traits.add(
-                "gender",
-                "Gender",
-                value=genders.Gender.MALE,
-            )
-        elif selected_gender == "female":
-            caller.traits.add("gender", "Gender", value=genders.Gender.FEMALE)
-        elif selected_gender == "androgynous":
-            caller.traits.add("gender", "Gender", value=genders.Gender.ANDROGYNOUS)
-        else:
-            return "chargen_welcome"
-
+    def _set_gender(caller, **kwargs):
+        print(kwargs.get('gender'))
+        caller.traits.add(
+            "gender",
+            "Gender",
+            value=kwargs.get('gender')
+        )
+        
         return "chargen_race"
 
-    if selected_gender := kwargs.get("selected_gender", None):
-        text = _GENDER_INFO_DICT[selected_gender] + "\n\n|CConfirm your Gender|n:"
-        options = (
-            {"key": "", "goto": "chargen_welcome"},
-            {
-                "key": ("y", "yes"),
-                "desc": f"Confirm {selected_gender.capitalize()}",
-                "goto": (_set_gender, {"selected_gender": selected_gender}),
-            },
-            {
-                "key": ("n", "no"),
-                "desc": "Return to Gender Selection",
-                "goto": ("chargen_gender", {"selected_gender": None}),
-            },
-        )
+    text = dedent(
+        """\
+        Look who's decided to start existing again. Typical. You just had to go and remember you're someone, didn't you?
 
-    else:
-        text = dedent(
-            """\
-            Look who's decided to start existing again. Typical. You just had to go and remember you're someone, didn't you?
+        Alright, meat puppet, time to choose your flesh prison. What'll it be? The old Adam's apple and dangly bits combo? Or perhaps you'd prefer the estrogen-fueled emotional whirlwind? Oh, and if you're indecisive, there's always door number three: the androgynous special, perfect for those who like to keep the world guessing.
 
-            Alright, meat puppet, time to choose your flesh prison. What'll it be? The old Adam's apple and dangly bits combo? Or perhaps you'd prefer the estrogen-fueled emotional whirlwind? Oh, and if you're indecisive, there's always door number three: the androgynous special, perfect for those who like to keep the world guessing.
+        |CSo what's it going to be, baby?|n
+        """
+    )  # noqa: E501
 
-            So what's it going to be, baby? Male, female, or that sweet spot in between? Remember, whichever meat suit you choose, it comes fully equipped with the capacity for pain, regret, and the occasional bodily function.
-
-            |CSelect your Gender|n:
-            """
-        )  # noqa: E501
-
-        options = (
-            {"key": "", "goto": "chargen_welcome"},
-            {
-                "key": ("1", "male", "m"),
-                "desc": "Male",
-                "goto": ("chargen_gender", {"selected_gender": "male"}),
-            },
-            {
-                "key": ("2", "female", "f"),
-                "desc": "Female",
-                "goto": ("chargen_gender", {"selected_gender": "female"}),
-            },
-            {
-                "key": ("3", "androgynous", "a"),
-                "desc": "Androgynous",
-                "goto": ("chargen_gender", {"selected_gender": "androgynous"}),
-            },
-            {"key": "_default", "goto": "chargen_gender"},
-        )
+    options = (
+        {"key": "", "goto": "chargen_welcome"},
+        {
+            "key": ("1", "male", "m"),
+            "desc": "Male",
+            "goto": (_set_gender, {"gender": genders.Gender.MALE}),
+        },
+        {
+            "key": ("2", "female", "f"),
+            "desc": "Female",
+            "goto": (_set_gender, {"gender": genders.Gender.FEMALE}),
+        },
+        {
+            "key": ("3", "androgynous", "a"),
+            "desc": "Androgynous",
+            "goto": (_set_gender, {"gender": genders.Gender.ANDROGYNOUS}),
+        },
+        {"key": "_default", "goto": "chargen_gender"},
+    )
 
     return text, options
 
 
 def chargen_race(caller, raw_string, **kwargs):
     def _set_race(caller, **kwargs):
-        race = kwargs.get("selected_race", None)
-        subrace = kwargs.get("selected_subrace", None)
+        # race = kwargs.get("selected_race", None)
+        # subrace = kwargs.get("selected_subrace", None)
 
-        if not race:
-            caller.msg("An error occurred. Contact an administrator.")
-            return "chargen_welcome"
+        # if not race:
+        #     caller.msg("An error occurred. Contact an administrator.")
+        #     return "chargen_welcome"
 
-        if subrace:
-            race_type = f"{subrace} {race}"
-        else:
-            race_type = f"{race}"
+        # if subrace:
+        #     race_type = f"{subrace} {race}"
+        # else:
+        #     race_type = f"{race}"
 
-        race_type = races.RaceRegistry.get(race_type)
+        # race_type = races.RaceRegistry.get(race_type)
 
-        if not race_type:
-            caller.msg("An error occurred. Contact an administrator.")
-            return "chargen_welcome"
+        # if not race_type:
+        #     caller.msg("An error occurred. Contact an administrator.")
+        #     return "chargen_welcome"
 
-        caller.traits.add("race", "Race", value=race_type)
+        # caller.traits.add("race", "Race", value=race_type)
         return "chargen_finalize"
 
     selected_race = kwargs.get("selected_race", None)
@@ -188,9 +158,9 @@ def chargen_race(caller, raw_string, **kwargs):
             """
         )
 
-        if caller.gender == genders.Gender.MALE:
+        if caller.gender.value == genders.Gender.MALE:
             text = male_text
-        elif caller.gender == genders.Gender.FEMALE:
+        elif caller.gender.value == genders.Gender.FEMALE:
             text = female_text
         else:
             text = andro_text
@@ -257,6 +227,6 @@ def chargen_race(caller, raw_string, **kwargs):
 
 def chargen_finalize(caller, raw_string):
     caller.move_to(
-        XYZRoom.objects.get_xyz(xyz=("0", "4", "sunwreck_shores")), quiet=True
+        XYZRoom.objects.get_xyz(xyz=("4", "0", "sunwreck_shores")), quiet=True
     )
     return "", ""
