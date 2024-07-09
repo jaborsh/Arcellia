@@ -1,17 +1,11 @@
-from evennia.prototypes import spawner
 from evennia.utils import dedent
 
+from utils.text import _INFLECT
 from world.characters import (
     genders,
     races,
 )
 from world.xyzgrid.xyzroom import XYZRoom
-
-_GENDER_INFO_DICT = genders.GENDER_INFO_DICT
-
-_RACE_INFO_DICT = races.RACE_INFO_DICT
-
-_SUBRACE_INFO_DICT = races.SUBRACE_INFO_DICT
 
 
 def chargen_welcome(caller):
@@ -35,8 +29,16 @@ def chargen_welcome(caller):
 
     options = (
         {"key": "", "goto": "chargen_welcome"},
-        {"key": ("y", "yes"), "desc": "Enable Screenreader", "goto": _set_screenreader},
-        {"key": ("n", "no"), "desc": " Disable Screenreader", "goto": "chargen_gender"},
+        {
+            "key": ("y", "yes"),
+            "desc": "Enable Screenreader",
+            "goto": _set_screenreader,
+        },
+        {
+            "key": ("n", "no"),
+            "desc": " Disable Screenreader",
+            "goto": "chargen_gender",
+        },
         {"key": "_default", "goto": "chargen_welcome"},
     )
 
@@ -45,19 +47,14 @@ def chargen_welcome(caller):
 
 def chargen_gender(caller, raw_string, **kwargs):
     def _set_gender(caller, **kwargs):
-        caller.traits.add(
-            "gender",
-            "Gender",
-            value=kwargs.get('gender')
-        )
-        
+        caller.traits.add("gender", "Gender", value=kwargs.get("gender"))
         return "chargen_race"
 
     text = dedent(
         """\
-        Look who's decided to start existing again. Typical. You just had to go and remember you're someone, didn't you?
-
-        Alright, meat puppet, time to choose your flesh prison. What'll it be? The old Adam's apple and dangly bits combo? Or perhaps you'd prefer the estrogen-fueled emotional whirlwind? Oh, and if you're indecisive, there's always door number three: the androgynous special, perfect for those who like to keep the world guessing.
+        Look who's decided to crawl out of the void and play dress-up. Couldn't resist the siren call of existence, could you? Had to go and remember you're a someone.
+        
+        Fine, you glutton for punishment. Time to pick your flesh prison. What'll it be, sweetcheeks? The old Adam's apple and dangly bits combo? Maybe you'd prefer the estrogen-fueled emotional whirlwind complete with society's impossible expectations? If you're a true connoisseur of mischief, there's always door number three: androgynity. It's the gender equivalent of a shapeshifting illusion, a living question mark that scoffs at the binary.
 
         |CSo what's it going to be, baby?|n
         """
@@ -87,17 +84,89 @@ def chargen_gender(caller, raw_string, **kwargs):
 
 
 def chargen_race(caller, raw_string, **kwargs):
+    if caller.gender.value == genders.Gender.MALE:
+        text = genders.GENDER_INFO_DICT["male"]
+    elif caller.gender.value == genders.Gender.FEMALE:
+        text = genders.GENDER_INFO_DICT["female"]
+    else:
+        text = genders.GENDER_INFO_DICT["androgynous"]
+
+    options = (
+        {"key": "", "goto": "chargen_race"},
+        {
+            "key": ("1", "human"),
+            "desc": "Human",
+            "goto": (
+                "chargen_race_confirmation",
+                {"race": races.RaceRegistry.get("human")},
+            ),
+        },
+        {
+            "key": ("2", "elf"),
+            "desc": "Elf",
+            "goto": (
+                "chargen_race_confirmation",
+                {"race": races.RaceRegistry.get("elf")},
+            ),
+        },
+        {
+            "key": ("3", "drow"),
+            "desc": "Drow",
+            "goto": (
+                "chargen_race_confirmation",
+                {"race": races.RaceRegistry.get("drow")},
+            ),
+        },
+        {
+            "key": ("4", "halfling"),
+            "desc": "Halfling",
+            "goto": (
+                "chargen_race_confirmation",
+                {"race": races.RaceRegistry.get("halfling")},
+            ),
+        },
+        {
+            "key": ("5", "dwarf"),
+            "desc": "Dwarf",
+            "goto": (
+                "chargen_race_confirmation",
+                {"race": races.RaceRegistry.get("dwarf")},
+            ),
+        },
+        {
+            "key": ("6", "gnome"),
+            "desc": "Gnome",
+            "goto": (
+                "chargen_race_confirmation",
+                {"race": races.RaceRegistry.get("gnome")},
+            ),
+        },
+        {"key": "_default", "goto": "chargen_race"},
+    )
+
+    return text, options
+
+
+def chargen_race_confirmation(caller, raw_string, **kwargs):
     def _set_race(caller, **kwargs):
+        race = kwargs.get("race")
+        caller.traits.add("race", "Race", value=race)
         return "chargen_finalize"
 
-    if caller.gender.value == genders.Gender.MALE:
-        text = genders.GENDER_INFO_DICT['male']
-    elif caller.gender.value == genders.Gender.FEMALE:
-        text = genders.GENDER_INFO_DICT['female']
-    else:
-        text = genders.GENDER_INFO_DICT['androgynous']
+    race = kwargs.get("race")
+    text = (
+        races.RACE_INFO_DICT[race.key.lower()] + "\n\n"
+        f"|CWill you be {_INFLECT.a(race.key.lower())}|n?\n"
+    )
 
-    return text, ""
+    options = (
+        {"key": "", "goto": "chargen_race"},
+        {"key": ("y", "yes"), "desc": "Yes", "goto": (_set_race, kwargs)},
+        {"key": ("n", "no"), "desc": "No", "goto": "chargen_race"},
+        {"key": "_default", "goto": "chargen_race"},
+    )
+
+    return text, options
 
 
 def chargen_finalize(caller, raw_string):

@@ -58,6 +58,22 @@ class Entity(ObjectParent):
         self.stats.add("wealth", "Wealth", trait_type="counter", base=0)
 
     @lazy_property
+    def traits(self):
+        return traits.TraitHandler(self, db_attribute_key="traits")
+
+    @property
+    def gender(self):
+        return self.traits.get("gender")
+
+    @property
+    def cls(self):
+        return self.traits.get("cls")
+
+    @property
+    def race(self):
+        return self.traits.get("race")
+
+    @lazy_property
     def appearance(self):
         return traits.TraitHandler(self, db_attribute_key="appearance")
 
@@ -123,22 +139,6 @@ class Entity(ObjectParent):
     @property
     def wealth(self):
         return self.stats.get("wealth")
-
-    @lazy_property
-    def traits(self):
-        return traits.TraitHandler(self, db_attribute_key="traits")
-
-    @property
-    def gender(self):
-        return self.traits.get("gender")
-
-    @property
-    def cls(self):
-        return self.traits.get("cls")
-
-    @property
-    def race(self):
-        return self.traits.get("race")
 
     # Hooks
     def at_pre_emote(self, message, **kwargs):
