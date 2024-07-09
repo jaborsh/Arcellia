@@ -14,33 +14,29 @@ _RE_GENDER_PRONOUN = re.compile(r"(?<!\|)\|(?!\|)[sSoOpPaA]")
 GENDER_INFO_DICT = {
     "male": dedent(
         """
-        Decided to be a dangler, did you? Congratulations on your newfound ability to mansplain and manspread. Now, let's see what kind of suit you want to parade around in.
+        Decided to be a dangler, did you? Brave choice, considering the baggage that comes with it. Now let's pick your flavor of bipedal misery:
 
-        Will it be the boring old human model? Or perhaps you fancy yourself an elf, all pointy-eared and holier-than-thou? Maybe you're more of a stout little dwarf, with a beard full of ale foam and a chip on your shoulder? How about a gnome, small enough to hide from your problems but not your insecurities? Halfling, perhaps; perfect for second breakfasts and hairy feet fetishists? And let's not forget the orc option - nothing says \"I have anger issues\" quite like green skin and protruding tusks.
+        Will you be a plain old human, doomed to mediocrity and male-pattern baldness? Or perhaps an elf, eternally pretty but with the personality of a particularly dull tree? Maybe you're the edgy type - how about a dark elf, brooding in the shadows? Halfling, perhaps; perfect for second breakfasts and hairy feet fetishists. You might fancy the dwarven life: beard-grooming and ale-guzzling. If you're feeling particularly masochistic, gnomes are always mistaken for garden decor.
 
-        |CChoose wisely, meat sack.|n
+        |CChoose wisely, meat sack|n:
         """
     ),
     "female": dedent(
         """
         Ah, embracing the fairer sex. Get ready for a lifetime of being interrupted and explained to about your own experiences. Now, let's pick out your costume.
+        
+        Fancy being a human, forever chasing impossible beauty standards? An elf doomed to be the object of every nerd's fantasy? Dark elf more your speed, with a chip on your shoulder bigger than your bust size? A halfling has all the joys of being mistaken for a child with none of the innocence. Dwarves break all the stereotypes and can grow a magnificent beard. And gnomes are the perfect height for being overlooked and underestimated.
 
-        Fancy being a run-of-the-mill human? Or maybe an elf, so you can look down your nose at everyone for millennia? How about a dwarf; short, stout, and perpetually angry? Or a gnome; tiny, tinkering, and probably with a voice that could shatter class? A halfling has all the joys of being mistaken for a child with none of the innocence. Don't forget the nymph option - because nothing says \"Take me seriously!\" like being a living, breathing fantasy.
-
-        |CPick your poison, sister.|n
+        |CPick your poison, sister|n:
         """
     ),
     "androgynous": dedent(
         """
-        Ooh, playing it coy! Not picking a side? Well, let's see what kind of ambiguous meat suit you'd like to slip into.
+        Ooh, playing it coy! Refusing to be pinned down by society's binary nonsense. Fine, let's pick your flavor of ambiguity.
+        
+        How about human, forever explaining your pronouns? Elves are androgynous enough to make even the trees question their gender. Dark elf could be fun - nothing says "I contain multitudes" quite like permanent resting bitch face. Halfling's an option if you want to keep everyone guessing about your age, too. Dwarf could be interesting - not everyone with a beard is a man. Or go full gnome and really embrace the "what the hell are you?" lifestyle; nothing says "gender is a construct" quite like being mistaken for lawn ornaments. 
 
-        Will it be the utterly unremarkable human? Perhaps the elf, for when you want to be androgynous for several thousand years? Maybe the dwarf catches your fancy - compact, sturdy, and with a beard that's the envy of all genders.
-
-        How about a gnome? Small in stature but big on confusing everyone around you. Or a halfling, for when you want to be mistaken for a child of indeterminate gender. There's always the nymph option - nothing says \"gender is societal\" quite like being a living embodiment of nature's whimsy.
-
-        Don't forget the orc - because sometimes you just want to rage against the gender binary while also raging against everything else.
-
-        Choose your vessel, you beautiful enigma.
+        |CChoose your vessel, you beautiful enigma|n:
         """
     )
 }
