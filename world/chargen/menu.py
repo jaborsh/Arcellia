@@ -2,12 +2,8 @@ from evennia.prototypes import spawner
 from evennia.utils import dedent
 
 from world.characters import (
-    appearances,
-    backgrounds,
-    classes,
     genders,
     races,
-    score,
 )
 from world.xyzgrid.xyzroom import XYZRoom
 
