@@ -19,7 +19,7 @@ RACE_INFO_DICT = {
         
         Nature's spoiled brats, prancing around forests for millennia, acting all high and mighty. "Ooh, look at me. I'm immortal and in tune with the cosmos!" Bunch of salad-munching, poetry-spouting, arrow-shooting drama queens. Always going on about the stars and the trees and their precious balance.
         
-        And you, my long-lived leafy friend, you've got that unmistakable whiff of pine needles and pretentiousness about you. Betting you've spent a few centuries communing with squirrels and writing sappy ballads about moonlight, haven't you? You're a card-carrying member of the Eternal Priss Parade.
+        And you, my long-lived leafy friend, you've got that unmistakable whiff of pine needles and pretentiousness about you. Betting you've spent a few centuries communing with squirrels and writing sappy ballads about moonlight, haven't you?
         """
     ),
     "drow": dedent(

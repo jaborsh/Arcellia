@@ -155,7 +155,7 @@ def chargen_race_confirmation(caller, raw_string, **kwargs):
 
     race = kwargs.get("race")
     text = (
-        races.RACE_INFO_DICT[race.key.lower()] + "\n\n"
+        races.RACE_INFO_DICT[race.key.lower()] + "\n"
         f"|CWill you be {_INFLECT.a(race.key.lower())}|n?\n"
     )
 
