@@ -36,7 +36,7 @@ GENDER_INFO_DICT = {
         
         How about human, forever explaining your pronouns? Elves are androgynous enough to make even the trees question their gender. Dark elf could be fun - nothing says "I contain multitudes" quite like permanent resting bitch face. Halfling's an option if you want to keep everyone guessing about your age, too. Dwarf could be interesting - not everyone with a beard is a man. Or go full gnome and really embrace the "what the hell are you?" lifestyle; nothing says "gender is a construct" quite like being mistaken for lawn ornaments. 
 
-        |CChoose your vessel, you beautiful enigma|n:
+        |CChoose your vessel|n:
         """
     )
 }

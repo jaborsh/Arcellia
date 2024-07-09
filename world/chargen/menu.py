@@ -61,7 +61,7 @@ def chargen_gender(caller, raw_string, **kwargs):
 
         |CSo what's it going to be, baby?|n
         """
-    )  # noqa: E501
+    )
 
     options = (
         {"key": "", "goto": "chargen_welcome"},
