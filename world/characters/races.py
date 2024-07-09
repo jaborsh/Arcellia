@@ -62,37 +62,58 @@ RACE_INFO_DICT = {
 
 
 class Race:
-    pass
+    key = "race"
+
+    def initialize_race_features(self):
+        pass
 
 
 @RaceRegistry.register
 class Human(Race):
     key = "human"
 
+    def initialize_race_features(self):
+        pass
+
 
 @RaceRegistry.register
 class Elf(Race):
     key = "elf"
+
+    def initialize_race_features(self):
+        pass
 
 
 @RaceRegistry.register
 class Drow(Race):
     key = "drow"
 
+    def initialize_race_features(self):
+        pass
+
 
 @RaceRegistry.register
 class Halfling(Race):
     key = "halfling"
+
+    def initialize_race_features(self):
+        pass
 
 
 @RaceRegistry.register
 class Dwarf(Race):
     key = "dwarf"
 
+    def initialize_race_features(self):
+        pass
+
 
 @RaceRegistry.register
 class Gnome(Race):
     key = "gnome"
+
+    def initialize_race_features(self):
+        pass
 
 
 # Mob Races
