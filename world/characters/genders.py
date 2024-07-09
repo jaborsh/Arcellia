@@ -32,7 +32,7 @@ GENDER_INFO_DICT = {
     ),
     "androgynous": dedent(
         """
-        Ooh, playing it coy! Not picking a side? How very... indecisive of you. Well, let's see what kind of ambiguous meat suit you'd like to slip into.
+        Ooh, playing it coy! Not picking a side? Well, let's see what kind of ambiguous meat suit you'd like to slip into.
 
         Will it be the utterly unremarkable human? Perhaps the elf, for when you want to be androgynous for several thousand years? Maybe the dwarf catches your fancy - compact, sturdy, and with a beard that's the envy of all genders.
 
