@@ -1,6 +1,14 @@
 from evennia.prototypes import spawner
 from evennia.utils import dedent
-from world.characters import appearances, backgrounds, classes, genders, races, score
+
+from world.characters import (
+    appearances,
+    backgrounds,
+    classes,
+    genders,
+    races,
+    score,
+)
 from world.xyzgrid.xyzroom import XYZRoom
 
 _BACKGROUND_INFO_DICT = backgrounds.BACKGROUND_INFO_DICT
@@ -23,7 +31,11 @@ def chargen_welcome(caller):
 
     text = dedent(
         """\
-        Enveloped in a cocoon of primordial blackness, warmth wraps around the tiny essence of being, a lone conscience no more significant than a grain of malt in an endless expanse of darkness. It floats in this tranquil void, beyond the realms of obligation, where time and duty dissolve into an eternal, serene abyss. Thought and action meld into the nothingness; here one finds peace in the still, comforting promise of an existence unburdened by the need to do, to be, to strive - forevermore in an endless canvas of never ever.
+        Ah, sweet oblivion! Here you are, floating in the vast nothingness of pre-existence. It's a cozy little void, isn't it? Warm, dark, and utterly devoid of all that pesky |y*meaning*|n people lug about.
+
+        An endless expanse of primordial soup, thicker than molasses and blacker than black. Your excuse for a soul is nothing more than a speck, a mote, an infinitesimal crumb of half-formed thought bobbing around in this cosmic stew.
+
+        This is it, kiddo. The big nothing. The grand finale. The ultimate \"Screw you!\" to existence itself.
 
         |CDo you use a screenreader?|n
         """
@@ -76,9 +88,11 @@ def chargen_gender(caller, raw_string, **kwargs):
     else:
         text = dedent(
             """\
-            As immeasurable time drifts by, untouched by the suffocating grasp of struggle, existence remains unfathomably tranquil. But in the midst of this hushed eternity, a whisper of consciousness begins to stir. Somewhere just beyond perception, shrouded in the unseen recesses of this void, a presence makes itself known. It festers, submerged in a vile, caustic broth that seeps into the edges of awareness. This entity envelops the serene conscience, injecting a sense of disquiet into the calm that once reigned.
+            Look who's decided to start existing again. Typical. You just had to go and remember you're someone, didn't you?
 
-            All at once, as if gasping for breath from beneath an ocean of nothingness, there is light and form upon the horizon. The chance to become, to be, to exist, dwells solely within your heart.
+            Alright, meat puppet, time to choose your flesh prison. What'll it be? The old Adam's apple and dangly bits combo? Or perhaps you'd prefer the estrogen-fueled emotional whirlwind? Oh, and if you're indecisive, there's always door number three: the androgynous special, perfect for those who like to keep the world guessing.
+
+            So what's it going to be, baby? Male, female, or that sweet spot in between? Remember, whichever meat suit you choose, it comes fully equipped with the capacity for pain, regret, and the occasional bodily function.
 
             |CSelect your Gender|n:
             """
@@ -138,17 +152,43 @@ def chargen_race(caller, raw_string, **kwargs):
     elif selected_race:
         text = _RACE_INFO_DICT[selected_race] + "\n"
     else:
-        text = dedent(
+        male_text = dedent(
             """
-            A notion unfurls within the stillness, one you might rather remain oblivious to. Consider the reason behind this self-imposed exile into nothingness. Perhaps there's a part of you, marinated in the excesses of your own actions, that recoils from such revelations. In eagerness, perhaps, you deluged yourself in oblivion, tipping the balance beyond a simple seasoning to a state of overwhelming saturation.
+            Decided to be a dangler, did you? Congratulations on your newfound ability to mansplain and manspread. Now, let's see what kind of suit you want to parade around in.
 
-            Imagine, if you dare, a colossal sphere where malevolence brews. On this orb, simian creatures of nefarious intent wage an incessant war, a tableau of chaos underpinned by brutality. You are among them - no mere observer, but an active participant. This sphere is your arena, your world; the others, your kindred and adversaries.
+            Will it be the boring old human model? Or perhaps you fancy yourself an elf, all pointy-eared and holier-than-thou? Maybe you're more of a stout little dwarf, with a beard full of ale foam and a chip on your shoulder? How about a gnome, small enough to hide from your problems but not your insecurities? Halfling, perhaps; perfect for second breakfasts and hairy feet fetishists? And let's not forget the orc option - nothing says \"I have anger issues\" quite like green skin and protruding tusks.
 
-            They clash with savage fervor over scraps and dominance, a dance as old as time itself, couched in a rhetoric that seems all too familiar - a hollow phrase adopted from the ether to give a shade of meaning to the struggle. Take with you the grim axiom from this metaphorical panorama: in the contest for survival amongst your own, it is conquer or be conquered, to prevail in might or be reduced to insignificance.
+            Choose wisely, meat sack.
 
             |CSelect your Race|n:
             """  # noqa: E501
         )
+
+        female_text = dedent(
+            """
+            Ah, embracing the fairer sex. Get ready for a lifetime of being interrupted and explained to about your own experiences. Now, let's pick out your costume.
+
+            Fancy being a run-of-the-mill human? Or maybe an elf, so you can look down your nose at everyone for millennia? How about a dwarf; short, stout, and perpetually angry? Or a gnome; tiny, tinkering, and probably with a voice that could shatter class? A halfling has all the joys of being mistaken for a child with none of the innocence. Don't forget the nymph option - because nothing says \"Take me seriously!\" like being a living, breathing fantasy.
+
+            Pick your poison, sister.
+            """
+        )
+
+        andro_text = dedent(
+            """
+            Ooh, playing it coy! Not picking a side? How very... indecisive of you. Well, let's see what kind of ambiguous meat suit you'd like to slip into.
+
+            Will it be the utterly unremarkable human? Perhaps the elf, for when you want to be androgynous for several thousand years? Maybe the dwarf catches your fancy - compact, sturdy, and with a beard that's the envy of all genders.
+
+            How about a gnome? Small in stature but big on confusing everyone around you. Or a halfling, for when you want to be mistaken for a child of indeterminate gender. There's always the nymph option - nothing says \"gender is societal\" quite like being a living embodiment of nature's whimsy.
+
+            Don't forget the orc - because sometimes you just want to rage against the gender binary while also raging against everything else.
+
+            Choose your vessel, you beautiful enigma.
+            """
+        )
+
+        text = male_text  # temporary
 
     if not selected_race:
         options = []
