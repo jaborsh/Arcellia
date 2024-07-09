@@ -49,7 +49,6 @@ def chargen_welcome(caller):
 
 def chargen_gender(caller, raw_string, **kwargs):
     def _set_gender(caller, **kwargs):
-        print(kwargs.get('gender'))
         caller.traits.add(
             "gender",
             "Gender",
@@ -93,136 +92,16 @@ def chargen_gender(caller, raw_string, **kwargs):
 
 def chargen_race(caller, raw_string, **kwargs):
     def _set_race(caller, **kwargs):
-        # race = kwargs.get("selected_race", None)
-        # subrace = kwargs.get("selected_subrace", None)
-
-        # if not race:
-        #     caller.msg("An error occurred. Contact an administrator.")
-        #     return "chargen_welcome"
-
-        # if subrace:
-        #     race_type = f"{subrace} {race}"
-        # else:
-        #     race_type = f"{race}"
-
-        # race_type = races.RaceRegistry.get(race_type)
-
-        # if not race_type:
-        #     caller.msg("An error occurred. Contact an administrator.")
-        #     return "chargen_welcome"
-
-        # caller.traits.add("race", "Race", value=race_type)
         return "chargen_finalize"
 
-    selected_race = kwargs.get("selected_race", None)
-    selected_subrace = kwargs.get("selected_subrace", "")
-
-    if selected_subrace:
-        text = _SUBRACE_INFO_DICT[selected_race][selected_subrace] + "\n"
-    elif selected_race:
-        text = _RACE_INFO_DICT[selected_race] + "\n"
+    if caller.gender.value == genders.Gender.MALE:
+        text = genders.GENDER_INFO_DICT['male']
+    elif caller.gender.value == genders.Gender.FEMALE:
+        text = genders.GENDER_INFO_DICT['female']
     else:
-        male_text = dedent(
-            """
-            Decided to be a dangler, did you? Congratulations on your newfound ability to mansplain and manspread. Now, let's see what kind of suit you want to parade around in.
+        text = genders.GENDER_INFO_DICT['androgynous']
 
-            Will it be the boring old human model? Or perhaps you fancy yourself an elf, all pointy-eared and holier-than-thou? Maybe you're more of a stout little dwarf, with a beard full of ale foam and a chip on your shoulder? How about a gnome, small enough to hide from your problems but not your insecurities? Halfling, perhaps; perfect for second breakfasts and hairy feet fetishists? And let's not forget the orc option - nothing says \"I have anger issues\" quite like green skin and protruding tusks.
-
-            Choose wisely, meat sack.
-
-            |CSelect your Race|n:
-            """  # noqa: E501
-        )
-
-        female_text = dedent(
-            """
-            Ah, embracing the fairer sex. Get ready for a lifetime of being interrupted and explained to about your own experiences. Now, let's pick out your costume.
-
-            Fancy being a run-of-the-mill human? Or maybe an elf, so you can look down your nose at everyone for millennia? How about a dwarf; short, stout, and perpetually angry? Or a gnome; tiny, tinkering, and probably with a voice that could shatter class? A halfling has all the joys of being mistaken for a child with none of the innocence. Don't forget the nymph option - because nothing says \"Take me seriously!\" like being a living, breathing fantasy.
-
-            Pick your poison, sister.
-            """
-        )
-
-        andro_text = dedent(
-            """
-            Ooh, playing it coy! Not picking a side? How very... indecisive of you. Well, let's see what kind of ambiguous meat suit you'd like to slip into.
-
-            Will it be the utterly unremarkable human? Perhaps the elf, for when you want to be androgynous for several thousand years? Maybe the dwarf catches your fancy - compact, sturdy, and with a beard that's the envy of all genders.
-
-            How about a gnome? Small in stature but big on confusing everyone around you. Or a halfling, for when you want to be mistaken for a child of indeterminate gender. There's always the nymph option - nothing says \"gender is societal\" quite like being a living embodiment of nature's whimsy.
-
-            Don't forget the orc - because sometimes you just want to rage against the gender binary while also raging against everything else.
-
-            Choose your vessel, you beautiful enigma.
-            """
-        )
-
-        if caller.gender.value == genders.Gender.MALE:
-            text = male_text
-        elif caller.gender.value == genders.Gender.FEMALE:
-            text = female_text
-        else:
-            text = andro_text
-
-    if not selected_race:
-        options = []
-        i = 0
-        for race in _RACE_INFO_DICT.keys():
-            i += 1
-            options.append(
-                {
-                    "key": (str(i), race),
-                    "desc": race.capitalize(),
-                    "goto": ("chargen_race", {"selected_race": race}),
-                }
-            )
-
-    elif (
-        selected_race
-        and not selected_subrace
-        and _SUBRACE_INFO_DICT.get(selected_race, None)
-    ):
-        text += "\n|CSelect your Subrace|n:\n"
-        options = []
-        i = 0
-        for subrace in _SUBRACE_INFO_DICT[selected_race].keys():
-            i += 1
-            options.append(
-                {
-                    "key": (str(i), subrace),
-                    "desc": subrace.capitalize(),
-                    "goto": (
-                        "chargen_race",
-                        {"selected_race": selected_race, "selected_subrace": subrace},
-                    ),
-                }
-            )
-
-    elif (selected_race and selected_subrace) or (
-        selected_race and not _SUBRACE_INFO_DICT.get(selected_race, None)
-    ):
-        text += "\n|CConfirm your Race|n:\n"
-        options = (
-            {
-                "key": "y",
-                "desc": f"Confirm {selected_subrace} {selected_race}",
-                "goto": (
-                    _set_race,
-                    {
-                        "selected_race": selected_race,
-                        "selected_subrace": selected_subrace,
-                    },
-                ),
-            },
-            {
-                "key": "n",
-                "desc": "Return",
-                "goto": ("chargen_race", {"selected_race": None}),
-            },
-        )
-
-    return text, options
+    return text, ""
 
 
 def chargen_finalize(caller, raw_string):
