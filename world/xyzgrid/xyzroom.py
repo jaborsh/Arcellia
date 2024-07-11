@@ -8,8 +8,8 @@ used as stand-alone XYZ-coordinate-aware rooms.
 """
 
 from django.conf import settings
-from typeclasses.rooms import Room as DefaultRoom
 
+from typeclasses.rooms import Room
 from world.xyzgrid.xyzmanager import XYZManager
 
 # name of all tag categories. Note that the Z-coordinate is
@@ -23,7 +23,7 @@ GET_XYZGRID = None
 CLIENT_DEFAULT_WIDTH = settings.CLIENT_DEFAULT_WIDTH
 
 
-class XYZRoom(DefaultRoom):
+class XYZRoom(Room):
     """
     A game location aware of its XYZ-position.
 
@@ -150,7 +150,7 @@ class XYZRoom(DefaultRoom):
             (str(z), MAP_Z_TAG_CATEGORY),
         )
 
-        return DefaultRoom.create(
+        return Room.create(
             key, account=account, tags=tags, typeclass=cls, **kwargs
         )
 
