@@ -46,6 +46,13 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
       echoed to the room at the given rate.
     """
 
+    def at_object_creation(self):
+        """
+        Called when the room is created.
+        """
+        super().at_object_creation()
+        self.add_desc("This room is dark", "dark")
+
     # populated by `return_appearance`
     appearance_template = dedent(
         """
@@ -56,6 +63,14 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
             {exits}
             
         {characters}{mobs}{things}
+        """
+    )
+
+    dark_appearance_template = dedent(
+        """
+        {name}
+
+            {desc}
         """
     )
 
@@ -276,11 +291,13 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
             you can simply edit `.appearance_template`. You only need to override
             this method (and/or its helpers) if you want to change what is passed
             into the template or want the most control over output.
-
         """
 
         if not looker:
             return ""
+
+        if self.tags.get("dark", "room_state"):
+            return self.return_dark_appearance(looker, **kwargs)
 
         # populate the appearance_template string.
         return self.appearance_template.format(
@@ -290,4 +307,25 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
             characters=self.get_display_characters(looker, **kwargs),
             mobs=self.get_display_mobs(looker, **kwargs),
             things=self.get_display_things(looker, **kwargs),
+        ).strip()
+
+    def return_dark_appearance(self, looker, **kwargs):
+        """
+        Returns the dark appearance of the room for a given looker.
+
+        Args:
+            looker (object): The object looking at the room.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            str: The dark appearance of the room.
+
+        """
+        if not looker:
+            return ""
+
+        # populate the dark_appearance_template string.
+        return self.dark_appearance_template.format(
+            name=self.get_display_name(looker, **kwargs),
+            desc=self.get_display_desc(looker, **kwargs),
         ).strip()
