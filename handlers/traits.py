@@ -457,7 +457,6 @@ from functools import total_ordering
 from time import time
 
 from django.conf import settings
-
 from evennia.utils import logger
 from evennia.utils.dbserialize import _SaverDict
 from evennia.utils.utils import (
@@ -556,7 +555,9 @@ class TraitHandler:
 
     """
 
-    def __init__(self, obj, db_attribute_key="traits", db_attribute_category="traits"):
+    def __init__(
+        self, obj, db_attribute_key="traits", db_attribute_category="traits"
+    ):
         """
         Initialize the handler and set up its internal Attribute-based storage.
 
@@ -578,7 +579,9 @@ class TraitHandler:
         if self.trait_data is None:
             # no existing storage; initialize it, we then have to fetch it again
             # to retain the db connection
-            obj.attributes.add(db_attribute_key, {}, category=db_attribute_category)
+            obj.attributes.add(
+                db_attribute_key, {}, category=db_attribute_category
+            )
             self.trait_data = obj.attributes.get(
                 db_attribute_key, category=db_attribute_category
             )
@@ -640,7 +643,9 @@ class TraitHandler:
         try:
             return _TRAIT_CLASSES[trait_type]
         except KeyError:
-            raise TraitException(f"Trait class for {trait_type} could not be found.")
+            raise TraitException(
+                f"Trait class for {trait_type} could not be found."
+            )
 
     def all(self):
         """
@@ -716,7 +721,9 @@ class TraitHandler:
         trait_properties["trait_type"] = trait_type
 
         # this will raise exception if input is insufficient
-        trait_properties = trait_class.validate_input(trait_class, trait_properties)
+        trait_properties = trait_class.validate_input(
+            trait_class, trait_properties
+        )
 
         self.trait_data[trait_key] = trait_properties
 
@@ -765,7 +772,11 @@ class TraitProperty:
     """
 
     def __init__(
-        self, name=None, trait_type=DEFAULT_TRAIT_TYPE, force=True, **trait_properties
+        self,
+        name=None,
+        trait_type=DEFAULT_TRAIT_TYPE,
+        force=True,
+        **trait_properties,
     ):
         """
         Initialize a TraitField. Mimics TraitHandler.add input except no `trait_key`.
@@ -783,7 +794,9 @@ class TraitProperty:
                 using the normal TraitHandler.
 
         """
-        self._traithandler_name = trait_properties.pop("traithandler_name", "traits")
+        self._traithandler_name = trait_properties.pop(
+            "traithandler_name", "traits"
+        )
 
         trait_properties.update(
             {"name": name, "trait_type": trait_type, "force": force}
@@ -918,7 +931,8 @@ class Trait:
             """Helper method to format exception."""
             raise TraitException(
                 "Trait {} could not be created - misses required keys {}.".format(
-                    cls.trait_type, list_to_string(list(unset_required), addquote=True)
+                    cls.trait_type,
+                    list_to_string(list(unset_required), addquote=True),
                 )
             )
 
@@ -950,7 +964,9 @@ class Trait:
         if not cls.allow_extra_properties:
             # don't allow any extra properties - remove the extra data
             for key in (
-                key for key in inp.difference(req) if key not in ("name", "trait_type")
+                key
+                for key in inp.difference(req)
+                if key not in ("name", "trait_type")
             ):
                 del trait_data[key]
 
@@ -987,7 +1003,10 @@ class Trait:
         except KeyError:
             raise AttributeError(
                 "{!r} {} ({}) has no property {!r}.".format(
-                    self._data["name"], type(self).__name__, self.trait_type, key
+                    self._data["name"],
+                    type(self).__name__,
+                    self.trait_type,
+                    key,
                 )
             )
 
@@ -1015,7 +1034,9 @@ class Trait:
             if _GA(self, "allow_extra_properties"):
                 _GA(self, "_data")[key] = value
                 return
-        raise AttributeError(f"Can't set attribute {key} on {self.trait_type} Trait.")
+        raise AttributeError(
+            f"Can't set attribute {key} on {self.trait_type} Trait."
+        )
 
     def __delattr__(self, key):
         """
@@ -1182,6 +1203,22 @@ class Trait:
 
 
 # Implementation of the respective Trait types
+class BoolTrait(Trait):
+    """
+    A class representing a boolean trait.
+
+    Attributes:
+        trait_type (str): The type of the trait, set to "bool".
+        default_keys (dict): The default keys for the trait, with "value" set to None.
+    """
+
+    trait_type = "bool"
+
+    default_keys = {"value": None}
+
+    def __str__(self):
+        status = "{value:11}".format(value=self.value)
+        return "{name:12} {status}".format(name=self.name, status=status)
 
 
 class StaticTrait(Trait):
@@ -1317,7 +1354,9 @@ class CounterTrait(Trait):
         return trait_data
 
     def __str__(self):
-        status = "{current:4} / {base:4}".format(current=self.current, base=self.base)
+        status = "{current:4} / {base:4}".format(
+            current=self.current, base=self.base
+        )
         return "{name:12} {status} ({mod:+3}) (* {mult:.2f})".format(
             name=self.name, status=status, mod=self.mod, mult=self.mult
         )
@@ -1357,7 +1396,9 @@ class CounterTrait(Trait):
     def _check_and_start_timer(self, value):
         """Start timer if we are not at a boundary."""
         if self.rate != 0 and self._data["last_update"] is None:
-            if self._within_boundaries(value) and not self._passed_ratetarget(value):
+            if self._within_boundaries(value) and not self._passed_ratetarget(
+                value
+            ):
                 # we are not at a boundary [anymore].
                 self._data["last_update"] = time()
         return value
