@@ -8,7 +8,7 @@ from evennia.utils.utils import (
     variable_from_module,
 )
 
-from handlers import clothing, equipment, traits
+from handlers import buffs, clothing, equipment, traits
 from server.conf import logger
 from utils.text import grammarize, wrap
 from world.characters import genders
@@ -55,6 +55,7 @@ class Entity(ObjectParent):
         # Misc.
         self.stats.add("experience", "Experience", trait_type="counter", base=0)
         self.stats.add("wealth", "Wealth", trait_type="counter", base=0)
+        self.stats.add("weight", "Weight", trait_type="counter", base=0)
 
     @lazy_property
     def traits(self):
@@ -71,21 +72,6 @@ class Entity(ObjectParent):
     @property
     def race(self):
         return self.traits.get("race")
-
-    @lazy_property
-    def appearance(self):
-        return traits.TraitHandler(self, db_attribute_key="appearance")
-
-    @lazy_property
-    def clothing(self):
-        return clothing.ClothingHandler(self, db_attribute_key="clothing")
-
-    @lazy_property
-    def equipment(self):
-        return equipment.EquipmentHandler(
-            self,
-            db_attribute_key="equipment",
-        )
 
     @lazy_property
     def stats(self):
@@ -134,6 +120,21 @@ class Entity(ObjectParent):
     @property
     def wealth(self):
         return self.stats.get("wealth")
+
+    @lazy_property
+    def feats(self):
+        return buffs.BuffHandler(self, db_attribute_key="feats")
+
+    @lazy_property
+    def clothing(self):
+        return clothing.ClothingHandler(self, db_attribute_key="clothing")
+
+    @lazy_property
+    def equipment(self):
+        return equipment.EquipmentHandler(
+            self,
+            db_attribute_key="equipment",
+        )
 
     # Hooks
     def at_pre_emote(self, message, **kwargs):

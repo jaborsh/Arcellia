@@ -336,19 +336,21 @@ class Mod:
 
 class BuffHandler:
     ownerref = None
-    dbkey = "buffs"
+    db_attribute_key = "buffs"
     autopause = False
     _owner = None
 
-    def __init__(self, owner, dbkey=dbkey, autopause=autopause):
+    def __init__(
+        self, owner, db_attribute_key=db_attribute_key, autopause=autopause
+    ):
         """
         Args:
             owner:  The object this handler is attached to
-            dbkey:  (optional) The string key of the db attribute to use for the buff cache
+            db_attribute_key:  (optional) The string key of the db attribute to use for the buff cache
             autopause:  (optional) Whether this handler autopauses playtime buffs on owning object's unpuppet
         """
         self.ownerref = owner.dbref
-        self.dbkey = dbkey
+        self.db_attribute_key = db_attribute_key
         self.autopause = autopause
         if autopause:
             self._validate_state()
@@ -371,9 +373,9 @@ class BuffHandler:
         """The object attribute we use for the buff cache. Auto-creates if not present."""
         if not self.owner:
             return {}
-        if not self.owner.attributes.has(self.dbkey):
-            self.owner.attributes.add(self.dbkey, {})
-        return self.owner.attributes.get(self.dbkey)
+        if not self.owner.attributes.has(self.db_attribute_key):
+            self.owner.attributes.add(self.db_attribute_key, {})
+        return self.owner.attributes.get(self.db_attribute_key)
 
     @property
     def traits(self):
