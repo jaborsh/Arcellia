@@ -296,7 +296,7 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
         if not looker:
             return ""
 
-        if self.tags.get("dark", "room_state"):
+        if self.tags.get("dark", category="room_state"):
             return self.return_dark_appearance(looker, **kwargs)
 
         # populate the appearance_template string.
