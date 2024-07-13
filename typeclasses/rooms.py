@@ -12,6 +12,7 @@ from evennia.objects.objects import DefaultRoom
 from evennia.utils.utils import iter_to_str, lazy_property
 
 from handlers import combat
+from world.feats.racial import Darkvision
 
 from .objects import ObjectParent
 from .rooms_extended import ExtendedRoom
@@ -296,7 +297,9 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
         if not looker:
             return ""
 
-        if self.tags.get("dark", category="room_state"):
+        if self.tags.get(
+            "dark", category="room_state"
+        ) and not looker.feats.has(Darkvision):
             return self.return_dark_appearance(looker, **kwargs)
 
         # populate the appearance_template string.

@@ -83,7 +83,7 @@ class Elf(Race):
     key = "elf"
 
     def initialize_race_features(self, caller):
-        pass
+        caller.feats.add(racial_feats.Darkvision)
 
 
 @RaceRegistry.register
@@ -91,7 +91,7 @@ class Drow(Race):
     key = "drow"
 
     def initialize_race_features(self, caller):
-        pass
+        caller.feats.add(racial_feats.Darkvision)
 
 
 @RaceRegistry.register
@@ -107,7 +107,7 @@ class Dwarf(Race):
     key = "dwarf"
 
     def initialize_race_features(self, caller):
-        pass
+        caller.feats.add(racial_feats.Darkvision)
 
 
 @RaceRegistry.register

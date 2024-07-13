@@ -11,3 +11,9 @@ class HumanVersatility(buffs.BaseBuff):
 
     def at_remove(self):
         self.owner.stats.weight.max = self.owner.stats.weight.max / 1.25
+
+
+class Darkvision(buffs.BaseBuff):
+    key = "darkvision"
+    name = "Darkvision"
+    flavor = "You can see in the dark."
