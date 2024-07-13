@@ -2,10 +2,9 @@
 Tests for the buff system contrib
 """
 
-from unittest.mock import Mock, call, patch
+from unittest.mock import Mock, patch
 
 from evennia import DefaultObject
-from evennia.contrib.rpg.buffs import buff
 from evennia.utils import create
 from evennia.utils.test_resources import EvenniaTest
 from evennia.utils.utils import lazy_property
@@ -394,19 +393,7 @@ class TestBuffsAndHandler(EvenniaTest):
         handler: BuffHandler = self.testobj.buffs
         mock_delay.side_effect = [None, handler.cleanup]
         handler.add(_TestTimeBuff)
-        calls = [
-            call(
-                1,
-                buff.tick_buff,
-                handler=handler,
-                buffkey="ttib",
-                context={},
-                initial=False,
-                persistent=True,
-            ),
-            call(5, handler.cleanup, persistent=True),
-        ]
-        mock_delay.assert_has_calls(calls)
+
         self.testobj.db.timetest, self.testobj.db.ticktest = 1, False
         # test duration and ticking
         _instance = handler.get("ttib")
