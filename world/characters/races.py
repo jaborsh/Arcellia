@@ -91,7 +91,7 @@ class Drow(Race):
     key = "drow"
 
     def initialize_race_features(self, caller):
-        caller.feats.add(racial_feats.Darkvision)
+        caller.feats.add(racial_feats.SuperiorDarkvision)
 
 
 @RaceRegistry.register

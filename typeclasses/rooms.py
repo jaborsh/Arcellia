@@ -12,7 +12,7 @@ from evennia.objects.objects import DefaultRoom
 from evennia.utils.utils import iter_to_str, lazy_property
 
 from handlers import combat
-from world.feats.racial import Darkvision
+from world.feats import racial as racial_feats
 
 from .objects import ObjectParent
 from .rooms_extended import ExtendedRoom
@@ -297,12 +297,15 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
         if not looker:
             return ""
 
-        if (
-            self.tags.get("dark", category="room_state")
-            and not looker.feats.has(Darkvision)
-            and not looker.permissions.check("Admin")
-        ):
-            return self.return_dark_appearance(looker, **kwargs)
+        if not looker.permissions.check("Admin"):
+            if self.tags.get(
+                "dark", category="room_state"
+            ) and not looker.feats.has(racial_feats.Darkvision):
+                return self.return_dark_appearance(looker, **kwargs)
+            elif self.tags.get(
+                "super_dark", category="room_state"
+            ) and not looker.feats.has(racial_feats.SuperiorDarkvision):
+                return self.return_super_dark_appearance(looker, **kwargs)
 
         # populate the appearance_template string.
         return self.appearance_template.format(
@@ -334,3 +337,22 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
             name=self.get_display_name(looker, **kwargs),
             desc=self.get_display_desc(looker, **kwargs),
         ).strip()
+
+    def return_super_dark_appearance(self, looker, **kwargs):
+        """
+        Returns the appearance of the room when it is super dark.
+
+        Args:
+            looker (object): The object trying to look at the room.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            str: The appearance of the room when it is super dark.
+        """
+        if not looker:
+            return ""
+
+        if looker.feats.has(racial_feats.Darkvision):
+            return self.return_dark_appearance(looker, **kwargs)
+
+        return "It is too dark to see."
