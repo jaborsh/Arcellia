@@ -55,7 +55,9 @@ class Entity(ObjectParent):
         # Misc.
         self.stats.add("experience", "Experience", trait_type="counter", base=0)
         self.stats.add("wealth", "Wealth", trait_type="counter", base=0)
-        self.stats.add("weight", "Weight", trait_type="counter", base=0)
+        self.stats.add(
+            "weight", "Weight", trait_type="counter", base=0, max=100
+        )
 
     @lazy_property
     def traits(self):

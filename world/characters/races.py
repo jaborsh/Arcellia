@@ -1,6 +1,8 @@
 from class_registry import ClassRegistry
 from evennia.utils import dedent
 
+from world.feats import racial as racial_feats
+
 RaceRegistry = ClassRegistry("key")
 
 RACE_INFO_DICT = {
@@ -64,7 +66,7 @@ RACE_INFO_DICT = {
 class Race:
     key = "race"
 
-    def initialize_race_features(self):
+    def initialize_race_features(self, caller):
         pass
 
 
@@ -72,15 +74,15 @@ class Race:
 class Human(Race):
     key = "human"
 
-    def initialize_race_features(self):
-        pass
+    def initialize_race_features(self, caller):
+        caller.feats.add(racial_feats.HumanVersatility)
 
 
 @RaceRegistry.register
 class Elf(Race):
     key = "elf"
 
-    def initialize_race_features(self):
+    def initialize_race_features(self, caller):
         pass
 
 
@@ -88,7 +90,7 @@ class Elf(Race):
 class Drow(Race):
     key = "drow"
 
-    def initialize_race_features(self):
+    def initialize_race_features(self, caller):
         pass
 
 
@@ -96,7 +98,7 @@ class Drow(Race):
 class Halfling(Race):
     key = "halfling"
 
-    def initialize_race_features(self):
+    def initialize_race_features(self, caller):
         pass
 
 
@@ -104,7 +106,7 @@ class Halfling(Race):
 class Dwarf(Race):
     key = "dwarf"
 
-    def initialize_race_features(self):
+    def initialize_race_features(self, caller):
         pass
 
 
@@ -112,7 +114,7 @@ class Dwarf(Race):
 class Gnome(Race):
     key = "gnome"
 
-    def initialize_race_features(self):
+    def initialize_race_features(self, caller):
         pass
 
 

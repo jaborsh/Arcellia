@@ -151,6 +151,7 @@ def chargen_race_confirmation(caller, raw_string, **kwargs):
     def _set_race(caller, **kwargs):
         race = kwargs.get("race")
         caller.traits.add("race", "Race", value=race)
+        caller.race.value.initialize_race_features(caller)
         return "chargen_finalize"
 
     race = kwargs.get("race")
