@@ -52,7 +52,7 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
         Called when the room is created.
         """
         super().at_object_creation()
-        self.add_desc("This room is dark", "dark")
+        self.add_desc("This room is dark.", "dark")
 
     # populated by `return_appearance`
     appearance_template = dedent(
@@ -297,9 +297,11 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
         if not looker:
             return ""
 
-        if self.tags.get(
-            "dark", category="room_state"
-        ) and not looker.feats.has(Darkvision):
+        if (
+            self.tags.get("dark", category="room_state")
+            and not looker.feats.has(Darkvision)
+            and not looker.permissions.check("Admin")
+        ):
             return self.return_dark_appearance(looker, **kwargs)
 
         # populate the appearance_template string.
