@@ -12,7 +12,7 @@ from evennia.objects.objects import DefaultRoom
 from evennia.utils.utils import iter_to_str, lazy_property
 
 from handlers import combat
-from world.feats import racial as racial_feats
+from world.features import racial as racial_feats
 
 from .objects import ObjectParent
 from .rooms_extended import ExtendedRoom

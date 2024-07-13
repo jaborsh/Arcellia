@@ -1,7 +1,7 @@
 from class_registry import ClassRegistry
 from evennia.utils import dedent
 
-from world.feats import racial as racial_feats
+from world.features import racial as racial_feats
 
 RaceRegistry = ClassRegistry("key")
 
