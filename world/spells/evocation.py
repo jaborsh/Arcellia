@@ -24,7 +24,7 @@ class OrbofLight(spells.Spell):
         delay(
             60,
             location.darken,
-            "|CThe orb of light fades away.|n",
+            "|CAn orb of light fades away.|n",
             persistent=True,
         )
 
