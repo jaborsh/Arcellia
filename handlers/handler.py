@@ -42,11 +42,15 @@ class Handler:
         self._load()
 
     def _load(self):
-        if data := self.obj.attributes.get(self._db_attr, category=self._db_cat):
+        if data := self.obj.attributes.get(
+            self._db_attr, category=self._db_cat
+        ):
             self._data = dbserialize.deserialize(data)
 
     def _save(self):
-        self.obj.attributes.add(self._db_attr, self._data, category=self._db_cat)
+        self.obj.attributes.add(
+            self._db_attr, self._data, category=self._db_cat
+        )
 
     def all(self):
         """
@@ -77,3 +81,10 @@ class Handler:
             None
         """
         return self._data.get(key, None)
+
+    def clear(self):
+        """
+        Clears the handler.
+        """
+        self._data = {}
+        self._save()

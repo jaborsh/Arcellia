@@ -356,3 +356,38 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
             return self.return_dark_appearance(looker, **kwargs)
 
         return "It is too dark to see."
+
+    # Methods
+    def brighten(self, text=None):
+        if self.tags.get("super_bright", category="room_state"):
+            return
+        elif self.tags.get("bright", category="room_state"):
+            self.tags.remove("bright", category="room_state")
+            self.tags.add("super_bright", category="room_state")
+        elif self.tags.get("dark", category="room_state"):
+            self.tags.remove("dark", category="room_state")
+        elif self.tags.get("super_dark", category="room_state"):
+            self.tags.remove("super_dark", category="room_state")
+            self.tags.add("dark", category="room_state")
+        else:
+            self.tags.add("bright", category="room_state")
+
+        if text:
+            self.msg_contents(text)
+
+    def darken(self, text=None):
+        if self.tags.get("super_bright", category="room_state"):
+            self.tags.remove("super_bright", category="room_state")
+            self.tags.add("bright", category="room_state")
+        elif self.tags.get("bright", category="room_state"):
+            self.tags.remove("bright", category="room_state")
+        elif self.tags.get("dark", category="room_state"):
+            self.tags.remove("dark", category="room_state")
+            self.tags.add("super_dark", category="room_state")
+        elif self.tags.get("super_dark", category="room_state"):
+            return
+        else:
+            self.tags.add("dark", category="room_state")
+
+        if text:
+            self.msg_contents(text)
