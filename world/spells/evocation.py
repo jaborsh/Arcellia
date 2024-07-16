@@ -16,9 +16,9 @@ class OrbofLight(spells.Spell):
     def cast(self, caster, **kwargs):
         location = caster.location
 
-        if location.tags.get("magical_dark"):
+        if location.tags.has("magical_dark"):
             location.msg_contents(
-                "|C$You() $conj(evokes) an orb of light, but the darkness swallows it.|n",
+                "|C$You() $conj(evoke) an orb of light, but the darkness swallows it.|n",
             )
             return
 
@@ -26,7 +26,7 @@ class OrbofLight(spells.Spell):
             return caster.msg("The area is already bright.")
 
         location.msg_contents(
-            "|c$You() $conj(evokes) an orb of light that brightens the area.|n",
+            "|c$You() $conj(evoke) an orb of light that brightens the area.|n",
             from_obj=caster,
         )
 
@@ -56,7 +56,7 @@ class Darkness(spells.Spell):
             return
 
         location.msg_contents(
-            "|x$You() $conj(evokes) a shroud of darkness that obscures the area.|n",
+            "|x$You() $conj(evoke) a shroud of darkness that obscures the area.|n",
             from_obj=caster,
         )
 
