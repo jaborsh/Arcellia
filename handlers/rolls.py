@@ -1,6 +1,8 @@
 import random
 import re
 
+from world.features import racial as racial_feats
+
 
 class SingletonMeta(type):
     """
@@ -35,7 +37,9 @@ class RollHandler(metaclass=SingletonMeta):
             self.dice_pattern = re.compile(r"(\d*)d(\d+)")
             self.initialized = True
 
-    def check(self, roll_str, stat=None, dc=10, advantage=False, disadvantage=False):
+    def check(
+        self, roll_str, stat=None, dc=10, advantage=False, disadvantage=False
+    ):
         """
         Checks if the result of a roll meets or exceeds a given difficulty class (dc).
 
@@ -62,7 +66,14 @@ class RollHandler(metaclass=SingletonMeta):
             else all(roll >= dc for roll in rolls)
         )
 
-    def roll(self, roll_str, stat=None, advantage=False, disadvantage=False):
+    def roll(
+        self,
+        roll_str,
+        stat=None,
+        advantage=False,
+        disadvantage=False,
+        roller=None,
+    ):
         """
         Rolls a specified number of dice with a specified number of sides and returns the total sum.
 
@@ -85,18 +96,19 @@ class RollHandler(metaclass=SingletonMeta):
         num_dice, sides = map(int, matches.groups())
         num_dice = num_dice or 1
 
-        rolls = [random.randint(1, sides) for _ in range(num_dice)]
+        if roller and roller.feats.has(racial_feats.HalflingLuck):
+            rolls = [random.randint(2, sides) for _ in range(num_dice)]
+        else:
+            rolls = [random.randint(1, sides) for _ in range(num_dice)]
+
         total = sum(rolls)
+        total += self.get_modifier(stat) if isinstance(stat, int) else 0
 
-        if advantage:
-            adv_rolls = [random.randint(1, sides) for _ in range(num_dice)]
-            total = max(total, sum(adv_rolls))
-        elif disadvantage:
-            dis_rolls = [random.randint(1, sides) for _ in range(num_dice)]
-            total = min(total, sum(dis_rolls))
+        if advantage or disadvantage:
+            adv_roll = self.roll(roll_str, stat, roller)
+            total = max(total, adv_roll) if advantage else min(total, adv_roll)
 
-        modifier = self.get_modifier(stat) if stat else 0
-        return total + modifier
+        return total
 
     def get_modifier(self, stat):
         """
