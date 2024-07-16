@@ -95,3 +95,41 @@ class HalflingLuck(buffs.BaseBuff):
     flavor = (
         "Halflings are lucky creatures. You can reroll failed saving throws."
     )
+
+
+# dwarves
+class DwarvenResilience(buffs.BaseBuff):
+    """
+    A buff that represents the dwarven resilience trait.
+
+    Dwarves are resilient creatures, allowing them to resist poison.
+
+    Attributes:
+        key (str): The unique identifier for the buff.
+        name (str): The name of the buff.
+        flavor (str): A description of the buff.
+    """
+
+    key = "dwarven_resilience"
+    name = "Dwarven Resilience"
+    flavor = (
+        "Dwarves are resilient creatures. You have advantage against poison."
+    )
+
+
+class DwarvenToughness(buffs.BaseBuff):
+    """
+    A buff that represents the Dwarven Toughness racial feature.
+
+    Dwarves are tough creatures. This buff grants the character additional hit points
+    equal to their level.
+
+    Attributes:
+        key (str): The unique identifier for the buff.
+        name (str): The name of the buff.
+        flavor (str): A description of the buff.
+    """
+
+    key = "dwarven_toughness"
+    name = "Dwarven Toughness"
+    flavor = "Dwarves are tough creatures. You gain additional hit points equal to your level."

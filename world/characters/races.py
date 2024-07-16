@@ -103,7 +103,7 @@ class Halfling(Race):
     key = "halfling"
 
     def initialize_race_features(self, caller):
-        pass
+        caller.feats.add(racial_feats.HalflingLuck)
 
 
 @RaceRegistry.register
@@ -112,6 +112,8 @@ class Dwarf(Race):
 
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.Darkvision)
+        caller.feats.add(racial_feats.DwarvenResilience)
+        caller.feats.add(racial_feats.DwarvenToughness)
 
 
 @RaceRegistry.register
