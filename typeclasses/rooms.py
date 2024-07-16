@@ -359,9 +359,9 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
 
     # Methods
     def brighten(self, text=None, magical=False):
-        if magical and self.tags.get("magical_dark", category="room_state"):
+        if magical and self.tags.has("magical_dark", category="room_state"):
             self.tags.remove("magical_dark", category="room_state")
-        elif self.tags.get("dark", category="room_state"):
+        elif self.tags.has("dark", category="room_state"):
             self.tags.remove("dark", category="room_state")
         else:
             return False
@@ -372,10 +372,15 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
         return True
 
     def darken(self, text=None, magical=False):
-        if magical and not self.tags.get("magical_dark", category="room_state"):
-            self.tags.remove("dark", category="room_state")
+        if magical:
+            if self.tags.has("magical_dark", category="room_state"):
+                return False
+
+            if self.tags.has("dark", category="room_state"):
+                self.tags.remove("dark", category="room_state")
+
             self.tags.add("magical_dark", category="room_state")
-        elif not self.tags.get("dark", category="room_state"):
+        elif not self.tags.has("dark", category="room_state"):
             self.tags.add("dark", category="room_state")
         else:
             return False
