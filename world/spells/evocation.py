@@ -1,16 +1,59 @@
 from evennia.utils import delay
 
+from handlers import rolls
+
 from . import spells
 
+ROLL_HANDLER = rolls.RollHandler()
 
-class OrbofLight(spells.Spell):
+
+class Evocation(spells.Spell):
+    school = spells.SpellSchool.EVOCATION
+
+
+class ElfFire(Evocation):
+    key = "elffire"
+    name = "Elf Fire"
+    desc = "Hurl a mote of fire."
+    level = 0
+    cost = 0
+
+    delivery = spells.SpellDelivery.TARGET
+
+    def cast(self, caster, **kwargs):
+        target = kwargs.get("target", None)
+
+        if not target:
+            return caster.msg("You must specify a target.")
+
+        caster.location.msg_contents(
+            "|#ffa500$You() $conj(hurl) a mote of elf fire at $you(target).|n",
+            from_obj=caster,
+            mapping={"target": target},
+        )
+
+        delay(0.5, self.post_cast, caster, target)
+
+    def post_cast(self, caster, target):
+        if not ROLL_HANDLER.check("1d20", dc=10):
+            return caster.location.msg_contents(
+                "|#ffa500$Your() mote of elf fire fizzles out harmlessly.|n",
+                from_obj=caster,
+            )
+
+        caster.location.msg_contents(
+            "|#ffa500The mote of elf fire strikes $you(target) and burns them!|n",
+            mapping={"target": target},
+        )
+
+
+class OrbofLight(Evocation):
     key = "orboflight"
     name = "Orb of Light"
     desc = "Evoke a magical orb of light that brightens an area."
     level = 0
     cost = 0
 
-    school = spells.SpellSchool.EVOCATION
     delivery = spells.SpellDelivery.SELF
 
     def cast(self, caster, **kwargs):
@@ -38,14 +81,13 @@ class OrbofLight(spells.Spell):
         )
 
 
-class Darkness(spells.Spell):
+class Darkness(Evocation):
     key = "darkness"
     name = "Darkness"
     desc = "Evoke a magical darkness that darkens an area."
     level = 0
     cost = 0
 
-    school = spells.SpellSchool.EVOCATION
     delivery = spells.SpellDelivery.SELF
 
     def cast(self, caster, **kwargs):
@@ -70,6 +112,7 @@ class Darkness(spells.Spell):
 
 
 EVOCATION_SPELL_DATA = {
+    ElfFire.key: ElfFire(),
     OrbofLight.key: OrbofLight(),
     Darkness.key: Darkness(),
 }

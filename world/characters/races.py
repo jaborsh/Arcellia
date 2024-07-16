@@ -85,6 +85,7 @@ class Elf(Race):
 
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.Darkvision)
+        caller.spells.add(evocation.ElfFire)
 
 
 @RaceRegistry.register
