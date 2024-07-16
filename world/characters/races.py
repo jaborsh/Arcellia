@@ -2,6 +2,7 @@ from class_registry import ClassRegistry
 from evennia.utils import dedent
 
 from world.features import racial as racial_feats
+from world.spells import evocation
 
 RaceRegistry = ClassRegistry("key")
 
@@ -92,6 +93,7 @@ class Drow(Race):
 
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.SuperiorDarkvision)
+        caller.spells.add(evocation.OrbofLight)
 
 
 @RaceRegistry.register

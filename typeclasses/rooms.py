@@ -303,9 +303,9 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
             ) and not looker.feats.has(racial_feats.Darkvision):
                 return self.return_dark_appearance(looker, **kwargs)
             elif self.tags.get(
-                "super_dark", category="room_state"
+                "magical_dark", category="room_state"
             ) and not looker.feats.has(racial_feats.SuperiorDarkvision):
-                return self.return_super_dark_appearance(looker, **kwargs)
+                return self.return_magical_dark_appearance(looker, **kwargs)
 
         # populate the appearance_template string.
         return self.appearance_template.format(
@@ -338,7 +338,7 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
             desc=self.get_display_desc(looker, **kwargs),
         ).strip()
 
-    def return_super_dark_appearance(self, looker, **kwargs):
+    def return_magical_dark_appearance(self, looker, **kwargs):
         """
         Returns the appearance of the room when it is super dark.
 
@@ -358,36 +358,29 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
         return "It is too dark to see."
 
     # Methods
-    def brighten(self, text=None):
-        if self.tags.get("super_bright", category="room_state"):
-            return
-        elif self.tags.get("bright", category="room_state"):
-            self.tags.remove("bright", category="room_state")
-            self.tags.add("super_bright", category="room_state")
-        elif self.tags.get("dark", category="room_state"):
+    def brighten(self, text=None, magical=False):
+        if self.tags.get("dark", category="room_state"):
             self.tags.remove("dark", category="room_state")
-        elif self.tags.get("super_dark", category="room_state"):
-            self.tags.remove("super_dark", category="room_state")
-            self.tags.add("dark", category="room_state")
+        elif self.tags.get("magical_dark", category="room_state") and magical:
+            self.tags.remove("magical_dark", category="room_state")
         else:
-            self.tags.add("bright", category="room_state")
+            return False
 
         if text:
             self.msg_contents(text)
 
-    def darken(self, text=None):
-        if self.tags.get("super_bright", category="room_state"):
-            self.tags.remove("super_bright", category="room_state")
-            self.tags.add("bright", category="room_state")
-        elif self.tags.get("bright", category="room_state"):
-            self.tags.remove("bright", category="room_state")
-        elif self.tags.get("dark", category="room_state"):
+        return True
+
+    def darken(self, text=None, magical=False):
+        if magical:
             self.tags.remove("dark", category="room_state")
-            self.tags.add("super_dark", category="room_state")
-        elif self.tags.get("super_dark", category="room_state"):
-            return
-        else:
+            self.tags.add("magical_dark", category="room_state")
+        elif not self.tags.get("dark", category="room_state"):
             self.tags.add("dark", category="room_state")
+        else:
+            return False
 
         if text:
             self.msg_contents(text)
+
+        return True
