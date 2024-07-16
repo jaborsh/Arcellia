@@ -1,5 +1,7 @@
 from copy import copy
 
+from evennia.utils.utils import inherits_from
+
 from world.spells import evocation, spells
 
 from .handler import Handler
@@ -73,8 +75,8 @@ class SpellHandler(Handler):
 
         if isinstance(spell, str) and _SPELLS.get(spell) is not None:
             self._data.append(spell)
-        elif isinstance(spell, spells.Spell):
-            self._data.append[spell.key]
+        elif inherits_from(spell, spells.Spell):
+            self._data.append(spell.key)
         else:
             raise ValueError("Invalid spell.")
 

@@ -31,13 +31,45 @@ class OrbofLight(spells.Spell):
         )
 
         delay(
-            60,
+            600,
             location.darken,
             "|CAn orb of light fades away.|n",
             persistent=True,
         )
 
 
+class Darkness(spells.Spell):
+    key = "darkness"
+    name = "Darkness"
+    desc = "Evoke a magical darkness that darkens an area."
+    level = 0
+    cost = 0
+
+    school = spells.SpellSchool.EVOCATION
+    delivery = spells.SpellDelivery.SELF
+
+    def cast(self, caster, **kwargs):
+        location = caster.location
+
+        if not location.darken(magical=True):
+            caster.msg("The area is already obscured by darkness.")
+            return
+
+        location.msg_contents(
+            "|x$You() $conj(evokes) a shroud of darkness that obscures the area.|n",
+            from_obj=caster,
+        )
+
+        delay(
+            600,
+            location.brighten,
+            "|yThe heavy darkness relents, revealing the area.|n",
+            True,  # Magical
+            persistent=True,
+        )
+
+
 EVOCATION_SPELL_DATA = {
     OrbofLight.key: OrbofLight(),
+    Darkness.key: Darkness(),
 }

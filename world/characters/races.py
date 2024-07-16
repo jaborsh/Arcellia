@@ -94,6 +94,7 @@ class Drow(Race):
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.SuperiorDarkvision)
         caller.spells.add(evocation.OrbofLight)
+        caller.spells.add(evocation.Darkness)
 
 
 @RaceRegistry.register
