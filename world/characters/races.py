@@ -191,6 +191,9 @@ class Orc(Race):
 class Tanarius(Race):
     key = "tanarius"
 
+    def initialize_race_features(self, caller):
+        caller.feats.add(racial_feats.Darkvision)
+
 
 # Mob Races
 @RaceRegistry.register
