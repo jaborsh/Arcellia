@@ -57,6 +57,13 @@ class Darkvision(buffs.BaseBuff):
     flavor = "You can see in the dark."
 
 
+# elvens, drow
+class ElvenAncestry(buffs.BaseBuff):
+    key = "elven_ancestry"
+    name = "Elven Ancestry"
+    flavor = "Your elven ancestry makes you immune to certain magics."
+
+
 # drow
 class SuperiorDarkvision(Darkvision):
     """
@@ -70,7 +77,9 @@ class SuperiorDarkvision(Darkvision):
 
     key = "superior_darkvision"
     name = "Superior Darkvision"
-    flavor = "Your darkvision is enhanced, allowing you to see even in complete darkness."
+    flavor = (
+        "Your darkvision is enhanced, allowing you to see even in complete darkness."
+    )
 
 
 # halfling
@@ -92,9 +101,7 @@ class HalflingLuck(buffs.BaseBuff):
 
     key = "halfling_luck"
     name = "Halfling Luck"
-    flavor = (
-        "Halflings are lucky creatures. You can reroll failed saving throws."
-    )
+    flavor = "Halflings are lucky creatures. You can reroll failed saving throws."
 
 
 # dwarves
@@ -112,9 +119,7 @@ class DwarvenResilience(buffs.BaseBuff):
 
     key = "dwarven_resilience"
     name = "Dwarven Resilience"
-    flavor = (
-        "Dwarves are resilient creatures. You have advantage against poison."
-    )
+    flavor = "Dwarves are resilient creatures. You have advantage against poison."
 
 
 class DwarvenToughness(buffs.BaseBuff):
@@ -133,3 +138,16 @@ class DwarvenToughness(buffs.BaseBuff):
     key = "dwarven_toughness"
     name = "Dwarven Toughness"
     flavor = "Dwarves are tough creatures. You gain additional hit points equal to your level."
+
+
+# Orc
+class OrcSavage(buffs.BaseBuff):
+    key = "orc_savage"
+    name = "Orc Savage"
+    flavor = "You are a savage orc."
+
+
+class OrcRelentless(buffs.BaseBuff):
+    key = "orc_relentless"
+    name = "Orc Relentless"
+    flavor = "You are a relentless orc."

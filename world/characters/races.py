@@ -61,6 +61,42 @@ RACE_INFO_DICT = {
         You're starting to smell distinctly of garden ornament and pointy hat. Could it be? Has our eternal dance of nothingness been interrupted by a gnomish interloper? Oh, the indignity!
         """
     ),
+    "astralite": dedent(
+        """
+        |#6A5ACDAstralite|n:
+
+        Fancy-pants sky-meat with delusions of grandeur. Born with a silver spoon in their muzzles and feathers up their asses. Picture this: animal features on humanoid bodies. Like some demented taxidermist's fever dream. Fur, feathers, scales, or maybe skin with some cat ears and a tail. 
+
+        You're picturing yourself all soft and fluffly, aren't you? Like some kind of walking, talking teddy bear. Did daddy dearest get all frisky with a particularly attractive feline and pop you out? Bet you cough up pellets of undigested fur.
+        """
+    ),
+    "draconian": dedent(
+        """
+        |#CDraconian|n:
+
+        Some species aren't just some flabby ape stumbling around on two legs. Some are goddamn walking, talking dragons. Sans wings, sure, but who needs 'em when you've got scales harder than your ex's heart and a face that'd make a gargoyl wet itself. They reckon dragons got bored one day and thought, \"Hey, let's make some bipedal mini-mes!\".
+
+        Think about it. You ain't some puppet prancing around on hind legs. There's something reptilian lurking in you. Maybe you're one of them? That thick hide of yours, that face that'd make stone weep. Built different, baby; stopped flying and decided to slum it down on land.
+        """
+    ),
+    "orc": dedent(
+        """
+        |xOrc|n:
+
+        A cyclopean badass gifted his spawn with the might of mammoths, the endurance of the sun, and the night-vision of a bat. Orcs are gray-skinned mountains of muscle, sporting cute little pointy ears and warthog-like tusks. These slabs of determination get bedtime stories about their ancestors kicking elf ass in forests, dwarf ass under mountains, and demon ass across the planes. Makes the little orcs - the orclets - all tingly, wondering when they'll get to paint the world red.
+
+        Could it be? Is the primordial ooze of your consciousness congealed into something... orcish? Are you, perhaps, one of those mountains of muscle yearning to KILL, KILL, KILL?!
+        """
+    ),
+    "tanarius": dedent(
+        """
+        |rTanarius|n:
+        
+        There's a breed out there with a dash of hellfire in their veins. Tanarius, they call 'em. Spawned from the unholy union of mortals and fields, Tanarius are walking, talking reminders of all the nasty shit that goes bump in the night. These horn-heads carry the taint of evil in their veins. The universe decided to give 'em devil blood and then toss 'em in a world that fears anything with pointy bits.
+
+        You're feeling it now, aren't you? That hellfire coursing through your veins, setting your insides ablaze. Were you born with horns? How's it feel to be alive and hated?
+        """
+    ),
 }
 
 
@@ -85,6 +121,7 @@ class Elf(Race):
 
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.Darkvision)
+        caller.feats.add(racial_feats.ElvenAncestry)
         caller.spells.add(evocation.ElfFire)
 
 
@@ -93,6 +130,7 @@ class Drow(Race):
     key = "drow"
 
     def initialize_race_features(self, caller):
+        caller.feats.add(racial_feats.ElvenAncestry)
         caller.feats.add(racial_feats.SuperiorDarkvision)
         caller.spells.add(evocation.OrbofLight)
         caller.spells.add(evocation.Darkness)
@@ -120,8 +158,32 @@ class Dwarf(Race):
 class Gnome(Race):
     key = "gnome"
 
+
+# Furry race
+@RaceRegistry.register
+class Astralite(Race):
+    key = "astralite"
+
+
+# Dragon race
+@RaceRegistry.register
+class Draconian(Race):
+    key = "draconian"
+
+
+# Orcs, obviously
+@RaceRegistry.register
+class Orc(Race):
+    key = "orc"
+
     def initialize_race_features(self, caller):
-        pass
+        caller.feats.add(racial_feats.Darkvision)
+
+
+# Demon-spawn/Tieflings
+@RaceRegistry.register
+class Tanarius(Race):
+    key = "tanarius"
 
 
 # Mob Races
