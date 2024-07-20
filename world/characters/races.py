@@ -34,15 +34,6 @@ RACE_INFO_DICT = {
         But you, my darkling? Are you feeling a tingle of recognition? A little itch in your spider-loving soul? You have the essence of avoiding the sunlight. Is that you, you angsty, brooding thing?
         """
     ),
-    "halfling": dedent(
-        """
-        |#A67B5BHalfling|n:
-        
-        Nature's little joke. Pint-sized gluttons with hairy feet and an unnatural obsession with food. They're like if someone took all the worst parts of humanity - the greed, the sloth, the endless appetite - and crammed it into a fun-sized package. Sure, they're \"lucky,\" if by lucky you mean stumbling ass-backwards through life, narrowly avoiding death by choking on a meat pie.
-        
-        Rather like you. That faint aroma of pipeweed and unearned self-satisfaction. You're probably itching to embark on some grand \"adventure\". The world's a big, scary place for a little morsel like you, but maybe your inherent \"luck\" will keep you from becoming a wolf's appetizer. Or maybe it won't!
-        """
-    ),
     "dwarf": dedent(
         """
         |#C19A6BDwarf|n:
@@ -59,6 +50,15 @@ RACE_INFO_DICT = {
         Those pint-sized pests, scurrying about like caffeinated rodents with delusions of grandeur. Always poking their bulbous noses where they don't belong, thinking their \"cleverness\" will save them from the crushing weight of existence. Living for centuries, yet never growing an inch taller or wiser. They're proof that even eternity can't cure stupidity.
         
         You're starting to smell distinctly of garden ornament and pointy hat. Could it be? Has our eternal dance of nothingness been interrupted by a gnomish interloper? Oh, the indignity!
+        """
+    ),
+    "halfling": dedent(
+        """
+        |#A67B5BHalfling|n:
+        
+        Nature's little joke. Pint-sized gluttons with hairy feet and an unnatural obsession with food. They're like if someone took all the worst parts of humanity - the greed, the sloth, the endless appetite - and crammed it into a fun-sized package. Sure, they're \"lucky,\" if by lucky you mean stumbling ass-backwards through life, narrowly avoiding death by choking on a meat pie.
+        
+        Rather like you. That faint aroma of pipeweed and unearned self-satisfaction. You're probably itching to embark on some grand \"adventure\". The world's a big, scary place for a little morsel like you, but maybe your inherent \"luck\" will keep you from becoming a wolf's appetizer. Or maybe it won't!
         """
     ),
     "astralite": dedent(
@@ -137,14 +137,6 @@ class Drow(Race):
 
 
 @RaceRegistry.register
-class Halfling(Race):
-    key = "halfling"
-
-    def initialize_race_features(self, caller):
-        caller.feats.add(racial_feats.HalflingLuck)
-
-
-@RaceRegistry.register
 class Dwarf(Race):
     key = "dwarf"
 
@@ -157,6 +149,17 @@ class Dwarf(Race):
 @RaceRegistry.register
 class Gnome(Race):
     key = "gnome"
+
+    def initialize_race_features(self, caller):
+        caller.feats.add(racial_feats.Darkvision)
+
+
+@RaceRegistry.register
+class Halfling(Race):
+    key = "halfling"
+
+    def initialize_race_features(self, caller):
+        caller.feats.add(racial_feats.HalflingLuck)
 
 
 # Furry race
@@ -193,6 +196,7 @@ class Tanarius(Race):
 
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.Darkvision)
+        caller.spells.add(evocation.Darkness)
 
 
 # Mob Races
