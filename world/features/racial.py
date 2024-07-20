@@ -140,6 +140,22 @@ class DwarvenToughness(buffs.BaseBuff):
     flavor = "Dwarves are tough creatures. You gain additional hit points equal to your level."
 
 
+# Astralite
+class AstralFlight(buffs.BaseBuff):
+    """
+    Represents the Astral Flight buff.
+
+    Attributes:
+        key (str): The unique identifier for the buff.
+        name (str): The name of the buff.
+        flavor (str): A description of the buff's effect.
+    """
+
+    key = "astral_flight"
+    name = "Astral Flight"
+    flavor = "You sprout spectral wings for a moment and take flight."
+
+
 # Orc
 class OrcSavage(buffs.BaseBuff):
     key = "orc_savage"

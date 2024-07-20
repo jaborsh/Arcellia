@@ -164,6 +164,9 @@ class Gnome(Race):
 class Astralite(Race):
     key = "astralite"
 
+    def initialize_race_features(self, caller):
+        caller.feats.add(racial_feats.AstralFlight)
+
 
 # Dragon race
 @RaceRegistry.register
