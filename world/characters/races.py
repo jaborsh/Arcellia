@@ -173,6 +173,9 @@ class Astralite(Race):
 class Draconian(Race):
     key = "draconian"
 
+    def initialize_race_features(self, caller):
+        caller.feats.add(racial_feats.Darkvision)
+
 
 # Orcs, obviously
 @RaceRegistry.register
