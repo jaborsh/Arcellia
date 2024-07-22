@@ -2,11 +2,11 @@ from copy import copy
 
 from evennia.utils.utils import inherits_from
 
-from world.spells import evocation, spells
+from world.spells import racial, spells
 
 from .handler import Handler
 
-_SPELLS = evocation.EVOCATION_SPELL_DATA
+_SPELLS = racial.EVOCATION_SPELL_DATA
 
 
 class SpellHandler(Handler):
