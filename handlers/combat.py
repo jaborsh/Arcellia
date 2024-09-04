@@ -113,7 +113,7 @@ class CombatHandler(Handler):
         """
         return list(self._data["combatants"].keys())
 
-    def add_action(self, combatant, action):
+    def add_action(self, combatant, action_data=None):
         """
         Adds an action to the action queue for a specific combatant.
 
@@ -121,7 +121,7 @@ class CombatHandler(Handler):
             combatant (str): The combatant performing the action.
             action (str): The action to be added to the queue.
         """
-        self.action_queue.append((combatant, action))
+        self.action_queue.append((combatant, action_data))
         self._data["action_queue"] = list(self.action_queue)
         self._save()
 
@@ -132,12 +132,25 @@ class CombatHandler(Handler):
         Returns:
             tuple: The next action in the queue (combatant, action).
         """
-        if self.action_queue:
-            next_action = self.action_queue.popleft()
-            self._data["action_queue"] = list(self.action_queue)
-            self._save()
-            return next_action
-        return None
+        if not self.action_queue:
+            return None
+
+        combatant, action_data = self.action_queue.popleft()
+        self._data["action_queue"] = list(self.action_queue)
+        self._save()
+
+        return (combatant, action_data)
+
+    def execute_action(self):
+        """
+        Executes the next action in the action queue.
+        """
+        if action := self.get_next_action():
+            combatant, action_data = action
+            if action := action_data.get("action", None):
+                target = action_data.get("target", None)
+                if hasattr(action, "cast"):
+                    action.cast(combatant, target=target)
 
     def remove_actions(self, combatant):
         """
