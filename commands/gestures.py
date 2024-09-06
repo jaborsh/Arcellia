@@ -4,8 +4,8 @@ from utils.text import grammarize
 __all__ = (
     "CmdBeckon",
     "CmdBow",
-    "CmdBravo",
     "CmdCalm",
+    "CmdClap",
     "CmdCrouch",
     "CmdCry",
     "CmdCurtsy",
@@ -48,17 +48,12 @@ class Gesture(Command):
 
 class CmdBeckon(Gesture):
     key = "beckon"
-    message = "$You() $conj(curl) $pron(your,pa) fingers in a slow, beckoning gesture."
+    message = "$You() $conj(beckon)"
 
 
 class CmdBow(Gesture):
     key = "bow"
-    message = "$You() $conj(lower) $pron(your,pa) head and $conj(bow)"
-
-
-class CmdBravo(Gesture):
-    key = "bravo"
-    message = "$You() $conj(clap) $pron(your,pa) hands together in a show of appreciation and approval"
+    message = "$You() $conj(bow)"
 
 
 class CmdCalm(Gesture):
@@ -66,51 +61,54 @@ class CmdCalm(Gesture):
     message = "$You() $conj(raise) $pron(your,pa) hands in a calming gesture"
 
 
+class CmdClap(Gesture):
+    key = "clap"
+    message = "$You() $conj(clap)"
+
+
 class CmdCrouch(Gesture):
     key = "crouch"
-    message = "$You() $conj(bend) $pron(your,pa) knees into a crouch"
+    message = "$You() $conj(crouch)"
 
 
 class CmdCry(Gesture):
     key = "cry"
-    message = "Tears well up in $your() eyes and $you() $conj(cry)"
+    message = "$You() $conj(cry)"
 
 
 class CmdCurtsy(Gesture):
     key = "curtsy"
-    message = "$You() gracefully $conj(lower) $pron(yourself) into a curtsy"
+    message = "$You() $conj(curtsy)"
 
 
 class CmdDejection(Gesture):
     key = "dejection"
-    message = "$You() $conj(lower) $pron(your,pa) gaze and $conj(sigh) heavily, $pron(your,pa) entire demeanor radiating dejection"
+    message = "$You() $conj(lower) $pron(your,pa) gaze in dejection"
 
 
 class CmdDoze(Gesture):
     key = "doze"
-    message = "$Your() head droops, slipping into a light doze"
+    message = "$Your() head droops as $pron(you) $conj(doze) off"
 
 
 class CmdErudition(Gesture):
     key = "erudition"
-    message = "$You() $conj(adjust) $pron(your,pa) posture, $conj(lift) $pron(your,pa) chin, and $conj(touch) $pron(your,pa) fingertips together, exuding an air of scholarly erudition"
+    message = "$You() $conj(adjust) $pron(your,pa) posture, exuding erudition"
 
 
 class CmdGreet(Gesture):
     key = "greet"
-    message = "$You() $conj(offer) a warm greeting"
+    message = "$You() $conj(greet)"
 
 
 class CmdGrovel(Gesture):
     key = "grovel"
-    message = "$You() $conj(fall) to the ground, groveling with utter humility"
+    message = "$You() $conj(grovel)"
 
 
 class CmdFlex(Gesture):
     key = "flex"
-    message = (
-        "$You() $conj(tense) $pron(your,pa) muscles and $conj(flex) with confidence"
-    )
+    message = "$You() $conj(flex)"
 
 
 class CmdHmm(Gesture):
@@ -120,7 +118,7 @@ class CmdHmm(Gesture):
 
 class CmdJump(Gesture):
     key = "jump"
-    message = "$You() $conj(bend) $pron(your,pa) knees and $conj(jump) into the air"
+    message = "$You() $conj(jump)"
 
 
 class CmdNod(Gesture):
@@ -130,24 +128,22 @@ class CmdNod(Gesture):
 
 class CmdPoint(Gesture):
     key = "point"
-    message = "$You() $conj(extend) $pron(your,pa) finger, pointing"
+    message = "$You() $conj(point)"
 
 
 class CmdPray(Gesture):
     key = "pray"
-    message = "$You() $conj(clasp) $pron(your,pa) hands together in prayer"
+    message = "$You() $conj(pray)"
 
 
 class CmdRepent(Gesture):
     key = "repent"
-    message = (
-        "$You() $conj(drop) to $pron(your,pa) knees in a deep expression of repentance"
-    )
+    message = "$You() $conj(drop) to $pron(your,pa) knees in repentance"
 
 
 class CmdRest(Gesture):
     key = "rest"
-    message = "$You() $conj(sit) down slowly, $conj(lean) back with a deep exhale, and $conj(allow) $pron(yourself) a moment of rest"
+    message = "$You() $conj(rest)"
 
 
 class CmdSit(Gesture):
@@ -157,7 +153,7 @@ class CmdSit(Gesture):
 
 class CmdSpin(Gesture):
     key = "spin"
-    message = "$You() $conj(pivot) on $pron(your,pa) heel and $conj(spin)"
+    message = "$You() $conj(spin)"
 
 
 class CmdSnap(Gesture):
@@ -167,7 +163,7 @@ class CmdSnap(Gesture):
 
 class CmdThank(Gesture):
     key = "thank"
-    message = "$You() $conj(express) $pron(your,pa) thanks"
+    message = "$You() $conj(express) thanks"
 
 
 class CmdWait(Gesture):
@@ -177,9 +173,9 @@ class CmdWait(Gesture):
 
 class CmdWave(Gesture):
     key = "wave"
-    message = "$You() $conj(lift) $pron(your,pa) hand and $conj(wave)"
+    message = "$You() $conj(wave)"
 
 
 class CmdWelcome(Gesture):
     key = "welcome"
-    message = "$You() $conj(spread) $pron(your,pa) arms wide in an open welcome"
+    message = "$You() $conj(spread) $pron(your,pa) arms in welcome"
