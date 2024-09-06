@@ -115,7 +115,7 @@ class CmdFlex(Gesture):
 
 class CmdHmm(Gesture):
     key = "hmm"
-    message = '$You() $conj(utter) a soft "hmm"'
+    message = '$You() $conj(utter) a soft "hmm."'
 
 
 class CmdJump(Gesture):

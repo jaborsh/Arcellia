@@ -8,6 +8,7 @@ from evennia.utils.utils import (
     variable_from_module,
 )
 
+from commands.default_cmdsets import GestureCmdSet
 from handlers import buffs, clothing, combat, equipment, spells, traits
 from server.conf import logger
 from utils.text import grammarize, wrap
@@ -30,6 +31,7 @@ class Entity(ObjectParent):
     )
 
     def at_object_creation(self):
+        self.cmdset.add(GestureCmdSet, persistent=True)
         self.init_stats()
 
     def init_stats(self):
