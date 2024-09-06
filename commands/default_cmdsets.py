@@ -88,24 +88,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         #
         modules = {
             "Builder Modules": [building],
-            "Character Modules": [general],
-        }
-
-        add_modules(self, modules)
-
-
-class GestureCmdSet(CmdSet):
-    """
-    The `GestureCmdSet` contains commands for gestures. These are
-    commands that are used to interact with other characters.
-    """
-
-    key = "GestureCmdSet"
-    priority = -1
-
-    def at_cmdset_creation(self):
-        modules = {
-            "Gesture Modules": [gestures],
+            "Character Modules": [general, gestures],
         }
 
         add_modules(self, modules)
@@ -121,7 +104,7 @@ class MobCmdSet(CmdSet):
 
     def at_cmdset_creation(self):
         modules = {
-            "General Modules": [general],
+            "General Modules": [general, gestures],
             # "Merchant Modules": [clothing],
         }
         add_modules(self, modules)
