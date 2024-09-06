@@ -22,6 +22,7 @@ from . import (
     building,
     developer,
     general,
+    gestures,
     git,
     help,
     system,
@@ -87,7 +88,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         #
         modules = {
             "Builder Modules": [building],
-            "Character Modules": [general],
+            "Character Modules": [general, gestures],
         }
 
         add_modules(self, modules)
