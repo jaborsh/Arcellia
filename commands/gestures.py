@@ -167,7 +167,7 @@ class CmdSnap(Gesture):
 
 class CmdThank(Gesture):
     key = "thank"
-    message = "$You() $conj(thank)"
+    message = "$You() $conj(express) $pron(your,pa) thanks"
 
 
 class CmdWait(Gesture):
