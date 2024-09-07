@@ -83,7 +83,7 @@ _GESTURES = {
     "rest": {
         GESTURE.DEFAULT: "$You() $conj(rest).",
         GESTURE.TARGET: "$You() $conj(rest) your eyes on $you(target).",
-        GESTURE.SELF: "$You() $conj(rest). Clearly even $pron(you) tire of $pron(yourself).",
+        GESTURE.SELF: "$You() $conj(rest). Clearly even $pron(you) $conj(tire) of $pron(yourself).",
     },
     "shake": {
         GESTURE.DEFAULT: "$You() $conj(shake) your head.",
