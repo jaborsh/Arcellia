@@ -1,28 +1,14 @@
-from evennia.utils import delay
+from evennia.utils.utils import delay
 
-from handlers import rolls
-
-from . import spells
-
-ROLL_HANDLER = rolls.RollHandler()
+from world.spells import spells
 
 
-class Evocation(spells.Spell):
-    school = spells.SpellSchool.EVOCATION
-
-
-class Necromancy(spells.Spell):
-    school = spells.SpellSchool.NECROMANCY
-
-
-class Darkness(Evocation):
+class Darkness(spells.Spell):
     key = "darkness"
     name = "Darkness"
     desc = "Evoke a magical darkness that darkens an area."
     level = 0
     cost = 0
-
-    delivery = spells.SpellDelivery.SELF
 
     def cast(self, caster, **kwargs):
         location = caster.location
@@ -45,14 +31,12 @@ class Darkness(Evocation):
         )
 
 
-class Firemote(Evocation):
-    key = "firemote"
-    name = "Fire Mote"
-    desc = "Hurl a mote of fire."
+class Firebolt(spells.Spell):
+    key = "firebolt"
+    name = "Fire Bolt"
+    desc = "Hurl a bolt of fire."
     level = 0
     cost = 0
-
-    delivery = spells.SpellDelivery.TARGET
 
     def cast(self, caster, **kwargs):
         target = kwargs.get("target", None)
@@ -61,7 +45,7 @@ class Firemote(Evocation):
             return caster.msg("You must specify a target.")
 
         caster.location.msg_contents(
-            "|#ffa500$You() $conj(hurl) a mote of fire at $you(target).|n",
+            "|#ffa500$You() $conj(hurl) a bolt of fire at $you(target).|n",
             from_obj=caster,
             mapping={"target": target},
         )
@@ -69,64 +53,18 @@ class Firemote(Evocation):
         delay(0.5, self.post_cast, caster, target)
 
     def post_cast(self, caster, target):
-        if not ROLL_HANDLER.check("1d20", dc=10):
-            return caster.location.msg_contents(
-                "|#ffa500$Your() mote of fire fizzles out harmlessly.|n",
-                from_obj=caster,
-            )
-
         caster.location.msg_contents(
             "|#ffa500The mote of fire strikes $you(target) and burns them!|n",
             mapping={"target": target},
         )
 
 
-class GhostlyTouch(Necromancy):
-    key = "ghostlytouch"
-    name = "Ghostly Touch"
-    desc = "Assail a creature with the chill of the grave."
-    level = 0
-    cost = 0
-
-    delivery = spells.SpellDelivery.TARGET
-
-    def cast(self, caster, **kwargs):
-        target = kwargs.get("target", None)
-
-        if not target:
-            return caster.msg("You must specify a target.")
-
-        caster.location.msg_contents(
-            "|c$You() $conj(reach) towards $you(target) with a ghostly hand.|n",
-            from_obj=caster,
-            mapping={"target": target},
-        )
-
-        delay(0.5, self.post_cast, caster, target)
-
-    def post_cast(self, caster, target):
-        if not ROLL_HANDLER.check("1d20", dc=10):
-            return caster.location.msg_contents(
-                "|C$Your() ghostly hand passes through $you(target) harmlessly.|n",
-                from_obj=caster,
-                mapping={"target": target},
-            )
-
-        caster.location.msg_contents(
-            "|c$You() $conj(assail) $you(target) with a grave chill!|n",
-            from_obj=caster,
-            mapping={"target": target},
-        )
-
-
-class OrbofLight(Evocation):
+class OrbofLight(spells.Spell):
     key = "orboflight"
     name = "Orb of Light"
     desc = "Evoke a magical orb of light that brightens an area."
     level = 0
     cost = 0
-
-    delivery = spells.SpellDelivery.SELF
 
     def cast(self, caster, **kwargs):
         location = caster.location
@@ -155,7 +93,6 @@ class OrbofLight(Evocation):
 
 EVOCATION_SPELL_DATA = {
     Darkness.key: Darkness(),
-    Firemote.key: Firemote(),
-    GhostlyTouch.key: GhostlyTouch(),
+    Firebolt.key: Firebolt(),
     OrbofLight.key: OrbofLight(),
 }
