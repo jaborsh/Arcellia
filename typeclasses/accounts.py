@@ -283,9 +283,7 @@ class Account(DefaultAccount):
             sess_strings.append(f"  {sess_str} {addr}")
 
         if not characters:
-            txt_characters = (
-                "You don't have a character yet. Use |wcharcreate|n."
-            )
+            txt_characters = "You don't have a character yet. Use |wcreate|n."
         else:
             max_chars = (
                 "unlimited"
