@@ -1,13 +1,27 @@
-class Spell:
-    name = "Spell"
-    desc = "A spell."
-    cost = 0
+from evennia import CmdSet
 
-    def pre_cast(self, caster, **kwargs):
+from commands.command import Command
+
+
+class Spell(Command):
+    def pre_cast(self):
+        return True
+
+    def cast(self):
         pass
 
-    def cast(self, caster, **kwargs):
+    def post_cast(self):
         pass
 
-    def post_cast(self, caster, **kwargs):
+    def func(self):
+        if not self.pre_cast():
+            return self.caller.msg("Your casting fails.")
+
+        self.cast()
+
+
+class SpellCmdSet(CmdSet):
+    key = "SpellCmdSet"
+
+    def at_cmdset_creation(self):
         pass

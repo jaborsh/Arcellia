@@ -33,27 +33,34 @@ class Darkness(spells.Spell):
 
 class Firebolt(spells.Spell):
     key = "firebolt"
-    name = "Fire Bolt"
-    desc = "Hurl a bolt of fire."
+    locks = "cmd:all()"
     level = 0
     cost = 0
 
-    def cast(self, caster, **kwargs):
-        target = kwargs.get("target", None)
+    def func(self):
+        if not self.pre_cast():
+            return self.caller.msg("Your casting fails.")
 
-        if not target:
-            return caster.msg("You must specify a target.")
+        if not self.args.strip():
+            return self.caller.msg("You must specify a target.")
 
-        caster.location.msg_contents(
+        if target := self.caller.search(self.args.strip()):
+            self.cast(target)
+
+    def cast(self, target):
+        caller = self.caller
+
+        caller.location.msg_contents(
             "|#ffa500$You() $conj(hurl) a bolt of fire at $you(target).|n",
-            from_obj=caster,
+            from_obj=caller,
             mapping={"target": target},
         )
 
-        delay(0.5, self.post_cast, caster, target)
+        delay(1, self.post_cast, target)
 
-    def post_cast(self, caster, target):
-        caster.location.msg_contents(
+    def post_cast(self, target):
+        caller = self.caller
+        caller.location.msg_contents(
             "|#ffa500The mote of fire strikes $you(target) and burns them!|n",
             mapping={"target": target},
         )
@@ -92,7 +99,7 @@ class OrbofLight(spells.Spell):
 
 
 EVOCATION_SPELL_DATA = {
-    Darkness.key: Darkness(),
-    Firebolt.key: Firebolt(),
-    OrbofLight.key: OrbofLight(),
+    Darkness.key: Darkness,
+    Firebolt.key: Firebolt,
+    OrbofLight.key: OrbofLight,
 }

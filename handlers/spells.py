@@ -45,6 +45,14 @@ class SpellHandler(Handler):
         self._data = copy(default_data)
         self._load()
 
+    def _create_new_cmdset(self):
+        spell_cmdset = spells.SpellCmdSet()
+        for spell_key in self._data:
+            spell = _SPELLS.get(spell_key)
+            if spell:
+                spell_cmdset.add(spell)
+        self.obj.cmdset.add(spell_cmdset)
+
     def all(self):
         """
         Returns a list of all spells in the handler.
@@ -75,12 +83,15 @@ class SpellHandler(Handler):
         """
 
         if isinstance(spell, str) and _SPELLS.get(spell) is not None:
-            self._data.append(spell)
+            if spell not in self._data:
+                self._data.append(spell)
         elif inherits_from(spell, spells.Spell):
-            self._data.append(spell.key)
+            if spell.key not in self._data:
+                self._data.append(spell.key)
         else:
             raise ValueError("Invalid spell.")
 
+        self._create_new_cmdset()
         self._save()
 
     learn = add  # Alias for add
