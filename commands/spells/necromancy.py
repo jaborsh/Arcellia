@@ -1,6 +1,6 @@
 from evennia.utils.utils import delay
 
-from world.spells import spells
+from commands.spells import spells
 
 
 class GhostlyTouch(spells.Spell):

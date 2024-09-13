@@ -2,7 +2,7 @@ from copy import copy
 
 from evennia.utils.utils import inherits_from
 
-from world.spells import evocation, necromancy, spells
+from commands.spells import evocation, necromancy, spells
 
 from .handler import Handler
 
