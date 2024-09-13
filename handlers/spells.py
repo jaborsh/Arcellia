@@ -38,6 +38,7 @@ class SpellHandler(Handler):
             db_attribute (str): The name of the attribute in the object's attributes dictionary.
             obj (object): The object for which the data is being handled.
         """
+        self.casting = False
         self.obj = obj
         self._db_attr = db_attribute_key
         self._db_cat = db_attribute_category
