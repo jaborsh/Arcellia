@@ -1,5 +1,7 @@
 from collections import deque
 
+from evennia.utils.utils import delay
+
 from .handler import Handler
 
 
@@ -30,13 +32,61 @@ class CombatHandler(Handler):
             db_attribute_category (str, optional): The category of the attribute in the object's attributes dictionary.
             default_data (dict, optional): Default data to use for initialization, if none exists.
         """
-        if default_data is None:
-            default_data = {"combatants": {}, "action_queue": []}
-        super().__init__(obj, db_attribute_key, db_attribute_category, default_data)
+        default_data = default_data or {"combatants": {}}
+        self.is_fighting = False
+        self.queue = deque()
 
-        self.action_queue = deque(self._data.get("action_queue", []))
+        super().__init__(
+            obj, db_attribute_key, db_attribute_category, default_data
+        )
 
-    def add_combat(self, combatant, enemies=None):
+    def _exec_combat(self):
+        """
+        Executes combat-related actions.
+        """
+        if not self._data["combatants"] or self.is_fighting:
+            return
+
+        self.is_fighting = True
+        self._exec_round()
+
+    def _exec_round(self):
+        """
+        Executes a round of combat.
+        """
+        self.queue.extend(self._data["combatants"].keys())
+
+        if not self.queue:
+            self.is_fighting = False
+            return
+
+        self._exec_turn()
+
+    def _exec_turn(self):
+        """
+        Executes a turn in combat.
+        """
+        if not self.queue:
+            self._exec_round()
+            return
+
+        combatant = self.queue.popleft()
+
+        if not self._valid_combatant(combatant):
+            self._exec_turn()
+            return
+
+        self.obj.msg_contents(f"{combatant} takes their turn.")
+        delay(1, self._exec_turn)
+
+    def _valid_combatant(self, combatant):
+        if combatant.location != self.obj:
+            self.remove_combatant(combatant)
+            return False
+
+        return True
+
+    def add_combatant(self, combatant, enemies=None):
         """
         Adds a combatant and their enemies to the combatants dictionary.
 
@@ -67,7 +117,10 @@ class CombatHandler(Handler):
                 if combatant not in self._data["combatants"][enemy]:
                     self._data["combatants"][enemy].append(combatant)
 
-        self._save()
+        if not self.is_fighting:
+            self._exec_combat()
+
+        # self._save()
 
     def remove_combatant(self, combatant):
         """
@@ -83,14 +136,14 @@ class CombatHandler(Handler):
             for k in list(self._data["combatants"].keys()):
                 v = self._data["combatants"][k]
                 if combatant in v:
-                    self._data["combatants"][k] = [e for e in v if e != combatant]
+                    self._data["combatants"][k] = [
+                        e for e in v if e != combatant
+                    ]
 
                 if not self._data["combatants"][k]:
                     del self._data["combatants"][k]
-                    self.remove_actions(k)
 
-            self.remove_actions(combatant)
-            self._save()
+            # self._save()
 
     def get_enemies(self, combatant):
         """
@@ -112,98 +165,3 @@ class CombatHandler(Handler):
             list: A list of all combatants.
         """
         return list(self._data["combatants"].keys())
-
-    def add_action(self, combatant, action_data=None):
-        """
-        Adds an action to the action queue for a specific combatant.
-
-        Parameters:
-            combatant (str): The combatant performing the action.
-            action (str): The action to be added to the queue.
-        """
-        self.action_queue.append((combatant, action_data))
-        self._data["action_queue"] = list(self.action_queue)
-        self._save()
-
-    def get_next_action(self):
-        """
-        Retrieves and removes the next action from the action queue.
-
-        Returns:
-            tuple: The next action in the queue (combatant, action).
-        """
-        if not self.action_queue:
-            return None
-
-        combatant, action_data = self.action_queue.popleft()
-        self._data["action_queue"] = list(self.action_queue)
-        self._save()
-
-        return (combatant, action_data)
-
-    def execute_action(self):
-        """
-        Executes the next action in the action queue.
-        """
-        if action := self.get_next_action():
-            combatant, action_data = action
-            if action := action_data.get("action", None):
-                target = action_data.get("target", None)
-                if hasattr(action, "cast"):
-                    action.cast(combatant, target=target)
-
-    def remove_actions(self, combatant):
-        """
-        Removes all actions for the specified combatant from the action queue.
-
-        Parameters:
-            combatant (str): The combatant whose actions should be removed.
-        """
-        self.action_queue = deque(
-            [(c, action) for c, action in self.action_queue if c != combatant]
-        )
-        self._data["action_queue"] = list(self.action_queue)
-        self._save()
-
-    def clear_actions(self):
-        """
-        Clears the entire action queue.
-        """
-        self.action_queue.clear()
-        self._data["action_queue"] = []
-        self._save()
-
-
-class EntityCombatHandler(Handler):
-    """
-    A class to manage entity-specific combat data, interacting with the main CombatHandler.
-
-    Inherits from:
-        Handler: The general-purpose data handler.
-
-    Attributes:
-        combat_handler (CombatHandler): Reference to the main CombatHandler that manages combat data.
-    """
-
-    def __init__(
-        self,
-        obj,
-        db_attribute_key="combat",
-        db_attribute_category=None,
-        default_data={},
-    ):
-        """
-        Initializes the EntityCombatHandler.
-
-        Parameters:
-            obj (object): The player object for which combat data is being handled.
-            db_attribute_key (str): The key under which player combat data is stored.
-            db_attribute_category (str, optional): The category of the attribute in the object's attributes dictionary.
-            default_data (dict, optional): Default data to use for initialization, if none exists.
-        """
-        super().__init__(obj, db_attribute_key, db_attribute_category, default_data)
-
-    # a reference to the room's CombatHandler
-    @property
-    def combat_handler(self):
-        return self.obj.location.combat

@@ -366,7 +366,7 @@ class CmdAttack(Command):
         if target == caller:
             return caller.msg("You cannot attack yourself.")
 
-        caller.combat.engage(caller, target)
+        caller.location.combat.add_combatant(caller, target)
 
 
 class CmdAttackStop(Command):
@@ -383,7 +383,7 @@ class CmdAttackStop(Command):
     locks = "cmd:all()"
 
     def func(self):
-        self.caller.combat.disengage(self.caller)
+        self.caller.location.combat.remove_combatant(self.caller)
         self.caller.msg("You stop combat.")
 
 
