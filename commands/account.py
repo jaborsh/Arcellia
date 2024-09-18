@@ -739,7 +739,11 @@ class CmdReport(Command):
     account_caller = True
 
     report_dir = "server/logs"
-    report_file = os.path.join(report_dir, "reports.json")
+    report_files = {
+        "general": os.path.join(report_dir, "reports.json"),
+        "bug": os.path.join(report_dir, "bugs.json"),
+        "idea": os.path.join(report_dir, "ideas.json"),
+    }
 
     def _load_reports(self):
         if os.path.exists(self.report_file):
