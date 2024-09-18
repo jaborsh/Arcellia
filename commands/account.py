@@ -1,3 +1,5 @@
+import json
+import os
 import time
 from codecs import lookup as codecs_lookup
 from datetime import datetime
@@ -25,6 +27,7 @@ __all__ = (
     "CmdPassword",
     "CmdPlay",
     "CmdQuit",
+    "CmdReport",
     "CmdSessions",
     "CmdSetMain",
     "CmdWho",
@@ -712,6 +715,82 @@ class CmdQuit(Command):
 
         account.msg(message, session=session)
         account.disconnect_session_from_account(session, reason)
+
+
+class CmdReport(Command):
+    """
+    Submit a report to the game administrators.
+
+    Usage:
+        - report <message> (submit a general report)
+        - bug <message>    (submit a bug report)
+        - idea <message>   (submit an idea/suggestion)
+
+    Examples:
+        - report A player is exploiting a bug.
+        - bug There is a bug in the login system.
+        - idea I think we should add more quests.
+    """
+
+    key = "report"
+    alaises = ["bug", "idea"]
+    locks = "cmd:all()"
+    help_category = "Account"
+    account_caller = True
+
+    report_dir = "server/logs"
+    report_file = os.path.join(report_dir, "reports.json")
+
+    def _load_reports(self):
+        if os.path.exists(self.report_file):
+            with open(self.report_file, "r") as f:
+                return json.load(f)
+        return []
+
+    def _save_reports(self, reports):
+        with open(self.report_file, "w") as f:
+            json.dump(reports, f, indent=4)
+
+    def _store_report(self, report_type, message):
+        reports = self._load_reports()
+
+        new_report = {
+            "id": len(reports) + 1,
+            "report_type": report_type,
+            "message": message,
+            "reporter": self.caller.name,
+            "status": "open",
+        }
+
+        reports.append(new_report)
+        self._save_reports(reports)
+        self.caller.msg(f"Your {report_type} has been submitted. Thank you!")
+
+    def _report(self):
+        if not self.args:
+            return self.msg("Usage: report <message>")
+
+        self._store_report("general", self.args)
+
+    def _bug(self):
+        if not self.args:
+            return self.msg("Usage: bug <message>")
+
+        self._store_report("bug", self.args)
+
+    def _idea(self):
+        if not self.args:
+            return self.msg("Usage: idea <message>")
+
+        self._store_report("idea", self.args)
+
+    def func(self):
+        if self.cmdstring == "report":
+            self._report()
+        elif self.cmdstring == "bug":
+            self._bug()
+        elif self.cmdstring == "idea":
+            self._idea()
 
 
 class CmdSessions(Command):
