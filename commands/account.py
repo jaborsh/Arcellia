@@ -725,11 +725,6 @@ class CmdReport(Command):
         - report <message> (submit a report)
         - bug <message>    (submit a bug report)
         - idea <message>   (submit an idea/suggestion)
-
-    Examples:
-        - report A player is exploiting a bug.
-        - bug There is a bug in the login system.
-        - idea I think we should add more quests.
     """
 
     key = "report"
@@ -753,31 +748,30 @@ class CmdReport(Command):
             report_type (str): The type of report to load.
 
         Returns:
-            list: A list of reports if the file exists, otherwise an empty list.
+            dict: A dictionary containing the reports and the highest ID.
+                  Example: { "next_id": 5, "reports": [...] }
         """
         file_path = self.report_files[report_type]
 
         if os.path.exists(file_path):
             with open(file_path, "r") as f:
                 return json.load(f)
-        return []
+        else:
+            # If file doesn't exist, start with an empty list and ID 1
+            return {"next_id": 1, "reports": []}
 
-    def _save_reports(self, report_type, reports):
+    def _save_reports(self, report_type, data):
         """
-        Saves the given reports to a file specified by the report type.
+        Saves the given reports and next ID to a file specified by the report type.
 
         Args:
-            report_type (str): The type of report to save. This is used to determine the file path.
-            reports (dict): The reports data to be saved in JSON format.
-
-        Raises:
-            KeyError: If the report_type is not found in self.report_files.
-            IOError: If there is an error writing to the file.
+            report_type (str): The type of report to save.
+            data (dict): A dictionary with "next_id" and "reports" to save.
         """
         file_path = self.report_files[report_type]
 
         with open(file_path, "w") as f:
-            json.dump(reports, f, indent=4)
+            json.dump(data, f, indent=4)
 
     def _store_report(self, report_type, message):
         """
@@ -794,29 +788,33 @@ class CmdReport(Command):
 
         After storing the report, a confirmation message is sent to the caller.
         """
-        reports = self._load_reports(report_type)
+        data = self._load_reports(report_type)
+        next_id = data["next_id"]
+        reports = data["reports"]
 
         new_report = {
-            "id": len(reports) + 1,
+            "id": next_id,
             "report_type": report_type,
             "message": message,
             "reporter": self.caller.name,
             "status": "open",
         }
 
+        # Append the new report
         reports.append(new_report)
-        self._save_reports(report_type, reports)
+
+        # Increment the next ID
+        data["next_id"] += 1
+
+        # Save the updated reports and next ID back to the file
+        self._save_reports(report_type, data)
+
+        # Inform the player that the report has been submitted
         self.caller.msg(f"Your {report_type} has been submitted. Thank you!")
 
     def _report(self):
         """
         Handles the reporting functionality for the account.
-
-        If no arguments are provided, it sends a usage message to the user.
-        Otherwise, it stores the report with the provided message.
-
-        Returns:
-            None
         """
         if not self.args:
             return self.msg("Usage: report <message>")
@@ -826,16 +824,6 @@ class CmdReport(Command):
     def _bug(self):
         """
         Handles the 'bug' command.
-
-        This method checks if the user has provided a message. If no message is
-        provided, it sends a usage message to the user. If a message is provided,
-        it stores the bug report.
-
-        Args:
-            None
-
-        Returns:
-            None
         """
         if not self.args:
             return self.msg("Usage: bug <message>")
@@ -844,14 +832,7 @@ class CmdReport(Command):
 
     def _idea(self):
         """
-        Handle the 'idea' command.
-
-        This method processes the 'idea' command input by the user. If no arguments
-        are provided, it sends a usage message to the user. Otherwise, it stores
-        the provided message as an idea report.
-
-        Returns:
-            None
+        Handles the 'idea' command.
         """
         if not self.args:
             return self.msg("Usage: idea <message>")
@@ -861,16 +842,6 @@ class CmdReport(Command):
     def func(self):
         """
         Executes a specific function based on the command string.
-
-        This method checks the value of `self.cmdstring` and calls the corresponding
-        method to handle the command. The supported commands are:
-
-        - "report": Calls the `_report` method.
-        - "bug": Calls the `_bug` method.
-        - "idea": Calls the `_idea` method.
-
-        Raises:
-            AttributeError: If `self.cmdstring` does not match any of the supported commands.
         """
         if self.cmdstring == "report":
             self._report()

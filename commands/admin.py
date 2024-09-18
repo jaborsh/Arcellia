@@ -1,3 +1,5 @@
+import json
+import os
 import re
 
 from django.conf import settings
@@ -16,6 +18,7 @@ __all__ = (
     "CmdEcho",
     "CmdForce",
     "CmdHome",
+    "CmdReports",
     "CmdTeleport",
     "CmdTransfer",
     "CmdWatch",
@@ -53,8 +56,7 @@ class CmdAccess(Command):
         string = (
             "\n|wPermission Hierarchy|n (climbing):\n %s\n"
             "\n|wYour access|n:"
-            "\n  Character |c%s|n: %s"
-            % (", ".join(hierarchy_full), caller.key, cperms)
+            "\n  Character |c%s|n: %s" % (", ".join(hierarchy_full), caller.key, cperms)
         )
 
         if hasattr(caller, "account"):
@@ -207,9 +209,7 @@ class CmdForce(Command):
             return
 
         obj_name, command = args
-        obj = self.account.search(
-            obj_name, global_search=True, search_object=True
-        )
+        obj = self.account.search(obj_name, global_search=True, search_object=True)
         if not obj:
             self.msg(f"Object '{obj_name}' not found.")
             return
@@ -263,6 +263,161 @@ class CmdHome(Command):
         self.caller.msg("There's no place like home ...")
 
 
+class CmdReports(Command):
+    key = "reports"
+    aliases = ["bugs", "ideas"]
+    locks = "cmd:pperm(Admin)"
+    help_category = "Admin"
+
+    report_dir = "server/logs"
+    report_files = {
+        "report": os.path.join(report_dir, "reports.json"),
+        "bug": os.path.join(report_dir, "bugs.json"),
+        "idea": os.path.join(report_dir, "ideas.json"),
+    }
+
+    def _load_reports(self, report_type):
+        """
+        Load reports from a JSON file based on the given report type.
+
+        Args:
+            report_type (str): The type of report to load.
+
+        Returns:
+            list: A list of reports if the file exists, otherwise an empty list.
+        """
+        file_path = self.report_files[report_type]
+
+        if os.path.exists(file_path):
+            with open(file_path, "r") as f:
+                return json.load(f)
+        return []
+
+    def _save_reports(self, report_type, reports):
+        """
+        Saves the given reports to a file specified by the report type.
+
+        Args:
+            report_type (str): The type of report to save. This is used to determine the file path.
+            reports (dict): The reports data to be saved in JSON format.
+        """
+        file_path = self.report_files[report_type]
+
+        with open(file_path, "w") as f:
+            json.dump(reports, f, indent=4)
+
+    def _view_report(self, report_type, report_id=None):
+        """
+        View a specific report by its ID or all reports of the given type.
+
+        Args:
+            report_type (str): The type of report ('report', 'bug', or 'idea').
+            report_id (int, optional): The ID of the report to view. If not provided, all reports are displayed.
+        """
+        reports = self._load_reports(report_type)
+
+        if report_id:
+            report_id = int(report_id)
+            report = next((r for r in reports if r["id"] == report_id), None)
+            if report:
+                self.caller.msg(f"Report ID {report_id} ({report_type}):\n{report}")
+            else:
+                self.caller.msg(f"No {report_type} report found with ID {report_id}.")
+        else:
+            if reports:
+                report_list = "\n".join(
+                    [
+                        f"ID {r['id']}: {r['message']} (Status: {r['status']})"
+                        for r in reports
+                    ]
+                )
+                self.caller.msg(f"All {report_type} reports:\n{report_list}")
+            else:
+                self.caller.msg(f"No {report_type} reports found.")
+
+    def _close_report(self, report_type, report_id):
+        """
+        Mark a report as closed based on its ID.
+
+        Args:
+            report_type (str): The type of report ('report', 'bug', or 'idea').
+            report_id (int): The ID of the report to close.
+        """
+        reports = self._load_reports(report_type)
+
+        report_id = int(report_id)
+        report = next((r for r in reports if r["id"] == report_id), None)
+        if report:
+            report["status"] = "closed"
+            self._save_reports(report_type, reports)
+            self.caller.msg(
+                f"{report_type.capitalize()} report ID {report_id} has been marked as closed."
+            )
+        else:
+            self.caller.msg(f"No {report_type} report found with ID {report_id}.")
+
+    def _delete_report(self, report_type, report_id):
+        """
+        Delete a specific report based on its ID.
+
+        Args:
+            report_type (str): The type of report ('report', 'bug', or 'idea').
+            report_id (int): The ID of the report to delete.
+        """
+        reports = self._load_reports(report_type)
+
+        report_id = int(report_id)
+        new_reports = [r for r in reports if r["id"] != report_id]
+
+        if len(new_reports) < len(reports):
+            self._save_reports(report_type, new_reports)
+            self.caller.msg(
+                f"{report_type.capitalize()} report ID {report_id} has been deleted."
+            )
+        else:
+            self.caller.msg(f"No {report_type} report found with ID {report_id}.")
+
+    def func(self):
+        """
+        This method processes the input arguments and calls the appropriate subcommand for viewing,
+        closing, or deleting reports.
+
+        The first argument determines the action (view, close, delete), and the second argument determines
+        the report type. Optionally, a third argument is the report ID for specific operations.
+        """
+        if not self.args or len(self.args.split()) < 2:
+            self.caller.msg("Usage: reports <action> <report_type> [<report_id>]")
+            return
+
+        args = self.args.split()
+        action = args[0].lower()
+        report_type = args[1].lower()
+
+        if report_type not in self.report_files:
+            self.caller.msg(
+                f"Invalid report type. Choose from: {', '.join(self.report_files.keys())}"
+            )
+            return
+
+        if action == "view":
+            report_id = args[2] if len(args) > 2 else None
+            self._view_report(report_type, report_id)
+        elif action == "close":
+            if len(args) < 3:
+                self.caller.msg("Usage: reports close <report_type> <report_id>")
+                return
+            report_id = args[2]
+            self._close_report(report_type, report_id)
+        elif action == "delete":
+            if len(args) < 3:
+                self.caller.msg("Usage: reports delete <report_type> <report_id>")
+                return
+            report_id = args[2]
+            self._delete_report(report_type, report_id)
+        else:
+            self.caller.msg("Invalid action. Use 'view', 'close', or 'delete'.")
+
+
 class CmdTeleport(Command):
     """
     Syntax: tel/switch [<object> to||=] <target location>
@@ -301,9 +456,7 @@ class CmdTeleport(Command):
         self.destination = None
 
         if self.rhs:
-            self.obj_to_teleport = self.caller.search(
-                self.lhs, global_search=True
-            )
+            self.obj_to_teleport = self.caller.search(self.lhs, global_search=True)
             if not self.obj_to_teleport:
                 self.caller.msg("Did not find object to teleport.")
                 raise InterruptCommand
@@ -312,17 +465,13 @@ class CmdTeleport(Command):
                 self.search_by_xyz(self.rhs)
             else:
                 # fallback to regular search by name/alias
-                self.destination = self.caller.search(
-                    self.rhs, global_search=True
-                )
+                self.destination = self.caller.search(self.rhs, global_search=True)
 
         elif self.lhs:
             if all(char in self.lhs for char in ("(", ")", ",")):
                 self.search_by_xyz(self.lhs)
             else:
-                self.destination = self.caller.search(
-                    self.lhs, global_search=True
-                )
+                self.destination = self.caller.search(self.lhs, global_search=True)
 
     def search_by_xyz(self, inp):
         inp = inp.strip("()")
@@ -380,9 +529,7 @@ class CmdTeleport(Command):
             return
 
         if not self.args:
-            caller.msg(
-                "Usage: teleport[/switches] [<obj> =] <target or (X,Y,Z)>||home"
-            )
+            caller.msg("Usage: teleport[/switches] [<obj> =] <target or (X,Y,Z)>||home")
             return
 
         if not destination:
@@ -400,9 +547,7 @@ class CmdTeleport(Command):
             return
 
         if obj_to_teleport == destination.location:
-            caller.msg(
-                "You can't teleport an object inside something it holds!"
-            )
+            caller.msg("You can't teleport an object inside something it holds!")
             return
 
         if obj_to_teleport.location and obj_to_teleport.location == destination:
@@ -499,15 +644,11 @@ class CmdTransfer(Command):
             return
 
         if obj_to_transfer in caller.location.contents:
-            caller.msg(
-                "You can't transfer an object inside something it holds!"
-            )
+            caller.msg("You can't transfer an object inside something it holds!")
             return
 
         if not obj_to_transfer.access(caller, "control"):
-            caller.msg(
-                f"You do not have permission to transfer {obj_to_transfer}."
-            )
+            caller.msg(f"You do not have permission to transfer {obj_to_transfer}.")
             return
 
         success = obj_to_transfer.move_to(
