@@ -722,7 +722,7 @@ class CmdReport(Command):
     Submit a report to the game administrators.
 
     Usage:
-        - report <message> (submit a general report)
+        - report <message> (submit a report)
         - bug <message>    (submit a bug report)
         - idea <message>   (submit an idea/suggestion)
 
@@ -733,30 +733,34 @@ class CmdReport(Command):
     """
 
     key = "report"
-    alaises = ["bug", "idea"]
+    aliases = ["bug", "idea"]
     locks = "cmd:all()"
     help_category = "Account"
     account_caller = True
 
     report_dir = "server/logs"
     report_files = {
-        "general": os.path.join(report_dir, "reports.json"),
+        "report": os.path.join(report_dir, "reports.json"),
         "bug": os.path.join(report_dir, "bugs.json"),
         "idea": os.path.join(report_dir, "ideas.json"),
     }
 
-    def _load_reports(self):
-        if os.path.exists(self.report_file):
-            with open(self.report_file, "r") as f:
+    def _load_reports(self, report_type):
+        file_path = self.report_files[report_type]
+
+        if os.path.exists(file_path):
+            with open(file_path, "r") as f:
                 return json.load(f)
         return []
 
-    def _save_reports(self, reports):
-        with open(self.report_file, "w") as f:
+    def _save_reports(self, report_type, reports):
+        file_path = self.report_files[report_type]
+
+        with open(file_path, "w") as f:
             json.dump(reports, f, indent=4)
 
     def _store_report(self, report_type, message):
-        reports = self._load_reports()
+        reports = self._load_reports(report_type)
 
         new_report = {
             "id": len(reports) + 1,
@@ -767,14 +771,14 @@ class CmdReport(Command):
         }
 
         reports.append(new_report)
-        self._save_reports(reports)
+        self._save_reports(report_type, reports)
         self.caller.msg(f"Your {report_type} has been submitted. Thank you!")
 
     def _report(self):
         if not self.args:
             return self.msg("Usage: report <message>")
 
-        self._store_report("general", self.args)
+        self._store_report("report", self.args)
 
     def _bug(self):
         if not self.args:
