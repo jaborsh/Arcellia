@@ -58,7 +58,7 @@ STARTING_HUMAN_GAITERS = {
     "key": "human gaiters",
     "aliases": ["gaiters"],
     "display_name": "|YHuman gaiters|n",
-    "typeclass": "typeclasses.equipment.armor.Armor",
+    "typeclass": "typeclasses.equipment.footwear.Footwear",
     "desc": "Made from strips of thick, tanned leather, they wind up the legs like serpentine coils, their once-uniform surface now scarred and mottled by time and the elements. The leather is faded, its original dark brown now cracked and uneven, resembling the parched surface of a dry riverbed under a relentless sun. Layers upon layers of straps crisscross the boots, fastened haphazardly. The open toes and heels suggest function over comfort. Frayed edges hang from the seams, flapping like tattered banners.",
     "senses": {
         "feel": "The leather is stiff and unyielding, offering little comfort but promising steadfast protection.",
