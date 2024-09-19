@@ -84,6 +84,13 @@ class EquipmentHandler(Handler):
             obj, db_attribute_key, db_attribute_category, default_data
         )
 
+    @property
+    def weapons(self):
+        """
+        Returns a list of equipped weapons.
+        """
+        return self._data[EquipmentType.WEAPON] or []
+
     def all(self):
         """
         Returns a list of all equipped items.

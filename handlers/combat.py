@@ -180,15 +180,27 @@ class CombatHandler(Handler):
             return
 
         target = next(iter(enemies))  # Select an enemy to attack
-        self.obj.msg_contents(
-            "$You(combatant) $conj(hit) $you(target).",
-            from_obj=combatant,
-            mapping={
-                "combatant": combatant,
-                "target": target,
-            },
-        )
-        target.at_damage(100)
+        # Calculate damage from the combatant's weapons
+        if len(combatant.equipment.weapons) == 0:
+            damage = 1  # Default damage if no weapons
+        elif len(combatant.equipment.weapons) >= 1:
+            primary_weapon = combatant.equipment.weapons[0]
+            damage = primary_weapon.damage
+            self.obj.msg_contents(
+                primary_weapon.db.primary_attack,
+                from_obj=combatant,
+                mapping={"caller": combatant, "target": target},
+            )
+            if len(combatant.equipment.weapons) > 1:
+                secondary_weapon = combatant.equipment.weapons[1]
+                damage += secondary_weapon.damage * 0.5
+                self.obj.msg_contents(
+                    secondary_weapon.db.secondary_attack,
+                    from_obj=combatant,
+                    mapping={"caller": combatant, "target": target},
+                )
+
+        target.at_damage(damage)
         if not target.is_alive():
             self.remove_combatant(target)
 

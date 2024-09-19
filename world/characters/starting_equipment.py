@@ -10,6 +10,9 @@ STARTING_BATTLE_AXE = {
         "sound": "When swung, the axe cleaves the air with a menacing whistle.",
         "taste": "You taste nothing interesting.",
     },
+    "damage": 16,
+    "primary_attack": "\$You() \$conj(deliver) a powerful, overhand chop, cleaving \$you(target)!",
+    "secondary_attack": "\$You() \$conj(swing) \$pron(your,pa) axe in a sweeping horizontal arc, striking \$you(target)!",
     "weight": 4,
 }
 
