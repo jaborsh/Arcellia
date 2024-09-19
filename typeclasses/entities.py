@@ -36,7 +36,7 @@ class Entity(
     appearance_template = dedent(
         """
         {desc}
-        
+        {health}
         {equipment}
         
         {clothing}
@@ -456,6 +456,7 @@ class Entity(
 
         return self.appearance_template.format(
             desc=self.get_display_desc(looker, **kwargs),
+            health=self.get_display_health(looker, **kwargs),
             equipment=self.get_display_equipment(looker, **kwargs),
             clothing=self.get_display_clothing(looker, **kwargs),
         ).strip()
@@ -472,6 +473,24 @@ class Entity(
 
         """
         return self.db.desc or "You see nothing special."
+
+    def get_display_health(self, looker, **kwargs):
+        HEALTH_MAP = {
+            0: "They are |#ff0000lifeless|n.",
+            20: "They are |#ff6600on the edge of collapse|n.",
+            40: "They are |#ffcc00in critical condition|n.",
+            50: "They are |#ffff00wounded|n.",
+            60: "They are |#ccff00injured|n.",
+            80: "They are |#99ff00hurt|n.",
+            99: "They are |#33ff00scratched|n.",
+            100: "They are |#00ff00in perfect condition|n.",
+        }
+
+        percentage = self.health.percent(formatting=None)
+        for threshold, display in HEALTH_MAP.items():
+            if percentage <= threshold:
+                return f"{display}"
+        return "They appear |xunknown|n."
 
     def get_display_equipment(self, looker, **kwargs):
         """
