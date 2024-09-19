@@ -1202,25 +1202,6 @@ class Trait:
         self._data["value"] = value
 
 
-# Implementation of the respective Trait types
-class BoolTrait(Trait):
-    """
-    A class representing a boolean trait.
-
-    Attributes:
-        trait_type (str): The type of the trait, set to "bool".
-        default_keys (dict): The default keys for the trait, with "value" set to None.
-    """
-
-    trait_type = "bool"
-
-    default_keys = {"value": None}
-
-    def __str__(self):
-        status = "{value:11}".format(value=self.value)
-        return "{name:12} {status}".format(name=self.name, status=status)
-
-
 class StaticTrait(Trait):
     """
     Static Trait. This is a single value with a modifier,
@@ -1329,6 +1310,7 @@ class CounterTrait(Trait):
         "descs": None,
         "rate": 0,
         "ratetarget": None,
+        "level": None,
     }
 
     @staticmethod
@@ -1581,6 +1563,16 @@ class CounterTrait(Trait):
         # if we get here we are above the highest bound so
         # we return the latest bound specified.
         return highest
+
+    @property
+    def level(self):
+        """Store a value's level"""
+        return self._data["level"]
+
+    @level.setter
+    def level(self, value):
+        """Set level"""
+        self._data["level"] = value
 
 
 class GaugeTrait(CounterTrait):

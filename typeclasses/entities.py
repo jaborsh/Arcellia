@@ -12,6 +12,7 @@ from handlers import buffs, clothing, equipment, traits
 from server.conf import logger
 from utils.text import grammarize, wrap
 from world.characters import genders
+from world.characters import stats as char_stats
 
 from .objects import ObjectParent
 
@@ -35,28 +36,87 @@ class Entity(ObjectParent):
         self.init_stats()
 
     def init_stats(self):
-        # Scores
-        self.stats.add("strength", "Strength", trait_type="static", base=10)
-        self.stats.add("dexterity", "Dexterity", trait_type="static", base=10)
-        self.stats.add(
-            "constitution", "Constitution", trait_type="static", base=10
-        )
-        self.stats.add(
-            "intelligence", "Intelligence", trait_type="static", base=10
-        )
-        self.stats.add("wisdom", "Wisdom", trait_type="static", base=10)
-        self.stats.add("charisma", "Charisma", trait_type="static", base=10)
-
         # Attributes
-        self.stats.add("health", "Health", trait_type="gauge", base=100)
-        self.stats.add("mana", "Mana", trait_type="gauge", base=100)
-        self.stats.add("stamina", "Stamina", trait_type="gauge", base=100)
+        self.stats.add(
+            "vigor", "Vigor", trait_type="counter", base=1, min=1, max=20
+        )
+        self.stats.add(
+            "mind", "Mind", trait_type="counter", base=1, min=1, max=20
+        )
+        self.stats.add(
+            "endurance",
+            "Endurance",
+            trait_type="counter",
+            base=1,
+            min=1,
+            max=20,
+        )
+        self.stats.add(
+            "strength", "Strength", trait_type="counter", base=1, min=1, max=20
+        )
+        self.stats.add(
+            "dexterity",
+            "Dexterity",
+            trait_type="counter",
+            base=1,
+            min=1,
+            max=20,
+        )
+        self.stats.add(
+            "intelligence",
+            "Intelligence",
+            trait_type="counter",
+            base=1,
+            min=1,
+            max=20,
+        )
+        self.stats.add(
+            "faith", "Faith", trait_type="counter", base=1, min=1, max=20
+        )
+        self.stats.add(
+            "arcane", "Arcane", trait_type="counter", base=1, min=1, max=20
+        )
+        self.stats.add(
+            "charisma", "Charisma", trait_type="counter", base=1, min=1, max=20
+        )
+
+        self.stats.add(
+            "health",
+            "Health",
+            trait_type="gauge",
+            base=char_stats.HEALTH_LEVELS[1],
+            min=0,
+            max=char_stats.HEALTH_LEVELS[1],
+        )
+        self.stats.add(
+            "mana",
+            "Mana",
+            trait_type="gauge",
+            base=char_stats.MANA_LEVELS[1],
+            min=0,
+            max=char_stats.MANA_LEVELS[1],
+        )
+        self.stats.add(
+            "stamina",
+            "Stamina",
+            trait_type="gauge",
+            base=char_stats.STAMINA_LEVELS[1],
+            min=0,
+            max=char_stats.STAMINA_LEVELS[1],
+        )
 
         # Misc.
-        self.stats.add("experience", "Experience", trait_type="counter", base=0)
-        self.stats.add("wealth", "Wealth", trait_type="counter", base=0)
         self.stats.add(
-            "weight", "Weight", trait_type="counter", base=0, max=100
+            "experience", "Experience", trait_type="counter", base=0, min=0
+        )
+        self.stats.add("wealth", "Wealth", trait_type="counter", base=0, min=0)
+        self.stats.add(
+            "weight",
+            "Weight",
+            trait_type="counter",
+            base=0,
+            min=0,
+            max=char_stats.WEIGHT_LEVELS[1],
         )
 
     @lazy_property
@@ -80,6 +140,18 @@ class Entity(ObjectParent):
         return traits.TraitHandler(self, db_attribute_key="stats")
 
     @property
+    def vigor(self):
+        return self.stats.get("vigor")
+
+    @property
+    def mind(self):
+        return self.stats.get("mind")
+
+    @property
+    def endurance(self):
+        return self.stats.get("endurance")
+
+    @property
     def strength(self):
         return self.stats.get("strength")
 
@@ -88,16 +160,16 @@ class Entity(ObjectParent):
         return self.stats.get("dexterity")
 
     @property
-    def constitution(self):
-        return self.stats.get("constitution")
-
-    @property
     def intelligence(self):
         return self.stats.get("intelligence")
 
     @property
-    def wisdom(self):
-        return self.stats.get("wisdom")
+    def faith(self):
+        return self.stats.get("faith")
+
+    @property
+    def arcane(self):
+        return self.stats.get("arcane")
 
     @property
     def charisma(self):
@@ -122,6 +194,10 @@ class Entity(ObjectParent):
     @property
     def wealth(self):
         return self.stats.get("wealth")
+
+    @property
+    def weight(self):
+        return self.stats.get("weight")
 
     @lazy_property
     def feats(self):

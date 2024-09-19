@@ -18,6 +18,7 @@ from evennia.utils.utils import (
 
 from handlers import quests
 from prototypes import flasks
+from world.characters import stats
 
 from .entities import Entity
 from .objects import ObjectParent
@@ -65,15 +66,49 @@ class Character(Entity, ObjectParent, DefaultCharacter):
     def quests(self):
         return quests.QuestHandler(self, db_attribute_key="quests")
 
-    @property
-    def background(self):
-        return self.traits.get("background")
-
-    # Combat
-    def execute_combat_turn(self):
-        if not self.ndb.combat_action:
-            self.msg("You attack.")
+    def at_level(self, stat):
+        if stat not in self.stats.all():
             return
 
-        # Perform combat action
-        pass
+        self.stats.get(stat).base += 1
+        if stat == "vigor":
+            self.stats.add(
+                "health",
+                "Health",
+                trait_type="gauge",
+                base=stats.HEALTH_LEVELS[self.vigor.base],
+                min=0,
+                max=stats.HEALTH_LEVELS[self.vigor.base],
+            )
+            self.health.current = self.health.max
+        elif stat == "mind":
+            self.stats.add(
+                "mana",
+                "Mana",
+                trait_type="gauge",
+                base=stats.MANA_LEVELS[self.mind.base],
+                min=0,
+                max=stats.MANA_LEVELS[self.mind.base],
+            )
+            self.mana.current = self.mana.max
+        elif stat == "endurance":
+            self.stats.add(
+                "stamina",
+                "Stamina",
+                trait_type="gauge",
+                base=stats.STAMINA_LEVELS[self.endurance.base],
+                min=0,
+                max=stats.STAMINA_LEVELS[self.endurance.base],
+            )
+            self.stamina.current = self.stamina.max
+
+            curr_weight = self.weight.current
+            self.stats.add(
+                "weight",
+                "Weight",
+                trait_type="counter",
+                base=0,
+                min=0,
+                max=stats.WEIGHT_LEVELS[self.endurance.base],
+            )
+            self.weight.current = curr_weight
