@@ -125,6 +125,10 @@ class CmdDiary(Command):
             self.caller.msg("Failed to add diary entry.")
 
     def display_diary(self):
+        entries = Msg.objects.get_by_tag("admin_diary").reverse()[:10]
+        if not entries:
+            return self.caller.msg("No diary entries found.")
+
         diary = evtable.EvTable(
             "|wAuthor|n",
             "|wDate|n",
@@ -132,10 +136,10 @@ class CmdDiary(Command):
             border="header",
             maxwidth=self.client_width(),
         )
-        diary.reformat_column(0, valign="t")
+        diary.reformat_column(0, valign="t", width=15)
         diary.reformat_column(1, valign="t", width=12)
 
-        for entry in Msg.objects.get_by_tag("admin_diary").reverse()[:10]:
+        for entry in entries:
             diary.add_row(
                 entry.senders[0].get_display_name(self.caller),
                 entry.db_date_created.date(),
@@ -358,8 +362,8 @@ class CmdReports(Command):
             border="header",
             maxwidth=self.client_width(),
         )
-        table.reformat_column(0, valign="t")
-        table.reformat_column(1, valign="t")
+        table.reformat_column(0, valign="t", width=6)
+        table.reformat_column(1, valign="t", width=15)
         table.reformat_column(2, valign="t", width=12)
 
         for report in reports.reverse()[:10]:
