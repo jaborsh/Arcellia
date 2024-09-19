@@ -21,6 +21,7 @@ from prototypes import currencies
 from server.conf import logger
 from server.conf.at_search import SearchReturnType
 from typeclasses.clothing import Clothing
+from typeclasses.consumables.consumables import Consumable
 from typeclasses.entities import Entity
 from typeclasses.equipment.equipment import Equipment, EquipmentType
 from utils.colors import strip_ansi
@@ -37,6 +38,7 @@ __all__ = [
     "CmdAttackStop",
     "CmdBlock",
     "CmdCover",
+    "CmdDrink",
     "CmdDrop",
     "CmdEmote",
     "CmdFeel",
@@ -500,6 +502,30 @@ class CmdCover(Command):
             f"$You() $conj(cover) {obj.get_display_name(caller)} with {cover.get_display_name(caller)}.",
             from_obj=caller,
         )
+
+
+class CmdDrink(Command):
+    key = "drink"
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+
+        if not args:
+            return caller.msg("Drink what?")
+
+        drink = caller.search(args)
+        if not drink:
+            return
+
+        if not inherits_from(drink, Consumable):
+            return caller.msg("You can't drink that.")
+
+        if not drink.at_pre_drink(caller):
+            return
+
+        drink.at_drink(caller)
 
 
 class CmdDrop(Command):
@@ -1046,7 +1072,7 @@ class CmdHP(Command):
     """
 
     key = "hp"
-    aliases = ["h"]
+    aliases = ["h", "health"]
     locks = "cmd:all()"
 
     def func(self):

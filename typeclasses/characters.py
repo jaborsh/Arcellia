@@ -10,12 +10,14 @@ creation commands.
 
 from django.conf import settings
 from evennia.objects.objects import DefaultCharacter
+from evennia.prototypes import spawner
 from evennia.utils.utils import (
     lazy_property,
     variable_from_module,
 )
 
 from handlers import quests
+from prototypes import flasks
 
 from .entities import Entity
 from .objects import ObjectParent
@@ -49,6 +51,14 @@ class Character(Entity, ObjectParent, DefaultCharacter):
     def at_object_creation(self):
         super().at_object_creation()
         self.locks.add("msg:all()")
+
+    def init_flasks(self):
+        health_flask = spawner.spawn(flasks.HEALTH_FLASK)[0]
+        mana_flask = spawner.spawn(flasks.MANA_FLASK)[0]
+        health_flask.home = self
+        mana_flask.home = self
+        health_flask.move_to(self, quiet=True)
+        mana_flask.move_to(self, quiet=True)
 
     @lazy_property
     def quests(self):
