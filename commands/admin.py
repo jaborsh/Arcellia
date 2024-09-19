@@ -363,7 +363,7 @@ class CmdReports(Command):
             maxwidth=self.client_width(),
         )
         table.reformat_column(0, valign="t", width=6)
-        table.reformat_column(1, valign="t", width=6)
+        table.reformat_column(1, valign="t", width=8)
         table.reformat_column(2, valign="t", width=14)
 
         for report in reports.reverse()[:10]:
