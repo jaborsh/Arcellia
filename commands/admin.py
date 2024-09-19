@@ -136,13 +136,13 @@ class CmdDiary(Command):
             border="header",
             maxwidth=self.client_width(),
         )
-        diary.reformat_column(0, valign="t", width=15)
-        diary.reformat_column(1, valign="t", width=12)
+        diary.reformat_column(0, valign="t")
+        diary.reformat_column(1, valign="t", width=14)
 
         for entry in entries:
             diary.add_row(
                 entry.senders[0].get_display_name(self.caller),
-                entry.db_date_created.date(),
+                entry.db_date_created.strftime("%b %d, %Y"),
                 entry.message,
             )
         self.caller.msg("|rAdmin Diary|n:\n\n" + str(diary))
@@ -363,14 +363,14 @@ class CmdReports(Command):
             maxwidth=self.client_width(),
         )
         table.reformat_column(0, valign="t", width=6)
-        table.reformat_column(1, valign="t", width=15)
-        table.reformat_column(2, valign="t", width=12)
+        table.reformat_column(1, valign="t")
+        table.reformat_column(2, valign="t", width=14)
 
         for report in reports.reverse()[:10]:
             table.add_row(
                 report.id,
                 report.senders[0].get_display_name(self.caller),
-                report.db_date_created.date(),
+                report.db_date_created.strftime("%b %d, %Y"),
                 report.message,
             )
 
