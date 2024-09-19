@@ -40,46 +40,16 @@ class CombatHandler(Handler):
             obj, db_attribute_key, db_attribute_category, default_data
         )
 
-    def _exec_combat(self):
-        """
-        Executes combat-related actions.
-        """
-        if not self._data["combatants"] or self.is_fighting:
-            return
-
-        self.is_fighting = True
-        self._exec_round()
-
-    def _exec_round(self):
-        """
-        Executes a round of combat.
-        """
-        self.queue.extend(self._data["combatants"].keys())
-
-        if not self.queue:
-            self.is_fighting = False
-            return
-
-        self._exec_turn()
-
-    def _exec_turn(self):
-        """
-        Executes a turn in combat.
-        """
-        if not self.queue:
-            self._exec_round()
-            return
-
-        combatant = self.queue.popleft()
-
-        if not self._valid_combatant(combatant):
-            self._exec_turn()
-            return
-
-        self.obj.msg_contents(f"{combatant} takes their turn.")
-        delay(1, self._exec_turn)
-
     def _valid_combatant(self, combatant):
+        """
+        Checks if a combatant is valid (e.g., still present in the location).
+
+        Parameters:
+            combatant: The combatant to validate.
+
+        Returns:
+            bool: True if valid, False otherwise.
+        """
         if combatant.location != self.obj:
             self.remove_combatant(combatant)
             return False
@@ -90,72 +60,64 @@ class CombatHandler(Handler):
         """
         Adds a combatant and their enemies to the combatants dictionary.
 
-        If the combatant does not exist, they are added. Enemies are then added to their enemy list.
-
         Parameters:
-            combatant (str): The combatant to be added.
-            enemies (object or list): The enemies to be added to the combatant's list of enemies. Can be a single enemy or a list of enemies.
+            combatant: The combatant to be added.
+            enemies (object or list): The enemies to be added to the combatant's set of enemies.
+                                      Can be a single enemy or a list of enemies.
         """
-
         if not enemies:
             return
 
         if not isinstance(enemies, list):
             enemies = [enemies]
 
-        self._data["combatants"].setdefault(combatant, [])
+        # Initialize combatant's enemy set if it doesn't exist
+        self._data["combatants"].setdefault(combatant, set())
 
-        # Add only new enemies to avoid duplicates
-        existing_enemies = set(self._data["combatants"][combatant])
-        new_enemies = set(enemies) - existing_enemies
+        # Add enemies to combatant's enemy set
+        new_enemies = set(enemies)
+        self._data["combatants"][combatant].update(new_enemies)
 
-        if new_enemies:
-            self._data["combatants"][combatant].extend(new_enemies)
-
-            for enemy in new_enemies:
-                self._data["combatants"].setdefault(enemy, [])
-                if combatant not in self._data["combatants"][enemy]:
-                    self._data["combatants"][enemy].append(combatant)
+        # For each new enemy, ensure they have the combatant in their enemy set
+        for enemy in new_enemies:
+            self._data["combatants"].setdefault(enemy, set())
+            self._data["combatants"][enemy].add(combatant)
 
         if not self.is_fighting:
-            self._exec_combat()
-
-        # self._save()
+            self.start_combat()
 
     def remove_combatant(self, combatant):
         """
-        Removes a combatant from the combatants list and from other combatants' enemy lists.
+        Removes a combatant from the combatants list and from other combatants' enemy sets.
 
         Parameters:
-            combatant (str): The combatant to be removed.
+            combatant: The combatant to be removed.
         """
         if combatant in self._data["combatants"]:
+            # Remove combatant from their enemies' enemy sets
+            for enemy in self._data["combatants"][combatant]:
+                if enemy in self._data["combatants"]:
+                    self._data["combatants"][enemy].discard(combatant)
+                    if not self._data["combatants"][enemy]:
+                        del self._data["combatants"][enemy]
+
+            # Remove combatant from combatants
             del self._data["combatants"][combatant]
 
-            # Remove combatant from all enemy lists
-            for k in list(self._data["combatants"].keys()):
-                v = self._data["combatants"][k]
-                if combatant in v:
-                    self._data["combatants"][k] = [
-                        e for e in v if e != combatant
-                    ]
-
-                if not self._data["combatants"][k]:
-                    del self._data["combatants"][k]
-
-            # self._save()
+        if not self._data["combatants"]:
+            self.end_combat()
 
     def get_enemies(self, combatant):
         """
-        Returns the list of enemies for a given combatant.
+        Returns the set of enemies for a given combatant.
 
         Parameters:
-            combatant (str): The combatant whose enemies are requested.
+            combatant: The combatant whose enemies are requested.
 
         Returns:
-            list: A list of enemies for the specified combatant.
+            set: A set of enemies for the specified combatant.
         """
-        return self._data["combatants"].get(combatant, [])
+        return self._data["combatants"].get(combatant, set())
 
     def all_combatants(self):
         """
@@ -165,3 +127,83 @@ class CombatHandler(Handler):
             list: A list of all combatants.
         """
         return list(self._data["combatants"].keys())
+
+    def start_combat(self):
+        """
+        Initiates combat if there are combatants and combat is not already in progress.
+        """
+        if not self._data["combatants"] or self.is_fighting:
+            return
+
+        self.is_fighting = True
+        self.queue = deque(self._data["combatants"].keys())
+        self.process_next_turn()
+
+    def process_next_turn(self):
+        """
+        Processes the next turn in combat.
+        """
+        if not self.is_fighting:
+            return
+
+        if not self.queue:
+            # Start a new round or end combat
+            if self.is_combat_active():
+                self.queue = deque(self._data["combatants"].keys())
+            else:
+                self.end_combat()
+                return
+
+        combatant = self.queue.popleft()
+
+        if not (
+            self._valid_combatant(combatant) and self.get_enemies(combatant)
+        ):
+            # Skip to next combatant
+            self.process_next_turn()
+            return
+
+        self.perform_attack(combatant)
+        # Re-add combatant to queue if they still have enemies
+        if self.get_enemies(combatant):
+            self.queue.append(combatant)
+
+        # Schedule the next turn after a delay
+        delay(1, self.process_next_turn)
+
+    def perform_attack(self, combatant):
+        """
+        Performs an attack for the given combatant.
+        """
+        enemies = self.get_enemies(combatant)
+        if not enemies:
+            return
+
+        target = next(iter(enemies))  # Select an enemy to attack
+        self.obj.msg_contents(
+            "$You(combatant) $conj(hit) $you(target).",
+            from_obj=combatant,
+            mapping={
+                "combatant": combatant,
+                "target": target,
+            },
+        )
+        target.at_damage(100)
+        if not target.is_alive():
+            self.remove_combatant(target)
+
+    def is_combat_active(self) -> bool:
+        """
+        Checks if combat is still active (combatants have enemies).
+
+        Returns:
+            bool: True if combat should continue, False otherwise.
+        """
+        return any(self.get_enemies(c) for c in self._data["combatants"])
+
+    def end_combat(self):
+        """
+        Ends the combat by resetting the state.
+        """
+        self.is_fighting = False
+        self.queue.clear()

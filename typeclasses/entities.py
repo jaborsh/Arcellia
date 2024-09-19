@@ -218,6 +218,17 @@ class Entity(ObjectParent):
         )
 
     # Hooks
+    def is_alive(self):
+        return self.health.current > 0
+
+    def at_damage(self, value):
+        self.health.current -= value
+        if not self.is_alive():
+            self.at_die()
+
+    def at_die(self):
+        self.location.msg_contents("$You() $conj(die)!", from_obj=self)
+
     def at_pre_emote(self, message, **kwargs):
         """
         Before the object emotes something.
