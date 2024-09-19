@@ -175,6 +175,7 @@ def chargen_race_confirmation(caller, raw_string, **kwargs):
 def chargen_finalize(caller, raw_string):
     start = XYZRoom.objects.get_xyz(xyz=("4", "0", "sunwreck_shores"))
     caller.location = start
+    caller.init_flasks()
 
     for eq in caller.contents:
         if inherits_from(eq, "typeclasses.equipment.equipment.Equipment"):

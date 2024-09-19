@@ -9,10 +9,19 @@ class Flask(Consumable):
         super().at_object_creation()
         self.locks.add("drop:false()")
         self.traits.add(
-            "capacity", "Capacity", trait_type="counter", base=5, min=0, max=15
+            "capacity", "Capacity", trait_type="counter", base=2, min=0, max=15
         )
         self.traits.add(
             "level", "Level", trait_type="counter", base=1, min=1, max=15
+        )
+
+    @property
+    def display_name(self):
+        return (
+            self.attributes.get("display_name", self.name)
+            + " {"
+            + f"{self.capacity.current}"
+            + "}"
         )
 
     @lazy_property

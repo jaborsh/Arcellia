@@ -51,7 +51,6 @@ class Character(Entity, ObjectParent, DefaultCharacter):
 
     def at_object_creation(self):
         super().at_object_creation()
-        self.init_flasks()
         self.locks.add("msg:all()")
 
     def init_flasks(self):
