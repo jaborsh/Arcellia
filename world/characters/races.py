@@ -1,6 +1,8 @@
 from class_registry import ClassRegistry
+from evennia.prototypes import spawner
 from evennia.utils import dedent
 
+from world.characters import starting_equipment
 from world.features import racial as racial_feats
 
 RaceRegistry = ClassRegistry("key")
@@ -102,6 +104,9 @@ RACE_INFO_DICT = {
 class Race:
     key = "race"
 
+    def initialize_race_equipment(self, caller):
+        pass
+
     def initialize_race_features(self, caller):
         pass
 
@@ -109,6 +114,16 @@ class Race:
 @RaceRegistry.register
 class Human(Race):
     key = "human"
+
+    def initialize_race_equipment(self, caller):
+        axe = spawner.spawn(starting_equipment.STARTING_BATTLE_AXE)[0]
+        axe.home = caller
+        axe.location = caller
+        shield = spawner.spawn(
+            starting_equipment.STARTING_LARGE_LEATHER_SHIELD
+        )[0]
+        shield.home = caller
+        shield.location = caller
 
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.HumanVersatility)

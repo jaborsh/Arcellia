@@ -1,4 +1,5 @@
 from evennia.utils import dedent
+from evennia.utils.utils import inherits_from
 
 from utils.text import _INFLECT
 from world.characters import (
@@ -151,6 +152,7 @@ def chargen_race_confirmation(caller, raw_string, **kwargs):
     def _set_race(caller, **kwargs):
         race = kwargs.get("race")
         caller.traits.add("race", "Race", value=race)
+        caller.race.value.initialize_race_equipment(caller)
         caller.race.value.initialize_race_features(caller)
         return "chargen_finalize"
 
@@ -171,7 +173,11 @@ def chargen_race_confirmation(caller, raw_string, **kwargs):
 
 
 def chargen_finalize(caller, raw_string):
-    caller.move_to(
-        XYZRoom.objects.get_xyz(xyz=("4", "0", "sunwreck_shores")), quiet=True
-    )
+    start = XYZRoom.objects.get_xyz(xyz=("4", "0", "sunwreck_shores"))
+    caller.location = start
+
+    for eq in caller.contents:
+        if inherits_from(eq, "typeclasses.equipment.equipment.Equipment"):
+            caller.equipment.wear(eq)
+
     return "", ""

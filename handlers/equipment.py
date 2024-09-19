@@ -1,10 +1,8 @@
 from copy import copy
 
+from handlers.handler import Handler
 from typeclasses.clothing import ClothingType
 from typeclasses.equipment.equipment import EquipmentType
-from typeclasses.equipment.weapons.weapons import WeaponVersatility
-
-from handlers.handler import Handler
 
 EQUIPMENT_DEFAULTS = {
     EquipmentType.HEADWEAR: None,
@@ -82,7 +80,9 @@ class EquipmentHandler(Handler):
         db_attribute_category=None,
         default_data=copy(EQUIPMENT_DEFAULTS),
     ):
-        super().__init__(obj, db_attribute_key, db_attribute_category, default_data)
+        super().__init__(
+            obj, db_attribute_key, db_attribute_category, default_data
+        )
 
     def all(self):
         """
@@ -98,7 +98,8 @@ class EquipmentHandler(Handler):
             if item
         ]
         equipment = sorted(
-            equipment, key=lambda x: EQUIPMENT_TYPE_ORDER.index(x.equipment_type)
+            equipment,
+            key=lambda x: EQUIPMENT_TYPE_ORDER.index(x.equipment_type),
         )
         return equipment
 
@@ -130,11 +131,8 @@ class EquipmentHandler(Handler):
             or equipment_type == EquipmentType.SHIELD
         ):
             remaining_weapons = self._data[EquipmentType.WEAPON]
-            if (
-                remaining_weapons
-                and remaining_weapons[0].versatility == WeaponVersatility.VERSATILE
-            ):
-                self.obj.msg("You switch your versatile weapon to use two hands.")
+            if remaining_weapons:
+                self.obj.msg("You switch your weapon to use two hands.")
 
         self._save()
         self._display_remove_message(item, equipment_type)
@@ -160,21 +158,11 @@ class EquipmentHandler(Handler):
 
     def _check_shield_constraints(self, item):
         if self._data[EquipmentType.WEAPON]:
-            if (
-                self._data[EquipmentType.WEAPON][0].versatility
-                == WeaponVersatility.TWO_HANDED
-            ):
-                self.obj.msg("You cannot wield a shield with a two-handed weapon.")
-                return False
-            elif len(self._data[EquipmentType.WEAPON]) >= 2:
+            if len(self._data[EquipmentType.WEAPON]) >= 2:
                 self.obj.msg("You cannot wear a shield with two weapons.")
                 return False
-            elif (
-                self._data[EquipmentType.WEAPON][0].versatility
-                == WeaponVersatility.VERSATILE
-            ):
-                self.obj.msg("You switch your versatile weapon to use a single hand.")
-                return True
+
+            self.obj.msg("You switch your weapon to a single hand.")
         return True
 
     def _check_weapon_constraints(self, item):
@@ -183,32 +171,14 @@ class EquipmentHandler(Handler):
         elif len(self._data[EquipmentType.WEAPON]) >= 2:
             self.obj.msg("You are already wielding two weapons.")
             return False
-        elif item.versatility == WeaponVersatility.TWO_HANDED and (
-            len(self._data[EquipmentType.WEAPON]) >= 1
-            or self._data[EquipmentType.SHIELD]
-        ):
-            self.obj.msg(
-                "You cannot wield a two-handed weapon with another weapon or shield."
-            )
-            return False
         elif (
             self._data[EquipmentType.SHIELD]
             and len(self._data[EquipmentType.WEAPON]) >= 1
         ):
             self.obj.msg("You cannot wield two weapons with a shield.")
             return False
-        elif (
-            item.versatility == WeaponVersatility.VERSATILE
-            and len(self._data[EquipmentType.WEAPON]) >= 1
-        ):
-            if (
-                self._data[EquipmentType.WEAPON][0].versatility
-                == WeaponVersatility.VERSATILE
-            ):
-                self.obj.msg("You switch your versatile weapon to use a single hand.")
-            else:
-                self.obj.msg("You are already wielding a weapon with two hands.")
-            return False
+        elif len(self._data[EquipmentType.WEAPON]) >= 1:
+            self.obj.msg("You switch your weapon to a single hand.")
         return True
 
     def _display_wear_message(self, item, equipment_type):
