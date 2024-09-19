@@ -198,6 +198,16 @@ class EquipmentHandler(Handler):
     def wear(self, item):
         equipment_type = item.equipment_type
 
+        if item in self.all():
+            self.obj.msg(
+                "You are already {wearing} that.".format(
+                    wearing="wearing"
+                    if equipment_type != EquipmentType.WEAPON
+                    else "wielding"
+                )
+            )
+            return
+
         if equipment_type == EquipmentType.WEAPON:
             if not self._check_weapon_constraints(item):
                 return
