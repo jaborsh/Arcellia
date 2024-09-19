@@ -648,7 +648,7 @@ class CmdDrop(Command):
 
         all = "all" in self.item
         quantity = self.quantity
-        item = self.item.strip("all").strip()
+        item = self.item.replace("all", "").strip()
         item_number = self.item_number
 
         if item:
@@ -971,7 +971,7 @@ class CmdGet(Command):
 
         all = "all" in self.item
         quantity = self.quantity
-        item = self.item.strip("all").strip()
+        item = self.item.replace("all", "").strip()
         item_number = self.item_number
         container = self.container
         container_number = self.container_number
