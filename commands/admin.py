@@ -145,7 +145,7 @@ class CmdDiary(Command):
                 entry.db_date_created.date(),
                 entry.message,
             )
-        self.caller.msg(str(diary))
+        self.caller.msg("|rAdmin Diary|n:\n\n" + str(diary))
 
 
 class CmdEcho(Command):
@@ -374,7 +374,7 @@ class CmdReports(Command):
                 report.message,
             )
 
-        self.caller.msg(str(table))
+        self.caller.msg(f"|w{self.cmdstring.capitalize()}|n:\n\n{str(table)}")
 
     def delete_report(self, args):
         if len(args) < 2:
