@@ -19,9 +19,7 @@ class Flask(Consumable):
     def display_name(self):
         return (
             self.attributes.get("display_name", self.name)
-            + " {"
-            + f"{self.capacity.current}"
-            + "}"
+            + f" [{self.capacity.current}]"
         )
 
     @lazy_property

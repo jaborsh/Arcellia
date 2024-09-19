@@ -371,9 +371,7 @@ class Object(ObjectParent, DefaultObject):
 
         key = kwargs.get("key", self.get_display_name(looker))
         # Regular expression for color codes
-        color_code_pattern = (
-            r"(\|(r|g|y|b|m|c|w|x|R|G|Y|B|M|C|W|X|\d{3}|#[0-9A-Fa-f]{6}))"
-        )
+        color_code_pattern = r"(\|(r|g|y|b|m|c|w|x|R|G|Y|B|M|C|W|X|\d{3}|#[0-9A-Fa-f]{6})|\[.*\])"
         color_code_positions = [
             (m.start(0), m.end(0)) for m in re.finditer(color_code_pattern, key)
         ]
@@ -397,6 +395,8 @@ class Object(ObjectParent, DefaultObject):
                 singular_segments.append(segment)
             else:
                 # Apply pluralization to text segment
+                print(segment)
+                print(count)
                 plural_segment = (
                     _INFLECT.plural(segment, count)
                     if segment.strip()

@@ -116,7 +116,7 @@ class Entity(ObjectParent):
             trait_type="counter",
             base=0,
             min=0,
-            max=char_stats.WEIGHT_LEVELS[1],
+            max=20,
         )
 
     @lazy_property

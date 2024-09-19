@@ -1,7 +1,7 @@
 HEALTH_FLASK = {
     "key": "health flask",
     "aliases": ["flask"],
-    "display_name": "|rHealth Flask|n",
+    "display_name": "|rHealth flask|n",
     "typeclass": "typeclasses.consumables.flasks.HealthFlask",
     "desc": "This golden chalice bears the semblance of an hourglass, its upper chamber flaring outward like the petals of an exotic bloom. The neck twists with an organic grace, as if shaped by the very essence of life it purports to contain. Suspended in a crystalline medium, crimson orbs dance and swirl, each a perfect sphere of vibrant vbermillion. The golden filigree encasing this elixir weaves an intricate lattice, its design suggestive of ancient runes or the secret language of alchemists long past.",
     "senses": {
@@ -16,7 +16,7 @@ HEALTH_FLASK = {
 MANA_FLASK = {
     "key": "mana flask",
     "aliases": ["flask"],
-    "display_name": "|CMana Flask|n",
+    "display_name": "|CMana flask|n",
     "typeclass": "typeclasses.consumables.flasks.ManaFlask",
     "desc": "This golden chalice bears the form of an ethereal hourglass, its upper chamber flaring outward like the corona of a mystic sun. The neck writhes as if alive with the very essence it contains. Suspended within a crystalline medium, orbs of deepest azure and vibrant cerulean swirl in an endless dance. These spheres of pure magical potential shimmer and pulse, each one a miniature universe of power. The golden filigree embracing this elixir forms an intricate web, its patterns reminiscent of constellations or the secret sigils of long-forgotten spellcasters.",
     "senses": {
