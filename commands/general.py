@@ -1057,7 +1057,8 @@ class CmdGive(Command):
             obj = caller.search(
                 obj_name,
                 location=caller,
-                number=obj_number,
+                return_quantity=obj_number,
+                return_type=SearchReturnType.ONE,
                 nofound_string=f"You aren't carrying {obj_name}.",
             )
 
@@ -1077,8 +1078,9 @@ class CmdGive(Command):
             single, plural = obj.get_numbered_name(quantity, caller)
             item = single if quantity == 1 else f"{quantity} {plural}"
             caller.location.msg_contents(
-                f"$You() $conj(give) {item} to {target.display_name}.",
+                f"$You() $conj(give) {item} to $you(target).",
                 from_obj=caller,
+                mapping={"target": target},
             )
 
 
