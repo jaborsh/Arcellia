@@ -344,7 +344,7 @@ class CmdReports(Command):
         reports = Msg.objects.get_by_tag(report_type)
 
         if not reports:
-            return self.msg("No reports found.")
+            return self.msg(f"No {self.cmdstring} found.")
 
         if not self.args:
             self.display_reports(reports)
@@ -378,16 +378,16 @@ class CmdReports(Command):
 
     def delete_report(self, args):
         if len(args) < 2:
-            return self.msg("Please specify a report ID.")
+            return self.msg(f"Please specify a {self.cmdstring[:-1]} ID.")
         elif not args[1].isdigit():
-            return self.msg("Invalid report ID.")
+            return self.msg(f"Invalid {self.cmdstring[:-1]} ID.")
 
         report = Msg.objects.filter(id=args[1]).first()
         if report:
             report.delete()
-            self.msg("Report deleted.")
+            self.msg(f"{self.cmdstring[:-1]} deleted.")
         else:
-            self.msg("Report not found.")
+            self.msg(f"{self.cmdstring[:-1]} not found.")
 
 
 class CmdTeleport(Command):
