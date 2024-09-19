@@ -1,7 +1,6 @@
 from class_registry import ClassRegistry
 from evennia.utils import dedent
 
-from commands.spells import evocation
 from world.features import racial as racial_feats
 
 RaceRegistry = ClassRegistry("key")
@@ -122,7 +121,6 @@ class Elf(Race):
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.Darkvision)
         caller.feats.add(racial_feats.ElvenAncestry)
-        caller.spells.add(evocation.Firebolt)
 
 
 @RaceRegistry.register
@@ -132,8 +130,6 @@ class Drow(Race):
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.ElvenAncestry)
         caller.feats.add(racial_feats.SuperiorDarkvision)
-        caller.spells.add(evocation.OrbofLight)
-        caller.spells.add(evocation.Darkness)
 
 
 @RaceRegistry.register
@@ -196,8 +192,6 @@ class Tanarius(Race):
 
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.Darkvision)
-        caller.spells.add(evocation.Darkness)
-        caller.spells.add(evocation.Firebolt)
 
 
 # Mob Races

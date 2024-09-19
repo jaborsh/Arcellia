@@ -8,7 +8,7 @@ from evennia.utils.utils import (
     variable_from_module,
 )
 
-from handlers import buffs, clothing, equipment, spells, traits
+from handlers import buffs, clothing, equipment, traits
 from server.conf import logger
 from utils.text import grammarize, wrap
 from world.characters import genders
@@ -137,10 +137,6 @@ class Entity(ObjectParent):
             self,
             db_attribute_key="equipment",
         )
-
-    @lazy_property
-    def spells(self):
-        return spells.SpellHandler(self, db_attribute_key="spells")
 
     # Hooks
     def at_pre_emote(self, message, **kwargs):

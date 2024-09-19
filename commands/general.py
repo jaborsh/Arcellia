@@ -36,7 +36,6 @@ __all__ = [
     "CmdAttack",
     "CmdAttackStop",
     "CmdBlock",
-    "CmdCast",
     "CmdCover",
     "CmdDrop",
     "CmdEmote",
@@ -419,51 +418,6 @@ class CmdBlock(Command):
         else:
             caller.locks.replace(f"msg: not id({target.id})")
             caller.msg(f"You block {target.get_display_name(caller)}.")
-
-
-class CmdCast(Command):
-    """
-    Command to cast a spell.
-
-    Usage:
-        cast <spell_name> [target]
-
-    Arguments:
-        - spell_name: The name of the spell to cast.
-        - target: Optional argument specifying the target of the spell.
-
-    This command allows the player to cast a spell. The spell name is required,
-    and an optional target can be specified. If the spell is not known by the
-    player, an error message is displayed. If a target is specified, the command
-    will attempt to find the target. If no target is specified, the target will
-    be set to None.
-
-    Example usage:
-        cast fireball
-        cast heal Bob
-    """
-
-    key = "cast"
-    locks = "cmd:all()"
-
-    def func(self):
-        caller = self.caller
-        args = self.args.strip().split(" ")
-        spell = args[0]
-
-        if not spell:
-            return caller.msg("Cast what?")
-        if not caller.spells.get(spell):
-            return caller.msg("You don't know that spell.")
-
-        if len(args) > 1:
-            target = caller.search(args[1], global_search=True)
-            if not target:
-                return
-        else:
-            target = None
-
-        caller.spells.cast(spell, target)
 
 
 class CmdCover(Command):

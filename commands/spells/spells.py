@@ -1,5 +1,3 @@
-from evennia import CmdSet
-
 from commands.command import Command
 
 
@@ -18,10 +16,3 @@ class Spell(Command):
             return self.caller.msg("Your casting fails.")
 
         self.cast()
-
-
-class SpellCmdSet(CmdSet):
-    key = "SpellCmdSet"
-
-    def at_cmdset_creation(self):
-        pass
