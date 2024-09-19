@@ -5,7 +5,7 @@ from evennia import InterruptCommand
 from evennia.commands.default import muxcommand
 from evennia.comms.models import Msg
 from evennia.server.sessionhandler import SESSIONS
-from evennia.utils import evtable
+from evennia.utils import create, evtable
 from evennia.utils.utils import inherits_from
 
 from commands.command import Command
@@ -15,6 +15,7 @@ from world.xyzgrid.xyzroom import XYZRoom
 __all__ = (
     "CmdAccess",
     "CmdAnnounce",
+    "CmdDiary",
     "CmdEcho",
     "CmdForce",
     "CmdHome",
@@ -102,6 +103,45 @@ class CmdAnnounce(Command):
         ).format(SERVERNAME=settings.SERVERNAME, message=message)
 
         SESSIONS.announce_all(announcement)
+
+
+class CmdDiary(Command):
+    key = "diary"
+    locks = "cmd:pperm(Admin)"
+    help_category = "Admin"
+
+    def func(self):
+        if not self.args:
+            return self.display_diary()
+
+        if create.create_message(
+            self.account,
+            self.args.strip(),
+            locks="read:pperm(Admin)",
+            tags=["admin_diary"],
+        ):
+            self.caller.msg("Diary entry added.")
+        else:
+            self.caller.msg("Failed to add diary entry.")
+
+    def display_diary(self):
+        diary = evtable.EvTable(
+            "|wAuthor|n",
+            "|wDate|n",
+            "",
+            border="header",
+            maxwidth=self.client_width(),
+        )
+        diary.reformat_column(0, valign="t")
+        diary.reformat_column(1, valign="t", width=12)
+
+        for entry in Msg.objects.get_by_tag("admin_diary").reverse()[:10]:
+            diary.add_row(
+                entry.senders[0].get_display_name(self.caller),
+                entry.db_date_created.date(),
+                entry.message,
+            )
+        self.caller.msg(str(diary))
 
 
 class CmdEcho(Command):
