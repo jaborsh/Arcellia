@@ -19,6 +19,7 @@ from evennia.utils.utils import (
 from handlers import quests
 from prototypes import flasks
 from world.characters import stats
+from world.features import racial as racial_feats
 
 from .entities import Entity
 from .objects import ObjectParent
@@ -108,6 +109,11 @@ class Character(Entity, ObjectParent, DefaultCharacter):
                 trait_type="counter",
                 base=0,
                 min=0,
-                max=stats.WEIGHT_LEVELS[self.endurance.base],
+                max=stats.WEIGHT_LEVELS[self.endurance.base]
+                * (
+                    1.0
+                    if not self.feats.has(racial_feats.HumanVersatility)
+                    else 1.25
+                ),
             )
             self.weight.current = curr_weight
