@@ -267,6 +267,29 @@ class CmdHome(Command):
 
 
 class CmdReports(Command):
+    """
+    The `reports` command allows administrators to manage various types of reports, such as bugs and ideas.
+    This command can display the latest reports or delete a specific report based on its ID.
+
+    Usage:
+        reports
+            - Displays the latest 10 reports in a table format.
+
+        reports delete <report_id>
+            - Deletes the report with the specified ID.
+
+
+    Examples:
+        reports
+            - This will display the latest 10 reports.
+
+        reports delete 5
+            - This will delete the report with ID 5.
+
+    Notes:
+        - The command will notify if no reports are found or if an invalid report ID is provided.
+    """
+
     key = "reports"
     aliases = ["bugs", "ideas"]
     locks = "cmd:pperm(Admin)"
@@ -279,6 +302,14 @@ class CmdReports(Command):
         if not reports:
             return self.msg("No reports found.")
 
+        if not self.args:
+            self.display_reports(reports)
+        else:
+            args = self.args.split(" ")
+            if args[0] == "delete":
+                self.delete_report(args)
+
+    def display_reports(self, reports):
         table = evtable.EvTable(
             "|wID|n",
             "|wAuthor|n",
@@ -300,6 +331,19 @@ class CmdReports(Command):
             )
 
         self.caller.msg(str(table))
+
+    def delete_report(self, args):
+        if len(args) < 2:
+            return self.msg("Please specify a report ID.")
+        elif not args[1].isdigit():
+            return self.msg("Invalid report ID.")
+
+        report = Msg.objects.filter(id=args[1]).first()
+        if report:
+            report.delete()
+            self.msg("Report deleted.")
+        else:
+            self.msg("Report not found.")
 
 
 class CmdTeleport(Command):
