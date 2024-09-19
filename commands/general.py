@@ -590,9 +590,16 @@ class CmdDrop(Command):
 
         obj.move_to(caller.location, quiet=True, move_type="drop")
         obj.at_drop(caller)
+        article = (
+            "an" if strip_ansi(obj.display_name)[0].lower() in "aeiou" else "a"
+        )
+        article = (
+            "some" if strip_ansi(obj.display_name).endswith("s") else article
+        )
         caller.location.msg_contents(
-            f"$You() $conj(drop) {obj.get_display_name(caller)}.",
+            f"$You() $conj(drop) {article} $you(item).",
             from_obj=caller,
+            mapping={"item": obj},
         )
 
     def _drop_multiple(self, caller, item, quantity, item_number):
@@ -639,9 +646,7 @@ class CmdDrop(Command):
         if not args:
             return caller.msg("Drop what?")
 
-        all = "all" in self.item or (
-            self.quantity == 1 and singularize(self.item)
-        )
+        all = "all" in self.item
         quantity = self.quantity
         item = self.item.strip("all").strip()
         item_number = self.item_number
@@ -840,13 +845,28 @@ class CmdGet(Command):
         obj.at_get(caller)
         single, plural = obj.get_numbered_name(quantity, caller)
         if container:
+            single, plural = obj.get_numbered_name(quantity, caller)
+            article = (
+                "an"
+                if strip_ansi(obj.display_name)[0].lower() in "aeiou"
+                else "a"
+            )
+            article = "some" if strip_ansi(single).endswith("s") else article
             return caller.location.msg_contents(
-                f"$You() $conj(get) {single} from {container.get_display_name(caller)}.",
+                f"$You() $conj(get) {article} $you(item) from $you(container).",
                 from_obj=caller,
+                mapping={"item": obj, "container": container},
             )
 
+        single, plural = obj.get_numbered_name(quantity, caller)
+        article = (
+            "an" if strip_ansi(obj.display_name)[0].lower() in "aeiou" else "a"
+        )
+        article = "some" if strip_ansi(single).endswith("s") else article
         caller.location.msg_contents(
-            f"$You() $conj(get) {single}.", from_obj=caller
+            f"$You() $conj(get) {article} $you(item).",
+            from_obj=caller,
+            mapping={"item": obj},
         )
 
     def _get_multiple(
@@ -949,9 +969,7 @@ class CmdGet(Command):
         if not self.args:
             return caller.msg("Get what?")
 
-        all = "all" in self.item or (
-            self.quantity == 1 and singularize(self.item)
-        )
+        all = "all" in self.item
         quantity = self.quantity
         item = self.item.strip("all").strip()
         item_number = self.item_number

@@ -6,7 +6,6 @@ from world.characters import (
     genders,
     races,
 )
-from world.xyzgrid.xyzroom import XYZRoom
 
 
 def chargen_welcome(caller):
@@ -173,7 +172,9 @@ def chargen_race_confirmation(caller, raw_string, **kwargs):
 
 
 def chargen_finalize(caller, raw_string):
-    start = XYZRoom.objects.get_xyz(xyz=("4", "0", "sunwreck_shores"))
+    start = caller.search(
+        "#2"
+    )  # XYZRoom.objects.get_xyz(xyz=("4", "0", "sunwreck_shores"))
     caller.location = start
     caller.init_flasks()
 

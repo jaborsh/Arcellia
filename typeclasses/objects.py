@@ -395,8 +395,6 @@ class Object(ObjectParent, DefaultObject):
                 singular_segments.append(segment)
             else:
                 # Apply pluralization to text segment
-                print(segment)
-                print(count)
                 plural_segment = (
                     _INFLECT.plural(segment, count)
                     if segment.strip()
