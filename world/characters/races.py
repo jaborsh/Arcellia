@@ -110,14 +110,6 @@ class Race:
     def initialize_race_features(self, caller):
         pass
 
-    def initialize_race_stats(self, caller):
-        caller.strength.base = 10
-        caller.dexterity.base = 10
-        caller.constitution.base = 10
-        caller.intelligence.base = 10
-        caller.wisdom.base = 10
-        caller.charisma.base = 10
-
 
 @RaceRegistry.register
 class Human(Race):
@@ -149,14 +141,6 @@ class Human(Race):
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.HumanVersatility)
 
-    def initialize_race_stats(self, caller):
-        caller.strength.base = 10
-        caller.dexterity.base = 14
-        caller.constitution.base = 12
-        caller.intelligence.base = 12
-        caller.wisdom.base = 12
-        caller.charisma.base = 16
-
 
 @RaceRegistry.register
 class Elf(Race):
@@ -186,14 +170,6 @@ class Elf(Race):
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.Darkvision)
         caller.feats.add(racial_feats.ElvenAncestry)
-
-    def initialize_race_stats(self, caller):
-        caller.strength.base = 8
-        caller.dexterity.base = 14
-        caller.constitution.base = 14
-        caller.intelligence.base = 16
-        caller.wisdom.base = 12
-        caller.charisma.base = 10
 
 
 @RaceRegistry.register
@@ -229,14 +205,6 @@ class Drow(Race):
         caller.feats.add(racial_feats.ElvenAncestry)
         caller.feats.add(racial_feats.SuperiorDarkvision)
 
-    def initialize_race_stats(self, caller):
-        caller.strength.base = 8
-        caller.dexterity.base = 14
-        caller.constitution.base = 14
-        caller.intelligence.base = 10
-        caller.wisdom.base = 16
-        caller.charisma.base = 12
-
 
 @RaceRegistry.register
 class Dwarf(Race):
@@ -263,14 +231,6 @@ class Dwarf(Race):
         caller.feats.add(racial_feats.Darkvision)
         caller.feats.add(racial_feats.DwarvenResilience)
         caller.feats.add(racial_feats.DwarvenToughness)
-
-    def initialize_race_stats(self, caller):
-        caller.strength.base = 18
-        caller.dexterity.base = 14
-        caller.constitution.base = 14
-        caller.intelligence.base = 10
-        caller.wisdom.base = 12
-        caller.charisma.base = 8
 
 
 @RaceRegistry.register
@@ -316,14 +276,6 @@ class Astralite(Race):
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.AstralFlight)
 
-    def initialize_race_stats(self, caller):
-        caller.strength.base = 8
-        caller.dexterity.base = 14
-        caller.constitution.base = 14
-        caller.intelligence.base = 10
-        caller.wisdom.base = 16
-        caller.charisma.base = 12
-
 
 # Dragon race
 @RaceRegistry.register
@@ -358,14 +310,6 @@ class Draconian(Race):
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.Darkvision)
 
-    def initialize_race_stats(self, caller):
-        caller.strength.base = 14
-        caller.dexterity.base = 14
-        caller.constitution.base = 12
-        caller.intelligence.base = 10
-        caller.wisdom.base = 10
-        caller.charisma.base = 10
-
 
 # Orcs, obviously
 @RaceRegistry.register
@@ -379,14 +323,6 @@ class Orc(Race):
 
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.Darkvision)
-
-    def initialize_race_stats(self, caller):
-        caller.strength.base = 18
-        caller.dexterity.base = 10
-        caller.constitution.base = 14
-        caller.intelligence.base = 8
-        caller.wisdom.base = 10
-        caller.charisma.base = 8
 
 
 # Demon-spawn/Tieflings
@@ -409,14 +345,6 @@ class Tanarius(Race):
 
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.Darkvision)
-
-    def initialize_race_stats(self, caller):
-        caller.strength.base = 10
-        caller.dexterity.base = 16
-        caller.constitution.base = 14
-        caller.intelligence.base = 8
-        caller.wisdom.base = 8
-        caller.charisma.base = 16
 
 
 # Mob Races
