@@ -136,7 +136,7 @@ class CmdDiary(Command):
             border="header",
             maxwidth=self.client_width(),
         )
-        diary.reformat_column(0, valign="t")
+        diary.reformat_column(0, valign="t", width=8)
         diary.reformat_column(1, valign="t", width=14)
 
         for entry in entries:
