@@ -3,7 +3,9 @@ import re
 from django.conf import settings
 from evennia import InterruptCommand
 from evennia.commands.default import muxcommand
+from evennia.comms.models import Msg
 from evennia.server.sessionhandler import SESSIONS
+from evennia.utils import evtable
 from evennia.utils.utils import inherits_from
 
 from commands.command import Command
@@ -16,6 +18,7 @@ __all__ = (
     "CmdEcho",
     "CmdForce",
     "CmdHome",
+    "CmdReports",
     "CmdTeleport",
     "CmdTransfer",
     "CmdWatch",
@@ -261,6 +264,42 @@ class CmdHome(Command):
     def msg_teleport_home(self):
         """Send message when player is teleporting home"""
         self.caller.msg("There's no place like home ...")
+
+
+class CmdReports(Command):
+    key = "reports"
+    aliases = ["bugs", "ideas"]
+    locks = "cmd:pperm(Admin)"
+    help_category = "Admin"
+
+    def func(self):
+        report_type = self.cmdstring[:-1]
+        reports = Msg.objects.get_by_tag(report_type)
+
+        if not reports:
+            return self.msg("No reports found.")
+
+        table = evtable.EvTable(
+            "|wID|n",
+            "|wAuthor|n",
+            "|wDate|n",
+            "",
+            border="header",
+            maxwidth=self.client_width(),
+        )
+        table.reformat_column(0, valign="t")
+        table.reformat_column(1, valign="t")
+        table.reformat_column(2, valign="t", width=12)
+
+        for report in reports.reverse()[:10]:
+            table.add_row(
+                report.id,
+                report.senders[0].get_display_name(self.caller),
+                report.db_date_created.date(),
+                report.message,
+            )
+
+        self.caller.msg(str(table))
 
 
 class CmdTeleport(Command):

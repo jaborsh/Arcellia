@@ -25,6 +25,7 @@ __all__ = (
     "CmdPassword",
     "CmdPlay",
     "CmdQuit",
+    "CmdReport",
     "CmdSessions",
     "CmdSetMain",
     "CmdWho",
@@ -747,6 +748,28 @@ class CmdQuit(Command):
 
         account.msg(message, session=session)
         account.disconnect_session_from_account(session, reason)
+
+
+class CmdReport(Command):
+    key = "report"
+    aliases = ["bug", "idea"]
+    locks = "cmd:all()"
+
+    def func(self):
+        if not self.args:
+            return self.msg("You must provide a report.")
+
+        if create.create_message(
+            self.account,
+            self.args.strip(),
+            locks="read:pperm(Admin)",
+            tags=[self.cmdstring],
+        ):
+            return self.msg("Your report has been submitted.")
+
+        self.msg(
+            "Something went wrong with creating your report. Please contact staff directly."
+        )
 
 
 class CmdSessions(Command):
