@@ -1,5 +1,3 @@
-import json
-import os
 import time
 from codecs import lookup as codecs_lookup
 from datetime import datetime
@@ -27,7 +25,6 @@ __all__ = (
     "CmdPassword",
     "CmdPlay",
     "CmdQuit",
-    "CmdReport",
     "CmdSessions",
     "CmdSetMain",
     "CmdWho",
@@ -126,9 +123,13 @@ class CmdCreate(Command):
             try:
                 account.puppet_object(session, new_character)
                 account.db._last_puppet = new_character
-                logger.log_sec(f"{new_character} enters the game (Account: {account}).")
+                logger.log_sec(
+                    f"{new_character} enters the game (Account: {account})."
+                )
             except RuntimeError as error:
-                self.msg(f"|rYou cannot become |C{new_character.name}|n: {error}")
+                self.msg(
+                    f"|rYou cannot become |C{new_character.name}|n: {error}"
+                )
                 logger.log_sec(
                     f"{new_character} fails to enter the game (Account: {account})."
                 )
@@ -211,7 +212,9 @@ class CmdDelete(Command):
 
             key = char_to_delete.key
             account.db._playable_characters = [
-                pc for pc in account.db._playable_characters if pc != char_to_delete
+                pc
+                for pc in account.db._playable_characters
+                if pc != char_to_delete
             ]
             char_to_delete.delete()
             self.msg(f"Character '|w{key}|n' permanently deleted.")
@@ -254,7 +257,11 @@ class CmdDisconnect(Command):
             self.msg("\n|GYou go OOC.|n\n")
             logger.log_sec(f"{old_char} exits the game (Account: {account}).")
 
-            if _AUTO_PUPPET_ON_LOGIN and _MAX_NR_CHARACTERS == 1 and self.playable:
+            if (
+                _AUTO_PUPPET_ON_LOGIN
+                and _MAX_NR_CHARACTERS == 1
+                and self.playable
+            ):
                 self.msg(
                     "You are out-of-character (OOC).\n"
                     "Use |wconnect|n to get back into the game."
@@ -264,7 +271,9 @@ class CmdDisconnect(Command):
 
         except RuntimeError as exc:
             self.msg(f"|rCould not unpuppet from |c{old_char}|n: {exc}")
-            logger.log_sec(f"{old_char} fails to exit the game (Account: {account}).")
+            logger.log_sec(
+                f"{old_char} fails to exit the game (Account: {account})."
+            )
 
 
 class CmdOOCLook(Command):
@@ -304,7 +313,9 @@ class CmdOOCLook(Command):
             )
             return
 
-        self.msg(self.account.at_look(account=self.playable, session=self.session))
+        self.msg(
+            self.account.at_look(account=self.playable, session=self.session)
+        )
 
 
 class CmdOptions(Command):
@@ -377,7 +388,11 @@ class CmdOptions(Command):
                     )
             options.pop("TTYPE", None)
 
-            header = ("Name", "Value", "Saved") if saved_options else ("Name", "Value")
+            header = (
+                ("Name", "Value", "Saved")
+                if saved_options
+                else ("Name", "Value")
+            )
             table = self.styled_table(*header)
             for key in sorted(options):
                 row = [key, options[key]]
@@ -385,12 +400,15 @@ class CmdOptions(Command):
                     saved = " |YYes|n" if key in saved_options else ""
                     changed = (
                         "|y*|n"
-                        if key in saved_options and flags[key] != saved_options[key]
+                        if key in saved_options
+                        and flags[key] != saved_options[key]
                         else ""
                     )
                     row.append("%s%s" % (saved, changed))
                 table.add_row(*row)
-            self.msg(f"|wClient settings ({self.session.protocol_key}):|n\n{table}|n")
+            self.msg(
+                f"|wClient settings ({self.session.protocol_key}):|n\n{table}|n"
+            )
 
             return
 
@@ -405,7 +423,9 @@ class CmdOptions(Command):
             try:
                 codecs_lookup(new_encoding)
             except LookupError:
-                raise RuntimeError(f"The encoding '|w{new_encoding}|n' is invalid. ")
+                raise RuntimeError(
+                    f"The encoding '|w{new_encoding}|n' is invalid. "
+                )
             return val
 
         def validate_size(new_size):
@@ -420,7 +440,9 @@ class CmdOptions(Command):
                 old_val = flags.get(new_name, False)
                 new_val = validator(new_val)
                 if old_val == new_val:
-                    self.msg(f"Option |w{new_name}|n was kept as '|w{old_val}|n'.")
+                    self.msg(
+                        f"Option |w{new_name}|n was kept as '|w{old_val}|n'."
+                    )
                 else:
                     flags[new_name] = new_val
                     self.msg(
@@ -469,15 +491,17 @@ class CmdOptions(Command):
                     "_saved_protocol_flags", default={}
                 )
                 saved_options.update(optiondict)
-                self.account.attributes.add("_saved_protocol_flags", saved_options)
+                self.account.attributes.add(
+                    "_saved_protocol_flags", saved_options
+                )
                 for key in optiondict:
                     self.msg(f"|gSaved option {key}.|n")
             if "clear" in self.switches:
                 # clear this save
                 for key in optiondict:
-                    self.account.attributes.get("_saved_protocol_flags", {}).pop(
-                        key, None
-                    )
+                    self.account.attributes.get(
+                        "_saved_protocol_flags", {}
+                    ).pop(key, None)
                     self.msg(f"|gCleared saved {key}.")
             self.session.update_flags(**optiondict)
 
@@ -527,14 +551,18 @@ class CmdPassword(Command):
 
             validated, error = account.validate_password(newpass)
             if not validated:
-                errors = [e for suberror in error.messages for e in error.messages]
+                errors = [
+                    e for suberror in error.messages for e in error.messages
+                ]
                 self.msg("\n".join(errors))
                 return
 
             account.set_password(newpass)
             account.save()
             self.msg("Password changed.")
-            logger.log_sec(f"Password Changed: {account} (IP: {self.session.address}).")
+            logger.log_sec(
+                f"Password Changed: {account} (IP: {self.session.address})."
+            )
 
         yield from change_password()
 
@@ -639,7 +667,9 @@ class CmdPlay(Command):
                 account, account.db._last_puppet.key
             )
         else:
-            character_candidates = self.get_character_candidates(account, self.args)
+            character_candidates = self.get_character_candidates(
+                account, self.args
+            )
             if not character_candidates:
                 self.msg("That is not a valid character choice.")
                 return
@@ -649,7 +679,9 @@ class CmdPlay(Command):
         try:
             account.puppet_object(session, new_character)
             account.db._last_puppet = new_character
-            logger.log_sec(f"{new_character} enters the game (Account: {account}).")
+            logger.log_sec(
+                f"{new_character} enters the game (Account: {account})."
+            )
         except RuntimeError as exc:
             self.msg(f"|rYou cannot become |C{new_character.name}|n: {exc}")
             logger.log_sec(
@@ -717,140 +749,6 @@ class CmdQuit(Command):
         account.disconnect_session_from_account(session, reason)
 
 
-class CmdReport(Command):
-    """
-    Submit a report to the game administrators.
-
-    Usage:
-        - report <message> (submit a report)
-        - bug <message>    (submit a bug report)
-        - idea <message>   (submit an idea/suggestion)
-    """
-
-    key = "report"
-    aliases = ["bug", "idea"]
-    locks = "cmd:all()"
-    help_category = "Account"
-    account_caller = True
-
-    report_dir = "server/logs"
-    report_files = {
-        "report": os.path.join(report_dir, "reports.json"),
-        "bug": os.path.join(report_dir, "bugs.json"),
-        "idea": os.path.join(report_dir, "ideas.json"),
-    }
-
-    def _load_reports(self, report_type):
-        """
-        Load reports from a JSON file based on the given report type.
-
-        Args:
-            report_type (str): The type of report to load.
-
-        Returns:
-            dict: A dictionary containing the reports and the highest ID.
-                  Example: { "next_id": 5, "reports": [...] }
-        """
-        file_path = self.report_files[report_type]
-
-        if os.path.exists(file_path):
-            with open(file_path, "r") as f:
-                return json.load(f)
-        else:
-            # If file doesn't exist, start with an empty list and ID 1
-            return {"next_id": 1, "reports": []}
-
-    def _save_reports(self, report_type, data):
-        """
-        Saves the given reports and next ID to a file specified by the report type.
-
-        Args:
-            report_type (str): The type of report to save.
-            data (dict): A dictionary with "next_id" and "reports" to save.
-        """
-        file_path = self.report_files[report_type]
-
-        with open(file_path, "w") as f:
-            json.dump(data, f, indent=4)
-
-    def _store_report(self, report_type, message):
-        """
-        Stores a report of the given type with the provided message.
-
-        Args:
-            report_type (str): The type of the report (e.g., 'bug', 'feedback').
-            message (str): The content of the report.
-
-        The report is stored with additional metadata including:
-            - An auto-incremented ID.
-            - The name of the reporter (caller).
-            - The status of the report, initially set to 'open'.
-
-        After storing the report, a confirmation message is sent to the caller.
-        """
-        data = self._load_reports(report_type)
-        next_id = data["next_id"]
-        reports = data["reports"]
-
-        new_report = {
-            "id": next_id,
-            "report_type": report_type,
-            "message": message,
-            "reporter": self.caller.name,
-            "status": "open",
-        }
-
-        # Append the new report
-        reports.append(new_report)
-
-        # Increment the next ID
-        data["next_id"] += 1
-
-        # Save the updated reports and next ID back to the file
-        self._save_reports(report_type, data)
-
-        # Inform the player that the report has been submitted
-        self.caller.msg(f"Your {report_type} has been submitted. Thank you!")
-
-    def _report(self):
-        """
-        Handles the reporting functionality for the account.
-        """
-        if not self.args:
-            return self.msg("Usage: report <message>")
-
-        self._store_report("report", self.args)
-
-    def _bug(self):
-        """
-        Handles the 'bug' command.
-        """
-        if not self.args:
-            return self.msg("Usage: bug <message>")
-
-        self._store_report("bug", self.args)
-
-    def _idea(self):
-        """
-        Handles the 'idea' command.
-        """
-        if not self.args:
-            return self.msg("Usage: idea <message>")
-
-        self._store_report("idea", self.args)
-
-    def func(self):
-        """
-        Executes a specific function based on the command string.
-        """
-        if self.cmdstring == "report":
-            self._report()
-        elif self.cmdstring == "bug":
-            self._bug()
-        elif self.cmdstring == "idea":
-            self._idea()
-
-
 class CmdSessions(Command):
     """
     Command to display the current sessions of the account.
@@ -882,7 +780,11 @@ class CmdSessions(Command):
 
         for sess in sessions:
             char = account.get_puppet(sess)
-            host = sess.address[0] if isinstance(sess.address, tuple) else sess.address
+            host = (
+                sess.address[0]
+                if isinstance(sess.address, tuple)
+                else sess.address
+            )
 
             table.add_row(
                 str(sess.sessid),
@@ -956,7 +858,9 @@ class CmdSetMain(Command):
             return
 
         if len(character) > 1:
-            character_list = ", ".join(f"{obj.key}(#{obj.id})" for obj in character)
+            character_list = ", ".join(
+                f"{obj.key}(#{obj.id})" for obj in character
+            )
             self.msg(f"Multiple targets with the same name:\n {character_list}")
             return
 
@@ -978,20 +882,24 @@ class CmdWho(Command):
 
     def func(self):
         caller = self.caller
-        session_list = [sess for sess in SESSIONS.get_sessions() if sess.get_puppet()]
+        session_list = [
+            sess for sess in SESSIONS.get_sessions() if sess.get_puppet()
+        ]
         width = 49 + 5 * ((self.client_width() - 49) // 5)
 
         if self.account.permissions.check("Admin"):
             admin, table = self.get_admin_and_table(session_list, caller, width)
         else:
-            admin, table = self.get_admin_and_player_table(session_list, caller, width)
+            admin, table = self.get_admin_and_player_table(
+                session_list, caller, width
+            )
 
         naccounts = SESSIONS.account_count() - len(admin)
 
         header = self.create_header(width)
         footer = self.get_footer(width)
-        player_count = (
-            f"{naccounts} player{'s' if naccounts != 1 else ''} logged in.".rjust(width)
+        player_count = f"{naccounts} player{'s' if naccounts != 1 else ''} logged in.".rjust(
+            width
         )
 
         caller.msg(f"{header}\n{table}\n{footer}\n{player_count}")
@@ -1035,7 +943,9 @@ class CmdWho(Command):
         formatted_string = " " * gap
 
         for name in names:
-            formatted_string += name + " " * (gap + (1 if extra_space > 0 else 0))
+            formatted_string += name + " " * (
+                gap + (1 if extra_space > 0 else 0)
+            )
             extra_space -= 1
 
         return formatted_string
@@ -1107,7 +1017,9 @@ class CmdWho(Command):
                 admin.append(account.get_display_name(caller))
             elif session.logged_in:
                 table.add_row(
-                    utils.crop(session.get_puppet().get_display_name(caller), width=25)
+                    utils.crop(
+                        session.get_puppet().get_display_name(caller), width=25
+                    )
                 )
 
         return admin, table
