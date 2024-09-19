@@ -197,6 +197,9 @@ class Entity(ObjectParent):
 
     @property
     def weight(self):
+        self.stats.get("weight").current = sum(
+            [o.db.weight for o in self.contents]
+        )
         return self.stats.get("weight")
 
     @lazy_property

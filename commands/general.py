@@ -1201,7 +1201,15 @@ class CmdInventory(Command):
         )
         header = "|x" + "-" * self.max_length + "|n"
         title = "|C" + "Inventory".center(self.max_length) + "|n"
-        weight_line = "|C" + "Weight: 0 / 0".center(self.max_length) + "|n"
+        curr_weight = caller.weight.value
+        max_weight = caller.weight.max
+        weight_line = (
+            "|C"
+            + f"Weight: {int(curr_weight)} / {int(max_weight)}".center(
+                self.max_length
+            )
+            + "|n"
+        )
         item_count_line = item_count_line.center(self.max_length + 2) + "|n"
 
         return f"{header}\n{title}\n{weight_line}\n{item_count_line}\n{header}"

@@ -10,6 +10,7 @@ STARTING_BATTLE_AXE = {
         "sound": "When swung, the axe cleaves the air with a menacing whistle.",
         "taste": "You taste nothing interesting.",
     },
+    "weight": 4,
 }
 
 STARTING_LARGE_LEATHER_SHIELD = {
@@ -24,6 +25,7 @@ STARTING_LARGE_LEATHER_SHIELD = {
         "sound": "A dull, muffled thud echoes as fingers tap against the hide, betraying the dense wood underneath.",
         "taste": "There is the faintest hint of salt.",
     },
+    "weight": 3,
 }
 
 STARTING_HUMAN_HEADBAND = {
@@ -38,6 +40,7 @@ STARTING_HUMAN_HEADBAND = {
         "sound": "The fabric rustles faintly, like the dry whisper of autumn leaves blown by a wind from the past.",
         "taste": "A dry, bitter flavor lingers in the air, like ash carried from distant embers.",
     },
+    "weight": 2,
 }
 
 STARTING_HUMAN_PAULDRON = {
@@ -52,6 +55,7 @@ STARTING_HUMAN_PAULDRON = {
         "sound": "The chains clink with a low, dull rattle as they shift with each movement.",
         "taste": "There is the faint taste of iron in the air.",
     },
+    "weight": 5,
 }
 
 STARTING_HUMAN_GAITERS = {
@@ -66,6 +70,7 @@ STARTING_HUMAN_GAITERS = {
         "sound": "The gaiters creak faintly with each step, a low, rhythmic groan that mimics the weary march of a long-forgotten traveler.",
         "taste": "The dry, cracked leather carries a hint of bitterness, like the taste of windblown sand on a parched tongue.",
     },
+    "weight": 3,
 }
 
 STARTING_ELVEN_STAFF = {
@@ -80,6 +85,7 @@ STARTING_ELVEN_STAFF = {
         "sound": "A low, ethereal hum emanates from the crystal, like a distant echo of stars singing.",
         "taste": "There's a faint, metallic taste in the air, reminiscent of the charge before a lightning strike.",
     },
+    "weight": 3,
 }
 
 STARTING_SHORT_SWORD = {
@@ -94,6 +100,7 @@ STARTING_SHORT_SWORD = {
         "sound": "The blade sings with a sharp, clean sound when drawn from its sheath, a whisper of tempered steel ready for battle.",
         "taste": "The taste of cold iron clings to the air, metallic and sharp, reminiscent of blood after a hard-fought duel.",
     },
+    "weight": 3,
 }
 
 STARTING_ELVEN_HOOD = {
@@ -108,6 +115,7 @@ STARTING_ELVEN_HOOD = {
         "sound": "The hood rustles faintly with movement, like leaves brushing against each other in a gentle breeze.",
         "taste": "There is a subtle taste of damp air, reminiscent of misty mornings and dew-laden leaves.",
     },
+    "weight": 1,
 }
 
 STARTING_ELVEN_ROBE = {
@@ -122,6 +130,7 @@ STARTING_ELVEN_ROBE = {
         "sound": "The gentle swish of fabric moving against itself, like the quiet rustle of leaves stirred by a soft breeze.",
         "taste": "The air around the robe carries a trace of herbs, almost medicinal, as if it has traveled through places of healing and wisdom.",
     },
+    "weight": 6,
 }
 
 STARTING_ELVEN_GLOVES = {
@@ -136,6 +145,7 @@ STARTING_ELVEN_GLOVES = {
         "sound": "The soft rustle of leather accompanies each gesture, a whisper of elegance in motion.",
         "taste": "There is a hint of sweetness in the air, like the scent of blooming flowers carried on a gentle breeze.",
     },
+    "weight": 1,
 }
 
 STARTING_BROADSWORD = {
@@ -150,6 +160,7 @@ STARTING_BROADSWORD = {
         "sound": "The sword sings a low, satisfying note as it slices through the air, the sound of metal ready for decisive action.",
         "taste": "The metallic tang in the air is sharp and biting.",
     },
+    "weight": 4,
 }
 
 STARTING_BLUE_CREST_SHIELD = {
@@ -164,6 +175,7 @@ STARTING_BLUE_CREST_SHIELD = {
         "sound": "A dull, hollow thud echoes when struck.",
         "taste": "The air around the shield carries a faint metallic tang, like the bitter taste of steel after long exposure to the elements.",
     },
+    "weight": 3,
 }
 
 STARTING_DROW_HOOD = {
@@ -178,6 +190,7 @@ STARTING_DROW_HOOD = {
         "sound": "The quiet rustle of heavy fabric is muffled, almost like the hushed tones of a distant conversation.",
         "taste": "There is a faint taste of musty air, reminiscent of old cloisters and forgotten chambers.",
     },
+    "weight": 3,
 }
 
 STARTING_DROW_ARMOR = {
@@ -192,6 +205,7 @@ STARTING_DROW_ARMOR = {
         "sound": "The quiet creak of leather and the low clink of metal plates rubbing together accompany each movement, a soft reminder of the armor's weight.",
         "taste": "The air carries a metallic tang, as though the scent of the iron has seeped into the very breath of the wearer, sharp and bitter.",
     },
+    "weight": 8,
 }
 
 STARTING_DROW_GLOVES = {
@@ -206,6 +220,7 @@ STARTING_DROW_GLOVES = {
         "sound": "A faint metallic clink accompanies each movement of the fingers, the sound of articulated joints moving like the shifting of armored scales.",
         "taste": "The air carries the sharp tang of steel and the bitter taste of worn leather, as though it has soaked up the atmosphere of the battlefield.",
     },
+    "weight": 2,
 }
 
 STARTING_DROW_BOOTS = {
@@ -220,6 +235,7 @@ STARTING_DROW_BOOTS = {
         "sound": "A dull, solid thud accompanies each step, softened only by the faint creak of aging leather.",
         "taste": "The air carries the dusty bitterness of dried earth, as if the boots have trudged through endless miles of forgotten roads.",
     },
+    "weight": 4,
 }
 
 STARTING_CLOTH_COWL = {
@@ -234,6 +250,7 @@ STARTING_CLOTH_COWL = {
         "sound": "A faint rustle of fabric shifting with movement, along with the occasional soft clink of metal earrings brushing against the cloth.",
         "taste": "The air carries the faint dryness of dust, like the parched taste of wind sweeping across a desert plain.",
     },
+    "weight": 2,
 }
 
 STARTING_CLOTH_VEST = {
@@ -248,6 +265,7 @@ STARTING_CLOTH_VEST = {
         "sound": "The faint creak of leather accompanies each movement, mingling with the soft rustle of fabric as the blue cloth sways gently.",
         "taste": "The air around the vest carries a trace of metal and leather, sharp yet rich, evoking both craftsmanship and long journeys.",
     },
+    "weight": 7,
 }
 
 STARTING_DWARVEN_BOOTS = {
@@ -262,6 +280,7 @@ STARTING_DWARVEN_BOOTS = {
         "sound": "A metallic clink accompanies each step, with the occasional low creak of leather stretching as the wearer moves.",
         "taste": "The air carries the faint bitterness of worn metal, mixed with the earthy richness of old, oiled leather.",
     },
+    "weight": 4,
 }
 
 STARTING_SHORT_SPEAR = {
@@ -276,6 +295,7 @@ STARTING_SHORT_SPEAR = {
         "sound": "The sharp, metallic ring of the blade slicing through the air is accompanied by the soft creak of the wooden shaft under tension.",
         "taste": "The air carries the faint, acrid tang of metal, as though the spear has recently been sharpened for battle.",
     },
+    "weight": 4,
 }
 
 STARTING_RICKETY_SHIELD = {
@@ -290,6 +310,7 @@ STARTING_RICKETY_SHIELD = {
         "sound": "The wood creaks under pressure, and the rope groans slightly, as if the whole thing is on the verge of collapse.",
         "taste": "The air carries a faint taste of old, dry wood and rust, as if the shield has been left to the elements for far too long.",
     },
+    "weight": 1,
 }
 
 STARTING_ASTRALITE_BLINDFOLD = {
@@ -304,6 +325,7 @@ STARTING_ASTRALITE_BLINDFOLD = {
         "sound": "The soft rustle of the fabric as it moves feels distant, a muted noise that mirrors the isolation of sightlessness.",
         "taste": "The air around the blindfold tastes faintly of dust, like the dry remnants of old parchment and stone.",
     },
+    "weight": 1,
 }
 
 STARTING_ASTRALITE_ROBE = {
@@ -318,6 +340,7 @@ STARTING_ASTRALITE_ROBE = {
         "sound": "The heavy fabric rustles softly.",
         "taste": "The air around the robe carries a faintly metallic tang.",
     },
+    "weight": 6,
 }
 
 STARTING_LONGSWORD = {
@@ -332,6 +355,7 @@ STARTING_LONGSWORD = {
         "sound": "The blade sings with a clear, sharp note when swung, the pure sound of well-tempered steel slicing through the air.",
         "taste": "A sharp, metallic tang of cold steel.",
     },
+    "weight": 3,
 }
 
 STARTING_DRACONIAN_HELM = {
@@ -346,6 +370,7 @@ STARTING_DRACONIAN_HELM = {
         "sound": "The clink and scrape of metal rings faintly with each movement, a reminder of the rigid structure encasing the head.",
         "taste": "A bitter, metallic tang of rust and steel.",
     },
+    "weight": 4,
 }
 
 STARTING_DRACONIAN_ARMOR = {
@@ -360,6 +385,7 @@ STARTING_DRACONIAN_ARMOR = {
         "sound": "Each movement brings the sound of clinking metal and the low creak of strained leather straps.",
         "taste": "The armor carries the bitter tang of rust and iron.",
     },
+    "weight": 10,
 }
 
 STARTING_DRACONIAN_GAUNTLETS = {
@@ -374,6 +400,7 @@ STARTING_DRACONIAN_GAUNTLETS = {
         "sound": "The gauntlets clink softly with each movement, the metallic sound of articulated plates shifting as the fingers flex.",
         "taste": "The gauntlets carry the faint, sharp taste of steel and rust.",
     },
+    "weight": 3,
 }
 
 STARTING_DRACONIAN_GREAVES = {
@@ -388,6 +415,7 @@ STARTING_DRACONIAN_GREAVES = {
         "sound": "The low clink of metal on metal accompanies every step, as the plates shift and clatter.",
         "taste": "The greaves carry the faint tang of iron and dust.",
     },
+    "weight": 5,
 }
 
 STARTING_CLUB = {
@@ -401,6 +429,7 @@ STARTING_CLUB = {
         "sound": "The club makes a deep, solid thud when struck against anything.",
         "taste": "The club carries the taste of dry, old wood.",
     },
+    "weight": 3,
 }
 
 STARTING_ESTOC = {
@@ -415,6 +444,7 @@ STARTING_ESTOC = {
         "sound": "The blade whistles with a high, sharp note as it slices through the air.",
         "taste": "The metallic tang of cold steel lingers on the tongue, sharp and bitter.",
     },
+    "weight": 4,
 }
 
 STARTING_TANARIUS_TUNIC = {
@@ -429,6 +459,7 @@ STARTING_TANARIUS_TUNIC = {
         "sound": "A soft rustling of fabric, muted and worn.",
         "taste": "Stale bitterness of dust and sweat.",
     },
+    "weight": 3,
 }
 
 STARTING_TANARIUS_BOOTS = {
@@ -443,4 +474,5 @@ STARTING_TANARIUS_BOOTS = {
         "sound": "The boots creak softly with every step.",
         "taste": "The boots carry the dry, dusty flavor of old dirt and well-worn roads.",
     },
+    "weight": 2,
 }
