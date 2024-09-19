@@ -119,11 +119,24 @@ class Human(Race):
         axe = spawner.spawn(starting_equipment.STARTING_BATTLE_AXE)[0]
         axe.home = caller
         axe.location = caller
+
         shield = spawner.spawn(
             starting_equipment.STARTING_LARGE_LEATHER_SHIELD
         )[0]
         shield.home = caller
         shield.location = caller
+
+        headband = spawner.spawn(starting_equipment.STARTING_HUMAN_HEADBAND)[0]
+        headband.home = caller
+        headband.location = caller
+
+        pauldron = spawner.spawn(starting_equipment.STARTING_HUMAN_PAULDRON)[0]
+        pauldron.home = caller
+        pauldron.location = caller
+
+        gaiters = spawner.spawn(starting_equipment.STARTING_HUMAN_GAITERS)[0]
+        gaiters.home = caller
+        gaiters.location = caller
 
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.HumanVersatility)
@@ -132,6 +145,27 @@ class Human(Race):
 @RaceRegistry.register
 class Elf(Race):
     key = "elf"
+
+    def initialize_race_equipment(self, caller):
+        staff = spawner.spawn(starting_equipment.STARTING_ELVEN_STAFF)[0]
+        staff.home = caller
+        staff.location = caller
+
+        sword = spawner.spawn(starting_equipment.STARTING_SHORT_SWORD)[0]
+        sword.home = caller
+        sword.location = caller
+
+        hood = spawner.spawn(starting_equipment.STARTING_ELVEN_HOOD)[0]
+        hood.home = caller
+        hood.location = caller
+
+        robe = spawner.spawn(starting_equipment.STARTING_ELVEN_ROBE)[0]
+        robe.home = caller
+        robe.location = caller
+
+        gloves = spawner.spawn(starting_equipment.STARTING_ELVEN_GLOVES)[0]
+        gloves.home = caller
+        gloves.location = caller
 
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.Darkvision)
@@ -142,6 +176,31 @@ class Elf(Race):
 class Drow(Race):
     key = "drow"
 
+    def initialize_race_equipment(self, caller):
+        broadsword = spawner.spawn(starting_equipment.STARTING_BROADSWORD)[0]
+        broadsword.home = caller
+        broadsword.location = caller
+
+        shield = spawner.spawn(starting_equipment.STARTING_BLUE_CREST_SHIELD)[0]
+        shield.home = caller
+        shield.location = caller
+
+        hood = spawner.spawn(starting_equipment.STARTING_DROW_HOOD)[0]
+        hood.home = caller
+        hood.location = caller
+
+        armor = spawner.spawn(starting_equipment.STARTING_DROW_ARMOR)[0]
+        armor.home = caller
+        armor.location = caller
+
+        gloves = spawner.spawn(starting_equipment.STARTING_DROW_GLOVES)[0]
+        gloves.home = caller
+        gloves.location = caller
+
+        boots = spawner.spawn(starting_equipment.STARTING_DROW_BOOTS)[0]
+        boots.home = caller
+        boots.location = caller
+
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.ElvenAncestry)
         caller.feats.add(racial_feats.SuperiorDarkvision)
@@ -150,6 +209,23 @@ class Drow(Race):
 @RaceRegistry.register
 class Dwarf(Race):
     key = "dwarf"
+
+    def initialize_race_equipment(self, caller):
+        axe = spawner.spawn(starting_equipment.STARTING_BATTLE_AXE)[0]
+        axe.home = caller
+        axe.location
+
+        cowl = spawner.spawn(starting_equipment.STARTING_CLOTH_COWL)[0]
+        cowl.home = caller
+        cowl.location = caller
+
+        vest = spawner.spawn(starting_equipment.STARTING_CLOTH_VEST)[0]
+        vest.home = caller
+        vest.location = caller
+
+        boots = spawner.spawn(starting_equipment.STARTING_DWARVEN_BOOTS)[0]
+        boots.home = caller
+        boots.location = caller
 
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.Darkvision)
@@ -178,6 +254,25 @@ class Halfling(Race):
 class Astralite(Race):
     key = "astralite"
 
+    def initialize_race_equipment(self, caller):
+        spear = spawner.spawn(starting_equipment.STARTING_SHORT_SPEAR)[0]
+        spear.home = caller
+        spear.location = caller
+
+        shield = spawner.spawn(starting_equipment.STARTING_RICKETY_SHIELD)[0]
+        shield.home = caller
+        shield.location = caller
+
+        blindfold = spawner.spawn(
+            starting_equipment.STARTING_ASTRALITE_BLINDFOLD
+        )[0]
+        blindfold.home = caller
+        blindfold.location = caller
+
+        robe = spawner.spawn(starting_equipment.STARTING_ASTRALITE_ROBE)[0]
+        robe.home = caller
+        robe.location = caller
+
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.AstralFlight)
 
@@ -186,6 +281,31 @@ class Astralite(Race):
 @RaceRegistry.register
 class Draconian(Race):
     key = "draconian"
+
+    def initialize_race_equipment(self, caller):
+        longsword = spawner.spawn(starting_equipment.STARTING_LONGSWORD)[0]
+        longsword.home = caller
+        longsword.location = caller
+
+        helm = spawner.spawn(starting_equipment.STARTING_DRACONIAN_HELM)[0]
+        helm.home = caller
+        helm.location = caller
+
+        armor = spawner.spawn(starting_equipment.STARTING_DRACONIAN_ARMOR)[0]
+        armor.home = caller
+        armor.location = caller
+
+        gauntlets = spawner.spawn(
+            starting_equipment.STARTING_DRACONIAN_GAUNTLETS
+        )[0]
+        gauntlets.home = caller
+        gauntlets.location = caller
+
+        greaves = spawner.spawn(starting_equipment.STARTING_DRACONIAN_GREAVES)[
+            0
+        ]
+        greaves.home = caller
+        greaves.location = caller
 
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.Darkvision)
@@ -196,6 +316,11 @@ class Draconian(Race):
 class Orc(Race):
     key = "orc"
 
+    def initialize_race_equipment(self, caller):
+        club = spawner.spawn(starting_equipment.STARTING_CLUB)[0]
+        club.home = caller
+        club.location = caller
+
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.Darkvision)
 
@@ -204,6 +329,19 @@ class Orc(Race):
 @RaceRegistry.register
 class Tanarius(Race):
     key = "tanarius"
+
+    def initialize_race_equipment(self, caller):
+        estoc = spawner.spawn(starting_equipment.STARTING_ESTOC)[0]
+        estoc.home = caller
+        estoc.location = caller
+
+        tunic = spawner.spawn(starting_equipment.STARTING_TANARIUS_TUNIC)[0]
+        tunic.home = caller
+        tunic.location = caller
+
+        boots = spawner.spawn(starting_equipment.STARTING_TANARIUS_BOOTS)[0]
+        boots.home = caller
+        boots.location = caller
 
     def initialize_race_features(self, caller):
         caller.feats.add(racial_feats.Darkvision)
