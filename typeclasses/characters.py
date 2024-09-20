@@ -18,7 +18,6 @@ from evennia.utils.utils import (
 
 from handlers import quests
 from prototypes import flasks
-from world.characters import stats
 from world.features import racial as racial_feats
 
 from .entities import Entity
@@ -66,54 +65,61 @@ class Character(Entity, ObjectParent, DefaultCharacter):
     def quests(self):
         return quests.QuestHandler(self, db_attribute_key="quests")
 
-    def at_level(self, stat):
-        if stat not in self.stats.all():
+    def at_level(self, attribute):
+        if attribute not in ("health", "mana", "stamina"):
             return
 
-        self.stats.get(stat).base += 1
-        if stat == "vigor":
+        if attribute == "health":
             self.stats.add(
                 "health",
                 "Health",
-                trait_type="gauge",
-                base=stats.HEALTH_LEVELS[self.vigor.base],
+                trait_type="counter",
+                base=100,
                 min=0,
-                max=stats.HEALTH_LEVELS[self.vigor.base],
+                max=self.health.max + 10,
             )
-            self.health.current = self.health.max
-        elif stat == "mind":
+        elif attribute == "mana":
             self.stats.add(
                 "mana",
                 "Mana",
-                trait_type="gauge",
-                base=stats.MANA_LEVELS[self.mind.base],
+                trait_type="counter",
+                base=100,
                 min=0,
-                max=stats.MANA_LEVELS[self.mind.base],
+                max=self.mana.max + 10,
             )
-            self.mana.current = self.mana.max
-        elif stat == "endurance":
+        elif attribute == "stamina":
             self.stats.add(
                 "stamina",
                 "Stamina",
-                trait_type="gauge",
-                base=stats.STAMINA_LEVELS[self.endurance.base],
+                trait_type="counter",
+                base=100,
                 min=0,
-                max=stats.STAMINA_LEVELS[self.endurance.base],
+                max=self.stamina.max + 10,
             )
-            self.stamina.current = self.stamina.max
 
             curr_weight = self.weight.current
-            self.stats.add(
-                "weight",
-                "Weight",
-                trait_type="counter",
-                base=0,
-                min=0,
-                max=stats.WEIGHT_LEVELS[self.endurance.base]
-                * (
-                    1.0
-                    if not self.feats.has(racial_feats.HumanVersatility)
-                    else 1.25
+            max_weight = (
+                self.weight.max
+                if not self.feats.has(racial_feats.HumanVersatility)
+                else self.weight.max / 1.25
+            )
+            (
+                self.stats.add(
+                    "weight",
+                    "Weight",
+                    trait_type="counter",
+                    base=0,
+                    min=0,
+                    max=(max_weight + 10)
+                    * (
+                        1.0
+                        if not self.feats.has(racial_feats.HumanVersatility)
+                        else 1.25
+                    ),
                 ),
             )
             self.weight.current = curr_weight
+        else:
+            return
+
+        self.stats.get(attribute).value = self.stats.get(attribute).max
