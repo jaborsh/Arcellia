@@ -137,6 +137,10 @@ class StatMixin:
         return self.stats.get("stamina")
 
     @property
+    def level(self):
+        return self.stats.get("level")
+
+    @property
     def experience(self):
         return self.stats.get("experience")
 

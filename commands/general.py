@@ -1651,27 +1651,53 @@ class CmdScore(Command):
 
     def func(self):
         caller = self.caller
-        table = evtable.EvTable(border="header")
+        table = evtable.EvTable(border="table")
         table.add_header("Score")
-        table.add_row(f"Name:    {caller.name}")
-        table.add_row(f"Gender:  {caller.gender.value.value}")
-        table.add_row(f"Race:    {caller.race.value.race}")
-        table.add_row(
-            f"Health:  {int(caller.health.value)}/{int(caller.health.max)}"
-        )
-        table.add_row(
-            f"Mana:    {int(caller.mana.value)}/{int(caller.mana.max)}"
-        )
-        table.add_row(
-            f"Stamina: {int(caller.stamina.value)}/{int(caller.stamina.max)}"
+        table.add_row("Name:")
+        table.add_row("Gender:")
+        table.add_row("Race:")
+        table.add_row("Level:")
+        table.add_row("")
+        table.add_row("")
+        table.add_row("")
+        table.add_row("Health:")
+        table.add_row("Mana:")
+        table.add_row("Stamina:")
+        table.add_column(
+            caller.name,
+            caller.gender.value.value,
+            caller.race.value.key,
+            f"{caller.level.current}",
+            "",
+            "",
+            "",
+            f"{int(caller.health.value)}/{int(caller.health.max)}",
+            f"{int(caller.mana.value)}/{int(caller.mana.max)}",
+            f"{int(caller.stamina.value)}/{int(caller.stamina.max)}",
         )
         table.add_column(
-            f"Strength: {int(caller.strength.value)}",
-            f"Dexterity: {int(caller.dexterity.value)}",
-            f"Constitution: {int(caller.constitution.value)}",
-            f"Intelligence: {int(caller.intelligence.value)}",
-            f"Wisdom: {int(caller.wisdom.value)}",
-            f"Charisma: {int(caller.charisma.value)}",
+            "Strength: ",
+            "Dexterity: ",
+            "Constitution: ",
+            "Intelligence: ",
+            "Wisdom: ",
+            "Charisma: ",
+            "",
+            "Experience:",
+            "Wealth:",
+            "Weight:",
+        )
+        table.add_column(
+            f"{int(caller.strength.value)}",
+            f"{int(caller.dexterity.value)}",
+            f"{int(caller.constitution.value)}",
+            f"{int(caller.intelligence.value)}",
+            f"{int(caller.wisdom.value)}",
+            f"{int(caller.charisma.value)}",
+            "",
+            f"{caller.experience.value}",
+            f"{caller.wealth.value}",
+            f"{int(caller.weight.value)}/{int(caller.weight.max)}",
         )
         caller.msg(table)
 
