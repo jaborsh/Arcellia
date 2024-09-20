@@ -1676,12 +1676,12 @@ class CmdScore(Command):
             f"{int(caller.stamina.value)}/{int(caller.stamina.max)}",
         )
         table.add_column(
-            "Strength: ",
-            "Dexterity: ",
-            "Constitution: ",
-            "Intelligence: ",
-            "Wisdom: ",
-            "Charisma: ",
+            "Strength:",
+            "Dexterity:",
+            "Constitution:",
+            "Intelligence:",
+            "Wisdom:",
+            "Charisma:",
             "",
             "Experience:",
             "Wealth:",
