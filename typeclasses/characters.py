@@ -69,6 +69,8 @@ class Character(Entity, ObjectParent, DefaultCharacter):
         if attribute not in ("health", "mana", "stamina"):
             return
 
+        self.level.current += 1
+
         if attribute == "health":
             self.stats.add(
                 "health",
