@@ -476,16 +476,16 @@ class Entity(
 
     def get_display_health(self, looker, **kwargs):
         HEALTH_MAP = {
-            0: "They are |#ff0000lifeless|n.",
-            1: "They are |#ff1a00barely clinging to life|n.",
+            0: "They are |xlifeless|n.",
+            1: "They are |#ff0000barely clinging to life|n.",
             10: "They are |#ff3300critically wounded|n.",
             20: "They are |#ff6600severely injured|n.",
             30: "They are |#ff9933gravely hurt|n.",
             40: "They are |#ffcc00injured|n.",
             50: "They are |#ffff00wounded|n.",
             60: "They are |#ccff00hurt|n.",
-            70: "They are |#99ff00bruised and scraped|n.",
-            80: "They have |#66ff00some small cuts|n.",
+            70: "They have |#99ff00some small cuts|n.",
+            80: "They are |#66ff00bruised and scraped|n.",
             90: "They are |#33ff00lightly scuffed|n.",
             99: "They have |#1aff00a few scratches|n.",
             100: "They are |#00ff00in perfect condition|n.",
