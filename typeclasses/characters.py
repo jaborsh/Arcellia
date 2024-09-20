@@ -11,6 +11,7 @@ creation commands.
 from django.conf import settings
 from evennia.objects.objects import DefaultCharacter
 from evennia.prototypes import spawner
+from evennia.utils import create
 from evennia.utils.utils import (
     lazy_property,
     variable_from_module,
@@ -64,6 +65,15 @@ class Character(Entity, ObjectParent, DefaultCharacter):
     @lazy_property
     def quests(self):
         return quests.QuestHandler(self, db_attribute_key="quests")
+
+    def at_die(self):
+        super().at_die()
+        soul = create.create_object(
+            "typeclasses.souls.Soul", key="soul", location=self.location
+        )
+        soul.experience.current = self.experience.current
+        soul.owner.value = self
+        self.experience.current = 0
 
     def at_level(self, attribute):
         if attribute not in ("health", "mana", "stamina"):
