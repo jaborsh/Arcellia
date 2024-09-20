@@ -16,6 +16,8 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 
 from evennia import CmdSet, default_cmds
 
+from commands.spells.destruction import novice as d_novice
+
 from . import (
     account,
     admin,
@@ -89,6 +91,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         modules = {
             "Builder Modules": [building],
             "Character Modules": [general, gestures],
+            "Spell Modules": [d_novice],
         }
 
         add_modules(self, modules)

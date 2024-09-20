@@ -10,6 +10,7 @@ from evennia.utils.utils import (
 from server.conf import logger
 from typeclasses.entity_mixins import (
     clothing_mixin,
+    cooldown_mixin,
     equipment_mixin,
     feat_mixin,
     stat_mixin,
@@ -28,6 +29,7 @@ _AT_SEARCH_RESULT = variable_from_module(
 class Entity(
     ObjectParent,
     clothing_mixin.ClothingMixin,
+    cooldown_mixin.CooldownMixin,
     equipment_mixin.EquipmentMixin,
     feat_mixin.FeatMixin,
     stat_mixin.StatMixin,
@@ -57,6 +59,11 @@ class Entity(
 
     def at_die(self):
         self.location.msg_contents("$You() $conj(die)!", from_obj=self)
+
+    def at_restore(self):
+        self.health.current = self.health.max
+        self.mana.current = self.mana.max
+        self.stamina.current = self.stamina.max
 
     def at_pre_emote(self, message, **kwargs):
         """

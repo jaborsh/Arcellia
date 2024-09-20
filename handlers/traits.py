@@ -676,6 +676,18 @@ class TraitHandler:
             )
         return trait
 
+    def has(self, trait_key):
+        """
+        Check if a Trait exists in the handler.
+
+        Args:
+            trait_key (str): The name of the trait to check.
+
+        Returns:
+            bool: True if the trait exists, False otherwise.
+        """
+        return trait_key in self.trait_data
+
     def add(
         self,
         trait_key,
