@@ -25,7 +25,6 @@ from . import (
     developer,
     general,
     gestures,
-    git,
     help,
     system,
     unloggedin,
@@ -64,7 +63,7 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         Populates the cmdset
         """
         modules = {
-            "Admin Modules": [admin, developer, git, system],
+            "Admin Modules": [admin, developer, system],
             "Account Modules": [account, help],
         }
 

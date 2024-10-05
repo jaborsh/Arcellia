@@ -970,7 +970,6 @@ class CmdPurge(Command):
     Syntax: purge
 
     This command deletes all contents in the current location.
-
     """
 
     key = "purge"

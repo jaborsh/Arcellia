@@ -1,16 +1,18 @@
 import re
 import time
 
-from server.conf import logger
+from evennia.commands.default import account, admin, building
+from evennia.contrib.utils.git_integration.git_integration import CmdGit
+from evennia.server.models import ServerConfig
 
 from commands.command import Command
-from evennia.commands.default import account, admin, building
-from evennia.server.models import ServerConfig
+from server.conf import logger
 
 __all__ = (
     "CmdBan",
     "CmdUnban",
     "CmdBoot",
+    "CmdGit",
     "CmdListCmdSets",
     "CmdQuell",
     "CmdSetPassword",
