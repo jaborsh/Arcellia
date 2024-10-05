@@ -163,10 +163,17 @@ class Object(ObjectParent, DefaultObject):
 
      at_object_creation() - only called once, when object is first created.
                             Object customizations go here.
+     at_object_post_creation() - only called once, when object is first
+                                created. Additional setup involving e.g.
+                                prototype-set attributes can go here.
+     at_object_post_spawn() - called when object is spawned from a prototype
+                              or updated by the spawner to apply prototype
+                              changes.
      at_object_delete() - called just before deleting an object. If returning
                             False, deletion is aborted. Note that all objects
                             inside a deleted object are automatically moved
                             to their <home>, they don't need to be removed here.
+
 
      at_init()            - called whenever typeclass is cached from memory,
                             at least once every server restart/reload
@@ -336,9 +343,7 @@ class Object(ObjectParent, DefaultObject):
         for thingname, thinglist in sorted(grouped_things.items()):
             nthings = len(thinglist)
             thing = thinglist[0]
-            singular, plural = thing.get_numbered_name(
-                nthings, looker, key=thingname
-            )
+            singular, plural = thing.get_numbered_name(nthings, looker, key=thingname)
             thing_names.append(singular if nthings == 1 else plural)
         thing_names = "\n ".join(thing_names)
         return f"|wYou see:|n\n {thing_names}" if thing_names else ""
@@ -371,7 +376,9 @@ class Object(ObjectParent, DefaultObject):
 
         key = kwargs.get("key", self.get_display_name(looker))
         # Regular expression for color codes
-        color_code_pattern = r"(\|(r|g|y|b|m|c|w|x|R|G|Y|B|M|C|W|X|\d{3}|#[0-9A-Fa-f]{6})|\[.*\])"
+        color_code_pattern = (
+            r"(\|(r|g|y|b|m|c|w|x|R|G|Y|B|M|C|W|X|\d{3}|#[0-9A-Fa-f]{6})|\[.*\])"
+        )
         color_code_positions = [
             (m.start(0), m.end(0)) for m in re.finditer(color_code_pattern, key)
         ]
@@ -396,18 +403,14 @@ class Object(ObjectParent, DefaultObject):
             else:
                 # Apply pluralization to text segment
                 plural_segment = (
-                    _INFLECT.plural(segment, count)
-                    if segment.strip()
-                    else segment
+                    _INFLECT.plural(segment, count) if segment.strip() else segment
                 )
                 plural_segments.append(plural_segment)
 
                 # Apply singularization to text segment
                 if len(singular_segments) == 2:
                     # Special handling when singular_segments has exactly two elements
-                    segment = (
-                        _INFLECT.an(segment) if segment.strip() else segment
-                    )
+                    segment = _INFLECT.an(segment) if segment.strip() else segment
                     split_segment = segment.split(" ")
                     singular_segment = (
                         strip_ansi(split_segment[0])
@@ -594,9 +597,11 @@ class Object(ObjectParent, DefaultObject):
         mapping.update(
             {
                 "object": self,
-                "exit_traversed": exits[0].get_display_name(self.location)
-                if exits
-                else "an unknown exit",
+                "exit_traversed": (
+                    exits[0].get_display_name(self.location)
+                    if exits
+                    else "an unknown exit"
+                ),
             }
         )
 
@@ -607,9 +612,7 @@ class Object(ObjectParent, DefaultObject):
             mapping=mapping,
         )
 
-    def msg(
-        self, text=None, from_obj=None, session=None, options=None, **kwargs
-    ):
+    def msg(self, text=None, from_obj=None, session=None, options=None, **kwargs):
         """
         Emits something to a session attached to the object.
 
