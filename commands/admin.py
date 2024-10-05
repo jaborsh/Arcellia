@@ -58,8 +58,7 @@ class CmdAccess(Command):
         string = (
             "\n|wPermission Hierarchy|n (climbing):\n %s\n"
             "\n|wYour access|n:"
-            "\n  Character |c%s|n: %s"
-            % (", ".join(hierarchy_full), caller.key, cperms)
+            "\n  Character |c%s|n: %s" % (", ".join(hierarchy_full), caller.key, cperms)
         )
 
         if hasattr(caller, "account"):
@@ -107,6 +106,19 @@ class CmdAnnounce(Command):
 
 
 class CmdDiary(Command):
+    """
+    Command to manage the admin diary.
+
+    Usage:
+        diary [<entry>]
+
+    This command allows admins to add entries to the admin diary or view the latest entries.
+
+    If no argument is provided, it displays the last 10 diary entries. Each entry includes the author, date, and message.
+
+    If an entry is provided as an argument, it adds the entry to the diary. Only admins can read or add entries to the diary.
+    """
+
     key = "diary"
     locks = "cmd:pperm(Admin)"
     help_category = "Admin"
@@ -255,9 +267,7 @@ class CmdForce(Command):
             return
 
         obj_name, command = args
-        obj = self.account.search(
-            obj_name, global_search=True, search_object=True
-        )
+        obj = self.account.search(obj_name, global_search=True, search_object=True)
         if not obj:
             self.msg(f"Object '{obj_name}' not found.")
             return
@@ -322,7 +332,6 @@ class CmdReports(Command):
 
         reports delete <report_id>
             - Deletes the report with the specified ID.
-
 
     Examples:
         reports
@@ -459,9 +468,7 @@ class CmdTeleport(Command):
         self.destination = None
 
         if self.rhs:
-            self.obj_to_teleport = self.caller.search(
-                self.lhs, global_search=True
-            )
+            self.obj_to_teleport = self.caller.search(self.lhs, global_search=True)
             if not self.obj_to_teleport:
                 self.caller.msg("Did not find object to teleport.")
                 raise InterruptCommand
@@ -470,17 +477,13 @@ class CmdTeleport(Command):
                 self.search_by_xyz(self.rhs)
             else:
                 # fallback to regular search by name/alias
-                self.destination = self.caller.search(
-                    self.rhs, global_search=True
-                )
+                self.destination = self.caller.search(self.rhs, global_search=True)
 
         elif self.lhs:
             if all(char in self.lhs for char in ("(", ")", ",")):
                 self.search_by_xyz(self.lhs)
             else:
-                self.destination = self.caller.search(
-                    self.lhs, global_search=True
-                )
+                self.destination = self.caller.search(self.lhs, global_search=True)
 
     def search_by_xyz(self, inp):
         inp = inp.strip("()")
@@ -538,9 +541,7 @@ class CmdTeleport(Command):
             return
 
         if not self.args:
-            caller.msg(
-                "Usage: teleport[/switches] [<obj> =] <target or (X,Y,Z)>||home"
-            )
+            caller.msg("Usage: teleport[/switches] [<obj> =] <target or (X,Y,Z)>||home")
             return
 
         if not destination:
@@ -558,9 +559,7 @@ class CmdTeleport(Command):
             return
 
         if obj_to_teleport == destination.location:
-            caller.msg(
-                "You can't teleport an object inside something it holds!"
-            )
+            caller.msg("You can't teleport an object inside something it holds!")
             return
 
         if obj_to_teleport.location and obj_to_teleport.location == destination:
@@ -657,15 +656,11 @@ class CmdTransfer(Command):
             return
 
         if obj_to_transfer in caller.location.contents:
-            caller.msg(
-                "You can't transfer an object inside something it holds!"
-            )
+            caller.msg("You can't transfer an object inside something it holds!")
             return
 
         if not obj_to_transfer.access(caller, "control"):
-            caller.msg(
-                f"You do not have permission to transfer {obj_to_transfer}."
-            )
+            caller.msg(f"You do not have permission to transfer {obj_to_transfer}.")
             return
 
         success = obj_to_transfer.move_to(
