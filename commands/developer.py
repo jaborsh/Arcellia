@@ -38,7 +38,9 @@ def list_bans(cmd, banlist):
 
     table = cmd.styled_table("|wid", "|wname/ip", "|wdate", "|wreason")
     for inum, ban in enumerate(banlist):
-        table.add_row(str(inum + 1), ban[0] and ban[0] or ban[1], ban[3], ban[4])
+        table.add_row(
+            str(inum + 1), ban[0] and ban[0] or ban[1], ban[3], ban[4]
+        )
     return f"|wActive bans:|n\n{table}"
 
 
@@ -82,7 +84,9 @@ class CmdBan(Command):
         if ipban:
             typ = "IP"
             ban = ipban[0]
-            ipregex = re.compile(ban.replace(".", "\.").replace("*", "[0-9]{1,3}"))
+            ipregex = re.compile(
+                ban.replace(".", "\.").replace("*", "[0-9]{1,3}")
+            )
             bantup = ("", ban, ipregex, now, reason)
         else:
             typ = "Name"
@@ -95,7 +99,9 @@ class CmdBan(Command):
 
         banlist.append(bantup)
         ServerConfig.objects.conf("server_bans", banlist)
-        self.msg(f"{typ}-ban '|w{ban}|n' was added. Use |wunban|n to reinstate.")
+        self.msg(
+            f"{typ}-ban '|w{ban}|n' was added. Use |wunban|n to reinstate."
+        )
         logger.log_sec(
             f"Banned {typ}: {ban.strip()} (Caller: {self.caller}, IP: {self.session.address})."
         )
@@ -139,7 +145,9 @@ class CmdUnban(Command):
         else:
             ban = banlist[num - 1]
             value = " ".join(filter(None, ban[:2]))
-            ret = yield (f"Are you sure you want to unban {num}: '|w{value}|n' [Y]/N?")
+            ret = yield (
+                f"Are you sure you want to unban {num}: '|w{value}|n' [Y]/N?"
+            )
             if str(ret).lower() in ("n", "no"):
                 self.msg("Aborted.")
                 return

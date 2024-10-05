@@ -140,7 +140,9 @@ class CmdAlias(general.CmdNick):
             if not nicklist:
                 string = "|wNo aliases defined.|n"
             else:
-                table = self.styled_table("#", "Type", "Alias match", "Replacement")
+                table = self.styled_table(
+                    "#", "Type", "Alias match", "Replacement"
+                )
                 for inum, nickobj in enumerate(nicklist):
                     _, _, nickvalue, replacement = nickobj.value
                     table.add_row(
@@ -161,7 +163,9 @@ class CmdAlias(general.CmdNick):
 
         if "delete" in switches or "del" in switches:
             if not self.args or not self.lhs:
-                caller.msg("usage alias/delete <nick> or <#num> ('aliases' for list)")
+                caller.msg(
+                    "usage alias/delete <nick> or <#num> ('aliases' for list)"
+                )
                 return
             # see if a number was given
             arg = self.args.lstrip("#")
@@ -172,14 +176,18 @@ class CmdAlias(general.CmdNick):
                 if 0 < delindex <= len(nicklist):
                     oldnicks.append(nicklist[delindex - 1])
                 else:
-                    caller.msg("Not a valid alias index. See 'aliases' for a list.")
+                    caller.msg(
+                        "Not a valid alias index. See 'aliases' for a list."
+                    )
                     return
             else:
                 if not specified_nicktype:
                     nicktypes = ("object", "account", "inputline")
                 for nicktype in nicktypes:
                     oldnicks.append(
-                        caller.nicks.get(arg, category=nicktype, return_obj=True)
+                        caller.nicks.get(
+                            arg, category=nicktype, return_obj=True
+                        )
                     )
 
             oldnicks = [oldnick for oldnick in oldnicks if oldnick]
@@ -281,7 +289,9 @@ class CmdAlias(general.CmdNick):
         replstring = self.rhs
 
         if replstring == nickstring:
-            caller.msg("No point in setting alias same as the string to replace...")
+            caller.msg(
+                "No point in setting alias same as the string to replace..."
+            )
             return
 
         # check so we have a suitable alias type
@@ -302,7 +312,9 @@ class CmdAlias(general.CmdNick):
                 errstring = ""
                 if oldnick:
                     if replstring == old_replstring:
-                        string += f"\nIdentical {nicktypestr.lower()} already set."
+                        string += (
+                            f"\nIdentical {nicktypestr.lower()} already set."
+                        )
                     else:
                         string += (
                             f"\n{nicktypestr} '|w{old_nickstring}|n' updated to map to"
@@ -450,7 +462,9 @@ class CmdCover(Command):
         if not cover:
             return
 
-        if not inherits_from(cover, Clothing) and not inherits_from(cover, Equipment):
+        if not inherits_from(cover, Clothing) and not inherits_from(
+            cover, Equipment
+        ):
             return caller.msg("You can't use that to cover something.")
 
         if inherits_from(cover, Clothing):
@@ -459,7 +473,10 @@ class CmdCover(Command):
                     "You cannot use something you aren't wearing to cover something."
                 )
 
-            if obj.clothing_type not in CLOTHING_TYPE_COVER[cover.clothing_type]:
+            if (
+                obj.clothing_type
+                not in CLOTHING_TYPE_COVER[cover.clothing_type]
+            ):
                 return caller.msg("You can't cover that with that.")
 
         elif inherits_from(cover, Equipment):
@@ -468,7 +485,10 @@ class CmdCover(Command):
                     "You cannot use something you aren't wearing to cover something."
                 )
 
-            if obj.clothing_type not in EQUIPMENT_TYPE_COVER[cover.equipment_type]:
+            if (
+                obj.clothing_type
+                not in EQUIPMENT_TYPE_COVER[cover.equipment_type]
+            ):
                 return caller.msg("You can't cover that with that.")
 
         if cover in obj.covered_by:
@@ -556,7 +576,9 @@ class CmdDrop(Command):
     def parse(self):
         self.args = self.args.strip()
         if "all" in self.args:
-            regex_pattern = r"(?P<quantity>)(?P<item>all\s*\w*)(?P<item_number>)?$"
+            regex_pattern = (
+                r"(?P<quantity>)(?P<item>all\s*\w*)(?P<item_number>)?$"
+            )
         else:
             regex_pattern = r"(?:(?P<quantity>\d+)\s+)?(?P<item>[\w\s]+?)(?:\s+(?P<item_number>\d+))?$"
 
@@ -567,7 +589,9 @@ class CmdDrop(Command):
             )
             self.item = match.group("item")
             self.item_number = (
-                int(match.group("item_number")) if match.group("item_number") else 1
+                int(match.group("item_number"))
+                if match.group("item_number")
+                else 1
             )
 
     def _drop_all(self, caller, item):
@@ -584,7 +608,9 @@ class CmdDrop(Command):
             obj.move_to(location, quiet=True, move_type="drop")
             obj.at_drop(caller)
 
-        caller.location.msg_contents("$You() $conj(drop) everything.", from_obj=caller)
+        caller.location.msg_contents(
+            "$You() $conj(drop) everything.", from_obj=caller
+        )
 
     def _drop_single(self, caller, item, quantity, item_number):
         if item in ("coin", "coins", "gold"):
@@ -604,8 +630,12 @@ class CmdDrop(Command):
 
         obj.move_to(caller.location, quiet=True, move_type="drop")
         obj.at_drop(caller)
-        article = "an" if strip_ansi(obj.display_name)[0].lower() in "aeiou" else "a"
-        article = "some" if strip_ansi(obj.display_name).endswith("s") else article
+        article = (
+            "an" if strip_ansi(obj.display_name)[0].lower() in "aeiou" else "a"
+        )
+        article = (
+            "some" if strip_ansi(obj.display_name).endswith("s") else article
+        )
         caller.location.msg_contents(
             f"$You() $conj(drop) {article} $you(item).",
             from_obj=caller,
@@ -635,7 +665,9 @@ class CmdDrop(Command):
         obj = objs[0]
         quantity = len(objs)
         single, plural = obj.get_numbered_name(quantity, caller)
-        caller.location.msg_contents(f"$You() $conj(drop) {plural}.", from_obj=caller)
+        caller.location.msg_contents(
+            f"$You() $conj(drop) {plural}.", from_obj=caller
+        )
 
     def _drop_coins(self, caller, quantity):
         gold = spawner.spawn(currencies.GOLD)[0]
@@ -813,7 +845,9 @@ class CmdGet(Command):
             )
             self.item = match.group("item")
             self.item_number = (
-                int(match.group("item_number")) if match.group("item_number") else 1
+                int(match.group("item_number"))
+                if match.group("item_number")
+                else 1
             )
             self.container = (
                 match.group("container") if match.group("container") else None
@@ -853,7 +887,9 @@ class CmdGet(Command):
         if container:
             single, plural = obj.get_numbered_name(quantity, caller)
             article = (
-                "an" if strip_ansi(obj.display_name)[0].lower() in "aeiou" else "a"
+                "an"
+                if strip_ansi(obj.display_name)[0].lower() in "aeiou"
+                else "a"
             )
             article = "some" if strip_ansi(single).endswith("s") else article
             return caller.location.msg_contents(
@@ -863,7 +899,9 @@ class CmdGet(Command):
             )
 
         single, plural = obj.get_numbered_name(quantity, caller)
-        article = "an" if strip_ansi(obj.display_name)[0].lower() in "aeiou" else "a"
+        article = (
+            "an" if strip_ansi(obj.display_name)[0].lower() in "aeiou" else "a"
+        )
         article = "some" if strip_ansi(single).endswith("s") else article
         caller.location.msg_contents(
             f"$You() $conj(get) {article} $you(item).",
@@ -871,7 +909,9 @@ class CmdGet(Command):
             mapping={"item": obj},
         )
 
-    def _get_multiple(self, caller, item, quantity, item_number, container=None):
+    def _get_multiple(
+        self, caller, item, quantity, item_number, container=None
+    ):
         location = container or caller.location
         objs = caller.search(
             item,
@@ -910,7 +950,9 @@ class CmdGet(Command):
                 from_obj=caller,
             )
 
-        caller.location.msg_contents(f"$You() $conj(get) {plural}.", from_obj=caller)
+        caller.location.msg_contents(
+            f"$You() $conj(get) {plural}.", from_obj=caller
+        )
 
     def _get_all(self, caller, item, container=None):
         location = container or caller.location
@@ -957,7 +999,9 @@ class CmdGet(Command):
                 from_obj=caller,
             )
 
-        caller.location.msg_contents(f"$You() $conj(get) {items}.", from_obj=caller)
+        caller.location.msg_contents(
+            f"$You() $conj(get) {items}.", from_obj=caller
+        )
 
     def func(self):
         caller = self.caller
@@ -1199,24 +1243,31 @@ class CmdInventory(Command):
         carried_items = [
             obj
             for obj in caller.contents
-            if obj not in caller.clothing.all() and obj not in caller.equipment.all()
+            if obj not in caller.clothing.all()
+            and obj not in caller.equipment.all()
         ]
         carried_table = self.create_table(carried_items, "Carrying")
         header = self.create_header(caller)
         footer = self.create_footer()
 
-        caller.msg(f"{header}{equipment_table}{worn_table}{carried_table}{footer}")
+        caller.msg(
+            f"{header}{equipment_table}{worn_table}{carried_table}{footer}"
+        )
 
     def create_header(self, caller):
         item_count_line = "|C" + f"Number of Items: {len(caller.contents)}"
-        self.max_length = max(self.max_length, len(strip_ansi(item_count_line))) + 2
+        self.max_length = (
+            max(self.max_length, len(strip_ansi(item_count_line))) + 2
+        )
         header = "|x" + "-" * self.max_length + "|n"
         title = "|C" + "Inventory".center(self.max_length) + "|n"
         curr_weight = caller.weight.value
         max_weight = caller.weight.max
         weight_line = (
             "|C"
-            + f"Weight: {int(curr_weight)} / {int(max_weight)}".center(self.max_length)
+            + f"Weight: {int(curr_weight)} / {int(max_weight)}".center(
+                self.max_length
+            )
             + "|n"
         )
         item_count_line = item_count_line.center(self.max_length + 2) + "|n"
@@ -1244,7 +1295,9 @@ class CmdInventory(Command):
                 line = f"|x<worn {item.position}>|n{spaces}{item.get_display_name(self.caller)}"
                 output.append(line)
         else:
-            output.extend([item.get_display_name(self.caller) for item in items])
+            output.extend(
+                [item.get_display_name(self.caller) for item in items]
+            )
 
         max_line_length = max([len(strip_ansi(line)) for line in output])
         self.max_length = max(max_line_length, self.max_length) + 1
@@ -1394,7 +1447,9 @@ class CmdLook(general.CmdLook):
         """
         caller = self.caller
         if hasattr(self.caller.location, "get_detail"):
-            detail = self.caller.location.get_detail(self.args, looker=self.caller)
+            detail = self.caller.location.get_detail(
+                self.args, looker=self.caller
+            )
             if detail:
                 caller.location.msg_contents(
                     f"$You() $conj(look) closely at {self.args}.\n",
@@ -1454,7 +1509,9 @@ class CmdPut(Command):
         Parses the input to extract the quantity, object name, object number, and container details.
         """
         # Regular expression to match various command formats
-        regex_pattern = r"(?:(\d+)\s+)?(\w+)(?:\s+(\d+))?\s+in\s+(\w+)(?:\s+(\d+))?"
+        regex_pattern = (
+            r"(?:(\d+)\s+)?(\w+)(?:\s+(\d+))?\s+in\s+(\w+)(?:\s+(\d+))?"
+        )
         match = re.match(regex_pattern, self.args.strip())
 
         if match:
@@ -1611,7 +1668,9 @@ class CmdSay(Command):
             try:
                 speech = args.split(" ", 2)[2]
             except IndexError:
-                return caller.msg("Have you forgotten what you'd like to say to them?")
+                return caller.msg(
+                    "Have you forgotten what you'd like to say to them?"
+                )
 
         speech = caller.at_pre_say(speech)
 
@@ -1810,20 +1869,26 @@ class CmdTell(Command):
 
             if is_emote:
                 target.msg(
-                    "Silently from %s: %s" % (caller.get_display_name(target), content)
+                    "Silently from %s: %s"
+                    % (caller.get_display_name(target), content)
                 )
                 logger.log_file(
-                    "Silently from %s: %s" % (caller.get_display_name(target), content),
+                    "Silently from %s: %s"
+                    % (caller.get_display_name(target), content),
                     filename=f"{target.log_folder}/tells.log",
                 )
             else:
-                target.msg(f"{caller.get_display_name(target)} tells you: {content}")
+                target.msg(
+                    f"{caller.get_display_name(target)} tells you: {content}"
+                )
                 logger.log_file(
                     f"{caller.get_display_name(target)} tells you: {content}",
                     filename=f"{target.log_folder}/tells.log",
                 )
             if hasattr(target, "sessions") and not target.sessions.count():
-                rstrings.append(f"{target.get_display_name(caller)} is not awake.")
+                rstrings.append(
+                    f"{target.get_display_name(caller)} is not awake."
+                )
             else:
                 received.append(f"{target.get_display_name(caller)}")
 
@@ -2027,7 +2092,9 @@ class CmdWear(Command):
         elif inherits_from(item, Equipment):
             self.wear_equipment(item)
         else:
-            caller.msg(f"{item.get_display_name(caller)} isn't something you can wear.")
+            caller.msg(
+                f"{item.get_display_name(caller)} isn't something you can wear."
+            )
             return
 
 

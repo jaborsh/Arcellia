@@ -283,11 +283,16 @@ class CmdDescribe(COMMAND_DEFAULT_CLASS):
         if self.args:
             obj = self.caller.search(self.args)
         else:
-            obj = self.caller.location or self.msg("|rYou can't describe oblivion.|n")
+            obj = self.caller.location or self.msg(
+                "|rYou can't describe oblivion.|n"
+            )
         if not obj:
             return
 
-        if not (obj.access(self.caller, "control") or obj.access(self.caller, "edit")):
+        if not (
+            obj.access(self.caller, "control")
+            or obj.access(self.caller, "edit")
+        ):
             self.caller.msg(
                 f"You don't have permission to edit the description of {obj.key}."
             )
@@ -336,7 +341,11 @@ class CmdDescribe(COMMAND_DEFAULT_CLASS):
 
     def func(self):
         caller = self.caller
-        if not self.args and "edit" not in self.switches and "del" not in self.switches:
+        if (
+            not self.args
+            and "edit" not in self.switches
+            and "del" not in self.switches
+        ):
             if caller.location:
                 # show stateful descs on the room
                 self.show_stateful_descriptions()
@@ -365,7 +374,9 @@ class CmdDescribe(COMMAND_DEFAULT_CLASS):
             desc = self.args
 
         roomstates = self.roomstates
-        if target.access(self.caller, "control") or target.access(self.caller, "edit"):
+        if target.access(self.caller, "control") or target.access(
+            self.caller, "edit"
+        ):
             if not roomstates or not hasattr(target, "add_desc"):
                 # normal description
                 target.db.desc = desc
@@ -460,7 +471,10 @@ class CmdDetail(Command):
                 )
             else:
                 details = sorted(
-                    ["|y{}|n: {}".format(key, desc) for key, desc in details.items()]
+                    [
+                        "|y{}|n: {}".format(key, desc)
+                        for key, desc in details.items()
+                    ]
                 )
                 self.msg("Details on Room:\n" + "\n".join(details))
             return
@@ -468,7 +482,9 @@ class CmdDetail(Command):
         if not self.rhs and "del" not in self.switches:
             detail = location.return_detail(self.lhs)
             if detail:
-                self.msg("Detail '|y{}|n' on Room:\n{}".format(self.lhs, detail))
+                self.msg(
+                    "Detail '|y{}|n' on Room:\n{}".format(self.lhs, detail)
+                )
             else:
                 self.msg("Detail '{}' not found.".format(self.lhs))
             return
@@ -521,7 +537,9 @@ class CmdEdit(COMMAND_DEFAULT_CLASS):
             width = self.client_width()
             title = f"|w[Room Editor]{GOLD}--|n"
             title = f"{GOLD}" + "-" * (width - len(strip_ansi(title))) + title
-            menu = building_menu.RoomBuildingMenu(caller, obj, title=title, width=width)
+            menu = building_menu.RoomBuildingMenu(
+                caller, obj, title=title, width=width
+            )
         else:
             obj_name = obj.get_display_name(caller)
             return self.msg(f"|r{obj_name} cannot be edited currently.|n")
@@ -596,7 +614,9 @@ class CmdFind(Command):
 
         try:
             # Try grabbing the actual min/max id values by database aggregation
-            qs = ObjectDB.objects.values("id").aggregate(low=Min("id"), high=Max("id"))
+            qs = ObjectDB.objects.values("id").aggregate(
+                low=Min("id"), high=Max("id")
+            )
             low, high = sorted(qs.values())
             if not (low and high):
                 raise ValueError(
@@ -614,7 +634,8 @@ class CmdFind(Command):
                 # Check that rhs is either a valid dbref or dbref range
                 bounds = tuple(
                     sorted(
-                        dbref(x, False) for x in re.split("[-\s]+", self.rhs.strip())
+                        dbref(x, False)
+                        for x in re.split("[-\s]+", self.rhs.strip())
                     )
                 )
 
@@ -649,7 +670,9 @@ class CmdFind(Command):
         if is_dbref or is_account:
             if is_dbref:
                 # a dbref search
-                result = caller.search(searchstring, global_search=True, quiet=True)
+                result = caller.search(
+                    searchstring, global_search=True, quiet=True
+                )
                 string = "|wExact dbref match|n(#%i-#%i%s):" % (
                     low,
                     high,
@@ -662,25 +685,33 @@ class CmdFind(Command):
                 string = "|wMatch|n(#%i-#%i%s):" % (low, high, restrictions)
 
             if "room" in switches:
-                result = result if inherits_from(result, ROOM_TYPECLASS) else None
+                result = (
+                    result if inherits_from(result, ROOM_TYPECLASS) else None
+                )
             if "exit" in switches:
-                result = result if inherits_from(result, EXIT_TYPECLASS) else None
+                result = (
+                    result if inherits_from(result, EXIT_TYPECLASS) else None
+                )
             if "char" in switches:
-                result = result if inherits_from(result, CHAR_TYPECLASS) else None
+                result = (
+                    result if inherits_from(result, CHAR_TYPECLASS) else None
+                )
 
             if not result:
                 string += "\n   |RNo match found.|n"
             elif not low <= int(result[0].id) <= high:
-                string += (
-                    f"\n   |RNo match found for '{searchstring}' in #dbref interval.|n"
-                )
+                string += f"\n   |RNo match found for '{searchstring}' in #dbref interval.|n"
             else:
                 result = result[0]
                 string += (
                     f"\n|g   {result.get_display_name(caller)}"
                     f"{result.get_extra_display_name_info(caller)} - {result.path}|n"
                 )
-                if "loc" in self.switches and not is_account and result.location:
+                if (
+                    "loc" in self.switches
+                    and not is_account
+                    and result.location
+                ):
                     string += (
                         f" (|wlocation|n: |g{result.location.get_display_name(caller)}"
                         f"{result.get_extra_display_name_info(caller)}|n)"
@@ -689,7 +720,9 @@ class CmdFind(Command):
             # Not an account/dbref search but a wider search; build a queryset.
             # Searches for key and aliases
             if "exact" in switches:
-                keyquery = Q(db_key__iexact=searchstring, id__gte=low, id__lte=high)
+                keyquery = Q(
+                    db_key__iexact=searchstring, id__gte=low, id__lte=high
+                )
                 aliasquery = Q(
                     db_tags__db_key__iexact=searchstring,
                     db_tags__db_tagtype__iexact="alias",
@@ -707,7 +740,9 @@ class CmdFind(Command):
                     id__lte=high,
                 )
             else:
-                keyquery = Q(db_key__icontains=searchstring, id__gte=low, id__lte=high)
+                keyquery = Q(
+                    db_key__icontains=searchstring, id__gte=low, id__lte=high
+                )
                 aliasquery = Q(
                     db_tags__db_key__icontains=searchstring,
                     db_tags__db_tagtype__iexact="alias",
@@ -716,7 +751,9 @@ class CmdFind(Command):
                 )
 
             # Keep the initial queryset handy for later reuse
-            result_qs = ObjectDB.objects.filter(keyquery | aliasquery).distinct()
+            result_qs = ObjectDB.objects.filter(
+                keyquery | aliasquery
+            ).distinct()
             nresults = result_qs.count()
 
             # Use iterator to minimize memory ballooning on large result sets
@@ -727,9 +764,18 @@ class CmdFind(Command):
                 obj_ids = set()
                 for obj in results:
                     if (
-                        ("room" in switches and inherits_from(obj, ROOM_TYPECLASS))
-                        or ("exit" in switches and inherits_from(obj, EXIT_TYPECLASS))
-                        or ("char" in switches and inherits_from(obj, CHAR_TYPECLASS))
+                        (
+                            "room" in switches
+                            and inherits_from(obj, ROOM_TYPECLASS)
+                        )
+                        or (
+                            "exit" in switches
+                            and inherits_from(obj, EXIT_TYPECLASS)
+                        )
+                        or (
+                            "char" in switches
+                            and inherits_from(obj, CHAR_TYPECLASS)
+                        )
                     ):
                         obj_ids.add(obj.id)
 
@@ -861,7 +907,9 @@ class CmdLockstring(building.CmdLock):
             has_control_access = obj.access(caller, "control")
             if access_type == "control" and not has_control_access:
                 # only allow to change 'control' access if you have 'control' access already
-                caller.msg("You need 'control' access to change this type of lock.")
+                caller.msg(
+                    "You need 'control' access to change this type of lock."
+                )
                 return
 
             if not (has_control_access or obj.access(caller, "edit")):
@@ -900,7 +948,9 @@ class CmdLockstring(building.CmdLock):
                 obj = caller.search(objname)
                 if not obj:
                     return
-            if not (obj.access(caller, "control") or obj.access(caller, "edit")):
+            if not (
+                obj.access(caller, "control") or obj.access(caller, "edit")
+            ):
                 caller.msg("You are not allowed to do that.")
                 return
             ok = False
@@ -1024,7 +1074,9 @@ class CmdRename(building.ObjManipCommand):
         obj_name, rest = args
         if ";" in rest:
             new_name, aliases = rest.split(";", 1)
-            aliases = [strip_ansi(alias.strip()) for alias in aliases.split(",")]
+            aliases = [
+                strip_ansi(alias.strip()) for alias in aliases.split(",")
+            ]
         else:
             new_name = rest
             aliases = None
@@ -1047,8 +1099,12 @@ class CmdRename(building.ObjManipCommand):
                 caller.msg("Accounts cannot have aliases.")
                 return
 
-            if not (obj.access(caller, "control") or obj.access(caller, "edit")):
-                caller.msg(f"You don't have permission to rename {obj.username}.")
+            if not (
+                obj.access(caller, "control") or obj.access(caller, "edit")
+            ):
+                caller.msg(
+                    f"You don't have permission to rename {obj.username}."
+                )
                 return
 
             logger.log_sec(
@@ -1064,7 +1120,9 @@ class CmdRename(building.ObjManipCommand):
             if not obj:
                 return
 
-            if not (obj.access(caller, "control") or obj.access(caller, "edit")):
+            if not (
+                obj.access(caller, "control") or obj.access(caller, "edit")
+            ):
                 caller.msg(f"You don't have permission to rename {obj.name}.")
                 return
 
@@ -1273,7 +1331,9 @@ class CmdSetGender(Command):
         if not target:
             return
 
-        if not (target.access(caller, "control") or target.access(caller, "edit")):
+        if not (
+            target.access(caller, "control") or target.access(caller, "edit")
+        ):
             return caller.msg(
                 f"You don't have permission to regender {target.display_name}."
             )
@@ -1492,7 +1552,9 @@ class CmdTunnel(building.CmdTunnel):
             backstring = f", {backname};{backshort}"
 
         # build the string we will use to call dig
-        digstring = f"build{telswitch} {roomname} = {exitname};{exitshort}{backstring}"
+        digstring = (
+            f"build{telswitch} {roomname} = {exitname};{exitshort}{backstring}"
+        )
         self.execute_cmd(digstring)
 
 

@@ -1,9 +1,9 @@
-from utils.colors import strip_ansi
-from utils.text import format_grid
-
 from evennia.commands.default import help as default_help
 from evennia.utils.ansi import ANSIString
 from evennia.utils.utils import dedent, pad
+
+from utils.colors import strip_ansi
+from utils.text import format_grid
 
 __all__ = ("CmdHelp", "CmdSetHelp")
 
@@ -67,7 +67,9 @@ class CmdHelp(default_help.CmdHelp):
 
                     # make the help topics clickable
                     if click_topics:
-                        entries = [f"|lchelp {entry}|lt{entry}|le" for entry in entries]
+                        entries = [
+                            f"|lchelp {entry}|lt{entry}|le" for entry in entries
+                        ]
 
                     # add the entries to the grid
                     grid.extend(entries)
@@ -91,7 +93,8 @@ class CmdHelp(default_help.CmdHelp):
                     # make the help topics clickable
                     if click_topics:
                         entries = [
-                            f"|lchelp {entry}|lt|w{entry}|le" for entry in entries
+                            f"|lchelp {entry}|lt|w{entry}|le"
+                            for entry in entries
                         ]
 
                     # add the entries to the grid
@@ -181,7 +184,9 @@ class CmdHelp(default_help.CmdHelp):
             else "|#FFD700--|w[ |rNo Help Found! |w]|n"
         )
         head_border = (
-            "|#FFD700" + "-" * (self.client_width() - len(strip_ansi(title))) + "|n"
+            "|#FFD700"
+            + "-" * (self.client_width() - len(strip_ansi(title)))
+            + "|n"
         )
         start = f"{title}{head_border}"
         help_text = dedent(help_text.strip("\n")) if help_text else ""
@@ -216,7 +221,9 @@ class CmdHelp(default_help.CmdHelp):
         if suggested:
             suggested = sorted(suggested)
             if click_topics:
-                suggested = [f"|lchelp {sug}|lt|w{sug}|n|le" for sug in suggested]
+                suggested = [
+                    f"|lchelp {sug}|lt|w{sug}|n|le" for sug in suggested
+                ]
             else:
                 suggested = [f"|w{sug}|n" for sug in suggested]
 

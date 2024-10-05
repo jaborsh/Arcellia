@@ -343,7 +343,9 @@ class Object(ObjectParent, DefaultObject):
         for thingname, thinglist in sorted(grouped_things.items()):
             nthings = len(thinglist)
             thing = thinglist[0]
-            singular, plural = thing.get_numbered_name(nthings, looker, key=thingname)
+            singular, plural = thing.get_numbered_name(
+                nthings, looker, key=thingname
+            )
             thing_names.append(singular if nthings == 1 else plural)
         thing_names = "\n ".join(thing_names)
         return f"|wYou see:|n\n {thing_names}" if thing_names else ""
@@ -376,9 +378,7 @@ class Object(ObjectParent, DefaultObject):
 
         key = kwargs.get("key", self.get_display_name(looker))
         # Regular expression for color codes
-        color_code_pattern = (
-            r"(\|(r|g|y|b|m|c|w|x|R|G|Y|B|M|C|W|X|\d{3}|#[0-9A-Fa-f]{6})|\[.*\])"
-        )
+        color_code_pattern = r"(\|(r|g|y|b|m|c|w|x|R|G|Y|B|M|C|W|X|\d{3}|#[0-9A-Fa-f]{6})|\[.*\])"
         color_code_positions = [
             (m.start(0), m.end(0)) for m in re.finditer(color_code_pattern, key)
         ]
@@ -403,14 +403,18 @@ class Object(ObjectParent, DefaultObject):
             else:
                 # Apply pluralization to text segment
                 plural_segment = (
-                    _INFLECT.plural(segment, count) if segment.strip() else segment
+                    _INFLECT.plural(segment, count)
+                    if segment.strip()
+                    else segment
                 )
                 plural_segments.append(plural_segment)
 
                 # Apply singularization to text segment
                 if len(singular_segments) == 2:
                     # Special handling when singular_segments has exactly two elements
-                    segment = _INFLECT.an(segment) if segment.strip() else segment
+                    segment = (
+                        _INFLECT.an(segment) if segment.strip() else segment
+                    )
                     split_segment = segment.split(" ")
                     singular_segment = (
                         strip_ansi(split_segment[0])
@@ -612,7 +616,9 @@ class Object(ObjectParent, DefaultObject):
             mapping=mapping,
         )
 
-    def msg(self, text=None, from_obj=None, session=None, options=None, **kwargs):
+    def msg(
+        self, text=None, from_obj=None, session=None, options=None, **kwargs
+    ):
         """
         Emits something to a session attached to the object.
 

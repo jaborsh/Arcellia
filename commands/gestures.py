@@ -225,14 +225,18 @@ class CmdGesture(Command):
 
         if self.args:
             if target := caller.search(self.args.strip().split(" ")[0]):
-                gesture_type = GESTURE.SELF if target == caller else GESTURE.TARGET
+                gesture_type = (
+                    GESTURE.SELF if target == caller else GESTURE.TARGET
+                )
             else:
                 return
 
         caller.location.msg_contents(
             _GESTURES[self.cmdstring][gesture_type],
             from_obj=caller,
-            mapping={"target": target} if gesture_type == GESTURE.TARGET else {},
+            mapping={"target": target}
+            if gesture_type == GESTURE.TARGET
+            else {},
         )
 
 

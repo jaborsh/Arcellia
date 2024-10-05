@@ -1,6 +1,7 @@
-from commands.command import Command
 from evennia import syscmdkeys
 from evennia.commands.default import batchprocess, building, system
+
+from commands.command import Command
 
 __all__ = (
     "CmdNoInput",

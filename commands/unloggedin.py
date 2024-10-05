@@ -1,9 +1,9 @@
 from django.conf import settings
 from evennia import syscmdkeys
 from evennia.utils import utils
-from world.login import login_menu
 
 from commands.command import Command
+from world.login import login_menu
 
 _CONNECTION_SCREEN_MODULE = settings.CONNECTION_SCREEN_MODULE
 
