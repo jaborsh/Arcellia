@@ -569,7 +569,7 @@ class CmdExamine(building.CmdExamine):
 
 class CmdFind(Command):
     """
-    search the database for objects
+    Search the database for objects
 
     Usage:
       find[/switches] <name or dbref or *account> [= dbrefmin[-dbrefmax]]
@@ -1035,16 +1035,17 @@ class CmdPurge(Command):
             for obj in caller.location.contents:
                 if inherits_from(obj, CharacterTypeclass):
                     continue
-
                 obj.delete()
-
-        if inherits_from(obj, CharacterTypeclass):
-            return
+            return caller.msg("Room purged.")
 
         target = caller.search(args)
         if not target:
             return
+        if inherits_from(target, CharacterTypeclass):
+            caller.msg("You cannot purge a character.")
+            return
 
+        caller.msg(f"{target.get_display_name(caller)} purged.")
         target.delete()
 
 
