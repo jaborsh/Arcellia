@@ -866,6 +866,17 @@ class CmdSetMain(Command):
 
 
 class CmdWho(Command):
+    """
+    Command to display a list of currently logged-in players and their details.
+
+    Usage: who
+
+    This command provides a formatted list of all players currently connected to the MUD,
+    including their display names, locations, connection times, idle times, and host addresses.
+    The display format varies slightly depending on whether the caller has administrative
+    permissions.
+    """
+
     key = "who"
     aliases = ["wh"]
     locks = "cmd:all()"
