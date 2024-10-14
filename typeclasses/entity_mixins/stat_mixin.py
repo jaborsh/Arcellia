@@ -151,6 +151,6 @@ class StatMixin:
     @property
     def weight(self):
         self.stats.get("weight").current = sum(
-            [o.db.weight for o in self.contents]
+            [o.db.weight or 0 for o in self.contents]
         )
         return self.stats.get("weight")
