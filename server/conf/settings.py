@@ -35,7 +35,10 @@ from evennia.settings_default import *
 
 # This is the name of your game. Make it catchy!
 SERVERNAME = "Arcellia"
-
+# Short one-sentence blurb describing your game. Shown under the title
+# on the website and could be used in online listings of your game etc.
+GAME_SLOGAN = ""
+# Interface addresses to listen to. If 0.0.0.0, listen to all. Use :: for IPv6.
 WEBSOCKET_CLIENT_INTERFACE = "127.0.0.1"
 
 # Determine how many commands per second a given Session is allowed
