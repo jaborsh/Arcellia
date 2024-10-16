@@ -144,6 +144,21 @@ SEARCH_MULTIMATCH_TEMPLATE = " {name} {number}{aliases}{info}\n"
 # both for command- and object-searches. This allows full control
 # over the error output (it uses SEARCH_MULTIMATCH_TEMPLATE by default).
 SEARCH_AT_RESULT = "server.conf.at_search.at_search_result"
+# A module that must exist - this holds the instructions Evennia will use to
+# first prepare the database for use (create user #1 and Limbo etc). Only override if
+# you really know what # you are doing. If replacing, it must contain a function
+# handle_setup(stepname=None). The function will start being called with no argument
+# and is expected to maintain a named sequence of steps. Once each step is completed, it
+# should be saved with ServerConfig.objects.conf('last_initial_setup_step', stepname)
+# on a crash, the system will continue by calling handle_setup with the last completed
+# step. The last step in the sequence must be named 'done'. Once this key is saved,
+# initialization will not run again.
+INITIAL_SETUP_MODULE = "server.conf.at_initial_setup"
+# An optional module that, if existing, must hold a function
+# named at_initial_setup(). This hook method can be used to customize
+# the server's initial setup sequence (the very first startup of the system).
+# The check will fail quietly if module doesn't exist or fails to load.
+AT_INITIAL_SETUP_HOOK_MODULE = "server.conf.at_initial_setup"
 
 ######################################################################
 # Game Time setup
