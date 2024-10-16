@@ -56,8 +56,16 @@
     <footer class="footer">
     {% block footer %}
         <div class="container">
-          <div class="row justify-content-center">
-            <span class="text-white">Powered by <a class="text-white font-weight-bold" href="https://evennia.com">Evennia.</a></span>
+          <div class="row justify-content-between align-items-center">
+            <div class="col-auto">
+              <div class="dark-mode-toggle">
+                <label for="darkModeToggle" class="toggle-label">Dark Mode</label>
+                <label class="switch">
+                  <input type="checkbox" id="darkModeToggle">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
     {% endblock %}
@@ -69,5 +77,29 @@
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    
+    <!-- Dark Mode Toggle Script -->
+    <script>
+      document.addEventListener('DOMContentLoaded', (event) => {
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const body = document.body;
+
+        // Check for saved dark mode preference
+        if (localStorage.getItem('darkMode') === 'enabled') {
+          body.classList.add('dark-mode');
+          darkModeToggle.checked = true;
+        }
+
+        darkModeToggle.addEventListener('change', () => {
+          if (darkModeToggle.checked) {
+            body.classList.add('dark-mode');
+            localStorage.setItem('darkMode', 'enabled');
+          } else {
+            body.classList.remove('dark-mode');
+            localStorage.setItem('darkMode', null);
+          }
+        });
+      });
+    </script>
   </body>
 </html>
