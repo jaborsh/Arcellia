@@ -7,12 +7,13 @@ so it can reroute to all website pages.
 """
 
 from django.urls import path
-
 from evennia.web.website.urls import urlpatterns as evennia_website_urlpatterns
+
+from web.website.views import index
 
 # add patterns here
 urlpatterns = [
-    # path("url-pattern", imported_python_view),
+    path("", index.EvenniaIndexView.as_view(), name="index")
     # path("url-pattern", imported_python_view),
 ]
 
