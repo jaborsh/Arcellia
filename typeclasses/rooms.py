@@ -94,7 +94,12 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
         desc = self.get_stateful_desc()
         desc = self.replace_legacy_time_of_day_markup(desc)
         desc = self._get_funcparser(looker).parse(desc, **kwargs)
-        desc = desc.replace("\n\n", "\n\n    ").replace("|/|/", "|/|/    ")
+        desc = (
+            desc.replace("\n\n", "\n\n    ")
+            .replace("|/|/", "|/|/    ")
+            .lstrip()
+            .rstrip()
+        )
         return desc
 
     def get_display_exits(self, looker, **kwargs):
