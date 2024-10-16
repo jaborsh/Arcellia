@@ -27,7 +27,7 @@ def at_server_init():
     """
     xyzgrid_add("world.zones.ooc.map")
     xyzgrid_add("world.chargen.map")
-    xyzgrid_add("world.zones.solara.map")
+    # xyzgrid_add("world.zones.solara.map")
     # xyzgrid_add("world.zones.nautilus.map") # Not sure if we're keeping this or not.
 
 
