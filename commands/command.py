@@ -218,6 +218,16 @@ class Command(BaseCommand):
                     f"|y[{self.caller}]|Y> {self.cmdstring}{self.args}|n"
                 )
 
+        if (
+            self.caller.permissions.check("petrified")
+            and not self.caller.is_superuser
+        ):
+            self.caller.msg(
+                "|#6C6C6CYou are petrified and cannot perform actions.|n"
+            )
+            return True
+        return False
+
     def at_post_cmd(self):
         self.caller.msg(prompt="> ")
 

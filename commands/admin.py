@@ -16,11 +16,13 @@ from world.xyzgrid.xyzroom import XYZRoom
 __all__ = (
     "CmdAccess",
     "CmdAnnounce",
+    "CmdAt",
     "CmdDiary",
     "CmdEcho",
     "CmdForce",
     "CmdHome",
     "CmdNoShout",
+    "CmdPetrify",
     "CmdReports",
     "CmdRestore",
     "CmdTeleport",
@@ -106,6 +108,48 @@ class CmdAnnounce(Command):
         ).format(SERVERNAME=settings.SERVERNAME, message=message)
 
         SESSIONS.announce_all(announcement)
+
+
+class CmdAt(Command):
+    """
+    Execute a command as if you were in another location.
+
+    Syntax: at <object/location> <command>
+
+    Provide the path to where the command should be executed, and the command
+    itself, and it will be so.
+    """
+
+    key = "at"
+    locks = "cmd:pperm(Admin)"
+    help_category = "Admin"
+
+    def func(self):
+        if not self.args:
+            self.caller.msg("Syntax: at <object/location> <command>")
+            return
+
+        args = self.args.split(None, 1)
+        if len(args) < 2:
+            self.caller.msg("Syntax: at <object/location> <command>")
+            return
+
+        obj = self.caller.search(args[0], global_search=True)
+        if not obj:
+            return
+
+        og_loc = self.caller.location
+        if inherits_from(obj, "typeclasses.rooms.Room"):
+            at_loc = obj
+        else:
+            if not obj.location:
+                return self.caller.msg(f"{obj} has no location.")
+            at_loc = obj.location
+
+        self.caller.move_to(at_loc, quiet=True, move_hooks=False)
+        self.caller.execute_cmd(args[1])
+        self.caller.move_to(og_loc, quiet=True, move_hooks=False)
+        logger.log_info(f"{self.caller} executed '{args[1]}' at {obj}.")
 
 
 class CmdDiary(Command):
@@ -374,6 +418,48 @@ class CmdNoShout(Command):
                 logger.log_info(
                     f"{self.caller} removed shout permissions for {target}."
                 )
+
+
+class CmdPetrify(Command):
+    """
+    Petrify a target character.
+
+    Syntax: petrify <target>
+
+    Turns the target character to stone. They will be unable to take any
+    actions at all while petrified. Players may be returned to their original
+    fleshy state by repeating the command.
+    """
+
+    key = "petrify"
+    locks = "cmd:pperm(Admin)"
+    help_category = "Admin"
+
+    def func(self):
+        if not self.args:
+            self.msg("Syntax: petrify <target>")
+            return
+
+        target = self.caller.search(self.args, global_search=True)
+        if not target:
+            return
+
+        if target == self.caller:
+            self.msg("|#6C6C6CYou probably shouldn't petrify yourself.")
+            return
+
+        if target.permissions.check("petrified"):
+            target.permissions.remove("petrified")
+            target.msg("|#6C6C6CThe stone encasing you crumbles away.")
+            self.msg(f"{target} is no longer petrified.")
+            logger.log_info(f"{self.caller} restored {target} to flesh.")
+        else:
+            target.permissions.add("petrified")
+            target.msg(
+                "|#6C6C6CYou feel your body stiffen and turn to stone, unable to move."
+            )
+            self.msg(f"{target} is now petrified.")
+            logger.log_info(f"{self.caller} petrified {target}.")
 
 
 class CmdReports(Command):
