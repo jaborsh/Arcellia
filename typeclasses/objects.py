@@ -157,6 +157,133 @@ class ObjectParent:
             if kwargs.get("text", None):
                 watcher.msg(text=kwargs["text"])
 
+    def announce_move_to(
+        self,
+        source_location,
+        msg=None,
+        mapping=None,
+        move_type="move",
+        **kwargs,
+    ):
+        """
+        Announces the movement of the object to a new location.
+
+        Args:
+            source_location (Object): The previous location of the object.
+            msg (str, optional): Additional message to include in the announcement.
+            mapping (dict, optional): Mapping of variables for string formatting.
+            move_type (str, optional): Type of movement (e.g., "move", "teleport").
+
+        Returns:
+            None
+        """
+        if not source_location and self.location.has_account:
+            self.location.msg(
+                _("You now have {name} in your possession.").format(
+                    name=self.get_display_name(self.location)
+                )
+            )
+            return
+
+        origin = source_location
+        destination = self.location
+        exits = [
+            o
+            for o in destination.contents
+            if o.location is destination and o.destination is origin
+        ]
+
+        if exits:
+            exit_name = exits[0].get_display_name(self.location)
+            if exit_name in [
+                "north",
+                "west",
+                "south",
+                "east",
+                "northeast",
+                "northwest",
+                "southwest",
+                "southeast",
+            ]:
+                exit_traversed = f"the {exit_name}"
+            elif exit_name == "up":
+                exit_traversed = "above"
+            elif exit_name == "down":
+                exit_traversed = "below"
+            else:
+                exit_traversed = exit_name
+            string = _("{object} arrives from {exit_traversed}.")
+        elif origin:
+            string = _("{object} arrives from somewhere.")
+        else:
+            string = _("{object} arrives from {destination}.")
+
+        mapping = mapping or {}
+        mapping.update(
+            {
+                "object": self,
+                "exit_traversed": exit_traversed if exits else "nowhere",
+                "origin": origin or "nowhere",
+                "destination": destination or "nowhere",
+            }
+        )
+
+        destination.msg_contents(
+            (string, {"type": move_type}),
+            exclude=(self,),
+            from_obj=self,
+            mapping=mapping,
+        )
+
+    def announce_move_from(
+        self, destination, msg=None, mapping=None, move_type="move", **kwargs
+    ):
+        """
+        Announces the movement of the object from its current location to a destination.
+
+        Args:
+            destination (object): The destination object where the object is moving to.
+            msg (str, optional): The message to be displayed when announcing the movement. If not provided,
+                a default message will be used.
+            mapping (dict, optional): A dictionary containing additional variables to be used in the message
+                string. These variables can be referenced using placeholders in the message string.
+            move_type (str, optional): The type of movement being performed. Defaults to "move".
+            **kwargs: Additional keyword arguments that can be used to customize the behavior of the method.
+
+        Returns:
+            None
+
+        """
+        if not self.location:
+            return
+
+        string = msg or "{object} leaves {exit_traversed}."
+        location = self.location
+        exits = [
+            o
+            for o in location.contents
+            if o.location is location and o.destination is destination
+        ]
+
+        mapping = mapping or {}
+        mapping.update(
+            {
+                "object": self,
+                "exit_traversed": (
+                    exits[0].get_display_name(self.location)
+                    if exits
+                    else "in a poof of smoke"
+                ),
+            }
+        )
+
+        location.msg_contents(
+            (string, {"type": move_type}),
+            exclude=(self,),
+            from_obj=self,
+            mapping=mapping,
+        )
+
 
 class Object(ObjectParent, DefaultObject):
     """
@@ -562,133 +689,6 @@ class Object(ObjectParent, DefaultObject):
                 things=self.get_display_things(looker, **kwargs),
             ).strip(),
             max_linebreaks=2,
-        )
-
-    def announce_move_to(
-        self,
-        source_location,
-        msg=None,
-        mapping=None,
-        move_type="move",
-        **kwargs,
-    ):
-        """
-        Announces the movement of the object to a new location.
-
-        Args:
-            source_location (Object): The previous location of the object.
-            msg (str, optional): Additional message to include in the announcement.
-            mapping (dict, optional): Mapping of variables for string formatting.
-            move_type (str, optional): Type of movement (e.g., "move", "teleport").
-
-        Returns:
-            None
-        """
-        if not source_location and self.location.has_account:
-            self.location.msg(
-                _("You now have {name} in your possession.").format(
-                    name=self.get_display_name(self.location)
-                )
-            )
-            return
-
-        origin = source_location
-        destination = self.location
-        exits = [
-            o
-            for o in destination.contents
-            if o.location is destination and o.destination is origin
-        ]
-
-        if exits:
-            exit_name = exits[0].get_display_name(self.location)
-            if exit_name in [
-                "north",
-                "west",
-                "south",
-                "east",
-                "northeast",
-                "northwest",
-                "southwest",
-                "southeast",
-            ]:
-                exit_traversed = f"the {exit_name}"
-            elif exit_name == "up":
-                exit_traversed = "above"
-            elif exit_name == "down":
-                exit_traversed = "below"
-            else:
-                exit_traversed = exit_name
-            string = _("{object} arrives from {exit_traversed}.")
-        elif origin:
-            string = _("{object} arrives from {origin}.")
-        else:
-            string = _("{object} arrives to {destination}.")
-
-        mapping = mapping or {}
-        mapping.update(
-            {
-                "object": self,
-                "exit_traversed": exit_traversed if exits else "nowhere",
-                "origin": origin or "nowhere",
-                "destination": destination or "nowhere",
-            }
-        )
-
-        destination.msg_contents(
-            (string, {"type": move_type}),
-            exclude=(self,),
-            from_obj=self,
-            mapping=mapping,
-        )
-
-    def announce_move_from(
-        self, destination, msg=None, mapping=None, move_type="move", **kwargs
-    ):
-        """
-        Announces the movement of the object from its current location to a destination.
-
-        Args:
-            destination (object): The destination object where the object is moving to.
-            msg (str, optional): The message to be displayed when announcing the movement. If not provided,
-                a default message will be used.
-            mapping (dict, optional): A dictionary containing additional variables to be used in the message
-                string. These variables can be referenced using placeholders in the message string.
-            move_type (str, optional): The type of movement being performed. Defaults to "move".
-            **kwargs: Additional keyword arguments that can be used to customize the behavior of the method.
-
-        Returns:
-            None
-
-        """
-        if not self.location:
-            return
-
-        string = msg or "{object} leaves {exit_traversed}."
-        location = self.location
-        exits = [
-            o
-            for o in location.contents
-            if o.location is location and o.destination is destination
-        ]
-
-        mapping = mapping or {}
-        mapping.update(
-            {
-                "object": self,
-                "exit_traversed": (
-                    exits[0].get_display_name(self.location)
-                    if exits
-                    else "an unknown exit"
-                ),
-            }
-        )
-
-        location.msg_contents(
-            (string, {"type": move_type}),
-            exclude=(self,),
-            from_obj=self,
-            mapping=mapping,
         )
 
 

@@ -279,6 +279,7 @@ class CmdForce(Command):
 
         obj.execute_cmd(command)
         self.msg(f"You force {obj} to {command}")
+        logger.log_info(f"{self.caller} forced {obj} to {command}.")
 
 
 class CmdHome(Command):
@@ -482,6 +483,7 @@ class CmdRestore(Command):
         target.at_restore()
         caller.msg(f"You restore {target.get_display_name(caller)}.")
         target.msg(f"{caller.get_display_name(target)} restores you.")
+        logger.log_info(f"{caller} restored {target}.")
 
 
 class CmdTeleport(Command):
@@ -737,6 +739,9 @@ class CmdTransfer(Command):
         caller.msg(
             f"You {'transfer' if success else 'fail to transfer'} {obj_to_transfer}."
         )
+        logger.log_info(
+            f"{caller} transferred {obj_to_transfer} to {caller.location}."
+        )
 
 
 class CmdWatch(Command):
@@ -788,6 +793,7 @@ class CmdWatch(Command):
             target.ndb._watchers = list()
         target.ndb._watchers.append(watcher)
         self.msg(f"You start watching {target.name}.")
+        logger.log_info("%s started watching %s." % (watcher, target))
 
     def _stop_watching(self, watcher):
         target = watcher.ndb._watching
