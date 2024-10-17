@@ -3,11 +3,9 @@ from evennia.utils.utils import (
     dbref,
     dedent,
     make_iter,
-    to_str,
     variable_from_module,
 )
 
-from server.conf import logger
 from typeclasses.entity_mixins import (
     clothing_mixin,
     cooldown_mixin,
@@ -16,7 +14,7 @@ from typeclasses.entity_mixins import (
     stat_mixin,
     trait_mixin,
 )
-from utils.text import grammarize, wrap
+from utils.text import grammarize
 from world.characters import genders
 
 from .objects import ObjectParent
@@ -346,88 +344,6 @@ class Entity(
                 msg_type,
                 custom_mapping,
             )
-
-    def msg(
-        self, text=None, from_obj=None, session=None, options=None, **kwargs
-    ):
-        """
-        Emits something to a session attached to the object.
-
-        Args:
-            text (str or tuple, optional): The message to send. This
-                is treated internally like any send-command, so its
-                value can be a tuple if sending multiple arguments to
-                the `text` oob command.
-            from_obj (obj or list, optional): object that is sending. If
-                given, at_msg_send will be called. This value will be
-                passed on to the protocol. If iterable, will execute hook
-                on all entities in it.
-            session (Session or list, optional): Session or list of
-                Sessions to relay data to, if any. If set, will force send
-                to these sessions. If unset, who receives the message
-                depends on the MULTISESSION_MODE.
-            options (dict, optional): Message-specific option-value
-                pairs. These will be applied at the protocol level.
-        Keyword Args:
-            any (string or tuples): All kwarg keys not listed above
-                will be treated as send-command names and their arguments
-                (which can be a string or a tuple).
-            wrap (string): The type of wrap
-
-        Notes:
-            `at_msg_receive` will be called on this Object.
-            All extra kwargs will be passed on to the protocol.
-
-        """
-        # try send hooks
-        if from_obj:
-            for obj in make_iter(from_obj):
-                try:
-                    obj.at_msg_send(text=text, to_obj=self, **kwargs)
-                except Exception:
-                    logger.log_trace()
-        kwargs["options"] = options
-        try:
-            if not self.at_msg_receive(text=text, from_obj=from_obj, **kwargs):
-                # if at_msg_receive returns false, we abort message to this object
-                return
-        except Exception:
-            logger.log_trace()
-
-        if text is not None:
-            if not (isinstance(text, str) or isinstance(text, tuple)):
-                # sanitize text before sending across the wire
-                try:
-                    text = to_str(text)
-                except Exception:
-                    text = repr(text)
-
-            # if text and isinstance(text, tuple):
-            #     text = (
-            #         genders._RE_GENDER_PRONOUN.sub(self.get_pronoun, text[0]),
-            #         *text[1:],
-            #     )
-            # else:
-            #     text = genders._RE_GENDER_PRONOUN.sub(self.get_pronoun, text)
-
-            if kwargs.get("wrap") == "say":
-                msg = text[0]
-                pre_text = msg.split('"')[0] + '"'
-                msg = '"'.join(msg.split('"')[1:])
-                msg = wrap(
-                    msg, text_width=kwargs.get("width", None), pre_text=pre_text
-                )
-                text = msg
-            kwargs["text"] = text
-
-        # relay to session(s)
-        sessions = make_iter(session) if session else self.sessions.all()
-        for session in sessions:
-            session.data_out(**kwargs)
-
-        for watcher in self.ndb._watchers or []:
-            if kwargs.get("text", None):
-                watcher.msg(text=kwargs["text"])
 
     # Appearance
     def return_appearance(self, looker, **kwargs):

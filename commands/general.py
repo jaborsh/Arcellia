@@ -12,6 +12,7 @@ from evennia.utils import (
     inherits_from,
     utils,
 )
+from evennia.utils.funcparser import ACTOR_STANCE_CALLABLES, FuncParser
 
 from commands.command import Command
 from handlers.clothing import CLOTHING_OVERALL_LIMIT, CLOTHING_TYPE_COVER
@@ -20,6 +21,7 @@ from menus.interaction_menu import InteractionMenu
 from prototypes import currencies
 from server.conf import logger
 from server.conf.at_search import SearchReturnType
+from typeclasses.characters import Character
 from typeclasses.clothing import Clothing
 from typeclasses.consumables.consumables import Consumable
 from typeclasses.entities import Entity
@@ -30,6 +32,8 @@ from utils.text import pluralize, singularize, wrap
 _AT_SEARCH_RESULT = utils.variable_from_module(
     *settings.SEARCH_AT_RESULT.rsplit(".", 1)
 )
+
+PARSER = FuncParser(ACTOR_STANCE_CALLABLES)
 
 COMMAND_DEFAULT_CLASS = class_from_module(settings.COMMAND_DEFAULT_CLASS)
 __all__ = [
@@ -55,6 +59,7 @@ __all__ = [
     "CmdRemove",
     "CmdSay",
     "CmdScore",
+    "CmdShout",
     "CmdSmell",
     "CmdTaste",
     "CmdTell",
@@ -1754,6 +1759,35 @@ class CmdScore(Command):
             f"{int(caller.weight.value)}/{int(caller.weight.max)}",
         )
         caller.msg(table)
+
+
+class CmdShout(Command):
+    """
+    Syntax: shout [message]
+
+    Shout something to tell the whole world.
+    """
+
+    key = "shout"
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+
+        if caller.permissions.check("no_shout"):
+            return caller.msg("Your throat is too sore to shout.")
+
+        if not args:
+            return caller.msg("Shout what?")
+
+        chars = [char for char in Character.objects.all() if char.is_connected]
+        for char in chars:
+            pre_text = PARSER.parse(
+                '$You() $conj(shout), "', caller=caller, receiver=char
+            )
+            message = "|r" + wrap(args + '"', pre_text=pre_text)
+            char.msg(message)
 
 
 class CmdSmell(Command):
