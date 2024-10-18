@@ -1,3 +1,4 @@
+from world.zones.riverdale.mob_prototypes import RIVERDALE_MOBS
 from world.zones.riverdale.room_prototypes import RIVERDALE_ROOMS
 
 RIVERDALE = r"""
@@ -15,10 +16,11 @@ RIVERDALE = r"""
 """
 
 
-XYMAP_DATA_OOC = {
+XYMAP_DATA_RIVERDALE = {
     "zcoord": "riverdale",
     "map": RIVERDALE,
     "prototypes": RIVERDALE_ROOMS,
+    "mob_prototypes": RIVERDALE_MOBS,
 }
 
-XYMAP_DATA_LIST = [XYMAP_DATA_OOC]
+XYMAP_DATA_LIST = [XYMAP_DATA_RIVERDALE]

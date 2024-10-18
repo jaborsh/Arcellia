@@ -58,7 +58,6 @@ RIVERDALE_ROOMS = {
             "roots": "The roots of the trees twist through the ground, some bursting up from the earth in great, gnarled knots. They are slick with frost and treacherous to walk upon.",
         },
     },
-    # TODO: Add something Warrior related here.
     (4, 1): {
         "prototype_parent": "xyz_room",
         "typeclass": "world.xyzgrid.xyzroom.XYZRoom",
