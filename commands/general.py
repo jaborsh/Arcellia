@@ -21,6 +21,7 @@ from menus.interaction_menu import InteractionMenu
 from prototypes import currencies
 from server.conf import logger
 from server.conf.at_search import SearchReturnType
+from typeclasses.books import Book
 from typeclasses.characters import Character
 from typeclasses.clothing import Clothing
 from typeclasses.consumables.consumables import Consumable
@@ -57,6 +58,7 @@ __all__ = [
     "CmdListen",
     "CmdLook",
     "CmdPut",
+    "CmdRead",
     "CmdRemove",
     "CmdSay",
     "CmdScore",
@@ -1625,6 +1627,36 @@ class CmdPut(Command):
                 f"$You() $conj(put) {item} in {container.display_name}.",
                 from_obj=caller,
             )
+
+
+class CmdRead(Command):
+    """
+    Read a book or document.
+
+    Syntax: read <book/document>
+
+    Everyone loves a good book. Read one.
+    """
+
+    key = "read"
+    locks = "cmd:all()"
+    help_category = "General"
+
+    def func(self):
+        caller = self.caller
+        args = self.args.strip()
+
+        if not args:
+            return caller.msg("Read what?")
+
+        book = caller.search(args)
+        if not book:
+            return
+
+        if not inherits_from(book, Book):
+            return caller.msg("You can't read that.")
+
+        book.at_read(caller)
 
 
 class CmdRemove(Command):
