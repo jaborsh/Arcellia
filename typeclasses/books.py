@@ -1,3 +1,4 @@
+import random
 import re
 
 from evennia.utils.utils import lazy_property
@@ -8,11 +9,17 @@ from utils.text import _INFLECT, strip_ansi
 
 class Book(Object):
     @lazy_property
-    def story(self):
-        return self.attributes.get("story", "There is nothing written here.")
+    def stories(self):
+        return self.attributes.get("stories", [])
 
     def at_read(self, reader):
-        reader.msg(self.story)
+        if not self.stories:
+            return reader.msg("The book is empty.")
+
+        if len(self.stories) == 1:
+            return reader.msg(self.stories[0])
+
+        reader.msg(random.choice(self.stories))
 
     def get_numbered_name(self, count, looker, **kwargs):
         """
