@@ -107,7 +107,7 @@ class XYZRoom(Room):
 
     def at_object_post_spawn(self, prototype=None):
         super().at_object_post_spawn()
-        for prot in self.attributes.get("contents", []):
+        for prot in self.attributes.get("objects", []):
             matching_objects = [
                 obj
                 for obj in self.contents
@@ -121,6 +121,8 @@ class XYZRoom(Room):
                 prot["home"] = self
                 prot["location"] = self
                 spawner.spawn(prot)
+
+        self.attributes.remove("objects")
 
     @classmethod
     def create(cls, key, account=None, xyz=(0, 0, "map"), **kwargs):
