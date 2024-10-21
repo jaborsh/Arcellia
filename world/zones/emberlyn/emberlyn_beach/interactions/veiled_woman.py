@@ -10,7 +10,7 @@ roll_handler = RollHandler()
 def node_start(caller):
     text = dedent(
         """
-        She lifts her hand and in that motion the air around her seems to shimmer. A single wisp of smoke coils upward, though no pipe or ember lies in her grasp. The smoke dances, swirling unnaturally before curling back around her fingers. Her lips part in a languid smile.
+        She lifts her hand and in that motion, the air around her seems to shimmer. A single wisp of smoke coils upward, though no pipe or ember lies in her grasp. The smoke dances, swirling unnaturally before curling back around her fingers. Her lips part in a languid smile.
         
         \"You've come a long way,\" her voice is soft, almost drowned by the sound of the waves, yet it reaches you clear as a bell.
         
@@ -52,7 +52,7 @@ def node_aeum_1_1(caller):
                 """
                 At your words, the woman's smile widens, though her eyes remain unreadable beneath the veil. The smoke around her fingers flickers and fans out, stretching in all directions before vanishing into the salty air.
                 
-                \"Running,\" she repeats, the word rolling off her tongue like a stone skipping across the water. \"Many come here with the weight of the world chasing them. But the sea? The sea forgets. It swallows everything eventually - memories, mistakes, even names.\"
+                \"Running,\" she repeats, the word rolling off her tongue like a stone skipping across water. \"Many come here with the weight of the world chasing them. But the sea? The sea forgets. It swallows everything eventually - memories, mistakes, even names.\"
                 """
             )
         )
@@ -90,9 +90,9 @@ def node_aeum_hub(caller):
 def node_aeum_2_1(caller):
     text = dedent(
         """
-        At your question, the woman's expression softens, though the hood hides most of her face. The smoke swirling around her falters a moment, as if caught in some unseen current. Her fingers trace slow patterns in the air, and her voice, when it comes, is thick with something unspoken - sadness, perhaps, or a weariness that runs deeper.
+        At your question, the woman's expression softens, though the hood hides most of her face. The smoke swirling around her falters a moment as if caught in some unseen current. Her fingers trace slow patterns in the air, and her voice, when it comes, is thick with something unspoken - sadness, perhaps, or a weariness that runs deeper.
                 
-        \"That is a question with many answers, none of which you'll find in the sand beneath your feet. Fate brought you to Emberlyn, as it brings all who tread this shore. There are forces stirring in the world, shadows stretching far beyond this place. |CYou are part of something greater now|n. Something that looms, unseen, yet inevitable.\"
+        \"That is a question with many answers, none of which you'll find in the sand beneath your feet. Fate brought you to Emberlyn, as it brings all who tread this shore. Forces stirring in the world, shadows stretching far beyond this place. |CYou are part of something greater now|n. Something that looms, unseen, yet inevitable.\"
         """
     )
 
@@ -109,7 +109,7 @@ def node_aeum_2_2(caller):
         """
         The woman lets out a soft, breathy chuckle, though there's no humor in it. The smoke between her fingers twist tighter, like a thread wound too tight, before she lets it unravel again into the air.
         
-        \"Life... it has a way of turning harder, doesn't it? The tides get rougher, the winds colder. We lose things along the way - people, places, pieces of ourselves.\" Her eyes seem to look past you, into the distance, or perhaps into the past.
+        \"Life... it has a way of turning harder, doesn't it? The tides get rougher and the winds colder. We lose things along the way - people, places, pieces of ourselves.\" Her eyes seem to look past you, into the distance, or perhaps into the past.
         
         "And yet," she continues, "we go on. Step by step, we keep walking, even when the road crumbles beneath us. That's what it means to live, isn't it? To endure. To carry the weight of what's broken even when it feels too heavy."
         """
@@ -154,7 +154,7 @@ def node_aeum_2_3_2(caller):
         
         "Perhaps you are right," she says, her tone thoughtful. "Each step, each breath, we carry the weight forward, and it presses down until the road itself begins to give away beneath us." She pauses, letting the words linger before continuing.
         
-        "But even whyen the road breaks... there's always something - or someone - to slow the fall. Heroes. Those who patch the cracks, even for a little while. The pace changes. The world shifts. Sometimes, for a moment, we find firmer ground." She looks at you, the smile gone.
+        "But even when the road breaks... there's always something - or someone - to slow the fall. Heroes. Those who patch the cracks, even for a little while. The pace changes. The world shifts. Sometimes, for a moment, we find firmer ground." She looks at you, the smile gone.
         """
     )
 
@@ -215,9 +215,9 @@ def node_aeum_2_5_1(caller):
         
         "The world... it feels as though none of it matters anymore. Like the things we once held so tightly have slipped through our fingers." She pauses, her words hanging in the air like the faintest echo of a fading melody. "And that we're alone now. All of us, trying to listen to a song that barely exists anymore."
         
-        She sighs, the weight of it palpable. "It's quiet, you see. So quiet you almost can't hear it at all. But it's there, whispering. And what it says... it's hard to understand. But if you listen close enough, it tells you the truth: the road beneath us is crumbling, little by little. Piece by piece."
+        She sighs, the weight of it palpable. "It's quiet, you see. So quiet you almost can't hear it at all. But it's there, whispering. And what it says... it's hard to understand. But if you listen closely enough, it tells you the truth: the road beneath us is crumbling, little by little. Piece by piece."
         
-        Her gaze lifts, as if searching for something beyond the horizon. "And once the road's gone... well, that's the part no one wants to hear."
+        Her gaze lifts as if searching for something beyond the horizon. "And once the road's gone... well, that's the part no one wants to hear."
         """
     )
 
