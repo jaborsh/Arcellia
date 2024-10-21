@@ -53,10 +53,10 @@ def hex_to_xterm(message):
     Converts all hex tags to xterm-format tags.
 
     Args:
-            message (str): the text to parse for tags
+        message (str): the text to parse for tags
 
     Returns:
-            str: the text with converted tags
+        str: the text with converted tags
     """
 
     def split_hex(text):
@@ -184,7 +184,9 @@ def ev_to_html(message):
         val = rf'<a href="{url}" target="_blank">{text}</a>'
         return val
 
-    message = message.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    message = (
+        message.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    )
     message = _RE_MXPLINK.sub(sub_mxp_links, message)
     message = _RE_MXPURL.sub(sub_mxp_urls, message)
     message = message.replace("|tbs", "<pre>").replace("|tbe", "</pre>")
@@ -276,7 +278,9 @@ def ev_to_html(message):
                 elif not color:
                     style = f'style="color: {bgcolor}"'
                 else:
-                    style = f'style="color: {bgcolor};background-color: {color}"'
+                    style = (
+                        f'style="color: {bgcolor};background-color: {color}"'
+                    )
             else:
                 # normal coloring
                 style = 'style="'

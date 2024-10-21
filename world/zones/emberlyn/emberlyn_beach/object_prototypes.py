@@ -1,10 +1,26 @@
 from evennia.utils.utils import dedent
 
+from handlers.quests import QuestProgress
+from typeclasses.books import Book
+from world.quests.emberlyn.emberlyn_start_quest import ArrivalObjective
+
+
+class ShantyBook(Book):
+    def at_read(self, reader):
+        super().at_read(reader)
+        reader.quests.set_objective(
+            "Arrival",
+            ArrivalObjective.READ_BOOK,
+            "status",
+            QuestProgress.COMPLETED,
+        )
+
+
 EMBERLYN_SHORE_HYMNS = {
     "prototype_key": "emberlyn_shore_hymns",
     "key": "book",
     "aliases": ["tide", "hymns"],
-    "typeclass": "typeclasses.books.Book",
+    "typeclass": "world.zones.emberlyn.emberlyn_beach.object_prototypes.ShantyBook",
     "display_name": "|CThe Darkened Tide: Hymns to the Deep Lady|n",
     "locks": "get:pperm(Admin)",
     "prototype_tags": [("emberlyn_shores", "zone")],

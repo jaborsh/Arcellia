@@ -23,6 +23,7 @@ from evennia.utils.utils import (
     dedent,
     iter_to_str,
     make_iter,
+    to_str,
 )
 
 from utils.text import _INFLECT, strip_ansi, wrap
@@ -136,8 +137,14 @@ class ObjectParent:
                     PARSER.parse(text[0], caller=parse_caller, receiver=self),
                     *text[1:],
                 )
-            else:
+            elif isinstance(text, str):
                 text = PARSER.parse(text, caller=parse_caller, receiver=self)
+            else:
+                try:
+                    text = to_str(text)
+                except Exception:
+                    text = repr(text)
+
             if kwargs.get("wrap") == "say":
                 msg = text[0]
                 pre_text = msg.split('"')[0] + '"'
@@ -146,6 +153,7 @@ class ObjectParent:
                     msg, text_width=kwargs.get("width", None), pre_text=pre_text
                 )
                 text = msg
+
             kwargs["text"] = text
 
         # relay to session(s)

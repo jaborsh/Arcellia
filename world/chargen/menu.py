@@ -6,6 +6,7 @@ from world.characters import (
     genders,
     races,
 )
+from world.quests.emberlyn.emberlyn_start_quest import ArrivalQuest
 from world.xyzgrid.xyzroom import XYZRoom
 
 
@@ -173,9 +174,10 @@ def chargen_race_confirmation(caller, raw_string, **kwargs):
 
 
 def chargen_finalize(caller, raw_string):
+    caller.init_flasks()
     start = XYZRoom.objects.get_xyz(xyz=("0", "0", "emberlyn beach"))
     caller.location = start
-    caller.init_flasks()
+    caller.quests.add(ArrivalQuest)
 
     for eq in caller.contents:
         if inherits_from(eq, "typeclasses.equipment.equipment.Equipment"):

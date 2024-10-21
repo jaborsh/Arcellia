@@ -1227,6 +1227,7 @@ class CmdInteract(Command):
             startnode="node_start",
             auto_look=True,
             auto_help=True,
+            cmd_on_exit="",
             persistent=True,
         )
 
@@ -1415,17 +1416,17 @@ class CmdJournal(Command):
         caller = self.caller
         information = quest.get_information()
 
-        table = evtable.EvTable(
-            border="header", maxwidth=self.client_width(), pad_width=1
-        )
-        table.add_header("Objective", "Description", "Status")
+        table = evtable.EvTable(border=None, width=self.client_width())
 
         for key, value in information.items():  # Maybe use reversed()?
-            table.add_row(
-                value.get("name"),
-                value.get("description"),
-                value.get("status").name,
+            name_status = (
+                "|w" + value.get("name") + "|n - " + value.get("status").name
             )
+            table.add_row(name_status)
+            table.add_row("-" * len(strip_ansi(name_status)))
+            table.add_row(value.get("description"))
+            table.add_row()
+            # table.add_column(value.get("status").name)
 
         caller.msg(
             wrap(
