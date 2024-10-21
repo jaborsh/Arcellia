@@ -1,8 +1,8 @@
 from typeclasses.clothing import ClothingType
 
 # TODO: Intro Quest
-MIRED_BEACH_VEILED_WOMAN_ROBE = {
-    "prototype_key": "mired_beach_veiled_woman_robe",
+EMBERLYN_BEACH_VEILED_WOMAN_ROBE = {
+    "prototype_key": "emberlyn_beach_veiled_woman_robe",
     "key": "robe",
     "typeclass": "typeclasses.clothing.Clothing",
     "clothing_type": ClothingType.FULLBODY,

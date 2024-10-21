@@ -27,8 +27,8 @@ def at_server_init():
     """
     xyzgrid_add("world.zones.ooc.map")
     xyzgrid_add("world.chargen.map")
-    xyzgrid_add("world.zones.grovena.map")
-    xyzgrid_add("world.zones.grovena.mired_beach.map")
+    xyzgrid_add("world.zones.emberlyn.map")
+    xyzgrid_add("world.zones.emberlyn.emberlyn_beach.map")
 
 
 def at_server_start():

@@ -173,7 +173,7 @@ def chargen_race_confirmation(caller, raw_string, **kwargs):
 
 
 def chargen_finalize(caller, raw_string):
-    start = XYZRoom.objects.get_xyz(xyz=("0", "0", "mired beach"))
+    start = XYZRoom.objects.get_xyz(xyz=("0", "0", "emberlyn beach"))
     caller.location = start
     caller.init_flasks()
 

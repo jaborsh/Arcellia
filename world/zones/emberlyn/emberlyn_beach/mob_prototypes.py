@@ -1,8 +1,8 @@
-from world.zones.grovena.mired_beach import clothing_prototypes
+from world.zones.emberlyn.emberlyn_beach import clothing_prototypes
 
-MIRED_BEACH_VEILED_WOMAN = {
+EMBERLYN_BEACH_VEILED_WOMAN = {
     "prototype_parent": "xyz_mob",
-    "prototype_key": "mired_beach_veiled_woman",
+    "prototype_key": "emberlyn_beach_veiled_woman",
     "typeclass": "world.xyzgrid.xyzmob.XYZMob",
     "key": "woman",
     "display_name": "|CVeiled Woman|n",
@@ -14,13 +14,13 @@ MIRED_BEACH_VEILED_WOMAN = {
         "taste": "The air around her tastes metallic, like the edge of a blade, sharp and lingering.",
     },
     "inventory": {
-        "clothing": [clothing_prototypes.MIRED_BEACH_VEILED_WOMAN_ROBE],
+        "clothing": [clothing_prototypes.EMBERLYN_BEACH_VEILED_WOMAN_ROBE],
     },
 }
 
 
-MIRED_BEACH_MOBS = {
+EMBERLYN_BEACH_MOBS = {
     (0, 1): [
-        MIRED_BEACH_VEILED_WOMAN,
+        EMBERLYN_BEACH_VEILED_WOMAN,
     ],
 }
