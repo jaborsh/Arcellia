@@ -38,7 +38,6 @@ class Entity(
         {desc}
         {health}
         {equipment}
-        
         {clothing}
         """
     )
