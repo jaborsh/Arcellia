@@ -4,6 +4,7 @@ EMBERLYN_BEACH_VEILED_WOMAN = {
     "prototype_parent": "xyz_mob",
     "prototype_key": "emberlyn_beach_veiled_woman",
     "typeclass": "world.xyzgrid.xyzmob.XYZMob",
+    "locks": "attack:false()",
     "key": "woman",
     "display_name": "|CVeiled Woman|n",
     "desc": "Her slender frame is poised beneath the shadow of a voluminous teal hood, which casts her sharp, calculating features into the veils of obscurity. Faint wisps of silver hair escape the hood, framing a face lined with secrets and scars, while her eyes, like twin embers smoldering within a sea of fog, seem to pierce through the very fabric of the soul. Her posture speaks of control, a delicate balance between grace and an untamed, almost dangerous power brimming beneath her reserved demeanor.",
