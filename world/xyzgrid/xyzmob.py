@@ -7,7 +7,6 @@ used as stand-alone XYZ-coordinate-aware mobs.
 """
 
 from django.conf import settings
-from evennia.prototypes import spawner
 
 from typeclasses.mobs import Mob as DefaultMob
 from world.xyzgrid.xyzmanager import XYZMobManager
@@ -63,28 +62,6 @@ class XYZMob(DefaultMob):
             _, _, Z = self.xyz
             self._xymap = xyzgrid.get_map(Z)
         return self._xymap
-
-    def at_object_post_spawn(self, prototype=None):
-        super().at_object_post_spawn()
-        inventory = self.attributes.get("inventory", {})
-
-        for prot in inventory.get("clothing", []):
-            matching_clothes = [
-                obj
-                for obj in self.contents
-                if obj.tags.has(prot["prototype_key"], "from_prototype")
-            ]
-            if matching_clothes:
-                spawner.batch_update_objects_with_prototype(
-                    prot, objects=matching_clothes, exact=False
-                )
-            else:
-                prot["home"] = self
-                prot["location"] = self
-                obj = spawner.spawn(prot)[0]
-                self.clothing.wear(obj)
-
-        self.attributes.remove("inventory")
 
     @classmethod
     def create(cls, key, account=None, xyz=(0, 0, "map"), **kwargs):

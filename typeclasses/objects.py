@@ -16,6 +16,7 @@ from collections import defaultdict
 
 from django.utils.translation import gettext as _
 from evennia.objects.objects import DefaultObject
+from evennia.prototypes import spawner
 from evennia.utils import logger
 from evennia.utils.funcparser import ACTOR_STANCE_CALLABLES, FuncParser
 from evennia.utils.utils import (
@@ -85,85 +86,48 @@ class ObjectParent:
     def taste(self, value: str):
         self.senses["taste"] = value
 
-    def msg(
-        self, text=None, from_obj=None, session=None, options=None, **kwargs
-    ):
+    def at_object_post_spawn(self, prototype=None):
+        spawns = self.attributes.get("spawn", {})
+        if spawns:
+            self.spawn_clothing(spawns.get("clothing", []))
+            self.spawn_equipment(spawns.get("equipment", []))
+            self.spawn_inventory(spawns.get("inventory", []))
+            self.attributes.remove("spawn")
+
+    def at_look(self, target, **kwargs):
         """
-        Emits something to a session attached to the object.
+        Called when this object performs a look. It allows to
+        customize just what this means. It will not itself
+        send any data.
 
-        Keyword Args:
-            text (str or tuple): The message to send. This
-                is treated internally like any send-command, so its
-                value can be a tuple if sending multiple arguments to
-                the `text` oob command.
-            from_obj (DefaultObject, DefaultAccount, Session, or list): object that is sending. If
-                given, at_msg_send will be called. This value will be
-                passed on to the protocol. If iterable, will execute hook
-                on all entities in it.
-            session (Session or list): Session or list of
-                Sessions to relay data to, if any. If set, will force send
-                to these sessions. If unset, who receives the message
-                depends on the MULTISESSION_MODE.
-            options (dict): Message-specific option-value
-                pairs. These will be applied at the protocol level.
-            **kwargs (string or tuples): All kwarg keys not listed above
-                will be treated as send-command names and their arguments
-                (which can be a string or a tuple).
+        Args:
+            target (DefaultObject): The target being looked at. This is
+                commonly an object or the current location. It will
+                be checked for the "view" type access.
+            **kwargs: Arbitrary, optional arguments for users
+                overriding the call. This will be passed into
+                return_appearance, get_display_name and at_desc but is not used
+                by default.
 
-        Notes:
-            The `at_msg_receive` method will be called on this Object.
-            All extra kwargs will be passed on to the protocol.
+        Returns:
+            str: A ready-processed look string potentially ready to return to the looker.
 
         """
-        # try send hooks
-        if from_obj:
-            for obj in make_iter(from_obj):
-                try:
-                    obj.at_msg_send(text=text, to_obj=self, **kwargs)
-                except Exception:
-                    logger.log_trace()
-        kwargs["options"] = options
-        try:
-            if not self.at_msg_receive(text=text, from_obj=from_obj, **kwargs):
-                # if at_msg_receive returns false, we abort message to this object
-                return
-        except Exception:
-            logger.log_trace()
-
-        if text:
-            parse_caller = from_obj if from_obj else self
-            if isinstance(text, tuple):
-                text = (
-                    PARSER.parse(text[0], caller=parse_caller, receiver=self),
-                    *text[1:],
+        if not target.access(self, "view"):
+            try:
+                return "Could not find '%s'." % target.get_display_name(
+                    self, **kwargs
                 )
-            elif isinstance(text, str):
-                text = PARSER.parse(text, caller=parse_caller, receiver=self)
-            else:
-                try:
-                    text = to_str(text)
-                except Exception:
-                    text = repr(text)
+            except AttributeError:
+                return "Could not find '%s'." % target.key
 
-            if kwargs.get("wrap") == "say":
-                msg = text[0]
-                pre_text = msg.split('"')[0] + '"'
-                msg = '"'.join(msg.split('"')[1:])
-                msg = wrap(
-                    msg, text_width=kwargs.get("width", None), pre_text=pre_text
-                )
-                text = msg
+        description = target.return_appearance(self, **kwargs)
 
-            kwargs["text"] = text
+        # the target's at_desc() method.
+        # this must be the last reference to target so it may delete itself when acted on.
+        target.at_desc(looker=self, **kwargs)
 
-        # relay to session(s)
-        sessions = make_iter(session) if session else self.sessions.all()
-        for session in sessions:
-            session.data_out(**kwargs)
-
-        for watcher in self.ndb._watchers or []:
-            if kwargs.get("text", None):
-                watcher.msg(text=kwargs["text"])
+        return description
 
     def announce_move_to(
         self,
@@ -292,40 +256,135 @@ class ObjectParent:
             mapping=mapping,
         )
 
-    def at_look(self, target, **kwargs):
+    def msg(
+        self, text=None, from_obj=None, session=None, options=None, **kwargs
+    ):
         """
-        Called when this object performs a look. It allows to
-        customize just what this means. It will not itself
-        send any data.
+        Emits something to a session attached to the object.
 
-        Args:
-            target (DefaultObject): The target being looked at. This is
-                commonly an object or the current location. It will
-                be checked for the "view" type access.
-            **kwargs: Arbitrary, optional arguments for users
-                overriding the call. This will be passed into
-                return_appearance, get_display_name and at_desc but is not used
-                by default.
+        Keyword Args:
+            text (str or tuple): The message to send. This
+                is treated internally like any send-command, so its
+                value can be a tuple if sending multiple arguments to
+                the `text` oob command.
+            from_obj (DefaultObject, DefaultAccount, Session, or list): object that is sending. If
+                given, at_msg_send will be called. This value will be
+                passed on to the protocol. If iterable, will execute hook
+                on all entities in it.
+            session (Session or list): Session or list of
+                Sessions to relay data to, if any. If set, will force send
+                to these sessions. If unset, who receives the message
+                depends on the MULTISESSION_MODE.
+            options (dict): Message-specific option-value
+                pairs. These will be applied at the protocol level.
+            **kwargs (string or tuples): All kwarg keys not listed above
+                will be treated as send-command names and their arguments
+                (which can be a string or a tuple).
 
-        Returns:
-            str: A ready-processed look string potentially ready to return to the looker.
+        Notes:
+            The `at_msg_receive` method will be called on this Object.
+            All extra kwargs will be passed on to the protocol.
 
         """
-        if not target.access(self, "view"):
-            try:
-                return "Could not find '%s'." % target.get_display_name(
-                    self, **kwargs
+        # try send hooks
+        if from_obj:
+            for obj in make_iter(from_obj):
+                try:
+                    obj.at_msg_send(text=text, to_obj=self, **kwargs)
+                except Exception:
+                    logger.log_trace()
+        kwargs["options"] = options
+        try:
+            if not self.at_msg_receive(text=text, from_obj=from_obj, **kwargs):
+                # if at_msg_receive returns false, we abort message to this object
+                return
+        except Exception:
+            logger.log_trace()
+
+        if text:
+            parse_caller = from_obj if from_obj else self
+            if isinstance(text, tuple):
+                text = (
+                    PARSER.parse(text[0], caller=parse_caller, receiver=self),
+                    *text[1:],
                 )
-            except AttributeError:
-                return "Could not find '%s'." % target.key
+            elif isinstance(text, str):
+                text = PARSER.parse(text, caller=parse_caller, receiver=self)
+            else:
+                try:
+                    text = to_str(text)
+                except Exception:
+                    text = repr(text)
 
-        description = target.return_appearance(self, **kwargs)
+            if kwargs.get("wrap") == "say":
+                msg = text[0]
+                pre_text = msg.split('"')[0] + '"'
+                msg = '"'.join(msg.split('"')[1:])
+                msg = wrap(
+                    msg, text_width=kwargs.get("width", None), pre_text=pre_text
+                )
+                text = msg
 
-        # the target's at_desc() method.
-        # this must be the last reference to target so it may delete itself when acted on.
-        target.at_desc(looker=self, **kwargs)
+            kwargs["text"] = text
 
-        return description
+        # relay to session(s)
+        sessions = make_iter(session) if session else self.sessions.all()
+        for session in sessions:
+            session.data_out(**kwargs)
+
+        for watcher in self.ndb._watchers or []:
+            if kwargs.get("text", None):
+                watcher.msg(text=kwargs["text"])
+
+    def spawn_clothing(self, clothing):
+        for prot in clothing:
+            matching_clothes = [
+                obj
+                for obj in self.contents
+                if obj.tags.has(prot["prototype_key"], "from_prototype")
+            ]
+            if matching_clothes:
+                spawner.batch_update_objects_with_prototype(
+                    prot, objects=matching_clothes, exact=False
+                )
+            else:
+                prot["home"] = self
+                prot["location"] = self
+                obj = spawner.spawn(prot)[0]
+                self.clothing.wear(obj)
+
+    def spawn_equipment(self, equipment):
+        for prot in equipment:
+            matching_equipment = [
+                obj
+                for obj in self.contents
+                if obj.tags.has(prot["prototype_key"], "from_prototype")
+            ]
+            if matching_equipment:
+                spawner.batch_update_objects_with_prototype(
+                    prot, objects=matching_equipment, exact=False
+                )
+            else:
+                prot["home"] = self
+                prot["location"] = self
+                obj = spawner.spawn(prot)[0]
+                self.equipment.wear(obj)
+
+    def spawn_inventory(self, inventory):
+        for prot in inventory:
+            matching_inventory = [
+                obj
+                for obj in self.contents
+                if obj.tags.has(prot["prototype_key"], "from_prototype")
+            ]
+            if matching_inventory:
+                spawner.batch_update_objects_with_prototype(
+                    prot, objects=matching_inventory, exact=False
+                )
+            else:
+                prot["home"] = self
+                prot["location"] = self
+                spawner.spawn(prot)
 
 
 class Object(ObjectParent, DefaultObject):
