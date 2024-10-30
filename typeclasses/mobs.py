@@ -11,6 +11,9 @@ class Mob(Entity, Object):
         super().at_object_creation()
         self.cmdset.add(MobCmdSet, persistent=True)
 
+        lockstring = "attack:true()"
+        self.locks.add(lockstring)
+
     def basetype_setup(self):
         """
         This sets up the default properties of an Object, just before
@@ -24,22 +27,12 @@ class Mob(Entity, Object):
         commands may set this (create an item and you should be its
         controller, for example)
         """
-
+        super().basetype_setup()
         self.locks.add(
             ";".join(
                 [
-                    "control:perm(Admin)",  # edit locks/permissions, delete
-                    "examine:perm(Admin)",  # examine properties
-                    "view:all()",  # look at object (visibility)
-                    "edit:pperm(Admin)",  # edit properties/attributes
-                    "delete:pperm(Admin)",  # delete object
-                    "get:pperm(Admin)",  # pick up object
-                    "drop:pperm(Admin)",  # drop only that which you hold
-                    "call:false()",  # allow to call commands on this object
-                    "tell:all()",  # allow emits to this object
-                    "puppet:pperm(Developer)",
-                    "teleport:pperm(Admin)",
-                    "teleport_here:pperm(Admin)",
+                    "get:pperm(Admin)",
+                    "puppet:pperm(Admin)",
                 ]
             )
         )  # lock down puppeting only to staff by default

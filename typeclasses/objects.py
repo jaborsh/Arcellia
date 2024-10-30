@@ -94,6 +94,40 @@ class ObjectParent:
             self.spawn_inventory(spawns.get("inventory", []))
             self.attributes.remove("spawn")
 
+    def basetype_setup(self):
+        """
+        This sets up the default properties of an Object, just before
+        the more general at_object_creation.
+
+        You normally don't need to change this unless you change some
+        fundamental things like names of permission groups.
+
+        """
+        # the default security setup fallback for a generic
+        # object. Overload in child for a custom setup. Also creation
+        # commands may set this (create an item and you should be its
+        # controller, for example)
+
+        self.locks.add(
+            ";".join(
+                [
+                    "attack:false()",  # attacks against this object
+                    "call:true()",  # allow to call commands on this object
+                    "control:perm(Developer)",  # edit locks/permissions, delete
+                    "delete:perm(Admin)",  # delete object
+                    "drop:holds()",  # drop only that which you hold
+                    "edit:perm(Admin)",  # edit properties/attributes
+                    "examine:perm(Builder)",  # examine properties
+                    "get:all()",  # pick up object
+                    "puppet:pperm(Developer)",
+                    "teleport:true()",
+                    "teleport_here:true()",
+                    "tell:perm(Admin)",  # allow emits to this object
+                    "view:all()",  # look at object (visibility)
+                ]
+            )
+        )  # lock down puppeting only to staff by default
+
     def at_look(self, target, **kwargs):
         """
         Called when this object performs a look. It allows to
