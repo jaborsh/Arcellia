@@ -25,7 +25,6 @@ from typeclasses.books import Book
 from typeclasses.characters import Character
 from typeclasses.clothing import Clothing
 from typeclasses.consumables.consumables import Consumable
-from typeclasses.entities import Entity
 from typeclasses.equipment.equipment import Equipment, EquipmentType
 from utils.colors import strip_ansi
 from utils.text import pluralize, singularize, wrap
@@ -368,9 +367,6 @@ class CmdAttack(Command):
         target = caller.search(args)
         if not target:
             return
-
-        if not inherits_from(target, Entity):
-            return caller.msg("You can't attack that.")
 
         if target == caller:
             return caller.msg("You cannot attack yourself.")
