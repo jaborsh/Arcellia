@@ -1,94 +1,47 @@
 from copy import copy
+from typing import Any, List, Optional
 
-from typeclasses.clothing import ClothingType
+from evennia.utils.utils import inherits_from
 
+from handlers.config.clothing_config import ClothingConfig
 from handlers.handler import Handler
-
-CLOTHING_DEFAULTS = {
-    ClothingType.HEADWEAR: None,
-    ClothingType.EYEWEAR: None,
-    ClothingType.EARRING: None,
-    ClothingType.NECKWEAR: None,
-    ClothingType.UNDERSHIRT: None,
-    ClothingType.TOP: None,
-    ClothingType.OUTERWEAR: None,
-    ClothingType.FULLBODY: None,
-    ClothingType.WRISTWEAR: None,
-    ClothingType.HANDWEAR: None,
-    ClothingType.RING: None,
-    ClothingType.BELT: None,
-    ClothingType.UNDERWEAR: None,
-    ClothingType.BOTTOM: None,
-    ClothingType.HOSIERY: None,
-    ClothingType.FOOTWEAR: None,
-}
-
-CLOTHING_OVERALL_LIMIT = 20
-
-CLOTHING_TYPE_COVER = {
-    ClothingType.HEADWEAR: [],
-    ClothingType.EYEWEAR: [],
-    ClothingType.EARRING: [],
-    ClothingType.NECKWEAR: [],
-    ClothingType.UNDERSHIRT: [],
-    ClothingType.TOP: [ClothingType.UNDERSHIRT],
-    ClothingType.OUTERWEAR: [ClothingType.TOP],
-    ClothingType.FULLBODY: [
-        ClothingType.TOP,
-        ClothingType.UNDERSHIRT,
-        ClothingType.BELT,
-        ClothingType.BOTTOM,
-    ],
-    ClothingType.WRISTWEAR: [],
-    ClothingType.HANDWEAR: [ClothingType.RING],
-    ClothingType.RING: [],
-    ClothingType.BELT: [],
-    ClothingType.UNDERWEAR: [],
-    ClothingType.BOTTOM: [ClothingType.UNDERWEAR],
-    ClothingType.HOSIERY: [],
-    ClothingType.FOOTWEAR: [ClothingType.HOSIERY],
-}
-
-CLOTHING_TYPE_ORDER = [
-    ClothingType.HEADWEAR,
-    ClothingType.EYEWEAR,
-    ClothingType.EARRING,
-    ClothingType.NECKWEAR,
-    ClothingType.OUTERWEAR,
-    ClothingType.UNDERSHIRT,
-    ClothingType.TOP,
-    ClothingType.FULLBODY,
-    ClothingType.WRISTWEAR,
-    ClothingType.HANDWEAR,
-    ClothingType.RING,
-    ClothingType.BELT,
-    ClothingType.UNDERWEAR,
-    ClothingType.BOTTOM,
-    ClothingType.HOSIERY,
-    ClothingType.FOOTWEAR,
-]
+from typeclasses.clothing import Clothing
 
 
 class ClothingHandler(Handler):
+    """
+    Handler for managing clothing items on a character or object.
+
+    This handler manages the wearing, removal, and tracking of clothing items,
+    including their layering and coverage relationships.
+
+    Inherits from:
+        Handler: Base handler class for attribute management
+    """
+
     def __init__(
         self,
-        obj,
-        db_attribute_key,
-        db_attribute_category=None,
-        default_data=copy(CLOTHING_DEFAULTS),
-    ):
-        super().__init__(obj, db_attribute_key, db_attribute_category, default_data)
+        obj: Any,
+        db_attribute_key: str,
+        db_attribute_category: Optional[str] = None,
+        default_data: dict = None,
+    ) -> None:
+        if default_data is None:
+            default_data = copy(ClothingConfig.DEFAULTS)
+        super().__init__(
+            obj, db_attribute_key, db_attribute_category, default_data
+        )
 
-    def all(self, exclude_covered=False):
+    def all(self, exclude_covered: bool = False) -> List:
         """
-        Returns a list of all clothing items in the ClothingHandler.
+        Get all clothing items currently worn.
 
         Args:
-            exclude_covered (bool, optional): If True, excludes clothing items that are covered by other items. Defaults to False.
+            exclude_covered (bool): If True, only return visible (uncovered) items.
+                Defaults to False.
 
         Returns:
-            list: A sorted list of clothing items, sorted based on the order defined in CLOTHING_TYPE_ORDER.
-
+            List: List of clothing items, sorted by TYPE_ORDER.
         """
         clothes = [
             item
@@ -100,90 +53,113 @@ class ClothingHandler(Handler):
         if exclude_covered:
             clothes = [item for item in clothes if not item.covered_by]
 
-        sorted_clothes = sorted(
+        return sorted(
             clothes,
-            key=lambda x: CLOTHING_TYPE_ORDER.index(x.clothing_type),
+            key=lambda x: ClothingConfig.TYPE_ORDER.index(x.clothing_type),
         )
 
-        return sorted_clothes
-
-    def remove(self, item):
+    def get(self, clothing_type) -> Optional[List]:
         """
-        Removes a clothing item from the ClothingHandler.
+        Get clothing items of a specific type.
 
         Args:
-            item: The clothing item to be removed.
+            clothing_type (ClothingType): The type of clothing to retrieve
 
         Returns:
-            None
-
-        Raises:
-            None
-
-        Notes:
-            - If the item is found in the ClothingHandler, it will be removed from the appropriate clothing type list.
-            - After removing the item, the changes will be saved using the _save() method.
-            - A message will be sent to the location of the game object to inform others about the removal of the item.
-
-        Example:
-            handler.remove(item)
+            Optional[List]: List of items of the specified type or None if empty
         """
+        return super().get(clothing_type)
+
+    def can_wear(self, item) -> bool:
+        """
+        Check if an item can be worn.
+
+        Args:
+            item: The clothing item to check
+
+        Returns:
+            bool: True if the item can be worn, False otherwise
+        """
+        if not inherits_from(item, Clothing):
+            return False
+        if len(self.all()) >= ClothingConfig.OVERALL_LIMIT:
+            return False
+        return True
+
+    def remove(self, item) -> bool:
+        """
+        Remove a clothing item from the wearer.
+
+        Args:
+            item: The clothing item to remove
+
+        Returns:
+            bool: True if item was removed, False if not found
+        """
+        removed = False
         for clothing_type, items in self._data.items():
-            if item in items:
+            if items and item in items:
                 items.remove(item)
+                removed = True
                 break
 
-        for piece in item.covering:
-            piece.covered_by.remove(self)
+        if removed:
+            for piece in item.covering:
+                piece.covered_by.remove(item)
 
-        for piece in item.covered_by:
-            piece.covering.remove(self)
+            for piece in item.covered_by:
+                piece.covering.remove(item)
 
-        item.covering = []
-        item.covered_by = []
+            item.covering = []
+            item.covered_by = []
 
-        self._save()
+            self._save()
 
-        message = f"$You() $conj(remove) {item.get_display_name(self.obj)}"
-        self.obj.location.msg_contents(message + ".", from_obj=self.obj)
+            message = f"$You() $conj(remove) {item.get_display_name(self.obj)}"
+            self.obj.location.msg_contents(message + ".", from_obj=self.obj)
 
-    def wear(self, item):
+        return removed
+
+    def wear(self, item) -> bool:
         """
-        Wears a clothing item.
+        Add a clothing item to be worn.
 
         Args:
-            item: The clothing item to be worn.
+            item: The clothing item to wear
 
         Returns:
-            None
-
-        Raises:
-            None
-
-        Notes:
-            - Checks if the number of clothing items already worn exceeds the overall clothing limit. If it does, a message is sent to the game object informing them that they cannot wear more clothes.
-            - Adds the item to the appropriate clothing type list in the ClothingHandler's data attribute.
-            - Saves the changes using the _save() method.
-            - Sends a message to the location of the game object to inform others about the wearing of the item.
-
-        Example:
-            handler.wear(item)
+            bool: True if item was worn successfully, False otherwise
         """
-        if len(self.all()) >= CLOTHING_OVERALL_LIMIT:
-            self.obj.msg("You cannot wear more clothes.")
-            return
+        if not self.can_wear(item):
+            self.obj.msg("You cannot wear that.")
+            return False
 
         clothing_type = item.clothing_type
+
+        # Update coverage relationships
+        for covered_type in ClothingConfig.TYPE_COVER[clothing_type]:
+            covered_items = self.get(covered_type)
+            if covered_items:
+                for covered_item in covered_items:
+                    item.covering.append(covered_item)
+                    covered_item.covered_by.append(item)
 
         if self._data[clothing_type] is None:
             self._data[clothing_type] = [item]
         else:
             self._data[clothing_type].append(item)
+
         self._save()
 
         message = f"$You() $conj(wear) {item.get_display_name(self.obj)}"
         self.obj.location.msg_contents(message + ".", from_obj=self.obj)
+        return True
 
-    def reset(self):
-        self._data = self.default_data.copy()
+    def reset(self) -> None:
+        """
+        Reset all clothing slots to their default empty state.
+
+        This removes all worn items and returns the handler to its initial state.
+        """
+        self._data = copy(ClothingConfig.DEFAULTS)
         self._save()
