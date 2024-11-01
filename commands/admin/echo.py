@@ -1,5 +1,5 @@
 """
-Command module containing CmdEcho.
+Command module containing CmdEcho for sending messages to specified objects or groups.
 """
 
 import re
@@ -42,27 +42,46 @@ class CmdEcho(Command):
     help_category = "Admin"
 
     def parse(self):
+        """
+        Parse the command input to identify switches, target objects, and the message.
+        """
         pattern = r"(\/[^ ]+)? ?([^ ]+)? (.+)"
         match = re.match(pattern, self.args)
         if match:
             self.switches = match.group(1).lstrip("/") if match.group(1) else ""
             self.objects = match.group(2).split(",") if match.group(2) else []
             self.message = match.group(3).strip()
+        else:
+            self.switches, self.objects, self.message = "", [], None
 
     def func(self):
+        """
+        Executes the echo command based on parsed switches and target objects.
+        """
         if not self.message:
             self.caller.msg("Echo what?")
             return
 
-        if self.cmdstring == "aecho" or "all" in self.switches:
-            self.caller.msg("Echoing to all objects:")
-            SESSIONS.announce_all(self.message)
-            return
-
-        if not self.objects:
+        if self._is_global_echo():
+            self._echo_to_all()
+        elif not self.objects:
             self.caller.msg("Syntax: echo[/switches] <objects> <message>")
-            return
+        else:
+            self._echo_to_targets()
 
+    def _is_global_echo(self):
+        """Checks if the command is for global echo (aecho or /all switch)."""
+        return self.cmdstring == "aecho" or "all" in self.switches
+
+    def _echo_to_all(self):
+        """Echoes the message to all connected sessions."""
+        self.caller.msg("Echoing to all objects:")
+        SESSIONS.announce_all(self.message)
+
+    def _echo_to_targets(self):
+        """
+        Echoes the message to specified target objects or rooms based on switches.
+        """
         echoed = set()
         locations = set()
 
@@ -71,13 +90,41 @@ class CmdEcho(Command):
             if not obj:
                 continue
 
-            if self.cmdstring == "recho" or "rooms" in self.switches:
-                if obj.location not in locations:
-                    obj.location.msg_contents(self.message)
-                    echoed.update(obj.name for obj in obj.location.contents)
-                    locations.add(obj.location)
+            if self._is_room_echo():
+                self._echo_to_room(obj, echoed, locations)
             else:
-                obj.msg(self.message)
-                echoed.add(obj.name)
+                self._echo_to_object(obj, echoed)
 
-        self.caller.msg(f"Echoed to {', '.join(echoed)}: {self.message}")
+        if echoed:
+            self.caller.msg(f"Echoed to {', '.join(echoed)}: {self.message}")
+
+    def _is_room_echo(self):
+        """Checks if the command is for room-based echo (recho or /rooms switch)."""
+        return self.cmdstring == "recho" or "rooms" in self.switches
+
+    def _echo_to_room(self, obj, echoed, locations):
+        """
+        Echoes the message to all objects in the room of the specified object.
+
+        Args:
+            obj (Object): The object whose room will receive the message.
+            echoed (set): Set of names that have received the message.
+            locations (set): Set of rooms that have already received the message.
+        """
+        if obj.location and obj.location not in locations:
+            obj.location.msg_contents(self.message)
+            echoed.update(
+                loc.get_display_name(self.caller) for loc in locations
+            )
+            locations.add(obj.location)
+
+    def _echo_to_object(self, obj, echoed):
+        """
+        Echoes the message directly to the specified object.
+
+        Args:
+            obj (Object): The object to receive the message.
+            echoed (set): Set of names that have received the message.
+        """
+        obj.msg(self.message)
+        echoed.add(obj.get_display_name(self.caller))

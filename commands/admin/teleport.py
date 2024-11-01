@@ -49,76 +49,74 @@ class CmdTeleport(Command):
             if not self.obj_to_teleport:
                 self.caller.msg("Did not find object to teleport.")
                 raise InterruptCommand
-            if all(char in self.rhs for char in ("(", ")", ",")):
-                # search by (X,Y) or (X,Y,Z)
+
+            if self.is_coordinate_input(self.rhs):
                 self.search_by_xyz(self.rhs)
             else:
-                # fallback to regular search by name/alias
                 self.destination = self.caller.search(
                     self.rhs, global_search=True
                 )
-
         elif self.lhs:
-            if all(char in self.lhs for char in ("(", ")", ",")):
+            if self.is_coordinate_input(self.lhs):
                 self.search_by_xyz(self.lhs)
             else:
                 self.destination = self.caller.search(
                     self.lhs, global_search=True
                 )
 
+    def is_coordinate_input(self, input_str):
+        """
+        Determine if the input string represents coordinates.
+        """
+        return (
+            input_str.startswith("(")
+            and input_str.endswith(")")
+            and "," in input_str
+        )
+
     def search_by_xyz(self, inp):
+        """
+        Search for a destination based on XYZ coordinates.
+        """
         inp = inp.strip("()")
-        X, Y, *Z = inp.split(",", 2)
-        if Z:
-            # Z was specified
-            Z = Z[0]
-        else:
-            # use current location's Z, if it exists
-            try:
-                xyz = self.caller.location.xyz
-            except AttributeError:
-                self.caller.msg(
-                    "Z-coordinate is also required since you are not currently "
-                    "in a room with a Z coordinate of its own."
-                )
-                raise InterruptCommand
-            else:
-                Z = xyz[2]
-        # search by coordinate
-        X, Y, Z = str(X).strip(), str(Y).strip(), str(Z).strip()
+        parts = [part.strip() for part in inp.split(",")]
+
+        if len(parts) < 2:
+            self.caller.msg("Invalid coordinate format. Use (X,Y) or (X,Y,Z).")
+            raise InterruptCommand
+
+        X, Y = parts[0], parts[1]
+        Z = parts[2] if len(parts) > 2 else self.get_default_z()
+
+        if Z is None:
+            return
+
+        self.destination = XYZRoom.objects.get_xyz(xyz=(X, Y, Z))
+        if not self.destination:
+            self.caller.msg(f"No XYZRoom found at ({X}, {Y}, {Z}).")
+            raise InterruptCommand
+
+    def get_default_z(self):
+        """
+        Retrieve the default Z-coordinate from the caller's current location.
+        """
         try:
-            self.destination = XYZRoom.objects.get_xyz(xyz=(X, Y, Z))
-        except XYZRoom.DoesNotExist:
-            self.caller.msg(f"Found no target XYZRoom at ({X},{Y},{Z}).")
+            xyz = self.caller.location.xyz
+            return xyz[2]
+        except AttributeError:
+            self.caller.msg(
+                "Z-coordinate is required as your current location lacks one."
+            )
             raise InterruptCommand
 
     def func(self):
-        """Performs the teleport"""
-
+        """Execute the teleport action based on parsed arguments and switches."""
         caller = self.caller
-        obj_to_teleport = self.obj_to_teleport
-        destination = self.destination
+        obj = self.obj_to_teleport
+        dest = self.destination
 
         if "tonone" in self.switches:
-            # teleporting to None
-
-            if destination:
-                # in this case lhs is always the object to teleport
-                obj_to_teleport = destination
-
-            if obj_to_teleport.has_account:
-                caller.msg(
-                    f"Cannot teleport a puppeted object ({obj_to_teleport.key}, puppeted by"
-                    f" {obj_to_teleport.account}) to a None-location."
-                )
-                return
-            caller.msg(f"Teleported {obj_to_teleport} -> None-location.")
-            if obj_to_teleport.location and "quiet" not in self.switches:
-                obj_to_teleport.location.msg_contents(
-                    f"{caller} teleported {obj_to_teleport} into nothingness.",
-                    exclude=caller,
-                )
-            obj_to_teleport.location = None
+            self.teleport_to_none(obj, dest)
             return
 
         if not self.args:
@@ -127,64 +125,105 @@ class CmdTeleport(Command):
             )
             return
 
-        if not destination:
+        if not dest:
             caller.msg("Destination not found.")
             return
 
         if "loc" in self.switches:
-            destination = destination.location
-            if not destination:
+            dest = dest.location
+            if not dest:
                 caller.msg("Destination has no location.")
                 return
 
-        if obj_to_teleport == destination:
-            caller.msg("You can't teleport an object inside of itself!")
+        if obj == dest:
+            caller.msg("You can't teleport an object inside itself!")
             return
 
-        if obj_to_teleport == destination.location:
+        if obj == dest.location:
             caller.msg(
                 "You can't teleport an object inside something it holds!"
             )
             return
 
-        if obj_to_teleport.location and obj_to_teleport.location == destination:
-            caller.msg(f"{obj_to_teleport} is already at {destination}.")
+        if obj.location == dest:
+            caller.msg(f"{obj} is already at {dest}.")
             return
 
-        # check any locks
-        if not (
-            caller.permissions.check("Admin")
-            or obj_to_teleport.access(caller, "teleport")
-        ):
-            caller.msg(
-                f"{obj_to_teleport} 'teleport'-lock blocks you from teleporting it anywhere."
+        if not self.has_permission(obj, dest):
+            return
+
+        self.perform_teleport(obj, dest)
+
+    def teleport_to_none(self, obj, dest):
+        """
+        Handle teleporting an object to a none-location.
+        """
+        if dest:
+            obj = dest
+
+        if obj.has_account:
+            self.caller.msg(
+                f"Cannot teleport a puppeted object ({obj.key}, puppeted by {obj.account}) to a None-location."
             )
             return
 
+        self.caller.msg(f"Teleported {obj} -> None-location.")
+        if obj.location and "quiet" not in self.switches:
+            obj.location.msg_contents(
+                f"{self.caller} teleported {obj} into nothingness.",
+                exclude=self.caller,
+            )
+        obj.location = None
+
+    def has_permission(self, obj, dest):
+        """
+        Check if the caller has permission to teleport the object to the destination.
+        """
+        caller = self.caller
         if not (
-            caller.permissions.check("Admin")
-            or destination.access(obj_to_teleport, "teleport_here")
+            caller.permissions.check("Admin") or obj.access(caller, "teleport")
         ):
             caller.msg(
-                f"{destination} 'teleport_here'-lock blocks {obj_to_teleport} from moving there."
+                f"{obj} 'teleport'-lock blocks you from teleporting it anywhere."
             )
+            return False
+
+        if not (
+            caller.permissions.check("Admin")
+            or dest.access(obj, "teleport_here")
+        ):
+            caller.msg(
+                f"{dest} 'teleport_here'-lock blocks {obj} from moving there."
+            )
+            return False
+
+        return True
+
+    def perform_teleport(self, obj, dest):
+        """
+        Execute the teleportation of the object to the destination.
+        """
+        caller = self.caller
+        quiet = "quiet" in self.switches
+        intoexit = "intoexit" in self.switches
+
+        if not obj.location:
+            obj.location = dest
+            caller.msg(f"Teleported {obj} None -> {dest}")
             return
 
-        # try the teleport
-        if not obj_to_teleport.location:
-            # teleporting from none-location
-            obj_to_teleport.location = destination
-            caller.msg(f"Teleported {obj_to_teleport} None -> {destination}")
-        elif obj_to_teleport.move_to(
-            destination,
-            quiet="quiet" in self.switches,
+        moved = obj.move_to(
+            dest,
+            quiet=quiet,
             emit_to_obj=caller,
-            use_destination="intoexit" not in self.switches,
+            use_destination=not intoexit,
             move_type="teleport",
-        ):
-            if obj_to_teleport == caller:
-                caller.msg(f"Teleported to {destination}.")
+        )
+
+        if moved:
+            if obj == caller:
+                caller.msg(f"Teleported to {dest}.")
             else:
-                caller.msg(f"Teleported {obj_to_teleport} -> {destination}.")
+                caller.msg(f"Teleported {obj} -> {dest}.")
         else:
             caller.msg("Teleportation failed.")

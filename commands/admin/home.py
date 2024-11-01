@@ -3,10 +3,10 @@ from commands.command import Command
 
 class CmdHome(Command):
     """
-    Command to teleport the player to their home location.
+    Teleport the player to their home location.
 
     Usage:
-      home
+        home
 
     This command allows the player to teleport to their home location.
     If the player has no home, they will receive a message indicating so.
@@ -21,26 +21,17 @@ class CmdHome(Command):
     arg_regex = r"$"
 
     def func(self):
-        """Implement the command"""
+        """Execute the home command to teleport the player."""
         caller = self.caller
         home = caller.home
 
         if not home:
-            self.msg_no_home()
-        elif home == caller.location:
-            self.msg_already_home()
-        else:
-            self.msg_teleport_home()
-            caller.move_to(home, move_type="teleport")
+            caller.msg("You have no home!")
+            return
 
-    def msg_no_home(self):
-        """Send message when player has no home"""
-        self.caller.msg("You have no home!")
+        if home == caller.location:
+            caller.msg("You are already home!")
+            return
 
-    def msg_already_home(self):
-        """Send message when player is already at home"""
-        self.caller.msg("You are already home!")
-
-    def msg_teleport_home(self):
-        """Send message when player is teleporting home"""
-        self.caller.msg("There's no place like home ...")
+        caller.msg("There's no place like home ...")
+        caller.move_to(home, move_type="teleport")

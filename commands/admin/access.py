@@ -1,5 +1,5 @@
 """
-Command module containing CmdAccess.
+Command module containing the CmdAccess command.
 """
 
 from django.conf import settings
@@ -25,24 +25,68 @@ class CmdAccess(Command):
     help_category = "Admin"
 
     def func(self):
-        """Load the permission groups and display the caller's access"""
+        """Load the permission groups and display the caller's access."""
         caller = self.caller
-        hierarchy_full = settings.PERMISSION_HIERARCHY
 
-        if caller.account.is_superuser:
-            cperms = pperms = "<Superuser>"
+        # Validate that the caller has an associated account
+        account = getattr(caller, "account", None)
+        if account is None:
+            self._send_error("Caller does not have an associated account.")
+            return
+
+        # Retrieve the permission hierarchy from settings
+        hierarchy_full = getattr(settings, "PERMISSION_HIERARCHY", [])
+        if not hierarchy_full:
+            self._send_error("Permission hierarchy is not defined in settings.")
+            return
+
+        # Determine permissions based on superuser status
+        if account.is_superuser:
+            character_permissions = account_permissions = "<Superuser>"
         else:
-            cperms = ", ".join(caller.permissions.all())
-            pperms = ", ".join(caller.account.permissions.all())
+            character_permissions = self._get_permissions(
+                caller.permissions.all()
+            )
+            account_permissions = self._get_permissions(
+                account.permissions.all()
+            )
 
-        string = (
-            "\n|wPermission Hierarchy|n (climbing):\n %s\n"
-            "\n|wYour access|n:"
-            "\n  Character |c%s|n: %s"
-            % (", ".join(hierarchy_full), caller.key, cperms)
+        # Build the permission hierarchy string
+        permission_hierarchy = ", ".join(hierarchy_full)
+
+        # Construct the access message
+        access_message = (
+            f"\n|wPermission Hierarchy|n (climbing):\n {permission_hierarchy}\n"
+            f"\n|wYour Access|n:"
+            f"\n  Character |c{caller.key}|n: {character_permissions}"
         )
 
-        if hasattr(caller, "account"):
-            string += "\n  Account |c%s|n: %s" % (caller.account.key, pperms)
+        # Append account permissions if available
+        access_message += (
+            f"\n  Account |c{account.key}|n: {account_permissions}"
+        )
 
-        caller.msg(string)
+        # Send the constructed message to the caller
+        caller.msg(access_message)
+
+    def _get_permissions(self, permissions_queryset):
+        """
+        Convert a queryset of permissions into a comma-separated string.
+
+        Args:
+            permissions_queryset (QuerySet): A Django QuerySet of permission objects.
+
+        Returns:
+            str: Comma-separated permission names or "<None>" if empty.
+        """
+        permissions = [perm.name for perm in permissions_queryset]
+        return ", ".join(permissions) if permissions else "<None>"
+
+    def _send_error(self, message):
+        """
+        Send an error message to the caller.
+
+        Args:
+            message (str): The error message to send.
+        """
+        self.caller.msg(f"|rError: {message}|n")

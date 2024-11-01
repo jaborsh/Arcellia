@@ -78,6 +78,6 @@ class CmdReports(Command):
         report = Msg.objects.filter(id=args[1]).first()
         if report:
             report.delete()
-            self.msg(f"{self.cmdstring[:-1]} deleted.")
+            self.msg(f"{self.cmdstring[:-1].capitalize()} deleted.")
         else:
             self.msg(f"{self.cmdstring[:-1]} not found.")
