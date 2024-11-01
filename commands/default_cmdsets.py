@@ -16,11 +16,10 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 
 from evennia import CmdSet, default_cmds
 
-from commands import account, admin
+from commands import account, admin, building
 from commands.spells.destruction import novice as d_novice
 
 from . import (
-    building,
     developer,
     general,
     gestures,
