@@ -6,8 +6,8 @@ from commands.command import Command
 
 class CmdReports(Command):
     """
-    The `reports` command allows administrators to manage various types of reports, such as bugs and ideas.
-    This command can display the latest reports or delete a specific report based on its ID.
+    The `reports` command allows admins to manage reports like bugs and ideas.
+    This command can display the latest reports or delete a specific report by ID.
 
     Usage:
         reports
@@ -18,13 +18,13 @@ class CmdReports(Command):
 
     Examples:
         reports
-            - This will display the latest 10 reports.
+            - Displays the latest 10 reports.
 
         reports delete 5
-            - This will delete the report with ID 5.
+            - Deletes the report with ID 5.
 
     Notes:
-        - The command will notify if no reports are found or if an invalid report ID is provided.
+        - Notifies if no reports are found or if an invalid report ID is provided.
     """
 
     key = "reports"

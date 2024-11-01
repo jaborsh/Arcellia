@@ -22,17 +22,34 @@ class CmdReport(Command):
     locks = "cmd:all()"
 
     def func(self):
+        """
+        Handle the report command.
+
+        This method parses the user input, creates a report of the specified type,
+        and provides user feedback on the success or failure of the report submission.
+        """
         if not self.args:
             return self.msg("You must provide a report.")
 
-        if create.create_message(
-            self.account,
-            self.args.strip(),
-            locks="read:pperm(Admin)",
-            tags=[self.cmdstring],
-        ):
-            return self.msg("Your report has been submitted.")
+        try:
+            self.create_report(self.args.strip(), self.cmdstring)
+            return self.msg(f"Your {self.cmdstring} has been submitted.")
+        except Exception as e:
+            self.msg(
+                f"Something went wrong with creating your {self.cmdstring}. Please contact staff directly. Error: {e}"
+            )
 
-        self.msg(
-            "Something went wrong with creating your report. Please contact staff directly."
+    def create_report(self, message, report_type):
+        """
+        Create a report of the specified type.
+
+        Args:
+            message (str): The content of the report.
+            report_type (str): The type of the report.
+        """
+        create.create_message(
+            self.account,
+            message,
+            locks="read:pperm(Admin)",
+            tags=[report_type],
         )

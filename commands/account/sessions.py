@@ -14,6 +14,9 @@ class CmdSessions(Command):
 
     This command displays information about the current sessions of the account.
     It shows the session ID, protocol, host, puppet/character, and location for each session.
+
+    Returns:
+        A styled table containing the session information.
     """
 
     key = "sessions"
@@ -30,24 +33,32 @@ class CmdSessions(Command):
             "|wsessid",
             "|wprotocol",
             "|whost",
-            "|wpuppet/character",
+            "|wcharacter",
             "|wlocation",
+            maxwidth=80,
         )
 
         for sess in sessions:
-            char = account.get_puppet(sess)
-            host = (
-                sess.address[0]
-                if isinstance(sess.address, tuple)
-                else sess.address
-            )
-
-            table.add_row(
-                str(sess.sessid),
-                str(sess.protocol_key),
-                host,
-                str(char) if char else "None",
-                str(char.location) if char else "N/A",
-            )
+            table.add_row(*self.get_session_info(sess))
 
         self.msg(f"|wYour current session(s):|n\n{table}")
+
+    def get_session_info(self, session):
+        """
+        Retrieve information about a session.
+
+        Args:
+            session: The session to retrieve information for.
+
+        Returns:
+            A tuple containing the session ID, protocol, host, puppet/character, and location.
+        """
+        char = session.get_puppet()
+        host = getattr(session.address, "0", session.address)
+        return (
+            str(session.sessid),
+            str(session.protocol_key),
+            host,
+            str(char) if char else "None",
+            str(char.location) if char else "N/A",
+        )

@@ -2,31 +2,20 @@
 Command module containing CmdSetMain.
 """
 
-from commands.command import Command
-from server.conf import logger
+from evennia import Command
+from evennia.utils import logger
 
 
 class CmdSetMain(Command):
     """
-    Command to set the main character for an account.
+    Set your main character
 
-    Usage: setmain [character name]
+    Usage:
+      setmain <character>
 
-    Arguments:
-        character name - The name of the character to set as the main character.
-                         Use "none" to unset the main character.
-
-    This command allows players to set their main character, which is the
-    character they primarily play with. The main character can be used for
-    various purposes within the game.
-
-    If no character name is provided, the current main character is displayed.
-    If the character name is set to "none", the main character is unset.
-
-    Examples:
-        setmain John - Sets the character named "John" as the main character.
-        setmain none - Unsets the main character.
-        main - Displays the current main character.
+    This will set the character you stay connected to by default when you log in. Use 'setmain none'
+    to unset your main character. Note that setting a main character will also set your account name
+    to match the character's name.
     """
 
     key = "setmain"
@@ -36,48 +25,49 @@ class CmdSetMain(Command):
     account_caller = True
 
     def func(self):
+        """
+        Set the main character
+        """
         account = self.account
+        args = self.args.strip()
         playable_characters = account.db._playable_characters
 
         if not playable_characters:
             self.msg("You have no playable characters.")
             return
 
-        if not self.args:
+        if not args:
             main_character = account.db._main_character
-            self.msg(f"Main Character: {main_character}.")
+            if main_character:
+                self.msg(f"Your main character is: {main_character}.")
+            else:
+                self.msg("You have no main character set.")
             return
 
-        args = self.args.strip().lower()
-        if args == "none":
+        if args.lower() == "none":
             account.db._main_character = None
-            self.msg("Main Character set to None.")
-            logger.log_sec(f"Main Character Set: None (Account: {account}).")
+            self.msg("Your main character has been unset.")
+            logger.log_sec(f"Main character unset by {account}.")
             return
 
-        character = account.search(
-            self.args,
+        char = account.search(
+            args,
             candidates=playable_characters,
             search_object=True,
             quiet=True,
         )
 
-        if not character:
-            self.msg("No matching character found.")
+        if not char:
+            self.msg("That is not a valid character.")
             return
 
-        if len(character) > 1:
-            character_list = ", ".join(
-                f"{obj.key}(#{obj.id})" for obj in character
-            )
-            self.msg(f"Multiple targets with the same name:\n {character_list}")
+        if len(char) > 1:
+            char_list = ", ".join(f"{obj.key}(#{obj.id})" for obj in char)
+            self.msg(f"Multiple characters with the same name:\n {char_list}")
             return
 
-        character = character[0]
-        if character not in account.characters:
-            self.msg("You have no such character.")
-            return
-
-        account.db._main_character = character
-        self.msg(f"Main Character set to: {character}.")
-        logger.log_sec(f"Main Character Set: {character} (Account: {account}).")
+        char = char[0]
+        account.db._main_character = char
+        account.db.username = char.db.name
+        self.msg(f"Your main character has been set to: {char}.")
+        logger.log_sec(f"Main character set to {char} by {account}.")

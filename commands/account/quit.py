@@ -34,7 +34,7 @@ class CmdQuit(Command):
         account = self.account
         session = self.session
 
-        if "all" in self.switches:
+        if "all" in self.args:
             self.quit_all_sessions(account, session)
         else:
             self.quit_current_session(account, session)
@@ -45,21 +45,19 @@ class CmdQuit(Command):
             "|RQuitting|n all sessions. Hope to see you soon again.",
             session=session,
         )
-        reason = "quit/all"
         for session in account.sessions.all():
-            account.disconnect_session_from_account(session, reason)
+            account.disconnect_session_from_account(session, "quit all")
 
     def quit_current_session(self, account, session):
         """Quit the current session"""
-        nsess = account.sessions.count()
-        reason = "quit"
+        session_count = account.sessions.count()
 
-        if nsess == 2:
+        if session_count == 2:
             message = "|RQuitting|n. One session is still connected."
-        elif nsess > 2:
-            message = f"|RQuitting|n. {nsess - 1} sessions are still connected."
+        elif session_count > 2:
+            message = f"|RQuitting|n. {session_count - 1} sessions are still connected."
         else:
             message = "|RQuitting|n. Hope to see you again, soon."
 
         account.msg(message, session=session)
-        account.disconnect_session_from_account(session, reason)
+        account.disconnect_session_from_account(session, "quit")
