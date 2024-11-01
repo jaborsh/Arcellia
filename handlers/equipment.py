@@ -91,6 +91,20 @@ class EquipmentHandler(Handler):
         """
         return self._data[EquipmentType.WEAPON] or []
 
+    @weapons.setter
+    def weapons(self, value):
+        """
+        Sets the weapons for the equipment handler.
+
+        Args:
+            value (Any): The new value to set for the weapons.
+
+        This method updates the internal data dictionary with the new value
+        for the weapons and then saves the updated data.
+        """
+        self._data[EquipmentType.WEAPON] = value
+        self._save()
+
     def all(self):
         """
         Returns a list of all equipped items.
