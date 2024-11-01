@@ -1,106 +1,6 @@
-"""
-Buffs - Tegiminis 2022
-
-A buff is a timed object, attached to a game entity, that modifies values, triggers
-code, or both. It is a common design pattern in RPGs, particularly action games.
-
-This contrib gives you a buff handler to apply to your objects, a buff class to extend them,
-a sample property class to show how to automatically check modifiers, some sample buffs to learn from,
-and a command which applies buffs.
-
-## Installation
-Assign the handler to a property on the object, like so.
-
-```python
-@lazy_property
-def buffs(self) -> BuffHandler:
-    return BuffHandler(self)```
-
-## Using the Handler
-
-To make use of the handler, you will need:
-
-- Some buffs to add. You can create these by extending the `BaseBuff` class from this module. You can see some examples in `samplebuffs.py`.
-- A way to add buffs to the handler. You can see a basic example of this in the `CmdBuff` command in this module.
-
-### Applying a Buff
-
-Call the handler `add(BuffClass)` method. This requires a class reference, and also contains a number of
-optional arguments to customize the buff's duration, stacks, and so on.
-
-```python
-self.buffs.add(StrengthBuff)    # A single stack of StrengthBuff with normal duration
-self.buffs.add(DexBuff, stacks=3, duration=60)  # Three stacks of DexBuff, with a duration of 60 seconds
-self.buffs.add(ReflectBuff, to_cache={'reflect': 0.5})  # A single stack of ReflectBuff, with an extra cache value
-```
-
-### Modify
-
-Call the handler `check(value, stat)` method wherever you want to see the modified value.
-This will return the value, modified by and relevant buffs on the handler's owner (identified by
-the `stat` string). For example:
-
-```python
-# The method we call to damage ourselves
-def take_damage(self, source, damage):
-    _damage = self.buffs.check(damage, 'taken_damage')
-    self.db.health -= _damage
-```
-
-### Trigger
-
-Call the handler `trigger(triggerstring)` method wherever you want an event call. This
-will call the `at_trigger` hook method on all buffs with the relevant trigger.
-
-```python
-def Detonate(BaseBuff):
-    ...
-    triggers = ['take_damage']
-    def at_trigger(self, trigger, *args, **kwargs)
-        self.owner.take_damage(100)
-        self.remove()
-
-def Character(Character):
-    ...
-    def take_damage(self, source, damage):
-        self.buffs.trigger('take_damage')
-        self.db.health -= _damage
-```
-
-### Tick
-
-Ticking a buff happens automatically once applied, as long as the buff's `tickrate` is more than 0.
-
-```python
-def Poison(BaseBuff):
-    ...
-    tickrate = 5
-    def at_tick(self, initial=True, *args, **kwargs):
-        _dmg = self.dmg * self.stacks
-        if not initial:
-            self.owner.location.msg_contents(
-                "Poison courses through {actor}'s body, dealing {damage} damage.".format(
-                    actor=self.owner.named, damage=_dmg
-                )
-            )
-```
-
-## Buffs
-
-A buff is a class which contains a bunch of immutable data about itself - such as tickrate, triggers, refresh rules, and
-so on - and which merges mutable data in from the cache when called.
-
-Buffs are always instanced when they are called for a method. To access a buff's properties and methods, you should do so through
-this instance, rather than directly manipulating the buff cache on the object. You can modify a buff's cache through various handler
-methods instead.
-
-You can see all the features of the `BaseBuff` class below, or browse `samplebuffs.py` to see how to create some common buffs. Buffs have
-many attributes and hook methods you can overload to create complex, interrelated buffs.
-
-"""
-
 import time
 from random import random
+from typing import Any, Dict, List, Optional
 
 from evennia import Command
 from evennia.server import signals
@@ -109,100 +9,124 @@ from evennia.utils import search, utils
 
 
 class BaseBuff:
-    key = "template"  # The buff's unique key. Will be used as the buff's key in the handler
-    name = "Template"  # The buff's name. Used for user messaging
-    flavor = "Template"  # The buff's flavor text. Used for user messaging
-    visible = True  # If the buff is considered "visible" to the "view" method
+    """Base class for buff effects that can be applied to objects.
 
-    triggers = []  # The effect's trigger strings, used for functions.
+    A buff represents a temporary or permanent modification to an object's attributes
+    or behavior. Buffs can modify stats, trigger on events, and have duration/stacking
+    mechanics.
 
-    handler = None
-    start = 0
+    Attributes:
+        key (str): Unique identifier for the buff type
+        name (str): Display name for the buff
+        flavor (str): Flavor text description
+        visible (bool): Whether buff shows up in buff list views
+        triggers (List[str]): Event trigger strings this buff responds to
+        duration (int): How long buff lasts in seconds (-1=permanent, 0=instant)
+        playtime (bool): Whether buff pauses when owner is unpuppeted
+        refresh (bool): Whether buff refreshes duration on reapplication
+        unique (bool): Whether only one instance can exist per target
+        maxstacks (int): Maximum number of stacks allowed
+        stacks (int): Default number of stacks when applied
+        tickrate (int): How often buff ticks in seconds (0=no ticking)
+        mods (List['Mod']): List of stat modifications
+    """
 
-    duration = (
-        -1
-    )  # Default buff duration; -1 for permanent, 0 for "instant", >0 normal
-    playtime = (
-        False  # Does this buff autopause when owning object is unpuppeted?
-    )
+    # Core buff properties
+    key: str = "template"
+    name: str = "Template"
+    flavor: str = "Template"
+    visible: bool = True
+    triggers: List[str] = []
 
-    refresh = True  # Does the buff refresh its timer on application?
-    unique = True  # Does the buff overwrite existing buffs with the same key on the same target?
-    maxstacks = 1  # The maximum number of stacks the buff can have. If >1, this buff will stack.
-    stacks = 1  # Used as the default when applying this buff if no or negative stacks were specified (min: 1)
-    tickrate = 0  # How frequent does this buff tick, in seconds (cannot be lower than 1)
+    # Buff mechanics
+    duration: int = -1
+    playtime: bool = False
+    refresh: bool = True
+    unique: bool = True
+    maxstacks: int = 1
+    stacks: int = 1
+    tickrate: int = 0
+    mods: List["Mod"] = []
 
-    mods = []  # List of mod objects. See Mod class below for more detail
-    cache = {}
+    # Internal state
+    handler: Optional["BuffHandler"] = None
+    start: float = 0
+    cache: Dict[str, Any] = {}
 
-    @property
-    def ticknum(self):
-        """Returns how many ticks this buff has gone through as an integer."""
-        x = (time.time() - self.start) / max(1, self.tickrate)
-        return int(x)
+    def __init__(
+        self, handler: "BuffHandler", buffkey: str, cache: Dict[str, Any]
+    ) -> None:
+        """Initialize a buff instance.
 
-    @property
-    def owner(self):
-        """Return this buff's owner (the object its handler is attached to)"""
-        if not self.handler:
-            return None
-        return self.handler.owner
-
-    @property
-    def timeleft(self):
-        """Returns how much time this buff has left. If -1, it is permanent."""
-        _tl = 0
-        if not self.start:
-            _tl = self.duration
-        else:
-            _tl = max(-1, self.duration - (time.time() - self.start))
-        return _tl
-
-    @property
-    def ticking(self) -> bool:
-        """Returns if this buff ticks or not (tickrate => 1)"""
-        return self.tickrate >= 1
-
-    @property
-    def stacking(self) -> bool:
-        """Returns if this buff stacks or not (maxstacks > 1)"""
-        return self.maxstacks > 1
-
-    def __init__(self, handler, buffkey, cache) -> None:
-        """
         Args:
-            handler:    The handler this buff is attached to
-            buffkey:    The key this buff uses on the cache
-            cache:      The cache dictionary (what you get if you use `handler.buffcache.get(key)`)
+            handler: The handler this buff is attached to
+            buffkey: The key this buff uses in the cache
+            cache: The cache dictionary from handler.buffcache[buffkey]
         """
         required = {"handler": handler, "buffkey": buffkey, "cache": cache}
         self.__dict__.update(cache)
         self.__dict__.update(required)
-        # Init hook
         self.at_init()
 
-    def __setattr__(self, attr, value):
+    def __setattr__(self, attr: str, value: Any) -> None:
+        """Update both instance and cache when setting attributes."""
         if attr in self.cache:
             if attr == "tickrate":
                 value = max(0, value)
             self.handler.buffcache[self.buffkey][attr] = value
         super().__setattr__(attr, value)
 
-    def conditional(self, *args, **kwargs):
-        """Hook function for conditional evaluation.
+    # Properties
+    @property
+    def owner(self) -> Optional[Any]:
+        """Return the object this buff's handler is attached to."""
+        if not self.handler:
+            return None
+        return self.handler.owner
 
-        This must return True for a buff to apply modifiers, trigger effects, or tick."""
+    @property
+    def timeleft(self) -> float:
+        """Return time remaining in seconds. -1 if permanent."""
+        if not self.start:
+            return self.duration
+        return max(-1, self.duration - (time.time() - self.start))
+
+    @property
+    def ticknum(self) -> int:
+        """Return number of ticks that have occurred."""
+        return int((time.time() - self.start) / max(1, self.tickrate))
+
+    @property
+    def ticking(self) -> bool:
+        """Return whether this buff ticks."""
+        return self.tickrate >= 1
+
+    @property
+    def stacking(self) -> bool:
+        """Return whether this buff can stack."""
+        return self.maxstacks > 1
+
+    # Core methods
+    def conditional(self, *args: Any, **kwargs: Any) -> bool:
+        """Check if buff should currently apply its effects.
+
+        Returns:
+            bool: True if buff should apply effects, False otherwise
+        """
         return True
 
-    # region helper methods
-    def remove(self, loud=True, expire=False, context=None):
-        """Helper method which removes this buff from its handler. Use dispel if you are dispelling it instead.
+    def remove(
+        self,
+        loud: bool = True,
+        expire: bool = False,
+        context: Optional[Dict] = None,
+    ) -> None:
+        """Remove this buff from its handler.
 
         Args:
-            loud:   (optional) Whether to call at_remove or not (default: True)
-            expire: (optional) Whether to call at_expire or not (default: False)
-            delay:  (optional) How long you want to delay the remove call for
-            context:    (optional) A dictionary you wish to pass to the at_remove/at_expire method as kwargs
+            loud: Whether to call removal hooks
+            expire: Whether buff expired naturally
+            context: Extra context passed to hooks
         """
         if not context:
             context = {}
@@ -210,13 +134,18 @@ class BaseBuff:
             self.buffkey, loud=loud, expire=expire, context=context
         )
 
-    def dispel(self, loud=True, delay=0, context=None):
-        """Helper method which dispels this buff (removes and calls at_dispel).
+    def dispel(
+        self,
+        loud: bool = True,
+        delay: float = 0,
+        context: Optional[Dict] = None,
+    ) -> None:
+        """Dispel (forcefully remove) this buff.
 
         Args:
-            loud:   (optional) Whether to call at_remove or not (default: True)
-            delay:  (optional) How long you want to delay the remove call for
-            context:    (optional) A dictionary you wish to pass to the at_remove/at_dispel method as kwargs
+            loud: Whether to call removal hooks
+            delay: Seconds to wait before removal
+            context: Extra context passed to hooks
         """
         if not context:
             context = {}
@@ -224,35 +153,37 @@ class BaseBuff:
             self.buffkey, loud=loud, dispel=True, delay=delay, context=context
         )
 
-    def pause(self, context=None):
-        """Helper method which pauses this buff on its handler.
+    def pause(self, context: Optional[Dict] = None) -> None:
+        """Pause this buff's effects and duration.
 
         Args:
-            context:    (optional) A dictionary you wish to pass to the at_pause method as kwargs"""
+            context: Extra context passed to pause hook
+        """
         if not context:
             context = {}
         self.handler.pause(self.buffkey, context)
 
-    def unpause(self, context=None):
-        """Helper method which unpauses this buff on its handler.
+    def unpause(self, context: Optional[Dict] = None) -> None:
+        """Unpause this buff's effects and duration.
 
         Args:
-            context:    (optional) A dictionary you wish to pass to the at_unpause method as kwargs
+            context: Extra context passed to unpause hook
         """
         if not context:
             context = {}
         self.handler.unpause(self.buffkey, context)
 
-    def reset(self):
-        """Resets the buff start time as though it were just applied; functionally identical to a refresh"""
+    def reset(self) -> None:
+        """Reset buff start time to current time."""
         self.start = time.time()
         self.handler.buffcache[self.buffkey]["start"] = time.time()
 
-    def update_cache(self, to_cache: dict):
-        """Updates this buff's cache using the given values, both internally (this instance) and on the handler.
+    def update_cache(self, to_cache: Dict[str, Any]) -> None:
+        """Update buff cache with new values.
 
         Args:
-            to_cache:   The dictionary of values you want to add to the cache"""
+            to_cache: Dictionary of values to add to cache
+        """
         if not isinstance(to_cache, dict):
             raise TypeError
         _cache = dict(self.handler.buffcache[self.buffkey])
@@ -260,57 +191,58 @@ class BaseBuff:
         self.cache = _cache
         self.handler.buffcache[self.buffkey] = _cache
 
-    # endregion
-
-    # region hook methods
-    def at_init(self, *args, **kwargs):
-        """Hook function called when this buff object is initialized."""
+    # Hook methods
+    def at_init(self, *args: Any, **kwargs: Any) -> None:
+        """Called when buff is initialized."""
         pass
 
-    def at_apply(self, *args, **kwargs):
-        """Hook function to run when this buff is applied to an object."""
+    def at_apply(self, *args: Any, **kwargs: Any) -> None:
+        """Called when buff is applied to target."""
         pass
 
-    def at_remove(self, *args, **kwargs):
-        """Hook function to run when this buff is removed from an object."""
+    def at_remove(self, *args: Any, **kwargs: Any) -> None:
+        """Called when buff is removed normally."""
         pass
 
-    def at_dispel(self, *args, **kwargs):
-        """Hook function to run when this buff is dispelled from an object (removed by someone other than the buff holder)."""
+    def at_dispel(self, *args: Any, **kwargs: Any) -> None:
+        """Called when buff is forcefully dispelled."""
         pass
 
-    def at_expire(self, *args, **kwargs):
-        """Hook function to run when this buff expires from an object."""
+    def at_expire(self, *args: Any, **kwargs: Any) -> None:
+        """Called when buff expires naturally."""
         pass
 
-    def at_pre_check(self, *args, **kwargs):
-        """Hook function to run before this buff's modifiers are checked."""
+    def at_pre_check(self, *args: Any, **kwargs: Any) -> None:
+        """Called before buff modifiers are checked."""
         pass
 
-    def at_post_check(self, *args, **kwargs):
-        """Hook function to run after this buff's mods are checked."""
+    def at_post_check(self, *args: Any, **kwargs: Any) -> None:
+        """Called after buff modifiers are checked."""
         pass
 
-    def at_trigger(self, trigger: str, *args, **kwargs):
-        """Hook for the code you want to run whenever the effect is triggered.
-        Passes the trigger string to the function, so you can have multiple
-        triggers on one buff."""
+    def at_trigger(self, trigger: str, *args: Any, **kwargs: Any) -> None:
+        """Called when buff is triggered by an event.
+
+        Args:
+            trigger: The trigger string that fired this event
+        """
         pass
 
-    def at_tick(self, initial: bool, *args, **kwargs):
-        """Hook for actions that occur per-tick, a designer-set sub-duration.
-        `initial` tells you if it's the first tick that happens (when a buff is applied)."""
+    def at_tick(self, initial: bool, *args: Any, **kwargs: Any) -> None:
+        """Called when buff ticks.
+
+        Args:
+            initial: Whether this is the first tick
+        """
         pass
 
-    def at_pause(self, *args, **kwargs):
-        """Hook for when this buff is paused"""
+    def at_pause(self, *args: Any, **kwargs: Any) -> None:
+        """Called when buff is paused."""
         pass
 
-    def at_unpause(self, *args, **kwargs):
-        """Hook for when this buff is unpaused."""
+    def at_unpause(self, *args: Any, **kwargs: Any) -> None:
+        """Called when buff is unpaused."""
         pass
-
-    # endregion
 
 
 class Mod:
