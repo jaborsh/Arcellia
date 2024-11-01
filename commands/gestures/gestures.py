@@ -2,11 +2,6 @@ from enum import Enum
 
 from commands.command import Command
 
-__all__ = (
-    "CmdGesture",
-    "CmdGestures",
-)
-
 
 class GESTURE(Enum):
     DEFAULT = 0
@@ -196,48 +191,6 @@ _GESTURES = {
         GESTURE.SELF: "$You() $conj(wink) at $pron(yourself).",
     },
 }
-
-
-class CmdGesture(Command):
-    """
-    Command to perform a gesture.
-
-    Usage:
-        <gesture> [target]
-
-    Description:
-        This command allows you to perform a gesture, either to yourself or directed at a target.
-        Gestures can be a powerful way to express emotions, intentions, or actions in the game world.
-
-    Examples:
-        wave
-        nod Alice
-    """
-
-    key = "gesture"
-    aliases = list(_GESTURES.keys())
-    locks = "cmd:all()"
-    auto_help = False
-
-    def func(self):
-        caller = self.caller
-        gesture_type = GESTURE.DEFAULT
-
-        if self.args:
-            if target := caller.search(self.args.strip().split(" ")[0]):
-                gesture_type = (
-                    GESTURE.SELF if target == caller else GESTURE.TARGET
-                )
-            else:
-                return
-
-        caller.location.msg_contents(
-            _GESTURES[self.cmdstring][gesture_type],
-            from_obj=caller,
-            mapping={"target": target}
-            if gesture_type == GESTURE.TARGET
-            else {},
-        )
 
 
 class CmdGestures(Command):
