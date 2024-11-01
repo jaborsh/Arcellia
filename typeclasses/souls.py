@@ -15,7 +15,13 @@ class Soul(Object):
             possession = "'"
         else:
             possession = "'s"
-        return self.owner.value.display_name + f"{possession} " + self.key
+        return (
+            "|C"
+            + self.owner.value.display_name
+            + f"{possession} "
+            + self.key
+            + "|n"
+        )
 
     @lazy_property
     def traits(self):
@@ -50,3 +56,6 @@ class Soul(Object):
         self.delete()  # Soul is consumed when retrieved
 
         return False  # Prevent default get behavior
+
+    def get_numbered_name(self, count, looker, **kwargs):
+        return super().get_numbered_name(count, looker, no_article=True)

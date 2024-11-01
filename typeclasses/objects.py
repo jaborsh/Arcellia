@@ -599,6 +599,8 @@ class Object(ObjectParent, DefaultObject):
             This function can be extended to change how object names appear to users in character,
             but it does not change an object's keys or aliases when searching.
         """
+        if looker and self.locks.check_lockstring(looker, "perm(Builder)"):
+            return f"{self.display_name}(#{self.id})"
         return self.display_name
 
     def get_display_desc(self, looker, **kwargs):
@@ -702,8 +704,7 @@ class Object(ObjectParent, DefaultObject):
             looker (Object): Onlooker. Not used by default.
 
         Keyword Args:
-            key (str): Optional key to pluralize. If not given, the object's `.name` property is
-                used.
+            key (str): Optional key to pluralize. If not given, the object's `.name` property is used.
             no_article (bool): If 'True', do not return an article if 'count' is 1.
 
         Returns:
@@ -713,8 +714,11 @@ class Object(ObjectParent, DefaultObject):
         Examples:
             obj.get_numbered_name(3, looker, key="foo") -> ("a foo", "three foos")
         """
+        if kwargs.get("no_article", False):
+            return self.get_display_name(looker), self.get_display_name(looker)
 
         key = kwargs.get("key", self.get_display_name(looker))
+
         # Regular expression for color codes
         color_code_pattern = r"(\|(r|g|y|b|m|c|w|x|R|G|Y|B|M|C|W|X|\d{3}|#[0-9A-Fa-f]{6})|\[.*\])"
         color_code_positions = [
@@ -733,6 +737,7 @@ class Object(ObjectParent, DefaultObject):
         # Apply pluralization and singularization to each text segment
         plural_segments = []
         singular_segments = []
+
         for segment in segments:
             if re.match(color_code_pattern, segment):
                 # Color code remains unchanged for both plural and singular segments
