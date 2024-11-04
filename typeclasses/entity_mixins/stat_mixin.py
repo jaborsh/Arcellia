@@ -23,14 +23,6 @@ class StatMixin:
             max=20,
         )
         self.stats.add(
-            "constitution",
-            "Constitution",
-            trait_type="counter",
-            base=10,
-            min=0,
-            max=20,
-        )
-        self.stats.add(
             "intelligence",
             "Intelligence",
             trait_type="counter",
@@ -39,8 +31,16 @@ class StatMixin:
             max=20,
         )
         self.stats.add(
-            "wisdom",
-            "Wisdom",
+            "faith",
+            "Faith",
+            trait_type="counter",
+            base=10,
+            min=0,
+            max=20,
+        )
+        self.stats.add(
+            "arcane",
+            "Arcane",
             trait_type="counter",
             base=10,
             min=0,

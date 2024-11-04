@@ -18,6 +18,9 @@ class CombatHandler(Handler):
         _data (dict): Internal storage for combat data
     """
 
+    SCALING_DIVISOR = 100.0
+    SCALING_STATS = ["strength", "dexterity", "intelligence", "faith", "arcane"]
+
     def __init__(
         self,
         obj: Any,
@@ -172,8 +175,45 @@ class CombatHandler(Handler):
         if not target.is_alive():
             self.remove_combatant(target)
 
+    def _calculate_weapon_damage(
+        self, weapon: Any, attacker: Any, is_secondary: bool = False
+    ) -> int:
+        """Calculate damage for a single weapon including stat scaling.
+
+        Args:
+            weapon: The weapon being used
+            attacker: The attacking combatant
+            is_secondary: Whether this is a secondary weapon
+
+        Returns:
+            float: Base damage plus stat scaling bonuses
+        """
+        # Apply secondary weapon penalty if applicable
+        base_damage = weapon.damage * (0.5 if is_secondary else 1.0)
+        attacker.msg(f"Base damage: {base_damage}")
+
+        try:
+            # Calculate stat scaling bonuses
+            stat_bonuses = round(
+                sum(
+                    attacker.stats[stat].value
+                    * weapon.scaling[stat].value
+                    / self.SCALING_DIVISOR
+                    for stat in self.SCALING_STATS
+                    if stat in weapon.scaling.all()
+                    and stat in attacker.stats.all()
+                )
+            )
+            attacker.msg(f"Stat bonuses: {stat_bonuses}")
+            return 0
+        except Exception as e:
+            attacker.msg(f"Error: {e}")
+            stat_bonuses = 0
+
+        return base_damage + stat_bonuses
+
     def _calculate_damage(self, attacker: Any, target: Any) -> float:
-        """Calculate attack damage based on equipped weapons.
+        """Calculate total attack damage based on equipped weapons.
 
         Args:
             attacker: The attacking combatant
@@ -182,23 +222,34 @@ class CombatHandler(Handler):
         Returns:
             float: The calculated damage amount
         """
-        if len(attacker.equipment.weapons) == 0:
+        weapons = attacker.equipment.weapons
+        if not weapons:
             return 1.0
 
-        primary_weapon = attacker.equipment.weapons[0]
-        damage = primary_weapon.damage
+        total_damage = 0.0
+
+        # Primary weapon damage
+        primary_weapon = weapons[0]
+        total_damage += self._calculate_weapon_damage(primary_weapon, attacker)
         self._send_attack_message(
-            primary_weapon.db.primary_attack, attacker, target
+            primary_weapon.attributes.get("attack_desc", "You attack."),
+            attacker,
+            target,
         )
 
-        if len(attacker.equipment.weapons) > 1:
-            secondary_weapon = attacker.equipment.weapons[1]
-            damage += secondary_weapon.damage * 0.5
+        # Secondary weapon damage, if equipped
+        if len(weapons) > 1:
+            secondary_weapon = weapons[1]
+            total_damage += self._calculate_weapon_damage(
+                secondary_weapon, attacker, is_secondary=True
+            )
             self._send_attack_message(
-                secondary_weapon.db.secondary_attack, attacker, target
+                secondary_weapon.attributes.get("attack_desc", "You attack."),
+                attacker,
+                target,
             )
 
-        return damage
+        return round(total_damage)
 
     def _send_attack_message(
         self, message: str, attacker: Any, target: Any

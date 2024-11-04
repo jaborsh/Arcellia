@@ -2,7 +2,7 @@ from enum import Enum
 
 from class_registry import ClassRegistry
 
-from world.characters.guilds import adventurers
+from world.characters.guilds.adventurers import adventurers
 
 guild_registry = ClassRegistry()
 guild_registry._register(adventurers.Adventurer.key, adventurers.Adventurer)
