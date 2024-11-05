@@ -76,7 +76,6 @@ class Entity(
         return self.health.current > 0
 
     def at_damage(self, value):
-        print(value)
         self.health.current -= value
         if not self.is_alive():
             self.at_die()
@@ -482,7 +481,7 @@ class Entity(
             line = f" |x<{item.position}>|n{spaces} {item.get_display_name(looker)}"
             string += f"\n{line}"
 
-        return string
+        return "\n" + string
 
     def get_display_clothing(self, looker, **kwargs):
         """
@@ -524,7 +523,7 @@ class Entity(
                 line += " |x(hidden)|n"
             string += f"\n{line}"
 
-        return string
+        return "\n" + string
 
     def get_pronoun(self, regex_match):
         """

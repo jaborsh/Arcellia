@@ -13,7 +13,7 @@ EMBERLYN_MAP = r"""
 
 
 class AncientGateToEmberlynBeach(xyzmap_legend.MapTransitionNode):
-    target_map_xyz = (0, 5, "emberlyn beach")
+    target_map_xyz = (1, 5, "emberlyn beach")
 
 
 LEGEND = {"T": AncientGateToEmberlynBeach}

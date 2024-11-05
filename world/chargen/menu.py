@@ -173,7 +173,7 @@ def chargen_race_confirmation(caller, raw_string, **kwargs):
 
 
 def chargen_finalize(caller, raw_string):
-    start = XYZRoom.objects.get_xyz(xyz=("0", "0", "emberlyn beach"))
+    start = XYZRoom.objects.get_xyz(xyz=("1", "0", "emberlyn beach"))
     caller.location = start
     caller.init_flasks()
     caller.guilds.value.get(GuildEnums.ADVENTURER).spawn_initial_gear(caller)

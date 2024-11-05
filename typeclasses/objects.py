@@ -92,6 +92,8 @@ class ObjectParent:
             self.spawn_clothing(spawns.get("clothing", []))
             self.spawn_equipment(spawns.get("equipment", []))
             self.spawn_inventory(spawns.get("inventory", []))
+            self.spawn_stats(spawns.get("stats", {}))
+            self.spawn_weapons(spawns.get("weapons", []))
             self.attributes.remove("spawn")
 
     def basetype_setup(self):
@@ -419,6 +421,34 @@ class ObjectParent:
                 prot["home"] = self
                 prot["location"] = self
                 spawner.spawn(prot)
+
+    def spawn_stats(self, stats):
+        for key, value in stats.items():
+            self.stats.add(
+                key,
+                key.capitalize(),
+                trait_type=value["trait_type"],
+                base=value["base"],
+                min=value["min"],
+                max=value["max"],
+            )
+
+    def spawn_weapons(self, weapons):
+        for prot in weapons:
+            matching_weapons = [
+                obj
+                for obj in self.contents
+                if obj.tags.has(prot["prototype_key"], "from_prototype")
+            ]
+            if matching_weapons:
+                spawner.batch_update_objects_with_prototype(
+                    prot, objects=matching_weapons, exact=False
+                )
+            else:
+                prot["home"] = self
+                prot["location"] = self
+                obj = spawner.spawn(prot)[0]
+                self.equipment.wear(obj)
 
 
 class Object(ObjectParent, DefaultObject):

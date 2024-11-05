@@ -44,8 +44,8 @@ class Weapon(Equipment):
         self.setup_scaling()
         self.setup_requirements()
 
-    def at_object_post_spawn(self):
-        super().at_object_post_spawn()
+    def at_object_post_spawn(self, prototype=None):
+        super().at_object_post_spawn(prototype)
         attributes = {
             "powers": ("power", " Power"),
             "scale": ("scaling", " Scaling"),

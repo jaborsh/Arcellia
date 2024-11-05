@@ -17,8 +17,8 @@ STARTING_BATTLE_AXE = {
         "sound": "When swung, the axe cleaves the air with a menacing whistle.",
         "taste": "You taste nothing interesting.",
     },
-    "attack_desc": "\$You() \$conj(cleaves) \$you(target) with a fierce arc of \$pron(your,pa) battle axe.",
-    "powers": {"physical": 128},
+    "attack_desc": "\$You() \$conj(cleave) \$you(target) with a fierce arc of \$pron(your,pa) battle axe.",
+    "powers": {"physical": 112},
     "scale": {
         "strength": 48,
         "dexterity": 33,

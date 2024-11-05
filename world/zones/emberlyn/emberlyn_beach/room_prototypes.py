@@ -2,7 +2,7 @@
 from world.zones.emberlyn.emberlyn_beach import object_prototypes
 
 EMBERLYN_BEACH_ROOMS = {
-    (0, 0): {
+    (1, 0): {
         "key": "|#C7B299Emberlyn Shore|n",
         "typeclass": "world.xyzgrid.xyzroom.XYZRoom",
         "desc": "The ground beneath your feet transitions from packed, pale sand into a treacherous mire, where slick mud eagerly clings with every step. Dark, stagnant waters stretch out like an inkblot across the landscape, merging with patches of spindly reeds and moss-covered stones. Here and there, the bones of long-forgotten vessels and bleached driftwood lie half-buried in the muck, remnants of a time when this shore was less forsaken. Above, the sky hangs low and gray, casting a pall over the dismal scene, while the breeze carries with it the damp, heavy scent of decay.",
@@ -18,7 +18,7 @@ EMBERLYN_BEACH_ROOMS = {
             "bones": "The skeletal remains of boats long forgotten jut out from the mire, their frames splintered and warped, speaking of past storms or ill-fated voyages.",
         },
     },
-    (0, 1): {
+    (1, 1): {
         "key": "|#C7B299Emberlyn Shore|n",
         "typeclass": "world.xyzgrid.xyzroom.XYZRoom",
         "desc": "Before you stretches a wide, desolate expanse of pale, ashen ground, its surface marred by cracks and jagged, uneven patches of hardened earth. The soil here is chalky and dry, crumbling beneath your feet as you step forward. Scattered throughout the expanse are patches of darkened, charred earth, as though some ancient fire had ravaged the land long ago. Faint trails of soot meander between the lighter stretches, marking the passage of long-gone winds. To the south, the land gives way to the darker, treacherous shores, while to the north, the land rises slightly, the pale dust blending into distant, rocky hills.",
@@ -34,7 +34,7 @@ EMBERLYN_BEACH_ROOMS = {
             "soot trails": "Thin trails of soot snake across the ground, barely discernible amidst the pale surroundings, marking the ghostly remnants of winds that once swept through here.",
         },
     },
-    (0, 2): {
+    (1, 2): {
         "key": "|#C7B299Emberlyn Shore|n",
         "typeclass": "world.xyzgrid.xyzroom.XYZRoom",
         "desc": "A wide plain of broken earth stretches out before you, the once-solid ground now fractured into jagged slabs and patches of pale, dusty sand. Scattered rocks of varying sizes lie embedded in the soil, their rough surfaces worn smooth by the elements. The light earth here is bleached and speckled with the remnants of past floods, clinging to patches of stone that offer no refuge. Along the edges of the plain, larger boulders loom like silent sentinels, casting long shadows. To the south, the ashen ground recedes.",
@@ -50,7 +50,7 @@ EMBERLYN_BEACH_ROOMS = {
             "boulders": "The larger boulders that ring the plain are dark and imposing, their rough surfaces cracked and pitted, as though once caught in the grip of a great force.",
         },
     },
-    (1, 2): {
+    (2, 2): {
         "key": "|#C7B299Emberlyn Shore|n",
         "typeclass": "world.xyzgrid.xyzroom.XYZRoom",
         "desc": "A towering bluff of fractured stone dominates the eastern landscape, its jagged face worn smooth in places by wind and time. The pale sand of the surrounding plain thins as it meets the bluff, giving way to clusters of boulders and hardy vegetation clinging to the cracks. The stone itself, mottled with shades of brown and ochre, rises steeply from the earth, while the shadows cast by the bluff deepen the greenish hue of the stagnant waters that pool nearby. At the base of the bluff, remnants of old stone formations seem half-consumed by the landscape, while a faint path of worn earth traces the contours of the terrain.",
@@ -66,7 +66,7 @@ EMBERLYN_BEACH_ROOMS = {
             "stagnant waters": "Dark, still waters pool near the base of the bluff, their surfaces almost opaque with algae and sediment, giving them a greenish tint.",
         },
     },
-    (1, 3): {
+    (2, 3): {
         "key": "|#4A766EEmberlyn Shore - Splintered Pier|n",
         "typeclass": "world.xyzgrid.xyzroom.XYZRoom",
         "desc": "A rickety, weather-beaten pier stretches out across the murky waters, its wood warped and bleached by years of exposure to the elements. The planks, unevenly spaced and broken in places, creak under the slightest pressure. Moss and algae cling to the timbers, making the surface slick with moisture. Beneath the pier, the green waters swirl lazily, dark and opaque, concealing whatever lies below. Rusted remnants of once-sturdy beams poke through the water's surface, while fragments of old ropes and decayed nets dangle from the edge, swaying gently in the breeze. The air around the pier feels damp and thick, saturated with the scent of brine and decay.",
@@ -85,7 +85,7 @@ EMBERLYN_BEACH_ROOMS = {
             "inventory": [object_prototypes.EMBERLYN_SHORE_HYMNS],
         },
     },
-    (0, 3): {
+    (1, 3): {
         "key": "|#C7B299Emberlyn Shore|n",
         "typeclass": "world.xyzgrid.xyzroom.XYZRoom",
         "desc": "A shallow depression in the landscape opens up here, its pale, powdery sand giving the area a muted, almost ghostly appearance. Scattered stones and tufts of stubborn grass dot the edges of the hollow, breaking up the otherwise barren expanse. At its center lies a large, stagnant puddle, its surface a cloudy blue, reflecting little more than the overcast sky above. The sand near the water's edge is damp and compact, gradually giving way to the softer, drier sands further out. Jagged roots from nearby trees stretch into the hollow, their tendrils winding through the soil as though reaching for the elusive moisture.",
@@ -101,7 +101,7 @@ EMBERLYN_BEACH_ROOMS = {
             "sand": "The sand here is a dull, off-white, fine and powdery in some areas, while compacted and darker near the water's edge.",
         },
     },
-    (0, 4): {
+    (1, 4): {
         "key": "|#C7B299Emberlyn Shore|n",
         "typeclass": "world.xyzgrid.xyzroom.XYZRoom",
         "desc": "The ground here dips into a shallow basin, its surface scoured smooth by the relentless passage of wind and time. Pale sand collects in the hollow, broken only by patches of coarse gravel and a few larger stones strewn haphazardly across the ground. The edges of the basin are lined with dark, jagged rocks, creating a stark contrast with the pale interior. Though the area is largely barren, a faint green tinge along the far edge hints at the resilience of life, with sparse grasses clinging to the inhospitable soil. To the east, the land slopes upward, leading away from this wind-swept hollow.",
@@ -117,7 +117,7 @@ EMBERLYN_BEACH_ROOMS = {
             "grass": "Sparse and hardy, the grasses that cling to the edge of the basin are pale green, their blades thin and wiry, bent low by the persistent wind.",
         },
     },
-    (0, 5): {
+    (1, 5): {
         "key": "|#C7B299Emberlyn Shore|n",
         "typeclass": "world.xyzgrid.xyzroom.XYZRoom",
         "desc": "This narrow pass winds between steep, uneven walls of weathered stone, the path beneath your feet a mixture of pale sand and scattered rocks. Along the edges of the trail, mergrass grows in sparse clusters, its long, silvery strands swaying softly in the breeze. The soft glint of dark, violet-hued belladonna berries can be seen nestled among the rocks, their leaves thick and waxy, thriving in the shaded crevices where the light barely reaches. Overhead, a stone arch marks the pass's northern exit, its ancient surface smoothed by years of erosion. The atmosphere here is one of quiet desolation, the landscape seemingly untouched by time.",

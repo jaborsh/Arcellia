@@ -22,7 +22,7 @@ EMBERLYN_BEACH_VEILED_WOMAN = {
 
 
 EMBERLYN_BEACH_MOBS = {
-    (0, 1): [
+    (1, 1): [
         EMBERLYN_BEACH_VEILED_WOMAN,
     ],
 }
