@@ -177,7 +177,7 @@ class CombatHandler(Handler):
 
     def _calculate_weapon_damage(
         self, weapon: Any, attacker: Any, is_secondary: bool = False
-    ) -> int:
+    ) -> float:
         """Calculate damage for a single weapon including stat scaling.
 
         Args:
@@ -190,7 +190,6 @@ class CombatHandler(Handler):
         """
         # Apply secondary weapon penalty if applicable
         base_damage = weapon.damage * (0.5 if is_secondary else 1.0)
-        attacker.msg(f"Base damage: {base_damage}")
 
         try:
             # Calculate stat scaling bonuses
@@ -204,8 +203,6 @@ class CombatHandler(Handler):
                     and stat in attacker.stats.all()
                 )
             )
-            attacker.msg(f"Stat bonuses: {stat_bonuses}")
-            return 0
         except Exception as e:
             attacker.msg(f"Error: {e}")
             stat_bonuses = 0

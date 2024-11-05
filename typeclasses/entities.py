@@ -76,6 +76,7 @@ class Entity(
         return self.health.current > 0
 
     def at_damage(self, value):
+        print(value)
         self.health.current -= value
         if not self.is_alive():
             self.at_die()
