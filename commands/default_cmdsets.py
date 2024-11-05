@@ -25,6 +25,7 @@ from commands import (
     gestures,
     help,
     system,
+    unassigned,
     unloggedin,
 )
 from commands.spells.destruction import novice as d_novice
@@ -90,6 +91,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
             "Builder Modules": [building],
             "Character Modules": [general, gestures],
             "Spell Modules": [d_novice],
+            "Unassigned Modules": [unassigned],
         }
 
         add_modules(self, modules)

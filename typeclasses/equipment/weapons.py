@@ -1,6 +1,8 @@
+from enum import Enum, auto
+
 from evennia.utils.utils import lazy_property
 
-from handlers import buffs, traits
+from handlers import traits
 from typeclasses.equipment.equipment import Equipment, EquipmentType
 
 # Constants for trait configuration
@@ -21,6 +23,13 @@ STAT_TRAITS = {
 }
 
 
+class WeaponType(Enum):
+    STANDARD = auto()
+    HEAVY = auto()
+    KEEN = auto()
+    QUALITY = auto()
+
+
 class Weapon(Equipment):
     """
     Represents a weapon in the game.
@@ -29,6 +38,7 @@ class Weapon(Equipment):
     def at_object_creation(self):
         super().at_object_creation()
         self.attributes.add("equipment_type", EquipmentType.WEAPON)
+        self.attributes.add("weapon_type", WeaponType.STANDARD)
 
         self.setup_power()
         self.setup_scaling()
@@ -81,12 +91,16 @@ class Weapon(Equipment):
     def scaling(self):
         return traits.TraitHandler(self, db_attribute_key="scaling")
 
-    @lazy_property
-    def upgrades(self):
-        return buffs.BuffHandler(self, db_attribute_key="upgrades")
-
     @property
     def damage(self):
         return self.power.get("physical").value
+
+    @property
+    def weapon_type(self):
+        return self.attributes.get("weapon_type", WeaponType.STANDARD)
+
+    @weapon_type.setter
+    def weapon_type(self, property: WeaponType):
+        self.attributes.add("weapon_type", property)
 
     # damage = base_ap + (stat * scale [all attrs])
