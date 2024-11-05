@@ -19,7 +19,6 @@ from evennia.utils.utils import (
 from handlers import quests
 from prototypes import flasks
 from world.characters.guilds.registry import GuildEnums, guild_registry
-from world.features import racial as racial_feats
 
 from .entities import Entity
 from .objects import ObjectParent
@@ -98,45 +97,3 @@ class Character(Entity, DefaultCharacter, ObjectParent):
         soul.experience.current = self.experience.current
         soul.owner.value = self
         self.experience.current = 0
-
-    def _calculate_weight_max(self, base_max):
-        """Calculate maximum weight capacity considering racial traits."""
-        if self.feats.has(racial_feats.HumanVersatility):
-            return base_max * HUMAN_VERSATILITY_MULTIPLIER
-        return base_max
-
-    def _update_stat(self, stat_name, current_value=None):
-        """Update a character stat with new maximum value."""
-        max_value = self.stats.get(stat_name).max + STAT_INCREMENT
-
-        if stat_name == "weight":
-            max_value = self._calculate_weight_max(max_value)
-
-        self.stats.add(
-            stat_name,
-            stat_name.capitalize(),
-            trait_type="counter",
-            base=BASE_STAT_VALUE if stat_name != "weight" else 0,
-            min=0,
-            max=max_value,
-        )
-
-        if current_value is not None:
-            self.stats.get(stat_name).value = current_value
-        else:
-            self.stats.get(stat_name).value = max_value
-
-    def at_level(self, attribute):
-        """Handle character leveling and stat increases."""
-        if attribute not in self.VALID_STATS:
-            return
-
-        self.level.current += 1
-
-        # Update the primary stat
-        self._update_stat(attribute)
-
-        # Update weight if leveling stamina
-        if attribute == "stamina":
-            curr_weight = self.weight.current
-            self._update_stat("weight", curr_weight)
