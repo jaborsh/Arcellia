@@ -1,11 +1,11 @@
 from evennia.utils import dedent
-from evennia.utils.utils import inherits_from
 
 from utils.text import _INFLECT
 from world.characters import (
     genders,
     races,
 )
+from world.characters.guilds.registry import GuildEnums
 from world.quests.emberlyn.emberlyn_start_quest import ArrivalQuest
 from world.xyzgrid.xyzroom import XYZRoom
 
@@ -153,7 +153,6 @@ def chargen_race_confirmation(caller, raw_string, **kwargs):
     def _set_race(caller, **kwargs):
         race = kwargs.get("race")
         caller.traits.add("race", "Race", value=race)
-        caller.race.value.initialize_race_equipment(caller)
         caller.race.value.initialize_race_features(caller)
         return "chargen_finalize"
 
@@ -174,13 +173,10 @@ def chargen_race_confirmation(caller, raw_string, **kwargs):
 
 
 def chargen_finalize(caller, raw_string):
-    caller.init_flasks()
     start = XYZRoom.objects.get_xyz(xyz=("0", "0", "emberlyn beach"))
     caller.location = start
+    caller.init_flasks()
+    caller.guilds.value.get(GuildEnums.ADVENTURER).spawn_initial_gear(caller)
     caller.quests.add(ArrivalQuest)
-
-    for eq in caller.contents:
-        if inherits_from(eq, "typeclasses.equipment.equipment.Equipment"):
-            caller.equipment.wear(eq)
 
     return "", ""
