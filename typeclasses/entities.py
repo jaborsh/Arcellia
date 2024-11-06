@@ -1,3 +1,5 @@
+import random
+
 from django.conf import settings
 from evennia.utils.utils import (
     dbref,
@@ -45,6 +47,16 @@ class Entity(
     def at_object_creation(self):
         self.init_stats()  # StatMixin
 
+    def at_object_post_spawn(self, prototype=None):
+        spawns = self.attributes.get("spawn", {})
+        if spawns:
+            experience = spawns.get("experience", 0)
+            if isinstance(experience, tuple):
+                self.experience.current = random.randint(*experience)
+            else:
+                self.experience.current = experience
+        super().at_object_post_spawn(prototype=prototype)
+
     def basetype_setup(self):
         """
         Setup character-specific security.
@@ -82,6 +94,15 @@ class Entity(
 
     def at_die(self):
         self.location.msg_contents("$You() $conj(die)!", from_obj=self)
+        for char in self.location.contents_get(content_type="character"):
+            char.experience.current += self.experience.current
+            char.msg(f"You gain {self.experience.current} experience.")
+
+        for item in self.contents:
+            item.move_to(self.location, quiet=True)
+        self.clothing.reset()
+        self.equipment.reset()
+        self.locks.add("view:pperm(Admin)")
 
     def at_restore(self):
         self.health.current = self.health.max

@@ -44,3 +44,18 @@ FRAYED_GREEN_CAPE = {
         "taste": "The taste of ancient dust and stale air permeates the fabric, as though it has absorbed the essence of countless roads.",
     },
 }
+
+HERALDIC_TABARD = {
+    "key": "tabard",
+    "prototype_key": "emberlyn_catacomb_heraldic_tabard",
+    "typeclass": "typeclasses.clothing.Clothing",
+    "clothing_type": ClothingType.FULLBODY,
+    "display_name": "|#467C4FGreen and Orange Heraldic Tabard|n",
+    "desc": "A thick, heavy tabard that falls over the armor in swathes of green and orange, worn and frayed along its edges. In the center lies a faded lion emblem, its fierce visage barely discernible through the years of wear, as if still roaring a silent challenge.",
+    "senses": {
+        "feel": "The fabric is rough and slightly stiff, weathered by rain, sun, and long marches.",
+        "smell": "It carries a faint scent of earth and sweat, mixed with the musk of faded wool.",
+        "sound": "It rustles dully with his movements, the sound deadened as if muffled by age and dust.",
+        "taste": "The taste is of dry fabric and earth, faintly bitter with the dust of long-forgotten roads.",
+    },
+}

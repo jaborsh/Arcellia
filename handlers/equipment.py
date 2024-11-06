@@ -253,5 +253,5 @@ class EquipmentHandler(Handler):
         """
         Resets the equipment to its default values.
         """
-        self._data = self.default_data.copy()
+        self._data = copy(EQUIPMENT_DEFAULTS)
         self._save()

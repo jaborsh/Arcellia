@@ -46,3 +46,28 @@ IRON_SPEAR = {
         "dexterity": 11,
     },
 }
+
+ORNAMENTAL_LONGSWORD = {
+    "prototype_key": "emberlyn_catacomb_ornamental_longsword",
+    "key": "longsword",
+    "aliases": ["sword"],
+    "typeclass": "typeclasses.equipment.weapons.Weapon",
+    "display_name": "|#8A5E3BOrnamental Longsword|n",
+    "desc": "The sword is a long, slender blade tarnished by time, with an intricate hilt of faded gold, swirling in patterns long lost to history. The metal bears the marks of ages, worn yet sharp, glinting dully in dim light as if murmuring tales of ancient glories. The guard is unusually ornate, with curving flourishes that lend the sword an air of forgotten regality, while the grip shows the weathered grooves of countless battles.",
+    "senses": {
+        "feel": "The hilt feels cold and unyielding, with a hint of roughness where the gold has worn away.",
+        "smell": "A faint metallic tang, mingled with a musty scent of age and dust, lingers around it.",
+        "sound": "When swung, it whistles lowly, a mournful sound as if the air itself remembers the battles long past.",
+        "taste": "An acrid bitterness clings to the blade, like the taste of iron and old blood.",
+    },
+    "attack_desc": "\$You() \$conj(slash) \$you(target) gracefully.",
+    "powers": {"physical": 101},
+    "scale": {
+        "strength": 20,
+        "dexterity": 55,
+    },
+    "reqs": {
+        "strength": 10,
+        "dexterity": 14,
+    },
+}
