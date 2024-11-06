@@ -10,7 +10,7 @@ SLENDER_SWORD = {
         "sound": "It hums a soft, metallic note when moved, like a whispered promise of swift justice.",
         "taste": "A faint, bitter taste of iron lingers on the tongue, a reminder of battles past.",
     },
-    "attack_desc": "\$You() \$conj(lunge) deftly, \$your() slender blade slipping through the air with a whispering hiss, finding \$you(target).",
+    "attack_desc": "\$You() \$conj(lunge) deftly, \$your() slender blade, slipping through the air with a whispering hiss, finding \$you(target).",
     "powers": {"physical": 101},
     "scale": {
         "strength": 12,
@@ -35,7 +35,7 @@ IRON_SPEAR = {
         "sound": "A soft, steely ring hums faintly when struck, echoing a resonance of lethal intent.",
         "taste": "The taste is of iron, pure and simple, a cold reminder of unyielding resolve.",
     },
-    "attack_desc": "\$You() \$conj(thrust) forward, \$your() spear's point cutting through the air towards \$you(target).",
+    "attack_desc": "\$You() \$conj(thrust) forward, \$your() spear's point, cutting through the air towards \$you(target).",
     "powers": {"physical": 114},
     "scale": {
         "strength": 44,
