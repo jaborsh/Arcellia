@@ -12,4 +12,4 @@ class CmdWealth(Command):
 
     def func(self):
         caller = self.caller
-        caller.msg("Total Wealth: %s" % int(caller.wealth))
+        caller.msg("Total Wealth: %s" % int(caller.wealth.current))

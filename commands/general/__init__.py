@@ -32,6 +32,7 @@ from commands.general.wealth import CmdWealth
 from commands.general.wear import CmdWear
 from commands.general.whisper import CmdWhisper
 from commands.general.wield import CmdWield
+from commands.general.xp import CmdXp
 
 __all__ = [
     "CmdAlias",
@@ -68,4 +69,5 @@ __all__ = [
     "CmdWear",
     "CmdWhisper",
     "CmdWield",
+    "CmdXp",
 ]
