@@ -11,23 +11,19 @@ inheritance.
 
 """
 
-import re
-from collections import defaultdict
-
 from django.utils.translation import gettext as _
 from evennia.objects.objects import DefaultObject
 from evennia.prototypes import spawner
 from evennia.utils import logger
 from evennia.utils.funcparser import ACTOR_STANCE_CALLABLES, FuncParser
 from evennia.utils.utils import (
-    compress_whitespace,
-    dedent,
-    iter_to_str,
+    lazy_property,
     make_iter,
     to_str,
 )
 
-from utils.text import _INFLECT, strip_ansi, wrap
+from handlers.appearance import AppearanceHandler
+from utils.text import wrap
 
 PARSER = FuncParser(ACTOR_STANCE_CALLABLES)
 
@@ -240,15 +236,30 @@ class Object(ObjectParent, DefaultObject):
 
     """
 
-    appearance_template = dedent(
-        """
-        {desc}
-        {exits}
-        
-        {characters}
-        {things}
-        """
-    )
+    @lazy_property
+    def appearance(self):
+        return AppearanceHandler(self)
+
+    def get_display_name(self, looker=None, **kwargs):
+        return self.appearance.get_display_name(looker, **kwargs)
+
+    def get_display_desc(self, looker=None, **kwargs):
+        return self.appearance.get_display_desc(looker, **kwargs)
+
+    def get_display_exits(self, looker=None, **kwargs):
+        return self.appearance.get_display_exits(looker, **kwargs)
+
+    def get_display_characters(self, looker=None, **kwargs):
+        return self.appearance.get_display_characters(looker, **kwargs)
+
+    def get_display_things(self, looker=None, **kwargs):
+        return self.appearance.get_display_things(looker, **kwargs)
+
+    def get_numbered_name(self, count, looker=None, **kwargs):
+        return self.appearance.get_numbered_name(count, looker, **kwargs)
+
+    def return_appearance(self, looker=None, **kwargs):
+        return self.appearance.return_appearance(looker, **kwargs)
 
     def at_object_post_spawn(self, prototype=None):
         spawns = self.attributes.get("spawn", {})
@@ -328,254 +339,6 @@ class Object(ObjectParent, DefaultObject):
         target.at_desc(looker=self, **kwargs)
 
         return description
-
-    def get_display_name(self, looker=None, **kwargs):
-        """
-        Displays the name of the object in a viewer-aware manner.
-
-        Args:
-            looker (DefaultObject): The object or account that is looking at or getting information
-                for this object.
-
-        Returns:
-            str: A name to display for this object. By default this returns the `.name` of the object.
-
-        Notes:
-            This function can be extended to change how object names appear to users in character,
-            but it does not change an object's keys or aliases when searching.
-        """
-        if looker and self.locks.check_lockstring(looker, "perm(Builder)"):
-            return f"{self.display_name}(#{self.id})"
-        return self.display_name
-
-    def get_display_desc(self, looker, **kwargs):
-        """
-        Get the 'desc' component of the object description. Called by `return_appearance`.
-
-        Args:
-            looker (DefaultObject): Object doing the looking.
-            **kwargs: Arbitrary data for use when overriding.
-        Returns:
-            str: The desc display string.
-
-        """
-        return self.db.desc.strip() or "You see nothing special."
-
-    def get_extra_display_name_info(self, looker=None, **kwargs):
-        """
-        Adds any extra display information to the object's name. By default this is is the
-        object's dbref in parentheses, if the looker has permission to see it.
-
-        Args:
-            looker (DefaultObject): The object looking at this object.
-
-        Returns:
-            str: The dbref of this object, if the looker has permission to see it. Otherwise, an
-            empty string is returned.
-
-        Notes:
-            By default, this becomes a string (#dbref) attached to the object's name.
-
-        """
-        if looker and self.locks.check_lockstring(looker, "perm(Builder)"):
-            return f"(#{self.id})"
-        return ""
-
-    def get_display_characters(self, looker, **kwargs):
-        """
-        Get the 'characters' component of the object description. Called by `return_appearance`.
-
-        Args:
-            looker (DefaultObject): Object doing the looking.
-            **kwargs: Arbitrary data for use when overriding.
-        Returns:
-            str: The character display data.
-
-        """
-        characters = self.filter_visible(
-            self.contents_get(content_type="character"), looker, **kwargs
-        )
-        character_names = iter_to_str(
-            char.get_display_name(looker, **kwargs) for char in characters
-        )
-
-        return f"|wCharacters:|n {character_names}" if character_names else ""
-
-    def get_display_things(self, looker=None, **kwargs):
-        """
-        Get the 'things' component of the object description. Called by `return_appearance`.
-
-        Args:
-            looker (DefaultObject): Object doing the looking.
-            **kwargs: Arbitrary data for use when overriding.
-        Returns:
-            str: The things display data.
-
-        """
-        # sort and handle same-named things
-        things = self.filter_visible(
-            self.contents_get(content_type="object"), looker, **kwargs
-        )
-
-        grouped_things = defaultdict(list)
-        for thing in things:
-            grouped_things[
-                thing.get_display_name(looker, **kwargs)
-                + thing.get_extra_display_name_info(looker, **kwargs)
-            ].append(thing)
-
-        thing_names = []
-        for thingname, thinglist in sorted(grouped_things.items()):
-            nthings = len(thinglist)
-            thing = thinglist[0]
-            singular, plural = thing.get_numbered_name(
-                nthings, looker, key=thingname
-            )
-            thing_names.append(singular if nthings == 1 else plural)
-        thing_names = "\n ".join(thing_names)
-        return f"|wYou see:|n\n {thing_names}" if thing_names else ""
-
-    def get_numbered_name(self, count, looker, **kwargs):
-        """
-        Return the numbered (singular, plural) forms of this object's key. This
-        is by default called by return_appearance and is used for grouping
-        multiple same-named of this object. Note that this will be called on
-        *every* member of a group even though the plural name will be only shown
-        once. Also the singular display version, such as 'an apple', 'a tree'
-        is determined from this method.
-
-        Args:
-            count (int): Number of objects of this type
-            looker (Object): Onlooker. Not used by default.
-
-        Keyword Args:
-            key (str): Optional key to pluralize. If not given, the object's `.name` property is used.
-            no_article (bool): If 'True', do not return an article if 'count' is 1.
-
-        Returns:
-            tuple: This is a tuple `(str, str)` with the singular and plural forms of the key
-                including the count.
-
-        Examples:
-            obj.get_numbered_name(3, looker, key="foo") -> ("a foo", "three foos")
-        """
-        if kwargs.get("no_article", False):
-            return self.get_display_name(looker), self.get_display_name(looker)
-
-        key = kwargs.get("key", self.get_display_name(looker))
-
-        # Regular expression for color codes
-        color_code_pattern = r"(\|(r|g|y|b|m|c|w|x|R|G|Y|B|M|C|W|X|\d{3}|#[0-9A-Fa-f]{6})|\[.*\])"
-        color_code_positions = [
-            (m.start(0), m.end(0)) for m in re.finditer(color_code_pattern, key)
-        ]
-
-        # Split the key into segments of text and color codes
-        segments = []
-        last_pos = 0
-        for start, end in color_code_positions:
-            segments.append(key[last_pos:start])  # Text segment
-            segments.append(key[start:end])  # Color code
-            last_pos = end
-        segments.append(key[last_pos:])  # Remaining text after last color code
-
-        # Apply pluralization and singularization to each text segment
-        plural_segments = []
-        singular_segments = []
-
-        for segment in segments:
-            if re.match(color_code_pattern, segment):
-                # Color code remains unchanged for both plural and singular segments
-                plural_segments.append(segment)
-                singular_segments.append(segment)
-            else:
-                # Apply pluralization to text segment
-                plural_segment = (
-                    _INFLECT.plural(segment, count)
-                    if segment.strip()
-                    else segment
-                )
-                plural_segments.append(plural_segment)
-
-                # Apply singularization to text segment
-                if len(singular_segments) == 2:
-                    # Special handling when singular_segments has exactly two elements
-                    segment = (
-                        _INFLECT.an(segment) if segment.strip() else segment
-                    )
-                    split_segment = segment.split(" ")
-                    singular_segment = (
-                        strip_ansi(split_segment[0])
-                        + singular_segments[1]
-                        + " "
-                        + " ".join(split_segment[1:])
-                    )
-                    singular_segments[1] = ""
-                else:
-                    singular_segment = segment
-                singular_segments.append(singular_segment)
-
-        plural = re.split(color_code_pattern, "".join(plural_segments), 1)
-        plural = (
-            _INFLECT.number_to_words(count)
-            + " "
-            + plural[1]
-            + _INFLECT.plural(plural[3], count)
-            + "|n"
-            if len(plural) > 1
-            else _INFLECT.plural(plural[0])
-        )
-        singular = "".join(singular_segments)
-
-        # Alias handling as in the original function
-        if not self.aliases.get(strip_ansi(singular)):
-            self.aliases.add(strip_ansi(singular))
-        if not self.aliases.get(strip_ansi(plural)):
-            self.aliases.add(strip_ansi(plural))
-
-        return singular, plural
-
-    def return_appearance(self, looker, **kwargs):
-        """
-        Main callback used by 'look' for the object to describe itself.
-        This formats a description. By default, this looks for the `appearance_template`
-        string set on this class and populates it with formatting keys
-        'name', 'desc', 'exits', 'characters', 'things' as well as
-        (currently empty) 'header'/'footer'. Each of these values are
-        retrieved by a matching method `.get_display_*`, such as `get_display_name`,
-        `get_display_footer` etc.
-
-        Args:
-            looker (DefaultObject): Object doing the looking. Passed into all helper methods.
-            **kwargs (dict): Arbitrary, optional arguments for users
-                overriding the call. This is passed into all helper methods.
-
-        Returns:
-            str: The description of this entity. By default this includes
-            the entity's name, description and any contents inside it.
-
-        Notes:
-            To simply change the layout of how the object displays itself (like
-            adding some line decorations or change colors of different sections),
-            you can simply edit `.appearance_template`. You only need to override
-            this method (and/or its helpers) if you want to change what is passed
-            into the template or want the most control over output.
-
-        """
-
-        if not looker:
-            return ""
-
-        # populate the appearance_template string.
-        return compress_whitespace(
-            self.appearance_template.format(
-                desc=self.get_display_desc(looker, **kwargs),
-                exits=self.get_display_exits(looker, **kwargs),
-                characters=self.get_display_characters(looker, **kwargs),
-                things=self.get_display_things(looker, **kwargs),
-            ).strip(),
-            max_linebreaks=2,
-        )
 
     def announce_move_to(
         self,

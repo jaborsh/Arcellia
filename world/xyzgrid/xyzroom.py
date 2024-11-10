@@ -173,22 +173,3 @@ class XYZRoom(Room):
         return Room.create(
             key, account=account, tags=tags, typeclass=cls, **kwargs
         )
-
-    def get_display_name(self, looker, **kwargs):
-        """
-        Shows both the #dbref and the xyz coord to staff.
-
-        Args:
-            looker (TypedObject): The object or account that is looking
-                at/getting inforamtion for this object.
-
-        Returns:
-            name (str): A string containing the name of the object,
-                including the DBREF and XYZ coord if this user is
-                privileged to control the room.
-
-        """
-        if self.locks.check_lockstring(looker, "perm(Builder)"):
-            x, y, z = self.xyz
-            return f"{self.name}[#{self.id}({x},{y},{z})]"
-        return self.name

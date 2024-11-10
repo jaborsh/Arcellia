@@ -27,8 +27,8 @@ class CmdLook(general.CmdLook):
         Look for detail on room.
         """
         caller = self.caller
-        if hasattr(self.caller.location, "get_detail"):
-            detail = self.caller.location.get_detail(
+        if hasattr(self.caller.location.appearance, "get_detail"):
+            detail = self.caller.location.appearance.get_detail(
                 self.args, looker=self.caller
             )
             if detail:
