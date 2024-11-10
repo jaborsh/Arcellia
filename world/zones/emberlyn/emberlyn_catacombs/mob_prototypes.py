@@ -7,8 +7,8 @@ WANDERING_UNDEAD = {
     "prototype_parent": "xyz_mob",
     "prototype_key": "emberlyn_undead_wanderer",
     "typeclass": "world.xyzgrid.xyzmob.XYZMob",
-    "locks": "attack:false()",
     "key": "undead",
+    "aliases": ["wanderer"],
     "display_name": "|#7D7D7DUndead Wanderer|n",
     "desc": "A haggard figure bent low under the invisible burden of ages past, its flesh stretched thin over jutting bones, creating an unholy gauntness that speaks of long-withered life. Its face bears a pitiful expression of forgotten sorrows, its hollow eyes alight with an unnatural glow that flickers like embers threatening to extinguish. Each slow step it takes is marked by a halting, almost pained motion, as if the very ground resists the cursed weight of its presence.",
     "senses": {
@@ -35,6 +35,7 @@ UNDEAD_SOLDIER = {
     "prototype_key": "emberlyn_catacomb_undead_soldier",
     "typeclass": "world.xyzgrid.xyzmob.XYZMob",
     "key": "soldier",
+    "aliases": ["undead"],
     "display_name": "|#726E5AUndead Soldier|n",
     "desc": "A figure of solemn demeanor and timeworn vigor, the undead soldier stands encased in layers of tarnished metal that cling to him like the remnants of an ancient oath. His frame is broad yet weathered, as though both shield and sinew have borne the bite of countless battles. His face, nearly obscured beneath a battered helm, is lined and stern; a silent witness to decades of vigilance in the deep and desolate places of the world. A thin layer of dust clings to his armor, dimming its once-bright sheen, while faint scars mar the exposed edges of his skin, as if his very flesh has been cut and recast by time itself.",
     "senses": {
@@ -59,6 +60,7 @@ UNDEAD_SOLDIER_BOSS = {
     "prototype_key": "emberlyn_catacomb_undead_soldier_boss",
     "typeclass": "world.xyzgrid.xyzmob.XYZMob",
     "key": "soldier",
+    "aliases": ["undead"],
     "display_name": "|#8B4F2AUndead Soldier of Emberlyn|n",
     "desc": "This soldier stands as a stout bulwark of faded grandeur, his face partially hidden beneath the shadow of a dented helm and the rough lineaments of hard-fought campaigns. His expression is stern, with a jaw that seems chiseled from stone, lips pressed in a grim line beneath his visor. His eyes peer forth with an unyielding gaze, a hint of weary resolve lingering in their depths. Upon his armor rests a faded crest, a lion rampant emblazoned upon a field split by age-worn green and orange cloth. Though the colors are dull, the soldier's stance exudes a fierce loyalty, as if he is the last bastion of a once-proud order.",
     "senses": {

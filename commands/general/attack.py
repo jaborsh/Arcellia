@@ -1,4 +1,5 @@
 from commands.command import Command
+from server.conf.at_search import SearchReturnType
 
 
 class CmdAttack(Command):
@@ -12,6 +13,7 @@ class CmdAttack(Command):
     """
 
     key = "attack"
+    aliases = ["kill"]
     locks = "cmd:all()"
 
     def func(self):
@@ -21,11 +23,14 @@ class CmdAttack(Command):
         if not args:
             return caller.msg("Attack who?")
 
-        target = caller.search(args)
+        target = caller.search(args, return_type=SearchReturnType.ONE)
         if not target:
             return
 
         if target == caller:
             return caller.msg("You cannot attack yourself.")
+
+        if not target.access(caller, "attack"):
+            return caller.msg("You cannot attack that target.")
 
         caller.location.combat.add_combatant(caller, target)

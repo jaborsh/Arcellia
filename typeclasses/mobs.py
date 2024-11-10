@@ -11,9 +11,6 @@ class Mob(Entity, Object):
         super().at_object_creation()
         self.cmdset.add(MobCmdSet, persistent=True)
 
-        lockstring = "attack:true()"
-        self.locks.add(lockstring)
-
     def basetype_setup(self):
         """
         This sets up the default properties of an Object, just before
@@ -31,6 +28,7 @@ class Mob(Entity, Object):
         self.locks.add(
             ";".join(
                 [
+                    "attack:true()",
                     "get:pperm(Admin)",
                     "puppet:pperm(Admin)",
                 ]
@@ -47,5 +45,8 @@ class Mob(Entity, Object):
             item.move_to(self.location, quiet=True)
         self.clothing.reset()
         self.equipment.reset()
-        self.locks.add("attack:pperm(Admin)")
         self.locks.add("view:pperm(Admin)")
+
+    def at_restore(self):
+        super().at_restore()
+        self.locks.add("view:true()")

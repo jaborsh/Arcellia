@@ -690,6 +690,7 @@ class Entity(
                 x
                 for x in list(results)
                 if x.access(self, "search", default=True)
+                and x.access(self, "view", default=True)
             ]
 
         # handle stacked objects
