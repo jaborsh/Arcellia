@@ -54,6 +54,20 @@ class Room(ExtendedRoom, ObjectParent, DefaultRoom):
         super().at_object_creation()
         self.add_desc("This room is dark.", "dark")
 
+    def basetype_setup(self):
+        super().basetype_setup()
+        self.locks.add(
+            ";".join(
+                [
+                    "get:false()",
+                    "puppet:false()",
+                    "teleport:false()",
+                    "teleport_here:true()",
+                ]
+            )
+        )  # would be weird to puppet a room ...
+        self.location = None
+
     # populated by `return_appearance`
     appearance_template = dedent(
         """

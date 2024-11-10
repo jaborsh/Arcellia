@@ -38,4 +38,31 @@ class Exit(ObjectParent, DefaultExit):
                                         defined, in which case that will simply be echoed.
     """
 
+    def basetype_setup(self):
+        """
+        Setup exit-security.
+
+        You should normally not need to overload this - if you do make
+        sure you include all the functionality in this method.
+
+        """
+        super().basetype_setup()
+
+        # setting default locks (overload these in at_object_creation()
+        self.locks.add(
+            ";".join(
+                [
+                    "puppet:false()",  # would be weird to puppet an exit ...
+                    "traverse:all()",  # who can pass through exit by default
+                    "get:false()",  # noone can pick up the exit
+                    "teleport:false()",
+                    "teleport_here:false()",
+                ]
+            )
+        )
+
+        # an exit should have a destination - try to make sure it does
+        if self.location and not self.destination:
+            self.destination = self.location
+
     pass
