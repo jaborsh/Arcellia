@@ -52,9 +52,9 @@ class CmdScore(Command):
         table.add_column(
             "Strength:",
             "Dexterity:",
-            "Constitution:",
             "Intelligence:",
-            "Wisdom:",
+            "Faith:",
+            "Arcane:",
             "Charisma:",
             "",
             "Experience:",
@@ -64,9 +64,9 @@ class CmdScore(Command):
         table.add_column(
             f"{int(caller.strength.value)}",
             f"{int(caller.dexterity.value)}",
-            f"{int(caller.constitution.value)}",
             f"{int(caller.intelligence.value)}",
-            f"{int(caller.wisdom.value)}",
+            f"{int(caller.faith.value)}",
+            f"{int(caller.arcane.value)}",
             f"{int(caller.charisma.value)}",
             "",
             f"{caller.experience.value}",
