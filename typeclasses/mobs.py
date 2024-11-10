@@ -36,3 +36,16 @@ class Mob(Entity, Object):
                 ]
             )
         )  # lock down puppeting only to staff by default
+
+    def at_die(self):
+        self.location.msg_contents("$You() $conj(die)!", from_obj=self)
+        for char in self.location.contents_get(content_type="character"):
+            char.experience.current += self.experience.current
+            char.msg(f"You gain {self.experience.current} experience.")
+
+        for item in self.contents:
+            item.move_to(self.location, quiet=True)
+        self.clothing.reset()
+        self.equipment.reset()
+        self.locks.add("attack:pperm(Admin)")
+        self.locks.add("view:pperm(Admin)")
