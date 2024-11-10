@@ -61,6 +61,19 @@ class Character(Entity, DefaultCharacter, ObjectParent):
         self.locks.add("msg:all()")
         self._init_guild()
 
+    def basetype_setup(self):
+        """
+        Setup character-specific security.
+
+        You should normally not need to overload this, but if you do,
+        make sure to reproduce at least the two last commands in this
+        method (unless you want to fundamentally change how a
+        Character object works).
+        """
+        super().basetype_setup()
+        # add the default cmdset
+        self.cmdset.add_default(settings.CMDSET_CHARACTER, persistent=True)
+
     def _init_guild(self):
         """Initialize character's guild membership."""
         self.traits.add(
