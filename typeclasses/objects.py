@@ -86,6 +86,170 @@ class ObjectParent:
     def taste(self, value: str):
         self.senses["taste"] = value
 
+
+class Object(ObjectParent, DefaultObject):
+    """
+    This is the root typeclass object, implementing an in-game Evennia
+    game object, such as having a location, being able to be
+    manipulated or looked at, etc. If you create a new typeclass, it
+    must always inherit from this object (or any of the other objects
+    in this file, since they all actually inherit from BaseObject, as
+    seen in src.object.objects).
+
+    The BaseObject class implements several hooks tying into the game
+    engine. By re-implementing these hooks you can control the
+    system. You should never need to re-implement special Python
+    methods, such as __init__ and especially never __getattribute__ and
+    __setattr__ since these are used heavily by the typeclass system
+    of Evennia and messing with them might well break things for you.
+
+
+    * Base properties defined/available on all Objects
+
+     key (string) - name of object
+     name (string)- same as key
+     dbref (int, read-only) - unique #id-number. Also "id" can be used.
+     date_created (string) - time stamp of object creation
+
+     account (Account) - controlling account (if any, only set together with
+                       sessid below)
+     sessid (int, read-only) - session id (if any, only set together with
+                       account above). Use `sessions` handler to get the
+                       Sessions directly.
+     location (Object) - current location. Is None if this is a room
+     home (Object) - safety start-location
+     has_account (bool, read-only)- will only return *connected* accounts
+     contents (list of Objects, read-only) - returns all objects inside this
+                       object (including exits)
+     exits (list of Objects, read-only) - returns all exits from this
+                       object, if any
+     destination (Object) - only set if this object is an exit.
+     is_superuser (bool, read-only) - True/False if this user is a superuser
+
+    * Handlers available
+
+     aliases - alias-handler: use aliases.add/remove/get() to use.
+     permissions - permission-handler: use permissions.add/remove() to
+                   add/remove new perms.
+     locks - lock-handler: use locks.add() to add new lock strings
+     scripts - script-handler. Add new scripts to object with scripts.add()
+     cmdset - cmdset-handler. Use cmdset.add() to add new cmdsets to object
+     nicks - nick-handler. New nicks with nicks.add().
+     sessions - sessions-handler. Get Sessions connected to this
+                object with sessions.get()
+     attributes - attribute-handler. Use attributes.add/remove/get.
+     db - attribute-handler: Shortcut for attribute-handler. Store/retrieve
+            database attributes using self.db.myattr=val, val=self.db.myattr
+     ndb - non-persistent attribute handler: same as db but does not create
+            a database entry when storing data
+
+    * Helper methods (see src.objects.objects.py for full headers)
+
+     search(ostring, global_search=False, attribute_name=None,
+             use_nicks=False, location=None, ignore_errors=False, account=False)
+     execute_cmd(raw_string)
+     msg(text=None, **kwargs)
+     msg_contents(message, exclude=None, from_obj=None, **kwargs)
+     move_to(destination, quiet=False, emit_to_obj=None, use_destination=True)
+     copy(new_key=None)
+     delete()
+     is_typeclass(typeclass, exact=False)
+     swap_typeclass(new_typeclass, clean_attributes=False, no_default=True)
+     access(accessing_obj, access_type='read', default=False)
+     check_permstring(permstring)
+
+    * Hooks (these are class methods, so args should start with self):
+
+     basetype_setup()     - only called once, used for behind-the-scenes
+                            setup. Normally not modified.
+     basetype_posthook_setup() - customization in basetype, after the object
+                            has been created; Normally not modified.
+
+     at_object_creation() - only called once, when object is first created.
+                            Object customizations go here.
+     at_object_post_creation() - only called once, when object is first
+                                created. Additional setup involving e.g.
+                                prototype-set attributes can go here.
+     at_object_post_spawn() - called when object is spawned from a prototype
+                              or updated by the spawner to apply prototype
+                              changes.
+     at_object_delete() - called just before deleting an object. If returning
+                            False, deletion is aborted. Note that all objects
+                            inside a deleted object are automatically moved
+                            to their <home>, they don't need to be removed here.
+
+
+     at_init()            - called whenever typeclass is cached from memory,
+                            at least once every server restart/reload
+     at_cmdset_get(**kwargs) - this is called just before the command handler
+                            requests a cmdset from this object. The kwargs are
+                            not normally used unless the cmdset is created
+                            dynamically (see e.g. Exits).
+     at_pre_puppet(account)- (account-controlled objects only) called just
+                            before puppeting
+     at_post_puppet()     - (account-controlled objects only) called just
+                            after completing connection account<->object
+     at_pre_unpuppet()    - (account-controlled objects only) called just
+                            before un-puppeting
+     at_post_unpuppet(account) - (account-controlled objects only) called just
+                            after disconnecting account<->object link
+     at_server_reload()   - called before server is reloaded
+     at_server_shutdown() - called just before server is fully shut down
+
+     at_access(result, accessing_obj, access_type) - called with the result
+                            of a lock access check on this object. Return value
+                            does not affect check result.
+
+     at_pre_move(destination)             - called just before moving object
+                        to the destination. If returns False, move is cancelled.
+     announce_move_from(destination)         - called in old location, just
+                        before move, if obj.move_to() has quiet=False
+     announce_move_to(source_location)       - called in new location, just
+                        after move, if obj.move_to() has quiet=False
+     at_post_move(source_location)          - always called after a move has
+                        been successfully performed.
+     at_object_leave(obj, target_location)   - called when an object leaves
+                        this object in any fashion
+     at_object_receive(obj, source_location) - called when this object receives
+                        another object
+
+     at_traverse(traversing_object, source_loc) - (exit-objects only)
+                              handles all moving across the exit, including
+                              calling the other exit hooks. Use super() to retain
+                              the default functionality.
+     at_post_traverse(traversing_object, source_location) - (exit-objects only)
+                              called just after a traversal has happened.
+     at_failed_traverse(traversing_object)      - (exit-objects only) called if
+                       traversal fails and property err_traverse is not defined.
+
+     at_msg_receive(self, msg, from_obj=None, **kwargs) - called when a message
+                             (via self.msg()) is sent to this obj.
+                             If returns false, aborts send.
+     at_msg_send(self, msg, to_obj=None, **kwargs) - called when this objects
+                             sends a message to someone via self.msg().
+
+     return_appearance(looker) - describes this object. Used by "look"
+                                 command by default
+     at_desc(looker=None)      - called by 'look' whenever the
+                                 appearance is requested.
+     at_get(getter)            - called after object has been picked up.
+                                 Does not stop pickup.
+     at_drop(dropper)          - called when this object has been dropped.
+     at_say(speaker, message)  - by default, called if an object inside this
+                                 object speaks
+
+    """
+
+    appearance_template = dedent(
+        """
+        {desc}
+        {exits}
+        
+        {characters}
+        {things}
+        """
+    )
+
     def at_object_post_spawn(self, prototype=None):
         spawns = self.attributes.get("spawn", {})
         if spawns:
@@ -164,6 +328,254 @@ class ObjectParent:
         target.at_desc(looker=self, **kwargs)
 
         return description
+
+    def get_display_name(self, looker=None, **kwargs):
+        """
+        Displays the name of the object in a viewer-aware manner.
+
+        Args:
+            looker (DefaultObject): The object or account that is looking at or getting information
+                for this object.
+
+        Returns:
+            str: A name to display for this object. By default this returns the `.name` of the object.
+
+        Notes:
+            This function can be extended to change how object names appear to users in character,
+            but it does not change an object's keys or aliases when searching.
+        """
+        if looker and self.locks.check_lockstring(looker, "perm(Builder)"):
+            return f"{self.display_name}(#{self.id})"
+        return self.display_name
+
+    def get_display_desc(self, looker, **kwargs):
+        """
+        Get the 'desc' component of the object description. Called by `return_appearance`.
+
+        Args:
+            looker (DefaultObject): Object doing the looking.
+            **kwargs: Arbitrary data for use when overriding.
+        Returns:
+            str: The desc display string.
+
+        """
+        return self.db.desc.strip() or "You see nothing special."
+
+    def get_extra_display_name_info(self, looker=None, **kwargs):
+        """
+        Adds any extra display information to the object's name. By default this is is the
+        object's dbref in parentheses, if the looker has permission to see it.
+
+        Args:
+            looker (DefaultObject): The object looking at this object.
+
+        Returns:
+            str: The dbref of this object, if the looker has permission to see it. Otherwise, an
+            empty string is returned.
+
+        Notes:
+            By default, this becomes a string (#dbref) attached to the object's name.
+
+        """
+        if looker and self.locks.check_lockstring(looker, "perm(Builder)"):
+            return f"(#{self.id})"
+        return ""
+
+    def get_display_characters(self, looker, **kwargs):
+        """
+        Get the 'characters' component of the object description. Called by `return_appearance`.
+
+        Args:
+            looker (DefaultObject): Object doing the looking.
+            **kwargs: Arbitrary data for use when overriding.
+        Returns:
+            str: The character display data.
+
+        """
+        characters = self.filter_visible(
+            self.contents_get(content_type="character"), looker, **kwargs
+        )
+        character_names = iter_to_str(
+            char.get_display_name(looker, **kwargs) for char in characters
+        )
+
+        return f"|wCharacters:|n {character_names}" if character_names else ""
+
+    def get_display_things(self, looker=None, **kwargs):
+        """
+        Get the 'things' component of the object description. Called by `return_appearance`.
+
+        Args:
+            looker (DefaultObject): Object doing the looking.
+            **kwargs: Arbitrary data for use when overriding.
+        Returns:
+            str: The things display data.
+
+        """
+        # sort and handle same-named things
+        things = self.filter_visible(
+            self.contents_get(content_type="object"), looker, **kwargs
+        )
+
+        grouped_things = defaultdict(list)
+        for thing in things:
+            grouped_things[
+                thing.get_display_name(looker, **kwargs)
+                + thing.get_extra_display_name_info(looker, **kwargs)
+            ].append(thing)
+
+        thing_names = []
+        for thingname, thinglist in sorted(grouped_things.items()):
+            nthings = len(thinglist)
+            thing = thinglist[0]
+            singular, plural = thing.get_numbered_name(
+                nthings, looker, key=thingname
+            )
+            thing_names.append(singular if nthings == 1 else plural)
+        thing_names = "\n ".join(thing_names)
+        return f"|wYou see:|n\n {thing_names}" if thing_names else ""
+
+    def get_numbered_name(self, count, looker, **kwargs):
+        """
+        Return the numbered (singular, plural) forms of this object's key. This
+        is by default called by return_appearance and is used for grouping
+        multiple same-named of this object. Note that this will be called on
+        *every* member of a group even though the plural name will be only shown
+        once. Also the singular display version, such as 'an apple', 'a tree'
+        is determined from this method.
+
+        Args:
+            count (int): Number of objects of this type
+            looker (Object): Onlooker. Not used by default.
+
+        Keyword Args:
+            key (str): Optional key to pluralize. If not given, the object's `.name` property is used.
+            no_article (bool): If 'True', do not return an article if 'count' is 1.
+
+        Returns:
+            tuple: This is a tuple `(str, str)` with the singular and plural forms of the key
+                including the count.
+
+        Examples:
+            obj.get_numbered_name(3, looker, key="foo") -> ("a foo", "three foos")
+        """
+        if kwargs.get("no_article", False):
+            return self.get_display_name(looker), self.get_display_name(looker)
+
+        key = kwargs.get("key", self.get_display_name(looker))
+
+        # Regular expression for color codes
+        color_code_pattern = r"(\|(r|g|y|b|m|c|w|x|R|G|Y|B|M|C|W|X|\d{3}|#[0-9A-Fa-f]{6})|\[.*\])"
+        color_code_positions = [
+            (m.start(0), m.end(0)) for m in re.finditer(color_code_pattern, key)
+        ]
+
+        # Split the key into segments of text and color codes
+        segments = []
+        last_pos = 0
+        for start, end in color_code_positions:
+            segments.append(key[last_pos:start])  # Text segment
+            segments.append(key[start:end])  # Color code
+            last_pos = end
+        segments.append(key[last_pos:])  # Remaining text after last color code
+
+        # Apply pluralization and singularization to each text segment
+        plural_segments = []
+        singular_segments = []
+
+        for segment in segments:
+            if re.match(color_code_pattern, segment):
+                # Color code remains unchanged for both plural and singular segments
+                plural_segments.append(segment)
+                singular_segments.append(segment)
+            else:
+                # Apply pluralization to text segment
+                plural_segment = (
+                    _INFLECT.plural(segment, count)
+                    if segment.strip()
+                    else segment
+                )
+                plural_segments.append(plural_segment)
+
+                # Apply singularization to text segment
+                if len(singular_segments) == 2:
+                    # Special handling when singular_segments has exactly two elements
+                    segment = (
+                        _INFLECT.an(segment) if segment.strip() else segment
+                    )
+                    split_segment = segment.split(" ")
+                    singular_segment = (
+                        strip_ansi(split_segment[0])
+                        + singular_segments[1]
+                        + " "
+                        + " ".join(split_segment[1:])
+                    )
+                    singular_segments[1] = ""
+                else:
+                    singular_segment = segment
+                singular_segments.append(singular_segment)
+
+        plural = re.split(color_code_pattern, "".join(plural_segments), 1)
+        plural = (
+            _INFLECT.number_to_words(count)
+            + " "
+            + plural[1]
+            + _INFLECT.plural(plural[3], count)
+            + "|n"
+            if len(plural) > 1
+            else _INFLECT.plural(plural[0])
+        )
+        singular = "".join(singular_segments)
+
+        # Alias handling as in the original function
+        if not self.aliases.get(strip_ansi(singular)):
+            self.aliases.add(strip_ansi(singular))
+        if not self.aliases.get(strip_ansi(plural)):
+            self.aliases.add(strip_ansi(plural))
+
+        return singular, plural
+
+    def return_appearance(self, looker, **kwargs):
+        """
+        Main callback used by 'look' for the object to describe itself.
+        This formats a description. By default, this looks for the `appearance_template`
+        string set on this class and populates it with formatting keys
+        'name', 'desc', 'exits', 'characters', 'things' as well as
+        (currently empty) 'header'/'footer'. Each of these values are
+        retrieved by a matching method `.get_display_*`, such as `get_display_name`,
+        `get_display_footer` etc.
+
+        Args:
+            looker (DefaultObject): Object doing the looking. Passed into all helper methods.
+            **kwargs (dict): Arbitrary, optional arguments for users
+                overriding the call. This is passed into all helper methods.
+
+        Returns:
+            str: The description of this entity. By default this includes
+            the entity's name, description and any contents inside it.
+
+        Notes:
+            To simply change the layout of how the object displays itself (like
+            adding some line decorations or change colors of different sections),
+            you can simply edit `.appearance_template`. You only need to override
+            this method (and/or its helpers) if you want to change what is passed
+            into the template or want the most control over output.
+
+        """
+
+        if not looker:
+            return ""
+
+        # populate the appearance_template string.
+        return compress_whitespace(
+            self.appearance_template.format(
+                desc=self.get_display_desc(looker, **kwargs),
+                exits=self.get_display_exits(looker, **kwargs),
+                characters=self.get_display_characters(looker, **kwargs),
+                things=self.get_display_things(looker, **kwargs),
+            ).strip(),
+            max_linebreaks=2,
+        )
 
     def announce_move_to(
         self,
@@ -449,418 +861,6 @@ class ObjectParent:
                 prot["location"] = self
                 obj = spawner.spawn(prot)[0]
                 self.equipment.wear(obj)
-
-
-class Object(ObjectParent, DefaultObject):
-    """
-    This is the root typeclass object, implementing an in-game Evennia
-    game object, such as having a location, being able to be
-    manipulated or looked at, etc. If you create a new typeclass, it
-    must always inherit from this object (or any of the other objects
-    in this file, since they all actually inherit from BaseObject, as
-    seen in src.object.objects).
-
-    The BaseObject class implements several hooks tying into the game
-    engine. By re-implementing these hooks you can control the
-    system. You should never need to re-implement special Python
-    methods, such as __init__ and especially never __getattribute__ and
-    __setattr__ since these are used heavily by the typeclass system
-    of Evennia and messing with them might well break things for you.
-
-
-    * Base properties defined/available on all Objects
-
-     key (string) - name of object
-     name (string)- same as key
-     dbref (int, read-only) - unique #id-number. Also "id" can be used.
-     date_created (string) - time stamp of object creation
-
-     account (Account) - controlling account (if any, only set together with
-                       sessid below)
-     sessid (int, read-only) - session id (if any, only set together with
-                       account above). Use `sessions` handler to get the
-                       Sessions directly.
-     location (Object) - current location. Is None if this is a room
-     home (Object) - safety start-location
-     has_account (bool, read-only)- will only return *connected* accounts
-     contents (list of Objects, read-only) - returns all objects inside this
-                       object (including exits)
-     exits (list of Objects, read-only) - returns all exits from this
-                       object, if any
-     destination (Object) - only set if this object is an exit.
-     is_superuser (bool, read-only) - True/False if this user is a superuser
-
-    * Handlers available
-
-     aliases - alias-handler: use aliases.add/remove/get() to use.
-     permissions - permission-handler: use permissions.add/remove() to
-                   add/remove new perms.
-     locks - lock-handler: use locks.add() to add new lock strings
-     scripts - script-handler. Add new scripts to object with scripts.add()
-     cmdset - cmdset-handler. Use cmdset.add() to add new cmdsets to object
-     nicks - nick-handler. New nicks with nicks.add().
-     sessions - sessions-handler. Get Sessions connected to this
-                object with sessions.get()
-     attributes - attribute-handler. Use attributes.add/remove/get.
-     db - attribute-handler: Shortcut for attribute-handler. Store/retrieve
-            database attributes using self.db.myattr=val, val=self.db.myattr
-     ndb - non-persistent attribute handler: same as db but does not create
-            a database entry when storing data
-
-    * Helper methods (see src.objects.objects.py for full headers)
-
-     search(ostring, global_search=False, attribute_name=None,
-             use_nicks=False, location=None, ignore_errors=False, account=False)
-     execute_cmd(raw_string)
-     msg(text=None, **kwargs)
-     msg_contents(message, exclude=None, from_obj=None, **kwargs)
-     move_to(destination, quiet=False, emit_to_obj=None, use_destination=True)
-     copy(new_key=None)
-     delete()
-     is_typeclass(typeclass, exact=False)
-     swap_typeclass(new_typeclass, clean_attributes=False, no_default=True)
-     access(accessing_obj, access_type='read', default=False)
-     check_permstring(permstring)
-
-    * Hooks (these are class methods, so args should start with self):
-
-     basetype_setup()     - only called once, used for behind-the-scenes
-                            setup. Normally not modified.
-     basetype_posthook_setup() - customization in basetype, after the object
-                            has been created; Normally not modified.
-
-     at_object_creation() - only called once, when object is first created.
-                            Object customizations go here.
-     at_object_post_creation() - only called once, when object is first
-                                created. Additional setup involving e.g.
-                                prototype-set attributes can go here.
-     at_object_post_spawn() - called when object is spawned from a prototype
-                              or updated by the spawner to apply prototype
-                              changes.
-     at_object_delete() - called just before deleting an object. If returning
-                            False, deletion is aborted. Note that all objects
-                            inside a deleted object are automatically moved
-                            to their <home>, they don't need to be removed here.
-
-
-     at_init()            - called whenever typeclass is cached from memory,
-                            at least once every server restart/reload
-     at_cmdset_get(**kwargs) - this is called just before the command handler
-                            requests a cmdset from this object. The kwargs are
-                            not normally used unless the cmdset is created
-                            dynamically (see e.g. Exits).
-     at_pre_puppet(account)- (account-controlled objects only) called just
-                            before puppeting
-     at_post_puppet()     - (account-controlled objects only) called just
-                            after completing connection account<->object
-     at_pre_unpuppet()    - (account-controlled objects only) called just
-                            before un-puppeting
-     at_post_unpuppet(account) - (account-controlled objects only) called just
-                            after disconnecting account<->object link
-     at_server_reload()   - called before server is reloaded
-     at_server_shutdown() - called just before server is fully shut down
-
-     at_access(result, accessing_obj, access_type) - called with the result
-                            of a lock access check on this object. Return value
-                            does not affect check result.
-
-     at_pre_move(destination)             - called just before moving object
-                        to the destination. If returns False, move is cancelled.
-     announce_move_from(destination)         - called in old location, just
-                        before move, if obj.move_to() has quiet=False
-     announce_move_to(source_location)       - called in new location, just
-                        after move, if obj.move_to() has quiet=False
-     at_post_move(source_location)          - always called after a move has
-                        been successfully performed.
-     at_object_leave(obj, target_location)   - called when an object leaves
-                        this object in any fashion
-     at_object_receive(obj, source_location) - called when this object receives
-                        another object
-
-     at_traverse(traversing_object, source_loc) - (exit-objects only)
-                              handles all moving across the exit, including
-                              calling the other exit hooks. Use super() to retain
-                              the default functionality.
-     at_post_traverse(traversing_object, source_location) - (exit-objects only)
-                              called just after a traversal has happened.
-     at_failed_traverse(traversing_object)      - (exit-objects only) called if
-                       traversal fails and property err_traverse is not defined.
-
-     at_msg_receive(self, msg, from_obj=None, **kwargs) - called when a message
-                             (via self.msg()) is sent to this obj.
-                             If returns false, aborts send.
-     at_msg_send(self, msg, to_obj=None, **kwargs) - called when this objects
-                             sends a message to someone via self.msg().
-
-     return_appearance(looker) - describes this object. Used by "look"
-                                 command by default
-     at_desc(looker=None)      - called by 'look' whenever the
-                                 appearance is requested.
-     at_get(getter)            - called after object has been picked up.
-                                 Does not stop pickup.
-     at_drop(dropper)          - called when this object has been dropped.
-     at_say(speaker, message)  - by default, called if an object inside this
-                                 object speaks
-
-    """
-
-    appearance_template = dedent(
-        """
-        {desc}
-        {exits}
-        
-        {characters}
-        {things}
-        """
-    )
-
-    def get_display_name(self, looker=None, **kwargs):
-        """
-        Displays the name of the object in a viewer-aware manner.
-
-        Args:
-            looker (DefaultObject): The object or account that is looking at or getting information
-                for this object.
-
-        Returns:
-            str: A name to display for this object. By default this returns the `.name` of the object.
-
-        Notes:
-            This function can be extended to change how object names appear to users in character,
-            but it does not change an object's keys or aliases when searching.
-        """
-        if looker and self.locks.check_lockstring(looker, "perm(Builder)"):
-            return f"{self.display_name}(#{self.id})"
-        return self.display_name
-
-    def get_display_desc(self, looker, **kwargs):
-        """
-        Get the 'desc' component of the object description. Called by `return_appearance`.
-
-        Args:
-            looker (DefaultObject): Object doing the looking.
-            **kwargs: Arbitrary data for use when overriding.
-        Returns:
-            str: The desc display string.
-
-        """
-        return self.db.desc.strip() or "You see nothing special."
-
-    def get_extra_display_name_info(self, looker=None, **kwargs):
-        """
-        Adds any extra display information to the object's name. By default this is is the
-        object's dbref in parentheses, if the looker has permission to see it.
-
-        Args:
-            looker (DefaultObject): The object looking at this object.
-
-        Returns:
-            str: The dbref of this object, if the looker has permission to see it. Otherwise, an
-            empty string is returned.
-
-        Notes:
-            By default, this becomes a string (#dbref) attached to the object's name.
-
-        """
-        if looker and self.locks.check_lockstring(looker, "perm(Builder)"):
-            return f"(#{self.id})"
-        return ""
-
-    def get_display_characters(self, looker, **kwargs):
-        """
-        Get the 'characters' component of the object description. Called by `return_appearance`.
-
-        Args:
-            looker (DefaultObject): Object doing the looking.
-            **kwargs: Arbitrary data for use when overriding.
-        Returns:
-            str: The character display data.
-
-        """
-        characters = self.filter_visible(
-            self.contents_get(content_type="character"), looker, **kwargs
-        )
-        character_names = iter_to_str(
-            char.get_display_name(looker, **kwargs) for char in characters
-        )
-
-        return f"|wCharacters:|n {character_names}" if character_names else ""
-
-    def get_display_things(self, looker=None, **kwargs):
-        """
-        Get the 'things' component of the object description. Called by `return_appearance`.
-
-        Args:
-            looker (DefaultObject): Object doing the looking.
-            **kwargs: Arbitrary data for use when overriding.
-        Returns:
-            str: The things display data.
-
-        """
-        # sort and handle same-named things
-        things = self.filter_visible(
-            self.contents_get(content_type="object"), looker, **kwargs
-        )
-
-        grouped_things = defaultdict(list)
-        for thing in things:
-            grouped_things[
-                thing.get_display_name(looker, **kwargs)
-                + thing.get_extra_display_name_info(looker, **kwargs)
-            ].append(thing)
-
-        thing_names = []
-        for thingname, thinglist in sorted(grouped_things.items()):
-            nthings = len(thinglist)
-            thing = thinglist[0]
-            singular, plural = thing.get_numbered_name(
-                nthings, looker, key=thingname
-            )
-            thing_names.append(singular if nthings == 1 else plural)
-        thing_names = "\n ".join(thing_names)
-        return f"|wYou see:|n\n {thing_names}" if thing_names else ""
-
-    def get_numbered_name(self, count, looker, **kwargs):
-        """
-        Return the numbered (singular, plural) forms of this object's key. This
-        is by default called by return_appearance and is used for grouping
-        multiple same-named of this object. Note that this will be called on
-        *every* member of a group even though the plural name will be only shown
-        once. Also the singular display version, such as 'an apple', 'a tree'
-        is determined from this method.
-
-        Args:
-            count (int): Number of objects of this type
-            looker (Object): Onlooker. Not used by default.
-
-        Keyword Args:
-            key (str): Optional key to pluralize. If not given, the object's `.name` property is used.
-            no_article (bool): If 'True', do not return an article if 'count' is 1.
-
-        Returns:
-            tuple: This is a tuple `(str, str)` with the singular and plural forms of the key
-                including the count.
-
-        Examples:
-            obj.get_numbered_name(3, looker, key="foo") -> ("a foo", "three foos")
-        """
-        if kwargs.get("no_article", False):
-            return self.get_display_name(looker), self.get_display_name(looker)
-
-        key = kwargs.get("key", self.get_display_name(looker))
-
-        # Regular expression for color codes
-        color_code_pattern = r"(\|(r|g|y|b|m|c|w|x|R|G|Y|B|M|C|W|X|\d{3}|#[0-9A-Fa-f]{6})|\[.*\])"
-        color_code_positions = [
-            (m.start(0), m.end(0)) for m in re.finditer(color_code_pattern, key)
-        ]
-
-        # Split the key into segments of text and color codes
-        segments = []
-        last_pos = 0
-        for start, end in color_code_positions:
-            segments.append(key[last_pos:start])  # Text segment
-            segments.append(key[start:end])  # Color code
-            last_pos = end
-        segments.append(key[last_pos:])  # Remaining text after last color code
-
-        # Apply pluralization and singularization to each text segment
-        plural_segments = []
-        singular_segments = []
-
-        for segment in segments:
-            if re.match(color_code_pattern, segment):
-                # Color code remains unchanged for both plural and singular segments
-                plural_segments.append(segment)
-                singular_segments.append(segment)
-            else:
-                # Apply pluralization to text segment
-                plural_segment = (
-                    _INFLECT.plural(segment, count)
-                    if segment.strip()
-                    else segment
-                )
-                plural_segments.append(plural_segment)
-
-                # Apply singularization to text segment
-                if len(singular_segments) == 2:
-                    # Special handling when singular_segments has exactly two elements
-                    segment = (
-                        _INFLECT.an(segment) if segment.strip() else segment
-                    )
-                    split_segment = segment.split(" ")
-                    singular_segment = (
-                        strip_ansi(split_segment[0])
-                        + singular_segments[1]
-                        + " "
-                        + " ".join(split_segment[1:])
-                    )
-                    singular_segments[1] = ""
-                else:
-                    singular_segment = segment
-                singular_segments.append(singular_segment)
-
-        plural = re.split(color_code_pattern, "".join(plural_segments), 1)
-        plural = (
-            _INFLECT.number_to_words(count)
-            + " "
-            + plural[1]
-            + _INFLECT.plural(plural[3], count)
-            + "|n"
-            if len(plural) > 1
-            else _INFLECT.plural(plural[0])
-        )
-        singular = "".join(singular_segments)
-
-        # Alias handling as in the original function
-        if not self.aliases.get(strip_ansi(singular)):
-            self.aliases.add(strip_ansi(singular))
-        if not self.aliases.get(strip_ansi(plural)):
-            self.aliases.add(strip_ansi(plural))
-
-        return singular, plural
-
-    def return_appearance(self, looker, **kwargs):
-        """
-        Main callback used by 'look' for the object to describe itself.
-        This formats a description. By default, this looks for the `appearance_template`
-        string set on this class and populates it with formatting keys
-        'name', 'desc', 'exits', 'characters', 'things' as well as
-        (currently empty) 'header'/'footer'. Each of these values are
-        retrieved by a matching method `.get_display_*`, such as `get_display_name`,
-        `get_display_footer` etc.
-
-        Args:
-            looker (DefaultObject): Object doing the looking. Passed into all helper methods.
-            **kwargs (dict): Arbitrary, optional arguments for users
-                overriding the call. This is passed into all helper methods.
-
-        Returns:
-            str: The description of this entity. By default this includes
-            the entity's name, description and any contents inside it.
-
-        Notes:
-            To simply change the layout of how the object displays itself (like
-            adding some line decorations or change colors of different sections),
-            you can simply edit `.appearance_template`. You only need to override
-            this method (and/or its helpers) if you want to change what is passed
-            into the template or want the most control over output.
-
-        """
-
-        if not looker:
-            return ""
-
-        # populate the appearance_template string.
-        return compress_whitespace(
-            self.appearance_template.format(
-                desc=self.get_display_desc(looker, **kwargs),
-                exits=self.get_display_exits(looker, **kwargs),
-                characters=self.get_display_characters(looker, **kwargs),
-                things=self.get_display_things(looker, **kwargs),
-            ).strip(),
-            max_linebreaks=2,
-        )
 
 
 class InteractiveObject(Object):

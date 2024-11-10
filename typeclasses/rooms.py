@@ -14,11 +14,11 @@ from evennia.utils.utils import iter_to_str, lazy_property
 from handlers import combat
 from world.features import racial as racial_feats
 
-from .objects import ObjectParent
+from .objects import Object
 from .rooms_extended import ExtendedRoom
 
 
-class Room(ExtendedRoom, ObjectParent, DefaultRoom):
+class Room(ExtendedRoom, Object, DefaultRoom):
     """
     Modified Extended Room (Griatch)
 

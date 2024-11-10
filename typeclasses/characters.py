@@ -21,7 +21,7 @@ from prototypes import flasks
 from world.characters.guilds.registry import GuildEnums, guild_registry
 
 from .entities import Entity
-from .objects import ObjectParent
+from .objects import Object
 
 _AT_SEARCH_RESULT = variable_from_module(
     *settings.SEARCH_AT_RESULT.rsplit(".", 1)
@@ -33,7 +33,7 @@ STAT_INCREMENT = 10
 HUMAN_VERSATILITY_MULTIPLIER = 1.25
 
 
-class Character(Entity, DefaultCharacter, ObjectParent):
+class Character(Entity, DefaultCharacter, Object):
     """
     The Character defaults to reimplementing some of base Object's hook methods with the
     following functionality:

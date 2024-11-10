@@ -19,7 +19,7 @@ from typeclasses.entity_mixins import (
 from utils.text import grammarize
 from world.characters import genders
 
-from .objects import ObjectParent
+from .objects import Object
 
 _AT_SEARCH_RESULT = variable_from_module(
     *settings.SEARCH_AT_RESULT.rsplit(".", 1)
@@ -27,7 +27,7 @@ _AT_SEARCH_RESULT = variable_from_module(
 
 
 class Entity(
-    ObjectParent,
+    Object,
     clothing_mixin.ClothingMixin,
     cooldown_mixin.CooldownMixin,
     equipment_mixin.EquipmentMixin,
