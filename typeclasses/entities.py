@@ -57,31 +57,31 @@ class Entity(
                 self.experience.current = experience
         super().at_object_post_spawn(prototype=prototype)
 
-    def basetype_setup(self):
-        """
-        Setup character-specific security.
+    # def basetype_setup(self):
+    #     """
+    #     Setup character-specific security.
 
-        You should normally not need to overload this, but if you do,
-        make sure to reproduce at least the two last commands in this
-        method (unless you want to fundamentally change how a
-        Character object works).
+    #     You should normally not need to overload this, but if you do,
+    #     make sure to reproduce at least the two last commands in this
+    #     method (unless you want to fundamentally change how a
+    #     Character object works).
 
-        """
-        super().basetype_setup()
-        self.locks.add(
-            ";".join(
-                [
-                    "attack:true()",  # attacks against this object
-                    "call:false()",  # allow to call commands on this object
-                    "get:false()",  # pick up the character
-                    "teleport:perm(Admin)",  # teleport character
-                    "teleport_here:perm(Admin)",  # teleport character here
-                    "tell:all()",  # allow to tell the character
-                ]
-            )  # noone can pick up the character
-        )  # no commands can be called on character from outside
-        # add the default cmdset
-        self.cmdset.add_default(settings.CMDSET_CHARACTER, persistent=True)
+    #     """
+    #     super().basetype_setup()
+    #     self.locks.add(
+    #         ";".join(
+    #             [
+    #                 "attack:true()",  # attacks against this object
+    #                 "call:false()",  # allow to call commands on this object
+    #                 "get:false()",  # pick up the character
+    #                 "teleport:perm(Admin)",  # teleport character
+    #                 "teleport_here:perm(Admin)",  # teleport character here
+    #                 "tell:all()",  # allow to tell the character
+    #             ]
+    #         )  # noone can pick up the character
+    #     )  # no commands can be called on character from outside
+    #     # add the default cmdset
+    #     self.cmdset.add_default(settings.CMDSET_CHARACTER, persistent=True)
 
     # Hooks
     def is_alive(self):
