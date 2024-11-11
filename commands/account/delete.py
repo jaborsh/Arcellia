@@ -34,73 +34,72 @@ class CmdDelete(Command):
     help_category = "Account"
     account_caller = True
 
-    def func(self) -> None:
-        account = self.account
-
-        if not self.args:
-            self.msg("Syntax: delete <name>")
-            return
-
-        # Safely access playable characters, defaulting to an empty list if not set
-        playable_characters = getattr(account.db, "_playable_characters", [])
+    def _find_character(self, name):
+        """Find a character matching the given name."""
+        playable_characters = getattr(
+            self.account.db, "_playable_characters", []
+        )
         if not playable_characters:
-            self.msg("You have no playable characters to delete.")
-            return
+            return None, "You have no playable characters to delete."
 
-        char_name = self.args.strip().lower()
-        # Find matching characters with case-insensitive comparison
-        match = [
+        matches = [
             char
             for char in playable_characters
-            if char.key.lower() == char_name
+            if char.key.lower() == name.lower()
         ]
 
-        if not match:
-            self.msg("You have no such character to delete.")
-            return
-
-        if len(match) > 1:
-            self.msg(
-                "Aborting - there are multiple characters with the same name. "
-                "Please contact an admin to delete the correct one."
+        if not matches:
+            return None, "You have no such character to delete."
+        if len(matches) > 1:
+            return (
+                None,
+                "Aborting - there are multiple characters with the same name. Please contact an admin to delete the correct one.",
             )
-            return
 
-        char_to_delete = match[0]
+        char = matches[0]
+        if not char.access(self.account, "delete"):
+            return None, "You do not have permission to delete this character."
 
-        # Check if the account has permission to delete the character
-        if not char_to_delete.access(account, "delete"):
-            self.msg("You do not have permission to delete this character.")
-            return
+        return char, None
 
-        def _delete_character(account, prompt, result):
-            # Confirm deletion based on user input
+    def _delete_character(self, character):
+        """Delete the given character."""
+
+        def _callback(account, prompt, result):
             if result.lower() not in {"yes", "y"}:
                 self.msg("Deletion aborted.")
                 return
 
-            key = char_to_delete.key
+            key = character.key
             try:
-                # Remove the character from playable characters
+                playable_characters = getattr(
+                    account.db, "_playable_characters", []
+                )
                 account.db._playable_characters = [
-                    pc for pc in playable_characters if pc != char_to_delete
+                    pc for pc in playable_characters if pc != character
                 ]
-                # Delete the character object
-                char_to_delete.delete()
-                self.msg(f"Character '|w{key}|n' has been permanently deleted.")
-                # Log the deletion for auditing purposes
+                character.delete()
+                self.msg(f"'|w{key}|n' has been permanently deleted.")
                 logger.log_sec(
                     f"Character Deleted: {key} (Account: {account})."
                 )
             except Exception as e:
-                # Log any unexpected errors during deletion
                 logger.log_err(f"Error deleting character '{key}': {e}")
                 self.msg(
                     "An error occurred while attempting to delete the character."
                 )
 
-        prompt = (
-            f"|rThis will permanently delete '|w{char_to_delete.key}|r'. "
-            f"This action cannot be undone!|n Continue? |r[Y/n]|n"
-        )
-        get_input(account, prompt, _delete_character)
+        prompt = f"|rPermanently delete '|w{character.key}|r'? This action cannot be undone! |w[Y/n]|n"
+        get_input(self.account, prompt, _callback)
+
+    def func(self):
+        if not self.args:
+            self.msg("Syntax: delete <name>")
+            return
+
+        character, error = self._find_character(self.args.strip())
+        if error:
+            self.msg(error)
+            return
+
+        self._delete_character(character)
