@@ -13,10 +13,7 @@ class CmdPassword(Command):
     Usage:
       password
 
-    This command allows the player to change their account password. It prompts the player
-    to enter their current password, then their new password. The new password is validated
-    to ensure it meets the account's password requirements. If the password change is
-    successful, the account's password is updated and saved.
+    This command allows the player to change their account password.
     """
 
     key = "password"
@@ -24,44 +21,59 @@ class CmdPassword(Command):
     help_category = "Account"
     account_caller = True
 
+    def _get_input(self, prompt):
+        return (yield prompt)
+
+    def _validate_input(self, password, is_new=False):
+        if not password:
+            self.msg("Password change aborted.")
+            return False
+
+        if is_new:
+            validated, error = self.account.validate_password(password)
+            if not validated:
+                self.msg(
+                    "\n".join(
+                        [
+                            e
+                            for suberror in error.messages
+                            for e in error.messages
+                        ]
+                    )
+                )
+                return False
+        return True
+
     def func(self):
         account = self.account
 
-        def get_input(prompt):
-            return (yield prompt)
+        # Get and validate current password
+        oldpass = yield from self._get_input("Enter your password:")
+        if not self._validate_input(oldpass):
+            return
 
-        def validate_password(password):
-            if not password:
-                self.msg("Password change aborted.")
-                return False
-            return True
+        if not account.check_password(oldpass):
+            self.msg("The specified password is incorrect.")
+            return
 
-        def change_password():
-            oldpass = yield from get_input("Enter your password:")
-            if not validate_password(oldpass):
-                return
+        # Get and validate new password
+        newpass = yield from self._get_input("Enter your new password:")
+        if not self._validate_input(newpass, is_new=True):
+            return
 
-            if not account.check_password(oldpass):
-                self.msg("The specified password is incorrect.")
-                return
+        # Confirm new password
+        confirm_pass = yield from self._get_input("Confirm your new password:")
+        if not self._validate_input(confirm_pass):
+            return
 
-            newpass = yield from get_input("Enter your new password:")
-            if not validate_password(newpass):
-                return
+        if newpass != confirm_pass:
+            self.msg("Passwords do not match. Password change aborted.")
+            return
 
-            validated, error = account.validate_password(newpass)
-            if not validated:
-                errors = [
-                    e for suberror in error.messages for e in error.messages
-                ]
-                self.msg("\n".join(errors))
-                return
-
-            account.set_password(newpass)
-            account.save()
-            self.msg("Password changed.")
-            logger.log_sec(
-                f"Password Changed: {account} (IP: {self.session.address})."
-            )
-
-        yield from change_password()
+        # Update password
+        account.set_password(newpass)
+        account.save()
+        self.msg("Password changed.")
+        logger.log_sec(
+            f"Password Changed: {account} (IP: {self.session.address})."
+        )
