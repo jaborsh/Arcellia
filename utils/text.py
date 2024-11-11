@@ -3,12 +3,19 @@ import re
 
 import inflect
 from django.conf import settings
-
 from evennia.utils.utils import display_len, percentile, to_str
 
 from .colors import strip_ansi
 
 _INFLECT = inflect.engine()
+
+_INFLECT.defnoun("boots", "boots")
+_INFLECT.defnoun("gloves", "gloves")
+_INFLECT.defnoun("pants", "pants")
+_INFLECT.defnoun("shorts", "shorts")
+_INFLECT.defnoun("trousers", "trousers")
+_INFLECT.defnoun("shoes", "shoes")
+_INFLECT.defnoun("socks", "socks")
 
 SINGULARIZE_EXCEPTIONS = [
     "boots",
@@ -148,7 +155,9 @@ def wrap(text, text_width=80, pre_text="", align="l", indent=0, hang=0):
                 line_list.append(line)
                 line = word
                 available_chars = (
-                    text_width - len(strip_ansi(pre_text)) - len(strip_ansi(word))
+                    text_width
+                    - len(strip_ansi(pre_text))
+                    - len(strip_ansi(word))
                 )
         # Add the last line to the list.
         line_list.append(line)
@@ -172,7 +181,8 @@ def justify(text, width, align, indent=0, hang=0):
         return " " * (indent + hang) + text
     elif align == "c":
         return (
-            " " * math.ceil((width / 2) - (len(strip_ansi(text)) / 2) + indent) + text
+            " " * math.ceil((width / 2) - (len(strip_ansi(text)) / 2) + indent)
+            + text
         )
 
     return text
@@ -210,7 +220,9 @@ def crop(text, width=None, suffix="[...]"):
         return to_str(text)
 
 
-def format_grid(elements, width=78, sep="  ", verbatim_elements=None, line_prefix=""):
+def format_grid(
+    elements, width=78, sep="  ", verbatim_elements=None, line_prefix=""
+):
     """
     This helper function makes a 'grid' output, where it distributes the given
     string-elements as evenly as possible to fill out the given width.
@@ -339,7 +351,9 @@ def format_grid(elements, width=78, sep="  ", verbatim_elements=None, line_prefi
 
     nelements = len(elements)
     # add sep to all but the very last element
-    elements = [elements[ie] + sep for ie in range(nelements - 1)] + [elements[-1]]
+    elements = [elements[ie] + sep for ie in range(nelements - 1)] + [
+        elements[-1]
+    ]
 
     if sum(display_len((element)) for element in elements) <= width:
         # grid fits in one line

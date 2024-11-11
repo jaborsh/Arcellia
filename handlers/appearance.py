@@ -9,7 +9,7 @@ from evennia.utils import dbserialize
 from evennia.utils.utils import compress_whitespace, dedent, iter_to_str, repeat
 
 from handlers.handler import Handler
-from utils.text import _INFLECT, strip_ansi
+from utils.text import _INFLECT
 from world.features import racial as racial_feats
 
 APPEARANCE_TEMPLATE = dedent(
@@ -186,95 +186,89 @@ class AppearanceHandler(Handler):
 
     def get_numbered_name(self, count, looker, **kwargs):
         """
-        Return the numbered (singular, plural) forms of this object's key. This
-        is by default called by return_appearance and is used for grouping
-        multiple same-named of this object. Note that this will be called on
-        *every* member of a group even though the plural name will be only shown
-        once. Also the singular display version, such as 'an apple', 'a tree'
-        is determined from this method.
+        Return the numbered (singular, plural) forms of this object's key. This is by default called
+        by return_appearance and is used for grouping multiple same-named of this object. Note that
+        this will be called on *every* member of a group even though the plural name will be only
+        shown once. Also the singular display version, such as 'an apple', 'a tree' is determined
+        from this method.
 
         Args:
             count (int): Number of objects of this type
-            looker (Object): Onlooker. Not used by default.
+            looker (DefaultObject): Onlooker. Not used by default.
 
         Keyword Args:
-            key (str): Optional key to pluralize. If not given, the object's `.name` property is used.
-            no_article (bool): If 'True', do not return an article if 'count' is 1.
+            key (str): Optional key to pluralize. If not given, the object's `.get_display_name()`
+                method is used.
+            return_string (bool): If `True`, return only the singular form if count is 0,1 or
+                the plural form otherwise. If `False` (default), return both forms as a tuple.
+            no_article (bool): If `True`, do not return an article if `count` is 1.
 
         Returns:
             tuple: This is a tuple `(str, str)` with the singular and plural forms of the key
-                including the count.
+            including the count.
 
         Examples:
-            obj.get_numbered_name(3, looker, key="foo") -> ("a foo", "three foos")
-        """
-        if kwargs.get("no_article", False):
-            return self.obj.get_display_name(looker), self.obj.get_display_name(
-                looker
-            )
+        ::
 
+            obj.get_numbered_name(3, looker, key="foo")
+                  -> ("a foo", "three foos")
+            obj.get_numbered_name(1, looker, key="Foobert", return_string=True)
+                  -> "a Foobert"
+            obj.get_numbered_name(1, looker, key="Foobert", return_string=True, no_article=True)
+                  -> "Foobert"
+        """
+        plural_category = "plural_key"
         key = kwargs.get("key", self.obj.get_display_name(looker))
 
-        color_code_pattern = r"(\|(r|g|y|b|m|c|w|x|R|G|Y|B|M|C|W|X|\d{3}|#[0-9A-Fa-f]{6})|\[.*\])"
-        color_code_positions = [
-            (m.start(0), m.end(0)) for m in re.finditer(color_code_pattern, key)
-        ]
+        # Extract ID suffix if present (for admin view)
+        key, id_suffix = extract_id_suffix(key)
 
-        segments = []
-        last_pos = 0
-        for start, end in color_code_positions:
-            segments.append(key[last_pos:start])
-            segments.append(key[start:end])
-            last_pos = end
-        segments.append(key[last_pos:])
+        # Extract colors and clean text
+        clean_key, colors = extract_color_codes(key)
 
-        plural_segments = []
-        singular_segments = []
+        # Handle special case for pairs
+        is_pair = bool(_INFLECT.singular_noun(clean_key))
 
-        for segment in segments:
-            if re.match(color_code_pattern, segment):
-                plural_segments.append(segment)
-                singular_segments.append(segment)
-            else:
-                plural_segment = (
-                    _INFLECT.plural(segment, count)
-                    if segment.strip()
-                    else segment
-                )
-                plural_segments.append(plural_segment)
+        # Generate clean singular/plural forms
+        if is_pair:
+            clean_singular = "a pair of " + clean_key
+            clean_plural_base = clean_key
+            prefix = (
+                f"{_INFLECT.number_to_words(count, threshold=12)} pairs of "
+            )
+        else:
+            clean_singular = _INFLECT.an(clean_key)
+            clean_plural_base = _INFLECT.plural(clean_key, count)
+            prefix = f"{_INFLECT.number_to_words(count, threshold=12)} "
 
-                if len(singular_segments) == 2:
-                    segment = (
-                        _INFLECT.an(segment) if segment.strip() else segment
-                    )
-                    split_segment = segment.split(" ")
-                    singular_segment = (
-                        strip_ansi(split_segment[0])
-                        + singular_segments[1]
-                        + " "
-                        + " ".join(split_segment[1:])
-                    )
-                    singular_segments[1] = ""
-                else:
-                    singular_segment = segment
-                singular_segments.append(singular_segment)
+        clean_plural = prefix + clean_plural_base
 
-        plural = re.split(color_code_pattern, "".join(plural_segments), 1)
-        plural = (
-            _INFLECT.number_to_words(count)
-            + " "
-            + plural[1]
-            + _INFLECT.plural(plural[3], count)
-            + "|n"
-            if len(plural) > 1
-            else _INFLECT.plural(plural[0])
+        # Get prefix lengths for color reapplication
+        plural_prefix_len = len(prefix)
+        singular_prefix_len = len(clean_singular) - len(clean_key)
+
+        # Build final strings with colors and ID
+        singular = (
+            reapply_color_codes(clean_singular, colors, singular_prefix_len)
+            + id_suffix
         )
-        singular = "".join(singular_segments)
+        plural = (
+            reapply_color_codes(clean_plural, colors, plural_prefix_len)
+            + id_suffix
+        )
 
-        if not self.obj.aliases.get(strip_ansi(singular)):
-            self.obj.aliases.add(strip_ansi(singular))
-        if not self.obj.aliases.get(strip_ansi(plural)):
-            self.obj.aliases.add(strip_ansi(plural))
+        if not self.obj.aliases.get(clean_plural, category=plural_category):
+            self.obj.aliases.clear(category=plural_category)
+            self.obj.aliases.add(clean_plural, category=plural_category)
+            self.obj.aliases.add(clean_singular, category=plural_category)
+
+        if kwargs.get("no_article") and count == 1:
+            if kwargs.get("return_string"):
+                return key
+            return key, key
+
+        if kwargs.get("return_string"):
+            return singular if count == 1 else plural
 
         return singular, plural
 
@@ -555,7 +549,6 @@ class RoomAppearanceHandler(AppearanceHandler):
 
         Notes:
             This is legacy. Use the $state markup for new rooms instead.
-
         """
         desc = desc or ""
 
@@ -679,13 +672,33 @@ class RoomAppearanceHandler(AppearanceHandler):
             else "|wObvious Exits: None|n"
         )
 
+    def get_display_characters(self, looker, **kwargs):
+        """
+        Get the 'characters' component of the object description. Called by `return_appearance`.
+
+        Args:
+            looker (DefaultObject): Object doing the looking.
+            **kwargs: Arbitrary data for use when overriding.
+        Returns:
+            str: The character display data.
+
+        """
+        characters = self._filter_visible(
+            looker, self.obj.contents_get(content_type="character")
+        )
+        character_names = iter_to_str(
+            char.get_display_name(looker, **kwargs) for char in characters
+        )
+
+        return f"{character_names}\n" if character_names else ""
+
     def get_display_mobs(self, looker, **kwargs):
         """
         Get the 'mobs' component of the object description. Called by `return_appearance`.
 
         Args:
             looker (Object): Object doing the looking.
-            **kwargs: Arbitrary data for use when overriding.
+            **kwargs: Additional keyword arguments.
 
         Returns:
             str: The character display data.
@@ -719,7 +732,7 @@ class RoomAppearanceHandler(AppearanceHandler):
 
         mob_names = "\n".join(reversed(mob_names))
 
-        return f"{mob_names}\n\n" if mob_names else ""
+        return f"{mob_names}\n" if mob_names else ""
 
     def get_display_things(self, looker, **kwargs):
         """
@@ -758,7 +771,15 @@ class RoomAppearanceHandler(AppearanceHandler):
             )
             thing_names.append(singular if nthings == 1 else plural)
         thing_names = "\n".join(thing_names)
-        return f"{thing_names}\n" if thing_names else ""
+        # Add newline before things if there are characters or mobs
+        has_chars = bool(
+            self.obj.contents_get(exclude=looker, content_type="character")
+        )
+        has_mobs = bool(
+            self.obj.contents_get(exclude=looker, content_type="mob")
+        )
+        prefix = "\n" if (has_chars or has_mobs) and thing_names else ""
+        return f"{prefix}{thing_names}" if thing_names else ""
 
     def return_appearance(self, looker, **kwargs):
         """
@@ -820,7 +841,6 @@ class RoomAppearanceHandler(AppearanceHandler):
 
         Returns:
             str: The dark appearance of the room.
-
         """
         if not looker:
             return ""
@@ -849,3 +869,89 @@ class RoomAppearanceHandler(AppearanceHandler):
             return self.return_dark_appearance(looker, **kwargs)
 
         return "It is too dark to see."
+
+
+def extract_color_codes(text):
+    """
+    Extracts color codes and clean text from a string.
+
+    Args:
+        text (str): Text with color codes
+
+    Returns:
+        tuple: (clean_text, list of color positions and codes)
+    """
+    colors = []
+    clean_text = ""
+    i = 0
+    while i < len(text):
+        if text[i] == "|":
+            if i + 1 < len(text):
+                if text[i + 1] == "n":  # Color terminator
+                    i += 2
+                    continue
+                elif text[i + 1].isdigit():  # XTERM color
+                    color = text[i : i + 4]
+                    colors.append((len(clean_text), color))
+                    i += 4
+                elif text[i + 1] == "#":  # HEX color
+                    color = text[i : i + 8]
+                    colors.append((len(clean_text), color))
+                    i += 8
+                else:  # ANSI color
+                    color = text[i : i + 2]
+                    colors.append((len(clean_text), color))
+                    i += 2
+                continue
+        clean_text += text[i]
+        i += 1
+    return clean_text, colors
+
+
+def reapply_color_codes(text, colors, prefix_length=0):
+    """
+    Reapplies color codes to a string at their relative positions.
+
+    Args:
+        text (str): Clean text without color codes
+        colors (list): List of (position, color_code) tuples
+        prefix_length (int): Length of any prefix to offset color positions
+
+    Returns:
+        str: Text with color codes reapplied
+    """
+    if not colors:
+        return text
+
+    result = ""
+    last_pos = 0
+    base_text = text[prefix_length:] if prefix_length else text
+    prefix = text[:prefix_length] if prefix_length else ""
+
+    # Add prefix first
+    result = prefix
+
+    for pos, color in colors:
+        # Scale position if text length changed
+        scaled_pos = min(pos, len(base_text))
+        result += base_text[last_pos:scaled_pos] + color
+        last_pos = scaled_pos
+
+    result += base_text[last_pos:]
+    return result + "|n"
+
+
+def extract_id_suffix(text):
+    """
+    Extracts database ID suffix if present.
+
+    Args:
+        text (str): Text that may contain (#123) suffix
+
+    Returns:
+        tuple: (text without suffix, suffix or empty string)
+    """
+    if match := re.search(r"\(#\d+\)$", text):
+        suffix = match.group(0)
+        return text[: match.start()], suffix
+    return text, ""
