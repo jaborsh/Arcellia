@@ -33,7 +33,39 @@ CONDITION_MAP = {
 
 
 class LivingAppearanceHandler(AppearanceHandler):
+    """Handles the appearance and visual representation of living entities in the game.
+
+    This handler manages how living entities (characters, NPCs, etc.) appear to others,
+    implementing a comprehensive appearance system that includes:
+
+    * Basic physical description
+    * Dynamic health condition display with color-coded messages
+    * Equipment display with positioning information
+    * Clothing system with layering and visibility rules
+
+    The handler uses a template-based approach to format the final appearance,
+    combining all elements into a cohesive description. It respects visibility
+    rules where certain items may be hidden by others or not visible to certain
+    observers.
+
+    Attributes:
+        obj (Object): The game object this handler is attached to
+
+    Example Usage:
+        To get an entity's full appearance:
+            appearance = entity.appearance.return_appearance(observer)
+    """
+
     def get_display_condition(self, looker, **kwargs):
+        """Get the display text for the entity's current health condition.
+
+        Args:
+            looker (Object): The entity observing this object
+            **kwargs: Additional keyword arguments
+
+        Returns:
+            str: A colored text description of the entity's health condition
+        """
         percentage = self.obj.health.percent(formatting=None)
         for threshold, display in CONDITION_MAP.items():
             if percentage <= threshold:
@@ -41,6 +73,16 @@ class LivingAppearanceHandler(AppearanceHandler):
         return "They appear |xunknown|n."
 
     def _format_worn_items(self, looker, items, header):
+        """Format a list of worn items (equipment or clothing) for display.
+
+        Args:
+            looker (Object): The entity observing the items
+            items (list): List of items to display
+            header (str): Header text to use for the item category
+
+        Returns:
+            str: Formatted string showing all visible worn items
+        """
         if not items:
             return ""
 
@@ -67,11 +109,29 @@ class LivingAppearanceHandler(AppearanceHandler):
         return "\n".join(lines)
 
     def get_display_equipment(self, looker, **kwargs):
+        """Get the display text for all visible equipment worn by the entity.
+
+        Args:
+            looker (Object): The entity observing the equipment
+            **kwargs: Additional keyword arguments
+
+        Returns:
+            str: Formatted string showing all visible equipment
+        """
         equipment = self._filter_visible(looker, self.obj.equipment.all())
         result = self._format_worn_items(looker, equipment, EQUIPMENT_HEADER)
         return f"{result}" if result else ""
 
     def get_display_clothing(self, looker, **kwargs):
+        """Get the display text for all visible clothing worn by the entity.
+
+        Args:
+            looker (Object): The entity observing the clothing
+            **kwargs: Additional keyword arguments
+
+        Returns:
+            str: Formatted string showing all visible clothing
+        """
         clothing = self._filter_visible(looker, self.obj.clothing.all())
         result = self._format_worn_items(looker, clothing, CLOTHING_HEADER)
         has_equipment = bool(self.obj.equipment.all())
@@ -79,6 +139,16 @@ class LivingAppearanceHandler(AppearanceHandler):
         return f"{prefix}{result}" if result else ""
 
     def return_appearance(self, looker, **kwargs):
+        """Return the complete appearance description of the entity.
+
+        Args:
+            looker (Object): The entity observing this object
+            **kwargs: Additional keyword arguments
+
+        Returns:
+            str: Complete formatted description including physical appearance,
+                condition, equipment, and clothing
+        """
         if not looker:
             return ""
 
