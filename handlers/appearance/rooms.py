@@ -96,6 +96,7 @@ class RoomAppearanceHandler(AppearanceHandler):
         }
 
         # Initialize room state
+        self.details = {}
         self.room_messages = []
         self.room_message_rate = 0
         self.broadcast_repeat_task = None

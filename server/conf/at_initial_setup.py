@@ -121,10 +121,22 @@ def create_objects():
 
 def at_initial_setup():
     from world.xyzgrid.launchcmd import (
+        _option_add as xyzgrid_add,
+    )
+    from world.xyzgrid.launchcmd import (
         _option_init as xyzgrid_init,
     )
+    from world.xyzgrid.xyzgrid import get_xyzgrid
 
     xyzgrid_init()
+    xyzgrid_add(
+        "world.zones.ooc.map",
+        "world.chargen.map",
+        "world.zones.emberlyn.map",
+        "world.zones.emberlyn.emberlyn_beach.map",
+        "world.zones.emberlyn.emberlyn_catacombs.map",
+    )
+    get_xyzgrid().spawn(xyz=("*", "*", "*"))
 
 
 def handle_setup(last_step=None):

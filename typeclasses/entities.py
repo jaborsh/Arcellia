@@ -416,19 +416,6 @@ class Entity(
             clothing=self.get_display_clothing(looker, **kwargs),
         ).strip()
 
-    def get_display_desc(self, looker, **kwargs):
-        """
-        Get the 'desc' component of the object description. Called by `return_appearance`.
-
-        Args:
-            looker (DefaultObject): Object doing the looking.
-            **kwargs: Arbitrary data for use when overriding.
-        Returns:
-            str: The desc display string.
-
-        """
-        return self.db.desc or "You see nothing special."
-
     def get_display_health(self, looker, **kwargs):
         HEALTH_MAP = {
             0: "They are |xlifeless|n.",

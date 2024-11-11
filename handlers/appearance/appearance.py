@@ -18,13 +18,12 @@ class AppearanceHandler:
     Handles the appearance and description systems for game objects.
 
     This handler manages how objects appear to others in the game, including their
-    descriptions, details, and sensory information. It provides methods for storing,
+    descriptions and sensory information. It provides methods for storing,
     retrieving, and displaying object appearances.
 
     Attributes:
         obj (Object): The game object this handler is attached to
         descriptions (dict): Stored descriptions for the object
-        details (dict): Stored details for examining specific parts of the object
         senses (dict): Stored sensory information for non-visual perceptions
     """
 
@@ -43,7 +42,6 @@ class AppearanceHandler:
         self._db_attribute = db_attribute_key
         self._db_category = db_category
         self.descriptions = {}
-        self.details = {}
         self.senses = {}
         self._load()
 
@@ -51,7 +49,7 @@ class AppearanceHandler:
         """
         Load appearance data from the database.
 
-        Retrieves and deserializes stored descriptions, details, and sensory data
+        Retrieves and deserializes stored descriptions and sensory data
         from the object's attributes.
         """
         if data := self.obj.attributes.get(
@@ -60,7 +58,6 @@ class AppearanceHandler:
             self.descriptions = dbserialize.deserialize(
                 data.get("descriptions", {})
             )
-            self.details = dbserialize.deserialize(data.get("details", {}))
             self.senses = dbserialize.deserialize(data.get("senses", {}))
 
     def _save(self):
@@ -74,7 +71,6 @@ class AppearanceHandler:
             self._db_attribute,
             {
                 "descriptions": self.descriptions,
-                "details": self.details,
                 "senses": self.senses,
             },
             category=self._db_category,

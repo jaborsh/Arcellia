@@ -262,6 +262,14 @@ class Object(ObjectParent, DefaultObject):
         return self.appearance.return_appearance(looker, **kwargs)
 
     def at_object_post_spawn(self, prototype=None):
+        self.appearance.descriptions["default"] = self.attributes.get(
+            "desc", ""
+        )
+        self.appearance.senses = self.attributes.get("senses", {})
+        self.appearance._save()
+        self.attributes.remove("desc")
+        self.attributes.remove("senses")
+
         spawns = self.attributes.get("spawn", {})
         if spawns:
             self.spawn_clothing(spawns.get("clothing", []))
