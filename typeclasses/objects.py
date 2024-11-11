@@ -14,7 +14,6 @@ inheritance.
 from django.utils.translation import gettext as _
 from evennia.objects.objects import DefaultObject
 from evennia.prototypes import spawner
-from evennia.utils import logger
 from evennia.utils.funcparser import ACTOR_STANCE_CALLABLES, FuncParser
 from evennia.utils.utils import (
     lazy_property,
@@ -23,6 +22,7 @@ from evennia.utils.utils import (
 )
 
 from handlers.appearance import AppearanceHandler
+from server.conf import logger
 from utils.text import wrap
 
 PARSER = FuncParser(ACTOR_STANCE_CALLABLES)
@@ -270,6 +270,12 @@ class Object(ObjectParent, DefaultObject):
             self.spawn_stats(spawns.get("stats", {}))
             self.spawn_weapons(spawns.get("weapons", []))
             self.attributes.remove("spawn")
+
+    def at_post_puppet(self, **kwargs):
+        logger.log_sec(
+            f"{self.name} enters the game (Account: {self.account})."
+        )
+        super().at_post_puppet(**kwargs)
 
     def basetype_setup(self):
         """

@@ -72,6 +72,9 @@ class Room(Object, DefaultRoom):
     def combat(self):
         return combat.CombatHandler(self, db_attribute_key="combat")
 
+    def add_desc(self, desc, roomstate=None):
+        self.appearance.add_desc(desc, roomstate)
+
     # Methods
     def brighten(self, text=None, magical=False):
         if magical and self.tags.has("magical_dark", category="room_state"):

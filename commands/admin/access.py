@@ -9,14 +9,16 @@ from commands.command import Command
 
 class CmdAccess(Command):
     """
-    Command class for displaying the caller's access and permission groups.
+    Display caller's access and permission groups.
 
     Usage:
-      access
+        access
 
-    This command displays the permission groups and the caller's access level.
-    If the caller is a superuser, it displays "<Superuser>". Otherwise, it
-    displays the caller's permissions for both the character and the account.
+    Shows permission groups and caller's access level, including
+    both character and account permissions.
+
+    Returns:
+        None: Sends formatted message to caller.
     """
 
     key = "access"
@@ -25,49 +27,64 @@ class CmdAccess(Command):
     help_category = "Admin"
 
     def func(self):
-        """Load the permission groups and display the caller's access."""
+        """Execute the access command logic."""
         caller = self.caller
-
-        # Validate that the caller has an associated account
         account = getattr(caller, "account", None)
+
+        if not self._validate_requirements(account):
+            return
+
+        hierarchy = self._get_hierarchy()
+        char_perms, acc_perms = self._get_permission_strings(caller, account)
+
+        self.caller.msg(
+            f"\n|wPermission Hierarchy|n (climbing):\n {hierarchy}\n"
+            f"\n|wYour Access|n:"
+            f"\n  Character |c{caller.key}|n: {char_perms}"
+            f"\n  Account |c{account.key}|n: {acc_perms}"
+        )
+
+    def _validate_requirements(self, account):
+        """
+        Validate command requirements.
+
+        Args:
+            account: The account object to validate
+
+        Returns:
+            bool: True if valid, False otherwise
+        """
         if account is None:
             self._send_error("Caller does not have an associated account.")
-            return
+            return False
+        return True
 
-        # Retrieve the permission hierarchy from settings
-        hierarchy_full = getattr(settings, "PERMISSION_HIERARCHY", [])
-        if not hierarchy_full:
+    def _get_hierarchy(self):
+        """Get the permission hierarchy string."""
+        hierarchy = getattr(settings, "PERMISSION_HIERARCHY", [])
+        if not hierarchy:
             self._send_error("Permission hierarchy is not defined in settings.")
-            return
+            return ""
+        return ", ".join(hierarchy)
 
-        # Determine permissions based on superuser status
+    def _get_permission_strings(self, caller, account):
+        """
+        Get formatted permission strings for character and account.
+
+        Args:
+            caller: The character object
+            account: The account object
+
+        Returns:
+            tuple: Character and account permission strings
+        """
         if account.is_superuser:
-            character_permissions = account_permissions = "<Superuser>"
-        else:
-            character_permissions = self._get_permissions(
-                caller.permissions.all()
-            )
-            account_permissions = self._get_permissions(
-                account.permissions.all()
-            )
+            return "<Superuser>", "<Superuser>"
 
-        # Build the permission hierarchy string
-        permission_hierarchy = ", ".join(hierarchy_full)
-
-        # Construct the access message
-        access_message = (
-            f"\n|wPermission Hierarchy|n (climbing):\n {permission_hierarchy}\n"
-            f"\n|wYour Access|n:"
-            f"\n  Character |c{caller.key}|n: {character_permissions}"
+        return (
+            self._get_permissions(caller.permissions.all()),
+            self._get_permissions(account.permissions.all()),
         )
-
-        # Append account permissions if available
-        access_message += (
-            f"\n  Account |c{account.key}|n: {account_permissions}"
-        )
-
-        # Send the constructed message to the caller
-        caller.msg(access_message)
 
     def _get_permissions(self, permissions_queryset):
         """

@@ -5,7 +5,6 @@ Command module containing CmdPlay.
 from evennia.utils import search, utils
 
 from commands.command import Command
-from server.conf import logger
 
 
 class CmdPlay(Command):
@@ -103,12 +102,8 @@ class CmdPlay(Command):
         try:
             account.puppet_object(session, character)
             account.db._last_puppet = character
-            logger.log_sec(f"{character} enters the game (Account: {account}).")
         except RuntimeError as exc:
             self.msg(f"|rYou cannot become |C{character.name}|n: {exc}")
-            logger.log_sec(
-                f"{character} fails to enter the game (Account: {account})."
-            )
 
     def func(self):
         """

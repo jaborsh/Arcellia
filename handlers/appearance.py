@@ -439,6 +439,12 @@ class RoomAppearanceHandler(AppearanceHandler):
         """Clear all room states"""
         self.obj.tags.clear(category=self.room_state_tag_category)
 
+    def add_desc(self, desc, room_state=None):
+        if room_state is None:
+            self.obj.attributes.add("desc", desc)
+        else:
+            self.obj.attributes.add(f"desc_{room_state}", desc)
+
     def add_detail(self, key, description):
         """Add a room detail"""
         if not self.details:

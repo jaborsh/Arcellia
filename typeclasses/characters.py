@@ -33,7 +33,7 @@ STAT_INCREMENT = 10
 HUMAN_VERSATILITY_MULTIPLIER = 1.25
 
 
-class Character(Entity, DefaultCharacter, Object):
+class Character(Entity, Object, DefaultCharacter):
     """
     The Character defaults to reimplementing some of base Object's hook methods with the
     following functionality:
