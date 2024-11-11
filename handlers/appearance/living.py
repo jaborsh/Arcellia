@@ -6,6 +6,7 @@ LIVING_APPEARANCE_TEMPLATE = dedent(
     """
     {desc}
     {condition}
+    
     {equipment}{clothing}
     """
 )
@@ -68,12 +69,14 @@ class LivingAppearanceHandler(AppearanceHandler):
     def get_display_equipment(self, looker, **kwargs):
         equipment = self._filter_visible(looker, self.obj.equipment.all())
         result = self._format_worn_items(looker, equipment, EQUIPMENT_HEADER)
-        return f"\n{result}" if result else ""
+        return f"{result}" if result else ""
 
     def get_display_clothing(self, looker, **kwargs):
         clothing = self._filter_visible(looker, self.obj.clothing.all())
         result = self._format_worn_items(looker, clothing, CLOTHING_HEADER)
-        return f"\n{result}" if result else ""
+        has_equipment = bool(self.obj.equipment.all())
+        prefix = "\n\n" if has_equipment else ""
+        return f"{prefix}{result}" if result else ""
 
     def return_appearance(self, looker, **kwargs):
         if not looker:
