@@ -1,5 +1,6 @@
 """
-Command module containing CmdOOCLook.
+Command module for OOC (Out of Character) looking functionality.
+Allows players to view their characters and environment while not actively playing.
 """
 
 from django.conf import settings
@@ -12,12 +13,13 @@ _MAX_NR_CHARACTERS = settings.MAX_NR_CHARACTERS
 
 class CmdOOCLook(Command):
     """
-    Command to implement the OOC look functionality.
+    Look around in Out-of-Character mode.
 
     Usage:
         look
 
-    This command allows players to look around when they are out-of-character (OOC).
+    Without arguments, shows all available characters.
+    With a character name, shows details for that specific character.
     """
 
     key = "look"
@@ -26,45 +28,36 @@ class CmdOOCLook(Command):
     help_category = "Account"
     account_caller = True
 
-    def parse(self) -> None:
-        """
-        Parse the command input to determine the target character for the OOC look.
-        """
-        # Retrieve all playable characters associated with the account
-        playable_characters = self.account.characters
+    def parse(self):
+        """Parse the command input for target character selection."""
+        chars = self.account.characters
 
-        if self.args:
-            # Create a dictionary mapping lowercase character names to character objects
-            character_dict = {
-                char.key.lower(): char for char in playable_characters
-            }
-            # Set the target character based on user input, if it exists
-            self.target_character = character_dict.get(self.args.lower())
-        else:
-            # If no specific character is mentioned, set to all playable characters
-            self.target_character = playable_characters
+        if not self.args:
+            self.target_character = chars
+            return
 
-    def func(self) -> None:
-        """
-        Execute the OOC look command, displaying the appropriate information to the user.
-        """
-        # Check if the user is currently puppeting a character
+        char_dict = {char.key.lower(): char for char in chars}
+        self.target_character = char_dict.get(self.args.lower())
+
+    def func(self):
+        """Execute the OOC look command."""
         if self.session.puppet:
             self.msg("You currently have no ability to look around.")
             return
 
-        # Handle the case where AUTO_PUPPET_ON_LOGIN is enabled and only one character exists
+        # Handle auto-puppet single character case
         if (
             _AUTO_PUPPET_ON_LOGIN
             and _MAX_NR_CHARACTERS == 1
             and self.target_character
         ):
             self.msg(
-                "You are out-of-character (OOC).\nUse |wic|n to get back into the game."
+                "You are out-of-character (OOC).\n"
+                "Use |wic|n to get back into the game."
             )
             return
 
-        # Attempt to perform the OOC look by invoking the account's at_look method
+        # Perform the actual look
         look_output = self.account.at_look(
             account=self.target_character, session=self.session
         )
