@@ -3,11 +3,12 @@ import random
 from django.conf import settings
 from evennia.utils.utils import (
     dbref,
-    dedent,
+    lazy_property,
     make_iter,
     variable_from_module,
 )
 
+from handlers.appearance.living import LivingAppearanceHandler
 from typeclasses.entity_mixins import (
     clothing_mixin,
     cooldown_mixin,
@@ -17,7 +18,6 @@ from typeclasses.entity_mixins import (
     trait_mixin,
 )
 from utils.text import grammarize
-from world.characters import genders
 
 from .objects import Object
 
@@ -35,14 +35,9 @@ class Entity(
     stat_mixin.StatMixin,
     trait_mixin.TraitMixin,
 ):
-    appearance_template = dedent(
-        """
-        {desc}
-        {health}
-        {equipment}
-        {clothing}
-        """
-    )
+    @lazy_property
+    def appearance(self):
+        return LivingAppearanceHandler(self)
 
     def at_object_creation(self):
         self.init_stats()  # StatMixin
@@ -376,168 +371,6 @@ class Entity(
                 msg_type,
                 custom_mapping,
             )
-
-    # Appearance
-    def return_appearance(self, looker, **kwargs):
-        """
-        Main callback used by 'look' for the object to describe itself.
-        This formats a description. By default, this looks for the `appearance_template`
-        string set on this class and populates it with formatting keys
-            'name', 'desc', 'exits', 'characters', 'things' as well as
-            (currently empty) 'header'/'footer'. Each of these values are
-            retrieved by a matching method `.get_display_*`, such as `get_display_name`,
-            `get_display_footer` etc.
-
-        Args:
-            looker (Object): Object doing the looking. Passed into all helper methods.
-            **kwargs (dict): Arbitrary, optional arguments for users
-                overriding the call. This is passed into all helper methods.
-
-        Returns:
-            str: The description of this entity. By default this includes
-                the entity's name, description and any contents inside it.
-
-        Notes:
-            To simply change the layout of how the object displays itself (like
-            adding some line decorations or change colors of different sections),
-            you can simply edit `.appearance_template`. You only need to override
-            this method (and/or its helpers) if you want to change what is passed
-            into the template or want the most control over output.
-
-        """
-
-        if not looker:
-            return ""
-
-        return self.appearance_template.format(
-            desc=self.get_display_desc(looker, **kwargs),
-            health=self.get_display_health(looker, **kwargs),
-            equipment=self.get_display_equipment(looker, **kwargs),
-            clothing=self.get_display_clothing(looker, **kwargs),
-        ).strip()
-
-    def get_display_health(self, looker, **kwargs):
-        HEALTH_MAP = {
-            0: "They are |xlifeless|n.",
-            1: "They are |#ff0000barely clinging to life|n.",
-            10: "They are |#ff3300critically wounded|n.",
-            20: "They are |#ff6600severely injured|n.",
-            30: "They are |#ff9933gravely hurt|n.",
-            40: "They are |#ffcc00injured|n.",
-            50: "They are |#ffff00wounded|n.",
-            60: "They are |#ccff00hurt|n.",
-            70: "They have |#99ff00some small cuts|n.",
-            80: "They are |#66ff00bruised and scraped|n.",
-            90: "They are |#33ff00lightly scuffed|n.",
-            99: "They have |#1aff00a few scratches|n.",
-            100: "They are |#00ff00in perfect condition|n.",
-        }
-
-        percentage = self.health.percent(formatting=None)
-        for threshold, display in HEALTH_MAP.items():
-            if percentage <= threshold:
-                return f"{display}"
-        return "They appear |xunknown|n."
-
-    def get_display_equipment(self, looker, **kwargs):
-        """
-        Returns a formatted string representing the equipment of the entity.
-
-        Args:
-            looker (Entity): The entity that is looking at the equipment.
-            **kwargs: Additional keyword arguments.
-
-        Returns:
-            str: A formatted string representing the equipment of the entity.
-
-        """
-
-        def _filter_visible(obj_list):
-            return [
-                obj
-                for obj in obj_list
-                if obj != looker and obj.access(looker, "view")
-            ]
-
-        equipment = _filter_visible(self.equipment.all())
-        if not equipment:
-            return ""
-
-        string = "|wEquipment:|n"
-        max_position = (
-            max([len(item.position) for item in equipment]) + 8
-            if equipment
-            else 0
-        )
-
-        for item in equipment:
-            spaces = " " * (max_position - len(f" <worn {item.position}>"))
-            line = f" |x<{item.position}>|n{spaces} {item.get_display_name(looker)}"
-            string += f"\n{line}"
-
-        return "\n" + string
-
-    def get_display_clothing(self, looker, **kwargs):
-        """
-        Returns a formatted string representation of the clothing items worn by the entity.
-
-        Args:
-            looker (Entity): The entity observing the clothing items.
-
-        Returns:
-            str: A formatted string representation of the clothing items.
-
-        """
-
-        def _filter_visible(obj_list):
-            return [
-                obj
-                for obj in obj_list
-                if obj != looker and obj.access(looker, "view")
-            ]
-
-        clothing = _filter_visible(self.clothing.all())
-        if not clothing:
-            return ""
-
-        string = "|wClothing:|n"
-        max_position = (
-            max([len(item.position) for item in clothing]) + 8
-            if clothing
-            else 0
-        )
-
-        for item in clothing:
-            spaces = " " * (max_position - len(f" <worn {item.position}>"))
-            if item.covered_by and looker is not self:
-                continue
-
-            line = f" |x<worn {item.position}>|n{spaces} {item.get_display_name(looker)}"
-            if item.covered_by:
-                line += " |x(hidden)|n"
-            string += f"\n{line}"
-
-        return "\n" + string
-
-    def get_pronoun(self, regex_match):
-        """
-        Get pronoun from the pronoun marker in the text. This is used as
-        the callable for the re.sub function.
-
-        Args:
-            regex_match (MatchObject): the regular expression match.
-
-        Notes:
-            - `|s`, `|S`: Subjective form: he, she, it, He, She, It, They
-            - `|o`, `|O`: Objective form: him, her, it, Him, Her, It, Them
-            - `|p`, `|P`: Possessive form: his, her, its, His, Her, Its, Their
-            - `|a`, `|A`: Absolute Possessive form: his, hers, its, His, Hers, Its, Theirs
-
-        """  # noqa: E501
-        typ = regex_match.group()[1]  # "s", "O" etc
-        gender = self.gender.value
-        pronoun = genders._GENDER_PRONOUN_MAP[gender][typ.lower()]
-        return pronoun.capitalize() if typ.isupper() else pronoun
 
     def handle_search_results(self, searchdata, results, **kwargs):
         """

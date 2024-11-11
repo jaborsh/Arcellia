@@ -74,7 +74,6 @@ class RoomAppearanceHandler(AppearanceHandler):
     # === Initialization and Persistence ===
     def __init__(self, obj):
         super().__init__(obj)
-        self._fallback_desc = "You see nothing special."
 
         # Time constants
         self._months_per_year = 12

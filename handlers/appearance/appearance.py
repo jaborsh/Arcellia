@@ -41,6 +41,7 @@ class AppearanceHandler:
         self.obj = obj
         self._db_attribute = db_attribute_key
         self._db_category = db_category
+        self._fallback_desc = "You see nothing special."
         self.descriptions = {}
         self.senses = {}
         self._load()
