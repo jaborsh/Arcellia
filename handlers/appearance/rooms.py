@@ -231,7 +231,7 @@ class RoomAppearanceHandler(AppearanceHandler):
         if desc := (self.descriptions.get(season)):
             return desc
 
-        return self.descriptions.get("desc", self._fallback_desc)
+        return self.descriptions.get("default", self._fallback_desc)
 
     def add_room_state(self, *room_states):
         """
