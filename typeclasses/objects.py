@@ -294,6 +294,7 @@ class Object(ObjectParent, DefaultObject):
         self.locks.add(
             ";".join(
                 [
+                    "appearance:all()",  # can always be looked at
                     "attack:false()",  # attacks against this object
                     "call:true()",  # allow to call commands on this object
                     "control:perm(Developer)",  # edit locks/permissions, delete

@@ -787,15 +787,15 @@ class RoomAppearanceHandler(AppearanceHandler):
             into the template or want the most control over output.
         """
 
-        if not looker:
+        if not looker or not self.obj.access(looker, "appearance"):
             return ""
 
         if not looker.permissions.check("Admin"):
-            if self.tags.get(
+            if self.obj.tags.get(
                 "dark", category="room_state"
             ) and not looker.feats.has(racial_feats.Darkvision):
                 return self.return_dark_appearance(looker, **kwargs)
-            elif self.tags.get(
+            elif self.obj.tags.get(
                 "magical_dark", category="room_state"
             ) and not looker.feats.has(racial_feats.SuperiorDarkvision):
                 return self.return_magical_dark_appearance(looker, **kwargs)

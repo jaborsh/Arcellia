@@ -1,8 +1,3 @@
-CREATION_ROOM_PARENT = {
-    "prototype_key": "xyz_room",
-    "typeclass": "world.chargen.rooms.CreationRoom",
-}
-
 CHARGEN_MAP = r"""
  + 0
    
@@ -13,10 +8,10 @@ CHARGEN_MAP = r"""
 
 PROTOTYPES = {
     (0, 0): {
-        "prototype_parent": CREATION_ROOM_PARENT,
-        "typeclass": "world.chargen.rooms.CreationRoom",
         "key": "|wArcellia - Sanctum of Arrival|n",
+        "typeclass": "world.xyzgrid.xyzroom.XYZRoom",
         "desc": "",
+        "locks": "appearance:false()",
     },
 }
 
