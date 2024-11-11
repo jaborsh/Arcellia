@@ -7,9 +7,6 @@ from django.conf import settings
 from commands.command import Command
 from server.conf import logger
 
-_AUTO_PUPPET_ON_LOGIN = getattr(settings, "AUTO_PUPPET_ON_LOGIN", False)
-_MAX_NR_CHARACTERS = getattr(settings, "MAX_NR_CHARACTERS", 1)
-
 
 class CmdDisconnect(Command):
     """
@@ -27,49 +24,67 @@ class CmdDisconnect(Command):
     aliases = ["disc", "unpuppet"]
     help_category = "Account"
 
-    def func(self) -> None:
-        """Disconnect the player's character from the game, making them OOC."""
-        account = self.account
-        session = self.session
-        old_char = account.get_puppet(session)
+    # Class-level configuration
+    AUTO_PUPPET_ON_LOGIN = getattr(settings, "AUTO_PUPPET_ON_LOGIN", False)
+    MAX_NR_CHARACTERS = getattr(settings, "MAX_NR_CHARACTERS", 1)
 
-        if not old_char:
-            self.msg("You are already OOC.")
+    def func(self):
+        """Execute the disconnect command."""
+        if not self._validate_character():
             return
 
-        # Store the last puppet for potential reconnection
-        account.db._last_puppet = old_char
+        self._store_last_puppet()
+        if self._attempt_unpuppet():
+            self._show_disconnect_message()
 
+    def _validate_character(self):
+        """Check if the account has a character to disconnect from."""
+        if not self.account.get_puppet(self.session):
+            self.msg("You are already OOC.")
+            return False
+        return True
+
+    def _store_last_puppet(self):
+        """Store the current character as the last puppet."""
+        self.old_char = self.account.get_puppet(self.session)
+        self.account.db._last_puppet = self.old_char
+
+    def _attempt_unpuppet(self):
+        """Attempt to unpuppet the current character."""
         try:
-            # Attempt to unpuppet the current character
-            account.unpuppet_object(session)
-            self.msg("\n|GYou go OOC.|n\n")
-            logger.log_sec(f"{old_char} exits the game (Account: {account}).")
-
-            # Determine the next steps based on settings and character count
-            if (
-                _AUTO_PUPPET_ON_LOGIN
-                and _MAX_NR_CHARACTERS == 1
-                and getattr(self, "playable", False)
-            ):
-                self.msg(
-                    "You are out-of-character (OOC).\n"
-                    "Use |wconnect|n to get back into the game."
-                )
-            else:
-                # Display the current room's description to the user
-                room_description = account.at_look(target=None, session=session)
-                self.msg(room_description)
-
+            self.account.unpuppet_object(self.session)
+            logger.log_sec(
+                f"{self.old_char} exits the game (Account: {self.account})."
+            )
+            return True
         except RuntimeError as exc:
-            # Handle specific runtime errors related to unpuppeting
-            self.msg(f"|rCould not unpuppet from |c{old_char}|n: {exc}")
-            logger.log_err(
-                f"{old_char} failed to exit the game (Account: {account}). Error: {exc}"
-            )
+            self._handle_error(exc, "Could not unpuppet from")
         except Exception as exc:
-            # Catch all other exceptions to prevent crashes and log them
-            self.msg(f"|rAn unexpected error occurred: {exc}|n")
-            logger.log_err(
-                f"Unexpected error when {old_char} attempted to exit the game (Account: {account}). Error: {exc}"
+            self._handle_error(exc, "An unexpected error occurred:")
+        return False
+
+    def _handle_error(self, exc, prefix):
+        """Handle and log errors during unpuppeting."""
+        self.msg(f"|r{prefix} |c{self.old_char}|n: {exc}")
+        logger.log_err(
+            f"{self.old_char} failed to exit the game (Account: {self.account}). Error: {exc}"
+        )
+
+    def _show_disconnect_message(self):
+        """Display appropriate disconnect messages to the user."""
+        self.msg("\n|GYou go OOC.|n\n")
+
+        if (
+            self.AUTO_PUPPET_ON_LOGIN
+            and self.MAX_NR_CHARACTERS == 1
+            and getattr(self, "playable", False)
+        ):
+            self.msg(
+                "You are out-of-character (OOC).\n"
+                "Use |wconnect|n to get back into the game."
             )
+        else:
+            room_description = self.account.at_look(
+                target=None, session=self.session
+            )
+            self.msg(room_description)
