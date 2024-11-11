@@ -9,7 +9,7 @@ from evennia.objects.objects import DefaultRoom
 from evennia.utils.utils import lazy_property
 
 from handlers import combat
-from handlers.appearance import RoomAppearanceHandler
+from handlers.appearance.rooms import RoomAppearanceHandler
 
 from .objects import Object
 

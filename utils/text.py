@@ -9,14 +9,6 @@ from .colors import strip_ansi
 
 _INFLECT = inflect.engine()
 
-_INFLECT.defnoun("boots", "boots")
-_INFLECT.defnoun("gloves", "gloves")
-_INFLECT.defnoun("pants", "pants")
-_INFLECT.defnoun("shorts", "shorts")
-_INFLECT.defnoun("trousers", "trousers")
-_INFLECT.defnoun("shoes", "shoes")
-_INFLECT.defnoun("socks", "socks")
-
 SINGULARIZE_EXCEPTIONS = [
     "boots",
     "gloves",
@@ -26,6 +18,90 @@ SINGULARIZE_EXCEPTIONS = [
     "shoes",
     "socks",
 ]
+
+
+def extract_color_codes(text):
+    """
+    Extracts color codes and clean text from a string.
+
+    Args:
+        text (str): Text with color codes
+
+    Returns:
+        tuple: (clean_text, list of color positions and codes)
+    """
+    colors = []
+    clean_text = ""
+    i = 0
+    while i < len(text):
+        if text[i] == "|" and i + 1 < len(text):
+            if text[i + 1] == "n":
+                i += 2
+                continue
+
+            if text[i + 1].isdigit():  # XTERM
+                color_len = 4
+            elif text[i + 1] == "#":  # HEX
+                color_len = 8
+            else:  # ANSI
+                color_len = 2
+
+            colors.append((len(clean_text), text[i : i + color_len]))
+            i += color_len
+            continue
+
+        clean_text += text[i]
+        i += 1
+    return clean_text, colors
+
+
+def reapply_color_codes(text, colors, prefix_length=0):
+    """
+    Reapplies color codes to a string at their relative positions.
+
+    Args:
+        text (str): Clean text without color codes
+        colors (list): List of (position, color_code) tuples
+        prefix_length (int): Length of any prefix to offset color positions
+
+    Returns:
+        str: Text with color codes reapplied
+    """
+    if not colors:
+        return text
+
+    result = ""
+    last_pos = 0
+    base_text = text[prefix_length:] if prefix_length else text
+    prefix = text[:prefix_length] if prefix_length else ""
+
+    # Add prefix first
+    result = prefix
+
+    for pos, color in colors:
+        # Scale position if text length changed
+        scaled_pos = min(pos, len(base_text))
+        result += base_text[last_pos:scaled_pos] + color
+        last_pos = scaled_pos
+
+    result += base_text[last_pos:]
+    return result + "|n"
+
+
+def extract_id_suffix(text):
+    """
+    Extracts database ID suffix if present.
+
+    Args:
+        text (str): Text that may contain (#123) suffix
+
+    Returns:
+        tuple: (text without suffix, suffix or empty string)
+    """
+    if match := re.search(r"\(#\d+\)$", text):
+        suffix = match.group(0)
+        return text[: match.start()], suffix
+    return text, ""
 
 
 def grammarize(message):

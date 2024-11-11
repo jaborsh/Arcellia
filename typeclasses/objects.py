@@ -21,7 +21,7 @@ from evennia.utils.utils import (
     to_str,
 )
 
-from handlers.appearance import AppearanceHandler
+from handlers.appearance.appearance import AppearanceHandler
 from server.conf import logger
 from utils.text import wrap
 
