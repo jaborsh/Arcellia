@@ -50,3 +50,8 @@ class Mob(Entity, Object):
     def at_restore(self):
         super().at_restore()
         self.locks.add("view:true()")
+
+    def get_numbered_name(self, count, looker=None, **kwargs):
+        return self.appearance.get_numbered_name(
+            count, looker, no_article=True, **kwargs
+        )

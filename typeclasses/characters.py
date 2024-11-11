@@ -110,3 +110,8 @@ class Character(Entity, Object, DefaultCharacter):
         soul.experience.current = self.experience.current
         soul.owner.value = self
         self.experience.current = 0
+
+    def get_numbered_name(self, count, looker=None, **kwargs):
+        return self.appearance.get_numbered_name(
+            count, looker, no_article=True, **kwargs
+        )

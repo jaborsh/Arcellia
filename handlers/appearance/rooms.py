@@ -31,80 +31,76 @@ ROOM_DARK_APPEARANCE_TEMPLATE = dedent(
 )
 
 
-def func_state(roomstate, *args, looker=None, room=None, **kwargs):
-    """
-    Usage: $state(roomstate, text)
-
-    Funcparser callable for ExtendedRoom. This is called by the FuncParser when it
-    returns the description of the room. Use 'default' for a default text when no
-    other states are set.
-
-    Args:
-        roomstate (str): A roomstate, like "morning", "raining". This is case insensitive.
-        *args: All these will be combined into one string separated by commas.
-
-    Keyword Args:
-        looker (Object): The object looking at the room. Unused by default.
-        room (ExtendedRoom): The room being looked at.
-
-    Example:
-        $state(morning, It is a beautiful morning!)
-
-    Notes:
-        We try to merge all args into one text, since this function doesn't require more than one
-        argument. That way, one may be able to get away without using quotes.
-
-    """
-    roomstate = str(roomstate).lower()
-    text = ", ".join(args)
-    # make sure we have a room and a caller and not something parsed from the string
-    if (
-        not (roomstate and looker and room)
-        or isinstance(looker, str)
-        or isinstance(room, str)
-    ):
-        return ""
-
-    try:
-        if roomstate in room.room_states or roomstate == room.get_time_of_day():
-            return text
-        if roomstate == "default" and not room.room_states:
-            # return this if no roomstate is set
-            return text
-    except AttributeError:
-        # maybe used on a non-ExtendedRoom?
-        pass
-    return ""
-
-
 class RoomAppearanceHandler(AppearanceHandler):
+    """
+    A comprehensive handler for managing room appearances in Evennia.
+
+    This handler provides functionality for dynamic room descriptions that can change based on:
+    - Time of day (morning, afternoon, evening, night)
+    - Seasons (spring, summer, autumn, winter)
+    - Room states (custom states like "raining", "foggy", etc.)
+    - Lighting conditions (normal, dark, magical darkness)
+
+    It also manages:
+    - Room details (examinable objects within the room)
+    - Automated room messages (periodic broadcasts)
+    - Object grouping (for displaying multiple similar items)
+    - Coordinate display for builders
+
+    The handler supports:
+    - State-based descriptions using $state() markup
+    - Legacy time-of-day markup (<morning>text</morning>)
+    - Dark vision and magical darkness effects
+    - Ordered exit display
+    - Smart object grouping for mobs and items
+
+    Example Usage:
+        room.appearance.add_desc("A sunny meadow.", "default")
+        room.appearance.add_desc("A rain-soaked meadow.", "raining")
+        room.appearance.add_detail("tree", "A tall oak tree stands here.")
+        room.appearance.add_room_state("raining")
+
+    Properties:
+        desc (str): The current description based on room state
+        time_of_day (str): Current time of day (morning, afternoon, evening, night)
+        season (str): Current season (spring, summer, autumn, winter)
+        is_dark (bool): Whether the room is in darkness
+        is_magical_dark (bool): Whether the room is in magical darkness
+        details (dict): Room's detail descriptions
+        states (list): Current room states
+        messages (list): Room's broadcast messages
+    """
+
+    # === Initialization and Persistence ===
     def __init__(self, obj):
         super().__init__(obj)
         self._fallback_desc = "You see nothing special."
+
+        # Time constants
         self._months_per_year = 12
         self._hours_per_day = 24
 
-        # Time periods
+        # Time period mappings using integer ranges for efficiency
         self._seasons_per_year = {
-            "spring": (3 / self._months_per_year, 6 / self._months_per_year),
-            "summer": (6 / self._months_per_year, 9 / self._months_per_year),
-            "autumn": (9 / self._months_per_year, 12 / self._months_per_year),
-            "winter": (12 / self._months_per_year, 3 / self._months_per_year),
+            "spring": (3, 6),
+            "summer": (6, 9),
+            "autumn": (9, 12),
+            "winter": (12, 3),
         }
 
         self._times_of_day = {
-            "night": (0, 6 / self._hours_per_day),
-            "morning": (6 / self._hours_per_day, 12 / self._hours_per_day),
-            "afternoon": (12 / self._hours_per_day, 18 / self._hours_per_day),
-            "evening": (18 / self._hours_per_day, 0),
+            "night": (0, 6),
+            "morning": (6, 12),
+            "afternoon": (12, 18),
+            "evening": (18, 24),
         }
 
-        # Initialize room details and messages
+        # Initialize room state
         self.room_messages = []
         self.room_message_rate = 0
         self.broadcast_repeat_task = None
-
         self.room_states = []
+
         self._load()
 
     def _load(self):
@@ -143,117 +139,75 @@ class RoomAppearanceHandler(AppearanceHandler):
             category=self._db_category,
         )
 
-    def _get_funcparser(self, looker):
-        return FuncParser(
-            {"state": func_state},
-            looker=looker,
-            room=self.obj,
-        )
+    @property
+    def desc(self):
+        return self.get_desc()
 
-    def get_time_of_day(self):
-        """Get current time of day"""
-        timestamp = gametime.gametime(absolute=True)
-        datestamp = datetime.datetime.fromtimestamp(timestamp)
-        timeslot = float(datestamp.hour) / self._hours_per_day
+    @property
+    def time_of_day(self):
+        """Current time of day."""
+        return self.get_time_of_day()
 
-        for time_of_day, (start, end) in self._times_of_day.items():
-            if start < end and start <= timeslot < end:
-                return time_of_day
-        return time_of_day
+    @property
+    def season(self):
+        """Current season."""
+        return self.get_season()
 
-    def get_season(self):
-        """Get current season"""
-        timestamp = gametime.gametime(absolute=True)
-        datestamp = datetime.datetime.fromtimestamp(timestamp)
-        timeslot = float(datestamp.month) / self._months_per_year
+    @property
+    def is_dark(self):
+        """Whether the room is in darkness."""
+        return bool(self.obj.tags.get("dark", category="room_state"))
 
-        for season, (start, end) in self._seasons_per_year.items():
-            if start < end and start <= timeslot < end:
-                return season
-        return season
+    @property
+    def is_magical_dark(self):
+        """Whether the room is in magical darkness."""
+        return bool(self.obj.tags.get("magical_dark", category="room_state"))
 
+    @property
+    def states(self):
+        """List of current room states."""
+        return self.room_states.copy()
+
+    @property
+    def messages(self):
+        """List of room broadcast messages."""
+        return self.room_messages.copy()
+
+    # === Room State Management ===
     def add_desc(self, desc, room_state=None):
+        """
+        Add or update a room description for a given state.
+
+        Args:
+            desc (str): The description text to add
+            room_state (str, optional): The state this description applies to.
+                If None, sets the default description.
+
+        Notes:
+            States are case-insensitive. Setting a description for an existing
+            state will override the previous description.
+        """
         if room_state is None:
             self.descriptions["default"] = desc
         else:
             self.descriptions[room_state.lower()] = desc
         self._save()
 
-    def add_detail(self, key, description):
-        """Add a room detail"""
-        self.details[key.lower()] = description
-        self._save()
+    def get_desc(self):
+        """
+        Get the current room description based on active states.
 
-    def remove_detail(self, key):
-        """Remove a room detail"""
-        self.details.pop(key.lower(), None)
-        self._save()
+        Returns:
+            str: The room's current description text.
 
-    def get_detail(self, key, looker=None):
-        key = key.lower()
-        detail_keys = tuple(self.details.keys())
-
-        if key in detail_keys:
-            detail = self.details[key]
-        else:
-            # Find closest match starting with key
-            lkey = len(key)
-            startswith_matches = sorted(
-                (
-                    (detail_key, abs(lkey - len(detail_key)))
-                    for detail_key in detail_keys
-                    if detail_key.startswith(key)
-                ),
-                key=lambda tup: tup[1],
-            )
-            if startswith_matches:
-                detail = self.details[startswith_matches[0][0]]
-            else:
-                return None
-
-        return self._get_funcparser(looker).parse(detail) if detail else None
-
-    def add_room_state(self, *room_states):
-        """Add room states"""
-        for room_state in room_states:
-            self.room_states.append(room_state)
-        self._save()
-
-    def remove_room_state(self, *room_states):
-        """Remove room states"""
-        for room_state in room_states:
-            self.room_states.remove(room_state)
-        self._save()
-
-    def clear_room_state(self):
-        """Clear all room states"""
-        self.room_states.clear()
-        self._save()
-
-    def start_broadcast_messages(self, rate=None):
-        """Start broadcasting room messages"""
-        if rate:
-            self.room_message_rate = rate
-
-        if (
-            self.room_message_rate
-            and self.room_messages
-            and not self.broadcast_repeat_task
-        ):
-            self.broadcast_repeat_task = repeat(
-                self.room_message_rate,
-                self.broadcast_message,
-                persistent=False,
-            )
-        self._save()
-
-    def broadcast_message(self):
-        """Broadcast a random room message"""
-        if self.room_messages:
-            self.obj.msg_contents(random.choice(self.room_messages))
-
-    def get_stateful_desc(self):
-        """Get description based on current room state"""
+        Notes:
+            Description priority order:
+            1. Active non-seasonal room states
+            2. Active seasonal states
+            3. Current season
+            4. Default description
+            5. Fallback description ("You see nothing special.")
+        """
         room_states = self.room_states
         seasons = self._seasons_per_year.keys()
         seasonal_states = []
@@ -277,6 +231,79 @@ class RoomAppearanceHandler(AppearanceHandler):
             return desc
 
         return self.descriptions.get("desc", self._fallback_desc)
+
+    def add_room_state(self, *room_states):
+        """
+        Add one or more states to the room.
+
+        Args:
+            *room_states: Variable number of state strings to add.
+
+        Examples:
+            add_room_state("raining")
+            add_room_state("dark", "foggy", "winter")
+        """
+        for room_state in room_states:
+            self.room_states.append(room_state)
+        self._save()
+
+    def remove_room_state(self, *room_states):
+        """
+        Remove one or more states from the room.
+
+        Args:
+            *room_states: Variable number of state strings to remove.
+
+        Notes:
+            Silently ignores states that aren't currently active.
+        """
+        for room_state in room_states:
+            self.room_states.remove(room_state)
+        self._save()
+
+    def clear_room_state(self):
+        """Clear all room states"""
+        self.room_states.clear()
+        self._save()
+
+    # === Time and Season Management ===
+    def get_time_of_day(self):
+        """
+        Get the current time period based on game time.
+
+        Returns:
+            str: One of "night" (00-06), "morning" (06-12),
+                "afternoon" (12-18), or "evening" (18-24)
+
+        Notes:
+            Uses server's game time configuration for calculations.
+        """
+        timestamp = gametime.gametime(absolute=True)
+        hour = datetime.datetime.fromtimestamp(timestamp).hour
+
+        for time_of_day, (start, end) in self._times_of_day.items():
+            if start < end and start <= hour < end:
+                return time_of_day
+        return time_of_day
+
+    def get_season(self):
+        """
+        Get the current season based on game time.
+
+        Returns:
+            str: One of "spring" (3-6), "summer" (6-9),
+                "autumn" (9-12), or "winter" (12-3)
+
+        Notes:
+            Uses server's game time configuration for calculations.
+        """
+        timestamp = gametime.gametime(absolute=True)
+        month = datetime.datetime.fromtimestamp(timestamp).month
+
+        for season, (start, end) in self._seasons_per_year.items():
+            if start < end and start <= month < end:
+                return season
+        return season
 
     def replace_legacy_time_of_day_markup(self, desc):
         """
@@ -323,6 +350,181 @@ class RoomAppearanceHandler(AppearanceHandler):
             desc = regex.sub(r"\1" if regex == regextuple[0] else "", desc)
         return desc
 
+    # === Room Detail Management ===
+    def add_detail(self, key, description):
+        """
+        Add an examinable detail to the room.
+
+        Args:
+            key (str): The name/identifier of the detail
+            description (str): The description shown when examining the detail
+
+        Notes:
+            - Keys are case-insensitive
+            - Supports $state() markup in descriptions
+            - Adding a detail with an existing key overwrites the old detail
+        """
+        self.details[key.lower()] = description
+        self._save()
+
+    def remove_detail(self, key):
+        """Remove a room detail"""
+        self.details.pop(key.lower(), None)
+        self._save()
+
+    def get_detail(self, key, looker=None):
+        """
+        Get a detail's description, supporting partial key matches.
+
+        Args:
+            key (str): The detail key to look up
+            looker (Object, optional): The object examining the detail
+
+        Returns:
+            str or None: The detail's description if found, None if no match
+
+        Notes:
+            - Searches for exact matches first
+            - Falls back to prefix matching if no exact match
+            - Processes any state markup in the description
+            - Returns None if no match found
+        """
+        key = key.lower()
+        detail_keys = tuple(self.details.keys())
+
+        if key in detail_keys:
+            detail = self.details[key]
+        else:
+            # Find closest match starting with key
+            lkey = len(key)
+            startswith_matches = sorted(
+                (
+                    (detail_key, abs(lkey - len(detail_key)))
+                    for detail_key in detail_keys
+                    if detail_key.startswith(key)
+                ),
+                key=lambda tup: tup[1],
+            )
+            if startswith_matches:
+                detail = self.details[startswith_matches[0][0]]
+            else:
+                return None
+
+        return self._get_funcparser(looker).parse(detail) if detail else None
+
+    # === Message Broadcasting ===
+    def start_broadcast_messages(self, rate=None):
+        """
+        Start periodic broadcasting of random room messages.
+
+        Args:
+            rate (int, optional): Seconds between broadcasts.
+                Uses existing rate if None.
+
+        Notes:
+            - Only starts if messages exist and no broadcast is running
+            - Saves the new rate if provided
+            - Messages are chosen randomly from the message list
+        """
+        if rate:
+            self.room_message_rate = rate
+
+        if (
+            self.room_message_rate
+            and self.room_messages
+            and not self.broadcast_repeat_task
+        ):
+            self.broadcast_repeat_task = repeat(
+                self.room_message_rate,
+                self.broadcast_message,
+                persistent=False,
+            )
+        self._save()
+
+    def broadcast_message(self):
+        """Broadcast a random room message"""
+        if self.room_messages:
+            self.obj.msg_contents(random.choice(self.room_messages))
+
+    # === Display Formatting Helpers ===
+    def _func_state(self, roomstate, *args, looker=None, room=None, **kwargs):
+        """
+        Usage: $state(roomstate, text)
+
+        Funcparser callable for ExtendedRoom. This is called by the FuncParser when it
+        returns the description of the room. Use 'default' for a default text when no
+        other states are set.
+
+        Args:
+            roomstate (str): A roomstate, like "morning", "raining". This is case insensitive.
+            *args: All these will be combined into one string separated by commas.
+
+        Keyword Args:
+            looker (Object): The object looking at the room. Unused by default.
+            room (ExtendedRoom): The room being looked at.
+
+        Example:
+            $state(morning, It is a beautiful morning!)
+        """
+        roomstate = str(roomstate).lower()
+        text = ", ".join(args)
+        # make sure we have a room and a caller and not something parsed from the string
+        if (
+            not (roomstate and looker and room)
+            or isinstance(looker, str)
+            or isinstance(room, str)
+        ):
+            return ""
+
+        try:
+            if (
+                roomstate in room.room_states
+                or roomstate == room.get_time_of_day()
+            ):
+                return text
+            if roomstate == "default" and not room.room_states:
+                # return this if no roomstate is set
+                return text
+        except AttributeError:
+            # maybe used on a non-ExtendedRoom?
+            pass
+        return ""
+
+    def _get_funcparser(self, looker):
+        return FuncParser(
+            {"state": self._func_state},
+            looker=looker,
+            room=self.obj,
+        )
+
+    def _filter_visible(self, looker, obj_list):
+        """Filter objects that are visible to the looker."""
+        return [
+            obj
+            for obj in obj_list
+            if obj != looker and obj.access(looker, "view")
+        ]
+
+    def _group_objects(self, objects, looker, **kwargs):
+        """Group objects by their display name and count occurrences."""
+        grouped = defaultdict(list)
+        for obj in objects:
+            grouped[obj.get_display_name(looker, **kwargs)].append(obj)
+        return grouped
+
+    def _format_grouped_objects(self, grouped_objects, looker, **kwargs):
+        """Format grouped objects into display strings."""
+        names = []
+        for objname, objlist in sorted(grouped_objects.items()):
+            obj = objlist[0]
+            count = len(objlist)
+            singular, plural = obj.get_numbered_name(
+                count, looker, key=objname, **kwargs
+            )
+            names.append(singular if count == 1 else plural)
+        return "\n".join(names)
+
+    # === Component Display Methods ===
     def get_display_name(self, looker, **kwargs):
         """
         Displays the name of the object in a viewer-aware manner.
@@ -358,7 +560,7 @@ class RoomAppearanceHandler(AppearanceHandler):
             str: The desc display string.
 
         """
-        desc = self.get_stateful_desc()
+        desc = self.get_desc()
         desc = self.replace_legacy_time_of_day_markup(desc)
         desc = self._get_funcparser(looker).parse(desc, **kwargs)
         desc = (
@@ -371,17 +573,20 @@ class RoomAppearanceHandler(AppearanceHandler):
 
     def get_display_exits(self, looker, **kwargs):
         """
-        Get the 'exits' component of the object description, ordered as per the 'ordered_exits' list.
-        Other exits not in the list are appended after the predefined ones.
+        Get formatted list of visible exits.
 
         Args:
-            looker (Object): Object doing the looking.
-            **kwargs: Arbitrary data for use when overriding.
+            looker (Object): The object viewing the exits
+            **kwargs: Additional parameters passed through
 
         Returns:
-            str: The exits display data, ordered by 'ordered_exits'.
-        """
+            str: Formatted exit list in compass order
 
+        Notes:
+            - Orders exits: N,W,S,E,NW,NE,SW,SE,Up,Down
+            - Only shows exits the looker can access
+            - Appends non-compass exits at the end
+        """
         ordered_exits = [
             "north",
             "west",
@@ -436,134 +641,70 @@ class RoomAppearanceHandler(AppearanceHandler):
         return f"{character_names}\n" if character_names else ""
 
     def get_display_mobs(self, looker, **kwargs):
-        """
-        Get the 'mobs' component of the object description. Called by `return_appearance`.
-
-        Args:
-            looker (Object): Object doing the looking.
-            **kwargs: Additional keyword arguments.
-
-        Returns:
-            str: The character display data.
-        """
-
-        def _filter_visible(obj_list):
-            return [
-                obj
-                for obj in obj_list
-                if obj != looker and obj.access(looker, "view")
-            ]
-
-        mobs = _filter_visible(self.obj.contents_get(content_type="mob"))
-
-        # Convert the mobs array into a dictionary of mobs where mobs with the same key
-        # are grouped together and given a count number.
-        grouped_mobs = defaultdict(list)
-        for mob in mobs:
-            grouped_mobs[mob.get_display_name(looker, **kwargs)].append(mob)
-
-        mob_names = []
-        for mobname, moblist in sorted(grouped_mobs.items()):
-            nmobs = len(moblist)
-            mob = moblist[0]
-            singular, plural = mob.get_numbered_name(nmobs, looker, key=mobname)
-            mob_names.append(
-                mob.get_display_name(looker, **kwargs)
-                if nmobs == 1
-                else plural[0].upper() + plural[1:]
-            )
-
-        mob_names = "\n".join(reversed(mob_names))
-
+        """Get formatted mob display string."""
+        mobs = self._filter_visible(
+            looker, self.obj.contents_get(content_type="mob")
+        )
+        grouped_mobs = self._group_objects(mobs, looker, **kwargs)
+        mob_names = self._format_grouped_objects(grouped_mobs, looker, **kwargs)
         return f"{mob_names}\n" if mob_names else ""
 
     def get_display_things(self, looker, **kwargs):
-        """
-        Get the 'things' component of the object description. Called by `return_appearance`.
+        """Get formatted object display string."""
+        things = self._filter_visible(
+            looker, self.obj.contents_get(content_type="object")
+        )
+        grouped_things = self._group_objects(things, looker, **kwargs)
+        thing_names = self._format_grouped_objects(
+            grouped_things, looker, **kwargs
+        )
 
-        Args:
-            looker (Object): Object doing the looking.
-            **kwargs: Arbitrary data for use when overriding.
-        Returns:
-            str: The things display data.
-        """
-
-        def _filter_visible(obj_list):
-            return (
-                obj
-                for obj in obj_list
-                if obj != looker and obj.access(looker, "view")
-            )
-
-        # sort and handle same-named things
-        things = _filter_visible(self.obj.contents_get(content_type="object"))
-
-        grouped_things = defaultdict(list)
-        for thing in things:
-            grouped_things[thing.get_display_name(looker, **kwargs)].append(
-                thing
-            )
-
-        thing_names = []
-        for thingname, thinglist in sorted(grouped_things.items()):
-            nthings = len(thinglist)
-            thing = thinglist[0]
-            singular, plural = thing.get_numbered_name(
-                nthings, looker, key=thingname
-            )
-            thing_names.append(singular if nthings == 1 else plural)
-        thing_names = "\n".join(thing_names)
-        # Add newline before things if there are characters or mobs
-        has_chars = bool(
+        # Add spacing if there are characters or mobs
+        has_characters = bool(
             self.obj.contents_get(exclude=looker, content_type="character")
         )
         has_mobs = bool(
             self.obj.contents_get(exclude=looker, content_type="mob")
         )
-        prefix = "\n" if (has_chars or has_mobs) and thing_names else ""
+        prefix = "\n" if has_characters or has_mobs and thing_names else ""
         return f"{prefix}{thing_names}" if thing_names else ""
 
+    # === Main Appearance Methods ===
     def return_appearance(self, looker, **kwargs):
         """
-        Main callback used by 'look' for the object to describe itself.
-        This formats a description. By default, this looks for the `appearance_template`
-        string set on this class and populates it with formatting keys
-            'name', 'desc', 'exits', 'characters', 'things' as well as
-            (currently empty) 'header'/'footer'. Each of these values are
-            retrieved by a matching method `.get_display_*`, such as `get_display_name`,
-            `get_display_footer` etc.
+        Get the room's full appearance for a looker.
 
         Args:
-            looker (Object): Object doing the looking. Passed into all helper methods.
-            **kwargs (dict): Arbitrary, optional arguments for users
-                overriding the call. This is passed into all helper methods.
+            looker (Object): The object viewing the room
+            **kwargs: Additional parameters passed through
 
         Returns:
-            str: The description of this entity. By default this includes
-                the entity's name, description and any contents inside it.
+            str: Complete formatted room description
 
         Notes:
-            To simply change the layout of how the object displays itself (like
-            adding some line decorations or change colors of different sections),
-            you can simply edit `.appearance_template`. You only need to override
-            this method (and/or its helpers) if you want to change what is passed
-            into the template or want the most control over output.
+            - Handles darkness based on looker's capabilities
+            - Includes name, description, exits, and contents
+            - Contents are grouped by type (chars, mobs, objects)
+            - Respects room states and time-based descriptions
         """
-
         if not looker or not self.obj.access(looker, "appearance"):
             return ""
 
+        # Check dark room conditions for non-admin players
         if not looker.permissions.check("Admin"):
-            if self.obj.tags.get(
-                "dark", category="room_state"
-            ) and not looker.feats.has(racial_feats.Darkvision):
-                return self.return_dark_appearance(looker, **kwargs)
-            elif self.obj.tags.get(
-                "magical_dark", category="room_state"
-            ) and not looker.feats.has(racial_feats.SuperiorDarkvision):
-                return self.return_magical_dark_appearance(looker, **kwargs)
+            if self.obj.tags.get("dark", category="room_state"):
+                if not looker.feats.has(racial_feats.Darkvision):
+                    return self.return_dark_appearance(looker, **kwargs)
+            elif self.obj.tags.get("magical_dark", category="room_state"):
+                if not looker.feats.has(racial_feats.SuperiorDarkvision):
+                    dark_msg = (
+                        self.return_dark_appearance(looker, **kwargs)
+                        if looker.feats.has(racial_feats.Darkvision)
+                        else "It is too dark to see."
+                    )
+                    return dark_msg
 
-        # populate the appearance_template string.
+        # Return normal appearance
         return ROOM_APPEARANCE_TEMPLATE.format(
             name=self.get_display_name(looker, **kwargs),
             desc=self.get_display_desc(looker, **kwargs),

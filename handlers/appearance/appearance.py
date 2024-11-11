@@ -14,7 +14,31 @@ APPEARANCE_TEMPLATE = "{desc}\n\n{characters}\n{things}"
 
 
 class AppearanceHandler:
+    """
+    Handles the appearance and description systems for game objects.
+
+    This handler manages how objects appear to others in the game, including their
+    descriptions, details, and sensory information. It provides methods for storing,
+    retrieving, and displaying object appearances.
+
+    Attributes:
+        obj (Object): The game object this handler is attached to
+        descriptions (dict): Stored descriptions for the object
+        details (dict): Stored details for examining specific parts of the object
+        senses (dict): Stored sensory information for non-visual perceptions
+    """
+
     def __init__(self, obj, db_attribute_key="appearance", db_category=None):
+        """
+        Initialize the AppearanceHandler.
+
+        Args:
+            obj (Object): The game object this handler belongs to
+            db_attribute_key (str, optional): Database attribute key for storing appearance data.
+                Defaults to "appearance".
+            db_category (str, optional): Database category for the appearance attribute.
+                Defaults to None.
+        """
         self.obj = obj
         self._db_attribute = db_attribute_key
         self._db_category = db_category
@@ -24,6 +48,12 @@ class AppearanceHandler:
         self._load()
 
     def _load(self):
+        """
+        Load appearance data from the database.
+
+        Retrieves and deserializes stored descriptions, details, and sensory data
+        from the object's attributes.
+        """
         if data := self.obj.attributes.get(
             self._db_attribute, category=self._db_category
         ):
@@ -34,6 +64,12 @@ class AppearanceHandler:
             self.senses = dbserialize.deserialize(data.get("senses", {}))
 
     def _save(self):
+        """
+        Save appearance data to the database.
+
+        Serializes and stores the current descriptions, details, and sensory data
+        to the object's attributes.
+        """
         self.obj.attributes.add(
             self._db_attribute,
             {
@@ -45,6 +81,16 @@ class AppearanceHandler:
         )
 
     def _filter_visible(self, looker, obj_list):
+        """
+        Filter a list of objects to only those visible to the looker.
+
+        Args:
+            looker (Object): The object doing the looking
+            obj_list (list): List of objects to filter
+
+        Returns:
+            list: Objects that are visible to the looker
+        """
         return [
             obj
             for obj in obj_list
@@ -53,18 +99,18 @@ class AppearanceHandler:
 
     def get_display_name(self, looker=None, **kwargs):
         """
-        Displays the name of the object in a viewer-aware manner.
+        Get the display name of the object for a specific looker.
 
         Args:
-            looker (DefaultObject): The object or account that is looking at or getting information
-                for this object.
+            looker (Object, optional): The object doing the looking
+            **kwargs: Additional parameters for customizing the display
 
         Returns:
-            str: A name to display for this object. By default this returns the `.name` of the object.
+            str: The formatted display name, optionally including the object ID for builders
 
         Notes:
-            This function can be extended to change how object names appear to users in character,
-            but it does not change an object's keys or aliases when searching.
+            - Returns object ID (#xxx) suffix for users with Builder permissions
+            - Can be extended to provide different names based on the looker's properties
         """
         if looker and self.obj.locks.check_lockstring(looker, "perm(Builder)"):
             return f"{self.obj.display_name}(#{self.obj.id})"
@@ -72,27 +118,36 @@ class AppearanceHandler:
 
     def get_display_desc(self, looker, **kwargs):
         """
-        Get the 'desc' component of the object description. Called by `return_appearance`.
+        Get the main description of the object.
 
         Args:
-            looker (DefaultObject): Object doing the looking.
-            **kwargs: Arbitrary data for use when overriding.
-        Returns:
-            str: The desc display string.
+            looker (Object): The object doing the looking
+            **kwargs: Additional parameters for customizing the description
 
+        Returns:
+            str: The formatted description text
+
+        Notes:
+            - Returns a default message if no description is set
+            - Description is stripped of leading/trailing whitespace
         """
-        return self.obj.db.desc.strip() or "You see nothing special."
+        return self.descriptions.get("default", "You see nothing special.")
 
     def get_display_characters(self, looker, **kwargs):
         """
-        Get the 'characters' component of the object description. Called by `return_appearance`.
+        Get a formatted list of characters present in the object's location.
 
         Args:
-            looker (DefaultObject): Object doing the looking.
-            **kwargs: Arbitrary data for use when overriding.
-        Returns:
-            str: The character display data.
+            looker (Object): The object doing the looking
+            **kwargs: Additional parameters for customizing character display
 
+        Returns:
+            str: Formatted string listing visible characters, or empty string if none
+
+        Notes:
+            - Excludes the looker from the character list
+            - Only shows characters the looker has permission to see
+            - Returns an empty string if no visible characters are present
         """
         characters = self._filter_visible(
             looker, self.obj.contents_get(content_type="character")
@@ -106,13 +161,19 @@ class AppearanceHandler:
 
     def get_display_things(self, looker=None, **kwargs):
         """
-        Get the 'things' component of the object description. Called by `return_appearance`.
+        Get a formatted list of non-character objects in the location.
 
         Args:
-            looker (DefaultObject): Object doing the looking.
-            **kwargs: Arbitrary data for use when overriding.
+            looker (Object, optional): The object doing the looking
+            **kwargs: Additional parameters for customizing object display
+
         Returns:
-            str: The things display data.
+            str: Formatted string listing visible objects, or empty string if none
+
+        Notes:
+            - Groups identical objects together with appropriate pluralization
+            - Only shows objects the looker has permission to see
+            - Objects are sorted alphabetically
         """
         things = self._filter_visible(
             looker, self.obj.contents_get(content_type="object")
@@ -139,40 +200,28 @@ class AppearanceHandler:
 
     def get_numbered_name(self, count, looker, **kwargs):
         """
-        Return the numbered (singular, plural) forms of this object's key. This is by default called
-        by return_appearance and is used for grouping multiple same-named of this object. Note that
-        this will be called on *every* member of a group even though the plural name will be only
-        shown once. Also the singular display version, such as 'an apple', 'a tree' is determined
-        from this method.
+        Get the singular and plural forms of an object's name with proper articles.
 
         Args:
-            count (int): Number of objects of this type
-            looker (DefaultObject): Onlooker. Not used by default.
-
-        Keyword Args:
-            key (str): Optional key to pluralize. If not given, the object's `.get_display_name()`
-                method is used.
-            return_string (bool): If `True`, return only the singular form if count is 0,1 or
-                the plural form otherwise. If `False` (default), return both forms as a tuple.
-            no_article (bool): If `True`, do not return an article if `count` is 1.
+            count (int): Number of objects being described
+            looker (Object): The object doing the looking
+            **kwargs: Additional customization parameters:
+                - key (str): Optional specific key to pluralize
+                - return_string (bool): If True, return only one form based on count
+                - no_article (bool): If True, omit articles for singular forms
 
         Returns:
-            tuple: This is a tuple `(str, str)` with the singular and plural forms of the key
-            including the count.
+            tuple or str: Either (singular_form, plural_form) tuple or a single string
 
-        Examples:
-        ::
-
-            obj.get_numbered_name(3, looker, key="foo")
-                  -> ("a foo", "three foos")
-            obj.get_numbered_name(1, looker, key="Foobert", return_string=True)
-                  -> "a Foobert"
-            obj.get_numbered_name(1, looker, key="Foobert", return_string=True, no_article=True)
-                  -> "Foobert"
+        Notes:
+            - Handles special cases like "pairs of X"
+            - Preserves color codes in the formatted string
+            - Can override the base key via the 'key' kwarg
         """
         key = kwargs.get("key", self.obj.get_display_name(looker))
         key, id_suffix = extract_id_suffix(key)
         clean_key, colors = extract_color_codes(key)
+        no_article = kwargs.get("no_article", False)
 
         is_pair = bool(_INFLECT.singular_noun(clean_key))
 
@@ -181,7 +230,9 @@ class AppearanceHandler:
             prefix = f"{_INFLECT.number_to_words(count)} pairs of "
             clean_plural = prefix + clean_key
         else:
-            clean_singular = _INFLECT.an(clean_key)
+            clean_singular = (
+                _INFLECT.an(clean_key) if not no_article else clean_key
+            )
             prefix = f"{_INFLECT.number_to_words(count)} "
             clean_plural = prefix + _INFLECT.plural(clean_key, count)
 
@@ -195,11 +246,6 @@ class AppearanceHandler:
             reapply_color_codes(clean_plural, colors, len(prefix)) + id_suffix
         )
 
-        if kwargs.get("no_article") and count == 1:
-            return (
-                (singular, plural) if not kwargs.get("return_string") else key
-            )
-
         return (
             (singular, plural)
             if not kwargs.get("return_string")
@@ -208,30 +254,25 @@ class AppearanceHandler:
 
     def return_appearance(self, looker, **kwargs):
         """
-        Main callback used by 'look' for the object to describe itself.
-        This formats a description. By default, this looks for the `appearance_template`
-        string set on this class and populates it with formatting keys
-        'name', 'desc', 'exits', 'characters', 'things' as well as
-        (currently empty) 'header'/'footer'. Each of these values are
-        retrieved by a matching method `.get_display_*`, such as `get_display_name`,
-        `get_display_footer` etc.
+        Generate a complete description of the object for a looker.
+
+        This is the main method called by the 'look' command to get an object's
+        full description.
 
         Args:
-            looker (DefaultObject): Object doing the looking. Passed into all helper methods.
-            **kwargs (dict): Arbitrary, optional arguments for users
-                overriding the call. This is passed into all helper methods.
+            looker (Object): The object doing the looking
+            **kwargs: Additional parameters for customizing the appearance
 
         Returns:
-            str: The description of this entity. By default this includes
-            the entity's name, description and any contents inside it.
+            str: Complete formatted description including name, description,
+                characters present, and visible objects
 
         Notes:
-            To simply change the layout of how the object displays itself (like
-            adding some line decorations or change colors of different sections),
-            you can simply edit `.appearance_template`. You only need to override
-            this method (and/or its helpers) if you want to change what is passed
-            into the template or want the most control over output.
-
+            - Uses APPEARANCE_TEMPLATE to format the final output
+            - Combines results from get_display_desc, get_display_characters,
+              and get_display_things
+            - Strips excessive whitespace and normalizes line breaks
+            - Returns empty string if no looker is provided
         """
         if not looker:
             return ""
