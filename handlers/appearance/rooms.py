@@ -192,6 +192,24 @@ class RoomAppearanceHandler(AppearanceHandler):
             self.descriptions["default"] = desc
         else:
             self.descriptions[room_state.lower()] = desc
+            self.add_room_state(room_state.lower())
+        self._save()
+
+    def remove_desc(self, room_state="default"):
+        """
+        Remove a description associated with a specific room state.
+
+        Args:
+            room_state (str, optional): The state key for which to remove the description.
+                Defaults to 'default'.
+
+        Note:
+            - The room state is converted to lowercase before removal
+            - If the state doesn't exist, no error is raised (silently fails)
+            - Changes are automatically saved to persistent storage
+        """
+        self.descriptions.pop(room_state.lower(), None)
+        self.remove_room_state(room_state.lower())
         self._save()
 
     def get_desc(self):
@@ -245,7 +263,7 @@ class RoomAppearanceHandler(AppearanceHandler):
             add_room_state("dark", "foggy", "winter")
         """
         for room_state in room_states:
-            self.room_states.append(room_state)
+            self.room_states.append(room_state.lower())
         self._save()
 
     def remove_room_state(self, *room_states):
