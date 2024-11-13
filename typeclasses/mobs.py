@@ -1,10 +1,8 @@
 from commands.default_cmdsets import MobCmdSet
-
-from .entities import Entity
-from .objects import Object
+from typeclasses.objects import Object
 
 
-class Mob(Entity, Object):
+class Mob(Object):
     _content_types = ("mob",)
 
     def at_object_creation(self):

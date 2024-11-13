@@ -17,6 +17,7 @@ from evennia.utils.utils import (
 )
 
 from handlers import quests
+from handlers.clothing import ClothingHandler
 from prototypes import flasks
 from world.characters.guilds.registry import GuildEnums, guild_registry
 
@@ -90,14 +91,18 @@ class Character(Entity, Object, DefaultCharacter):
             flask.move_to(self, quiet=True)
 
     @lazy_property
-    def quests(self):
-        """Quest handler for the character."""
-        return quests.QuestHandler(self, db_attribute_key="quests")
+    def clothing(self):
+        return ClothingHandler(self)
 
     @property
     def guilds(self):
         """Character's guild memberships."""
         return self.traits.get("guilds")
+
+    @lazy_property
+    def quests(self):
+        """Quest handler for the character."""
+        return quests.QuestHandler(self, db_attribute_key="quests")
 
     def at_die(self):
         """Handle character death by creating a soul and transferring experience."""
