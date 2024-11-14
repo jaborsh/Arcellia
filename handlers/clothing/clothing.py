@@ -7,22 +7,22 @@ from handlers.clothing.clothing_types import ClothingType
 from typeclasses.clothing import Clothing
 
 CLOTHING_DEFAULTS = {
-    ClothingType.HEADWEAR: None,
-    ClothingType.EYEWEAR: None,
-    ClothingType.EARRING: None,
-    ClothingType.NECKWEAR: None,
-    ClothingType.UNDERSHIRT: None,
-    ClothingType.TOP: None,
-    ClothingType.OUTERWEAR: None,
-    ClothingType.FULLBODY: None,
-    ClothingType.WRISTWEAR: None,
-    ClothingType.HANDWEAR: None,
-    ClothingType.RING: None,
-    ClothingType.BELT: None,
-    ClothingType.UNDERWEAR: None,
-    ClothingType.BOTTOM: None,
-    ClothingType.HOSIERY: None,
-    ClothingType.FOOTWEAR: None,
+    ClothingType.HEADWEAR: [],
+    ClothingType.EYEWEAR: [],
+    ClothingType.EARRING: [],
+    ClothingType.NECKWEAR: [],
+    ClothingType.UNDERSHIRT: [],
+    ClothingType.TOP: [],
+    ClothingType.OUTERWEAR: [],
+    ClothingType.FULLBODY: [],
+    ClothingType.WRISTWEAR: [],
+    ClothingType.HANDWEAR: [],
+    ClothingType.RING: [],
+    ClothingType.BELT: [],
+    ClothingType.UNDERWEAR: [],
+    ClothingType.BOTTOM: [],
+    ClothingType.HOSIERY: [],
+    ClothingType.FOOTWEAR: [],
 }
 
 CLOTHING_COVER = {
@@ -84,7 +84,9 @@ class ClothingHandler:
     # Core Data Management Methods
     def _load(self):
         """Load clothing data from object attributes."""
-        loaded_data = self.obj.attributes.get(self._db_attribute, {})
+        loaded_data = self.obj.attributes.get(
+            self._db_attribute, copy(CLOTHING_DEFAULTS)
+        )
         self._clothing = dbserialize.deserialize(loaded_data)
 
     def _save(self):
@@ -159,10 +161,7 @@ class ClothingHandler:
             return False
 
         clothing_type = item.clothing_type
-
-        # Initialize list if None
-        if self._clothing[clothing_type] is None:
-            self._clothing[clothing_type] = []
+        print(item.clothing_type)
 
         # Update coverage relationships
         for covered_type in CLOTHING_COVER.get(clothing_type, []):

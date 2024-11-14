@@ -1,4 +1,4 @@
-from typeclasses.clothing import ClothingType
+from handlers.clothing.clothing_types import ClothingType
 
 # TODO: Intro Quest
 EMBERLYN_BEACH_VEILED_WOMAN_ROBE = {

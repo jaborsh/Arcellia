@@ -17,7 +17,7 @@ from evennia.utils.utils import (
 )
 
 from handlers import quests
-from handlers.clothing import ClothingHandler
+from handlers.clothing.clothing import ClothingHandler
 from prototypes import flasks
 from world.characters.guilds.registry import GuildEnums, guild_registry
 

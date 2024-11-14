@@ -3,11 +3,9 @@ from evennia.utils import (
 )
 
 from commands.command import Command
-from handlers.config.clothing_config import ClothingConfig
+from handlers.clothing.clothing import CLOTHING_LIMIT
 from typeclasses.clothing import Clothing
 from typeclasses.equipment.equipment import Equipment
-
-_CLOTHING_OVERALL_LIMIT = ClothingConfig.OVERALL_LIMIT
 
 
 class CmdWear(Command):
@@ -31,7 +29,7 @@ class CmdWear(Command):
             caller.msg("You are already wearing that.")
             return
 
-        if _CLOTHING_OVERALL_LIMIT and len(clothes) >= _CLOTHING_OVERALL_LIMIT:
+        if CLOTHING_LIMIT and len(clothes) >= CLOTHING_LIMIT:
             caller.msg("You can't wear any more clothes.")
             return
 

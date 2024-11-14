@@ -1,7 +1,7 @@
 from copy import copy
 
+from handlers.clothing.clothing_types import ClothingType
 from handlers.handler import Handler
-from typeclasses.clothing import ClothingType
 from typeclasses.equipment.equipment import EquipmentType
 
 EQUIPMENT_DEFAULTS = {

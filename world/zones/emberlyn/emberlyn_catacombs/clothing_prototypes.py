@@ -1,4 +1,4 @@
-from typeclasses.clothing import ClothingType
+from handlers.clothing.clothing_types import ClothingType
 
 TATTERED_ROBE = {
     "key": "robe",

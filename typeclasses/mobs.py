@@ -1,4 +1,6 @@
-from commands.default_cmdsets import MobCmdSet
+from evennia.utils.utils import lazy_property
+
+from handlers.clothing.clothing import ClothingHandler
 from typeclasses.objects import Object
 
 
@@ -7,7 +9,7 @@ class Mob(Object):
 
     def at_object_creation(self):
         super().at_object_creation()
-        self.cmdset.add(MobCmdSet, persistent=True)
+        # self.cmdset.add(MobCmdSet, persistent=True)
 
     def basetype_setup(self):
         """
@@ -32,6 +34,10 @@ class Mob(Object):
                 ]
             )
         )  # lock down puppeting only to staff by default
+
+    @lazy_property
+    def clothing(self):
+        return ClothingHandler(self)
 
     def at_die(self):
         self.location.msg_contents("$You() $conj(die)!", from_obj=self)

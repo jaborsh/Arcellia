@@ -1,7 +1,7 @@
 from evennia.utils import inherits_from
 
 from commands.command import Command
-from handlers.config.clothing_config import ClothingConfig
+from handlers.clothing.clothing import CLOTHING_COVER
 from handlers.equipment import EQUIPMENT_TYPE_COVER
 from typeclasses.clothing import Clothing
 from typeclasses.equipment.equipment import Equipment
@@ -58,10 +58,7 @@ class CmdCover(Command):
                     "You cannot use something you aren't wearing to cover something."
                 )
 
-            if (
-                obj.clothing_type
-                not in ClothingConfig.CLOTHING_TYPE_COVER[cover.clothing_type]
-            ):
+            if obj.clothing_type not in CLOTHING_COVER[cover.clothing_type]:
                 return caller.msg("You can't cover that with that.")
 
         elif inherits_from(cover, Equipment):
