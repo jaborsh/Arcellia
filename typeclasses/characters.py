@@ -13,20 +13,15 @@ from evennia.prototypes import spawner
 from evennia.utils import create
 from evennia.utils.utils import (
     lazy_property,
-    variable_from_module,
 )
 
 from handlers import quests
 from handlers.clothing.clothing import ClothingHandler
+from handlers.cooldowns import CooldownHandler
 from prototypes import flasks
 from world.characters.guilds.registry import GuildEnums, guild_registry
 
-from .entities import Entity
 from .objects import Object
-
-_AT_SEARCH_RESULT = variable_from_module(
-    *settings.SEARCH_AT_RESULT.rsplit(".", 1)
-)
 
 # Constants
 BASE_STAT_VALUE = 100
@@ -34,7 +29,7 @@ STAT_INCREMENT = 10
 HUMAN_VERSATILITY_MULTIPLIER = 1.25
 
 
-class Character(Entity, Object, DefaultCharacter):
+class Character(Object, DefaultCharacter):
     """
     The Character defaults to reimplementing some of base Object's hook methods with the
     following functionality:
@@ -75,6 +70,24 @@ class Character(Entity, Object, DefaultCharacter):
         # add the default cmdset
         self.cmdset.add_default(settings.CMDSET_CHARACTER, persistent=True)
 
+    @lazy_property
+    def clothing(self):
+        return ClothingHandler(self)
+
+    @lazy_property
+    def cooldowns(self):
+        return CooldownHandler(self)
+
+    @property
+    def guilds(self):
+        """Character's guild memberships."""
+        return self.traits.get("guilds")
+
+    @lazy_property
+    def quests(self):
+        """Quest handler for the character."""
+        return quests.QuestHandler(self, db_attribute_key="quests")
+
     def _init_guild(self):
         """Initialize character's guild membership."""
         self.traits.add(
@@ -89,20 +102,6 @@ class Character(Entity, Object, DefaultCharacter):
             flask = spawner.spawn(flask_type)[0]
             flask.home = self
             flask.move_to(self, quiet=True)
-
-    @lazy_property
-    def clothing(self):
-        return ClothingHandler(self)
-
-    @property
-    def guilds(self):
-        """Character's guild memberships."""
-        return self.traits.get("guilds")
-
-    @lazy_property
-    def quests(self):
-        """Quest handler for the character."""
-        return quests.QuestHandler(self, db_attribute_key="quests")
 
     def at_die(self):
         """Handle character death by creating a soul and transferring experience."""

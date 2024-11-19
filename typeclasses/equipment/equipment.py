@@ -1,25 +1,8 @@
-from enum import Enum
-
 from evennia.utils.utils import lazy_property
+
 from handlers import traits
-
+from handlers.equipment.equipment_types import EquipmentType
 from typeclasses.objects import Object
-
-
-class EquipmentType(Enum):
-    """
-    Defines the type of equipment.
-    """
-
-    AMULET = "amulet"
-    ARMOR = "armor"
-    CLOAK = "cloak"
-    FOOTWEAR = "footwear"
-    HANDWEAR = "handwear"
-    HEADWEAR = "headwear"
-    RING = "ring"
-    SHIELD = "shield"
-    WEAPON = "weapon"
 
 
 class Equipment(Object):

@@ -1,8 +1,7 @@
 import math
 import time
-from typing import Any, Dict, List, Optional, Union
 
-from .handler import Handler
+from handlers.handler import Handler
 
 
 class CooldownHandler(Handler):
@@ -41,31 +40,31 @@ class CooldownHandler(Handler):
 
     def __init__(
         self,
-        obj: Any,
-        db_attribute_key: str = "cooldowns",
-        db_attribute_category: Optional[str] = None,
-        default_data: Optional[Dict] = None,
-    ) -> None:
+        obj,
+        db_attribute_key="cooldowns",
+        db_attribute_category=None,
+        default_data=None,
+    ):
         super().__init__(
             obj, db_attribute_key, db_attribute_category, default_data
         )
-        self._last_timestamp: float = time.time()
+        self._last_timestamp = time.time()
 
     @property
-    def current_time(self) -> float:
+    def current_time(self):
         """Cache and return current timestamp."""
         self._last_timestamp = time.time()
         return self._last_timestamp
 
-    def all(self) -> List[str]:
+    def all(self):
         """Returns a list of all cooldown keys."""
         return list(self._data.keys())
 
-    def ready(self, *args: str) -> bool:
+    def ready(self, *args):
         """Checks whether all of the provided cooldowns are ready."""
         return self.time_left(*args, use_int=True) <= 0
 
-    def time_left(self, *args: str, use_int: bool = False) -> Union[float, int]:
+    def time_left(self, *args, use_int=False):
         """Returns the maximum amount of time left on given cooldowns."""
         now = self.current_time
         # Optimize list comprehension by avoiding multiple lookups
@@ -80,32 +79,29 @@ class CooldownHandler(Handler):
         left = max(max(cooldowns), 0)
         return math.ceil(left) if use_int else left
 
-    def add(self, cooldown: str, seconds: Union[float, int]) -> None:
+    def add(self, cooldown, seconds):
         """Adds/sets a given cooldown to last for a specific amount of time."""
         self._data[cooldown] = self.current_time + max(seconds or 0, 0)
 
     set = add
 
-    def extend(self, cooldown: str, seconds: Union[float, int]) -> float:
+    def extend(self, cooldown, seconds):
         """Adds a specific amount of time to an existing cooldown."""
         time_left = self.time_left(cooldown) + (seconds or 0)
         self.set(cooldown, time_left)
         return max(time_left, 0)
 
-    def reset(self, cooldown: str) -> None:
+    def reset(self, cooldown):
         """Resets a given cooldown."""
-        self._data.pop(
-            cooldown, None
-        )  # More efficient than checking then deleting
+        self._data.pop(cooldown, None)
 
-    def clear(self) -> None:
+    def clear(self):
         """Resets all cooldowns."""
         self._data.clear()
 
-    def cleanup(self) -> None:
+    def cleanup(self):
         """Deletes all expired cooldowns."""
         now = self.current_time
-        # Change condition to remove timestamps that are in the past
         cleaned = {
             key: value for key, value in self._data.items() if value > now
         }

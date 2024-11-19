@@ -10,9 +10,6 @@ from evennia.utils.utils import (
 
 from handlers.appearance.living import LivingAppearanceHandler
 from typeclasses.entity_mixins import (
-    cooldown_mixin,
-    equipment_mixin,
-    feat_mixin,
     stat_mixin,
     trait_mixin,
 )
@@ -27,9 +24,6 @@ _AT_SEARCH_RESULT = variable_from_module(
 
 class Entity(
     Object,
-    cooldown_mixin.CooldownMixin,
-    equipment_mixin.EquipmentMixin,
-    feat_mixin.FeatMixin,
     stat_mixin.StatMixin,
     trait_mixin.TraitMixin,
 ):
