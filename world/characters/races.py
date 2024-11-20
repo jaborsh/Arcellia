@@ -3,7 +3,6 @@ from evennia.prototypes import spawner
 from evennia.utils import dedent
 
 from world.characters import starting_equipment
-from world.features import racial as racial_feats
 
 RaceRegistry = ClassRegistry("key")
 
@@ -138,9 +137,6 @@ class Human(Race):
         gaiters.home = caller
         gaiters.location = caller
 
-    def initialize_race_features(self, caller):
-        caller.feats.add(racial_feats.HumanVersatility)
-
 
 @RaceRegistry.register
 class Elf(Race):
@@ -166,10 +162,6 @@ class Elf(Race):
         gloves = spawner.spawn(starting_equipment.STARTING_ELVEN_GLOVES)[0]
         gloves.home = caller
         gloves.location = caller
-
-    def initialize_race_features(self, caller):
-        caller.feats.add(racial_feats.Darkvision)
-        caller.feats.add(racial_feats.ElvenAncestry)
 
 
 @RaceRegistry.register
@@ -201,10 +193,6 @@ class Drow(Race):
         boots.home = caller
         boots.location = caller
 
-    def initialize_race_features(self, caller):
-        caller.feats.add(racial_feats.ElvenAncestry)
-        caller.feats.add(racial_feats.SuperiorDarkvision)
-
 
 @RaceRegistry.register
 class Dwarf(Race):
@@ -227,26 +215,15 @@ class Dwarf(Race):
         boots.home = caller
         boots.location = caller
 
-    def initialize_race_features(self, caller):
-        caller.feats.add(racial_feats.Darkvision)
-        caller.feats.add(racial_feats.DwarvenResilience)
-        caller.feats.add(racial_feats.DwarvenToughness)
-
 
 @RaceRegistry.register
 class Gnome(Race):
     key = "gnome"
 
-    def initialize_race_features(self, caller):
-        caller.feats.add(racial_feats.Darkvision)
-
 
 @RaceRegistry.register
 class Halfling(Race):
     key = "halfling"
-
-    def initialize_race_features(self, caller):
-        caller.feats.add(racial_feats.HalflingLuck)
 
 
 # Furry race
@@ -272,9 +249,6 @@ class Astralite(Race):
         robe = spawner.spawn(starting_equipment.STARTING_ASTRALITE_ROBE)[0]
         robe.home = caller
         robe.location = caller
-
-    def initialize_race_features(self, caller):
-        caller.feats.add(racial_feats.AstralFlight)
 
 
 # Dragon race
@@ -307,9 +281,6 @@ class Draconian(Race):
         greaves.home = caller
         greaves.location = caller
 
-    def initialize_race_features(self, caller):
-        caller.feats.add(racial_feats.Darkvision)
-
 
 # Orcs, obviously
 @RaceRegistry.register
@@ -320,9 +291,6 @@ class Orc(Race):
         club = spawner.spawn(starting_equipment.STARTING_CLUB)[0]
         club.home = caller
         club.location = caller
-
-    def initialize_race_features(self, caller):
-        caller.feats.add(racial_feats.Darkvision)
 
 
 # Demon-spawn/Tieflings
@@ -342,9 +310,6 @@ class Tanarius(Race):
         boots = spawner.spawn(starting_equipment.STARTING_TANARIUS_BOOTS)[0]
         boots.home = caller
         boots.location = caller
-
-    def initialize_race_features(self, caller):
-        caller.feats.add(racial_feats.Darkvision)
 
 
 # Mob Races

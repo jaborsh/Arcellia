@@ -1,6 +1,9 @@
 from evennia.utils.utils import lazy_property
 
 from handlers.clothing.clothing import ClothingHandler
+from handlers.equipment.equipment import EquipmentHandler
+from handlers.stats.stats import StatHandler
+from handlers.traits import TraitHandler
 from typeclasses.objects import Object
 
 
@@ -38,6 +41,18 @@ class Mob(Object):
     @lazy_property
     def clothing(self):
         return ClothingHandler(self)
+
+    @lazy_property
+    def equipment(self):
+        return EquipmentHandler(self)
+
+    @lazy_property
+    def stats(self):
+        return StatHandler(self)
+
+    @lazy_property
+    def traits(self):
+        return TraitHandler(self)
 
     def at_die(self):
         self.location.msg_contents("$You() $conj(die)!", from_obj=self)

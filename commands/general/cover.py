@@ -2,7 +2,7 @@ from evennia.utils import inherits_from
 
 from commands.command import Command
 from handlers.clothing.clothing import CLOTHING_COVER
-from handlers.equipment import EQUIPMENT_TYPE_COVER
+from handlers.equipment.equipment import EQUIPMENT_TYPE_COVER
 from typeclasses.clothing import Clothing
 from typeclasses.equipment.equipment import Equipment
 

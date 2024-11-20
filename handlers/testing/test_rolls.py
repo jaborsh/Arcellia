@@ -1,7 +1,6 @@
 from evennia.utils.test_resources import EvenniaTest
 
 from handlers.rolls import RollHandler
-from world.features import racial as racial_feats
 
 
 class TestRollHandler(EvenniaTest):
@@ -71,9 +70,6 @@ class TestRollHandler(EvenniaTest):
     def test_halfling_luck_trait(self):
         # Create a RollHandler object
         roll_handler = RollHandler()
-
-        # Create a Roller object with HalflingLuck buff
-        self.char1.feats.add(racial_feats.HalflingLuck)
 
         # Define the roll parameters
         roll_str = "1d2"

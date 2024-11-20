@@ -1,8 +1,6 @@
 import random
 import re
 
-from world.features import racial as racial_feats
-
 
 class SingletonMeta(type):
     """
@@ -96,10 +94,7 @@ class RollHandler(metaclass=SingletonMeta):
         num_dice, sides = map(int, matches.groups())
         num_dice = num_dice or 1
 
-        if roller and roller.feats.has(racial_feats.HalflingLuck):
-            rolls = [random.randint(2, sides) for _ in range(num_dice)]
-        else:
-            rolls = [random.randint(1, sides) for _ in range(num_dice)]
+        rolls = [random.randint(1, sides) for _ in range(num_dice)]
 
         total = sum(rolls)
         total += self.get_modifier(stat) if isinstance(stat, int) else 0

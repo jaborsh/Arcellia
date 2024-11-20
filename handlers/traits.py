@@ -556,7 +556,7 @@ class TraitHandler:
     """
 
     def __init__(
-        self, obj, db_attribute_key="traits", db_attribute_category="traits"
+        self, obj, db_attribute_key="traits", db_attribute_category=None
     ):
         """
         Initialize the handler and set up its internal Attribute-based storage.

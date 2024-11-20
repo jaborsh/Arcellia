@@ -8,7 +8,6 @@ from evennia.utils import dbserialize
 from evennia.utils.utils import dedent, iter_to_str, repeat
 
 from handlers.appearance.appearance import AppearanceHandler
-from world.features import racial as racial_feats
 
 ROOM_APPEARANCE_TEMPLATE = dedent(
     """
@@ -708,20 +707,6 @@ class RoomAppearanceHandler(AppearanceHandler):
         if not looker or not self.obj.access(looker, "appearance"):
             return ""
 
-        # Check dark room conditions for non-admin players
-        if not looker.permissions.check("Admin"):
-            if self.obj.tags.get("dark", category="room_state"):
-                if not looker.feats.has(racial_feats.Darkvision):
-                    return self.return_dark_appearance(looker, **kwargs)
-            elif self.obj.tags.get("magical_dark", category="room_state"):
-                if not looker.feats.has(racial_feats.SuperiorDarkvision):
-                    dark_msg = (
-                        self.return_dark_appearance(looker, **kwargs)
-                        if looker.feats.has(racial_feats.Darkvision)
-                        else "It is too dark to see."
-                    )
-                    return dark_msg
-
         # Return normal appearance
         return ROOM_APPEARANCE_TEMPLATE.format(
             name=self.get_display_name(looker, **kwargs),
@@ -731,42 +716,3 @@ class RoomAppearanceHandler(AppearanceHandler):
             mobs=self.get_display_mobs(looker, **kwargs),
             things=self.get_display_things(looker, **kwargs),
         ).strip()
-
-    def return_dark_appearance(self, looker, **kwargs):
-        """
-        Returns the dark appearance of the room for a given looker.
-
-        Args:
-            looker (object): The object looking at the room.
-            **kwargs: Additional keyword arguments.
-
-        Returns:
-            str: The dark appearance of the room.
-        """
-        if not looker:
-            return ""
-
-        # populate the dark_appearance_template string.
-        return ROOM_DARK_APPEARANCE_TEMPLATE.format(
-            name=self.get_display_name(looker, **kwargs),
-            desc=self.get_display_desc(looker, **kwargs),
-        ).strip()
-
-    def return_magical_dark_appearance(self, looker, **kwargs):
-        """
-        Returns the appearance of the room when it is super dark.
-
-        Args:
-            looker (object): The object trying to look at the room.
-            **kwargs: Additional keyword arguments.
-
-        Returns:
-            str: The appearance of the room when it is super dark.
-        """
-        if not looker:
-            return ""
-
-        if looker.feats.has(racial_feats.Darkvision):
-            return self.return_dark_appearance(looker, **kwargs)
-
-        return "It is too dark to see."

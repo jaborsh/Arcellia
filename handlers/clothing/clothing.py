@@ -161,7 +161,6 @@ class ClothingHandler:
             return False
 
         clothing_type = item.clothing_type
-        print(item.clothing_type)
 
         # Update coverage relationships
         for covered_type in CLOTHING_COVER.get(clothing_type, []):

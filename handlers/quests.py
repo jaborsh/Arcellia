@@ -2,6 +2,7 @@ from copy import copy
 from enum import Enum
 
 from evennia.utils import dbserialize
+
 from handlers.handler import Handler
 
 
@@ -47,6 +48,11 @@ class QuestHandler(Handler):
     - remove_quest(quest_name): Removes a quest from the handler.
     - clear_quests(): Removes all quests.
     """
+
+    def __init__(
+        self, obj, db_attribute="quests", db_category=None, default_data={}
+    ):
+        super().__init__(obj, db_attribute, db_category, default_data)
 
     def all(self):
         return [self.get(quest) for quest in self._data]

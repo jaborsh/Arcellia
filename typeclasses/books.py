@@ -1,12 +1,10 @@
 import random
 
-from evennia.utils.utils import lazy_property
-
 from typeclasses.objects import Object
 
 
 class Book(Object):
-    @lazy_property
+    @property
     def stories(self):
         return self.attributes.get("stories", [])
 
