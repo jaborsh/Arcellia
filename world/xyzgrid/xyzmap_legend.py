@@ -498,14 +498,22 @@ class MapNode:
         typeclass = self.validate_entity(entity)
         prot = spawner.flatten_prototype(entity)
 
-        for mob in existing_mobs:
-            if mob.tags.get(category="from_prototype") == prot.get(
-                "prototype_key"
-            ):
-                self.update_mob(mob, prot, entity, xyz, typeclass)
-                return
+        # check if we have a mob with this prototype already
+        has_matching_prototype = any(
+            mob.tags.get(category="from_prototype") == prot.get("prototype_key")
+            for mob in existing_mobs
+        )
 
-        self.spawn_new_mob(prot, entity, xyz, typeclass)
+        if has_matching_prototype:
+            # update all mobs with matching prototype
+            for mob in existing_mobs:
+                if mob.tags.get(category="from_prototype") == prot.get(
+                    "prototype_key"
+                ):
+                    self.update_mob(mob, prot, entity, xyz, typeclass)
+        else:
+            # no matching mob found, spawn a new one
+            self.spawn_new_mob(prot, entity, xyz, typeclass)
 
     def validate_entity(self, entity):
         """

@@ -104,6 +104,7 @@ class MobCmdSet(CmdSet):
     """
 
     key = "DefaultMob"
+    priority = -1
 
     def at_cmdset_creation(self):
         modules = {

@@ -131,6 +131,10 @@ class Character(Object, DefaultCharacter):
     def race(self):
         return self.traits.get("race")
 
+    @property
+    def weight(self):
+        return self.stats.get("weight")
+
     def init_flasks(self):
         """Initialize character's health and mana flasks."""
         for flask_type in (flasks.HEALTH_FLASK, flasks.MANA_FLASK):

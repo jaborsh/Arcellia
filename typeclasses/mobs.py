@@ -1,5 +1,6 @@
 from evennia.utils.utils import lazy_property
 
+from commands.default_cmdsets import MobCmdSet
 from handlers.clothing.clothing import ClothingHandler
 from handlers.equipment.equipment import EquipmentHandler
 from handlers.stats.stats import StatHandler
@@ -12,7 +13,6 @@ class Mob(Object):
 
     def at_object_creation(self):
         super().at_object_creation()
-        # self.cmdset.add(MobCmdSet, persistent=True)
 
     def basetype_setup(self):
         """
@@ -33,10 +33,11 @@ class Mob(Object):
                 [
                     "attack:true()",
                     "get:pperm(Admin)",
-                    "puppet:pperm(Admin)",
+                    "puppet:pperm(Admin)",  # lock down puppeting only to staff by default
                 ]
             )
-        )  # lock down puppeting only to staff by default
+        )
+        self.cmdset.add_default(MobCmdSet, persistent=True)
 
     @lazy_property
     def clothing(self):
@@ -53,6 +54,10 @@ class Mob(Object):
     @lazy_property
     def traits(self):
         return TraitHandler(self)
+
+    @property
+    def weight(self):
+        return self.stats.get("weight")
 
     def at_die(self):
         self.location.msg_contents("$You() $conj(die)!", from_obj=self)
