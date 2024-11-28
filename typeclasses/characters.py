@@ -18,6 +18,7 @@ from evennia.utils.utils import (
     variable_from_module,
 )
 
+from handlers.appearance.living import LivingAppearanceHandler
 from handlers.clothing.clothing import ClothingHandler
 from handlers.cooldowns import CooldownHandler
 from handlers.equipment.equipment import EquipmentHandler
@@ -95,6 +96,10 @@ class Character(Object, DefaultCharacter):
         )  # add the default cmdset
 
     @lazy_property
+    def appearance(self):
+        return LivingAppearanceHandler(self)
+
+    @lazy_property
     def clothing(self):
         return ClothingHandler(self)
 
@@ -130,6 +135,10 @@ class Character(Object, DefaultCharacter):
     @property
     def race(self):
         return self.traits.get("race")
+
+    @property
+    def health(self):
+        return self.stats.get("health")
 
     @property
     def weight(self):

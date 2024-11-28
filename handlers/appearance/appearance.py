@@ -56,9 +56,6 @@ class AppearanceHandler:
         if data := self.obj.attributes.get(
             self._db_attribute, category=self._db_category
         ):
-            self.descriptions = dbserialize.deserialize(
-                data.get("descriptions", {})
-            )
             self.senses = dbserialize.deserialize(data.get("senses", {}))
 
     def _save(self):
@@ -128,7 +125,7 @@ class AppearanceHandler:
             - Returns a default message if no description is set
             - Description is stripped of leading/trailing whitespace
         """
-        return self.descriptions.get("default", "You see nothing special.")
+        return self.obj.attributes.get("desc", self._fallback_desc)
 
     def get_display_characters(self, looker, **kwargs):
         """

@@ -187,7 +187,7 @@ class RoomAppearanceHandler(AppearanceHandler):
             state will override the previous description.
         """
         if room_state is None:
-            self.descriptions["default"] = desc
+            self.obj.attributes.add("desc", desc)
         else:
             self.descriptions[room_state.lower()] = desc
             self.add_room_state(room_state.lower())
@@ -237,7 +237,7 @@ class RoomAppearanceHandler(AppearanceHandler):
                 seasonal_states.append(state)
 
         if not seasons:
-            return self.descriptions.get("default", self._fallback_desc)
+            return self.obj.attributes.get("desc", self._fallback_desc)
 
         for seasonal_state in seasonal_states:
             if desc := self.descriptions.get(seasonal_state):
@@ -247,7 +247,7 @@ class RoomAppearanceHandler(AppearanceHandler):
         if desc := (self.descriptions.get(season)):
             return desc
 
-        return self.descriptions.get("default", self._fallback_desc)
+        return self.obj.attributes.get("desc", self._fallback_desc)
 
     def add_room_state(self, *room_states):
         """

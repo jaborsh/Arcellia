@@ -532,7 +532,9 @@ class MapNode:
         """
         self.log(f"  updating {entity.get('key')} at xyz={xyz} ({typeclass}).")
         spawner.batch_update_objects_with_prototype(
-            prot, objects=[mob], exact=False
+            prot,
+            objects=[mob],
+            exact=False,  # , test=True
         )
 
     def spawn_new_mob(self, prot, entity, xyz, typeclass):

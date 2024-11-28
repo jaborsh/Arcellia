@@ -1,6 +1,7 @@
 from evennia.utils.utils import lazy_property
 
 from commands.default_cmdsets import MobCmdSet
+from handlers.appearance.living import LivingAppearanceHandler
 from handlers.clothing.clothing import ClothingHandler
 from handlers.equipment.equipment import EquipmentHandler
 from handlers.stats.stats import StatHandler
@@ -13,6 +14,7 @@ class Mob(Object):
 
     def at_object_creation(self):
         super().at_object_creation()
+        self.stats._init_stats()
 
     def basetype_setup(self):
         """
@@ -40,6 +42,10 @@ class Mob(Object):
         self.cmdset.add_default(MobCmdSet, persistent=True)
 
     @lazy_property
+    def appearance(self):
+        return LivingAppearanceHandler(self)
+
+    @lazy_property
     def clothing(self):
         return ClothingHandler(self)
 
@@ -54,6 +60,10 @@ class Mob(Object):
     @lazy_property
     def traits(self):
         return TraitHandler(self)
+
+    @property
+    def health(self):
+        return self.stats.get("health")
 
     @property
     def weight(self):

@@ -6,17 +6,6 @@ from world.quests.emberlyn.emberlyn_start_quest import ArrivalObjective
 
 
 class ShantyBook(Book):
-    def at_object_post_spawn(self, prototype=None):
-        print(prototype)
-        self.appearance.descriptions["default"] = self.attributes.get(
-            "desc", ""
-        )
-        self.appearance.senses = self.attributes.get("senses", {})
-        self.appearance._save()
-
-        if self.attributes.get("desc", None):
-            self.attributes.remove("desc")
-
     def at_read(self, reader):
         super().at_read(reader)
         reader.quests.set_objective(
@@ -35,9 +24,7 @@ EMBERLYN_SHORE_HYMNS = {
     "display_name": "|CThe Darkened Tide: Hymns to the Deep Lady|n",
     "locks": "get:pperm(Admin)",
     "prototype_tags": [("emberlyn_shores", "zone")],
-    "abc": {"a": "b"},
     "desc": "Bound in weathered, salt-stained leather, the tome's spine is cracked and swollen from years spent in damp, briny air. Faint barnacle scars cling to its cover, whispering of voyages through treacherous waters. The pages within are brittle and yellowed, their ink a deep, inky black that swirls like the undertow, seeming almost to move as though alive. Etched along the edges are runes of forgotten tongues, their meanings drowned long ago beneath the waves. A faint, ghostly shimmer of seafoam lingers in the air around it, giving the impression that the book has never quite dried.",
-    "efg": {"a": "b"},
     "senses": {
         "feel": "The leather cover feels slick and damp, as though freshly touched by the sea's mist.",
         "smell": "A pungent scent of salt and decay clings to the pages, reminiscent of a forgotten shoreline at low tide.",

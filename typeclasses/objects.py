@@ -11,6 +11,8 @@ inheritance.
 
 """
 
+from copy import copy
+
 from django.utils.translation import gettext as _
 from evennia.objects.objects import DefaultObject
 from evennia.prototypes import spawner
@@ -246,16 +248,11 @@ class Object(ObjectParent, DefaultObject):
         return self.appearance.return_appearance(looker, **kwargs)
 
     def at_object_post_spawn(self, prototype=None):
-        self.appearance.descriptions["default"] = self.attributes.get(
-            "desc", ""
-        )
-        self.appearance.senses = self.attributes.get("senses", {})
-        self.appearance._save()
-        self.attributes.remove("desc")
-        self.attributes.remove("senses")
+        if self.attributes.get("senses", {}):
+            self.appearance.senses = copy(self.attributes.get("senses"))
+            self.appearance._save()
 
-        spawns = self.attributes.get("spawn", {})
-        if spawns:
+        if spawns := self.attributes.get("spawn", {}):
             self.spawn_clothing(spawns.get("clothing", []))
             self.spawn_equipment(spawns.get("equipment", []))
             self.spawn_inventory(spawns.get("inventory", []))
@@ -589,7 +586,7 @@ class Object(ObjectParent, DefaultObject):
             ]
             if matching_inventory:
                 spawner.batch_update_objects_with_prototype(
-                    prot, objects=matching_inventory, exact=False
+                    prot, objects=matching_inventory, exact=False, test=True
                 )
             else:
                 prot["home"] = self

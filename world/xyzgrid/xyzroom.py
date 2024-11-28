@@ -8,7 +8,6 @@ used as stand-alone XYZ-coordinate-aware rooms.
 """
 
 from django.conf import settings
-from evennia.prototypes import spawner
 
 from typeclasses.rooms import Room
 from world.xyzgrid.xyzmanager import XYZManager
@@ -104,30 +103,6 @@ class XYZRoom(Room):
             _, _, Z = self.xyz
             self._xymap = xyzgrid.get_map(Z)
         return self._xymap
-
-    def at_object_post_spawn(self, prototype=None):
-        super().at_object_post_spawn()
-        for prot in self.attributes.get("objects", []):
-            if not prot:
-                continue
-
-            matching_objects = [
-                obj
-                for obj in self.contents
-                if obj.tags.has(prot["prototype_key"], "from_prototype")
-            ]
-
-            if matching_objects:
-                print("abcd.")
-                spawner.batch_update_objects_with_prototype(
-                    prot, objects=matching_objects, exact=False
-                )
-            else:
-                prot["home"] = self
-                prot["location"] = self
-                spawner.spawn(prot)
-
-        self.attributes.remove("objects")
 
     @classmethod
     def create(cls, key, account=None, xyz=(0, 0, "map"), **kwargs):
