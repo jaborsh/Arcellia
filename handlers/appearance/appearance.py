@@ -56,7 +56,9 @@ class AppearanceHandler:
         if data := self.obj.attributes.get(
             self._db_attribute, category=self._db_category
         ):
-            self.senses = dbserialize.deserialize(data.get("senses", {}))
+            data = dbserialize.deserialize(data)
+            self.descriptions = data.get("descriptions", {})
+            self.senses = data.get("senses", {})
 
     def _save(self):
         """

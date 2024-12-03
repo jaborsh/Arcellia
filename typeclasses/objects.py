@@ -11,8 +11,6 @@ inheritance.
 
 """
 
-from copy import copy
-
 from django.utils.translation import gettext as _
 from evennia.objects.objects import DefaultObject
 from evennia.prototypes import spawner
@@ -24,6 +22,7 @@ from evennia.utils.utils import (
 )
 
 from handlers.appearance.appearance import AppearanceHandler
+from handlers.spawns import SpawnHandler
 from server.conf import logger
 from utils.text import wrap
 
@@ -198,6 +197,10 @@ class Object(ObjectParent, DefaultObject):
     def appearance(self):
         return AppearanceHandler(self)
 
+    @lazy_property
+    def spawn(self):
+        return SpawnHandler(self)
+
     @property
     def display_name(self):
         return self.attributes.get("display_name", self.name)
@@ -248,17 +251,18 @@ class Object(ObjectParent, DefaultObject):
         return self.appearance.return_appearance(looker, **kwargs)
 
     def at_object_post_spawn(self, prototype=None):
-        if self.attributes.get("senses", {}):
-            self.appearance.senses = copy(self.attributes.get("senses"))
-            self.appearance._save()
+        self.spawn.at_post_spawn(prototype=prototype)
+        # if self.attributes.get("senses", {}):
+        #     self.appearance.senses = copy(self.attributes.get("senses"))
+        #     self.appearance._save()
 
-        if spawns := self.attributes.get("spawn", {}):
-            self.spawn_clothing(spawns.get("clothing", []))
-            self.spawn_equipment(spawns.get("equipment", []))
-            self.spawn_inventory(spawns.get("inventory", []))
-            self.spawn_stats(spawns.get("stats", {}))
-            self.spawn_weapons(spawns.get("weapons", []))
-            self.attributes.remove("spawn")
+        # if spawns := self.attributes.get("spawn", {}):
+        #     self.spawn_clothing(spawns.get("clothing", []))
+        #     self.spawn_equipment(spawns.get("equipment", []))
+        #     self.spawn_inventory(spawns.get("inventory", []))
+        #     self.spawn_stats(spawns.get("stats", {}))
+        #     self.spawn_weapons(spawns.get("weapons", []))
+        #     self.attributes.remove("spawn")
 
     def at_post_puppet(self, **kwargs):
         logger.log_sec(
