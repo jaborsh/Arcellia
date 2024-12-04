@@ -273,13 +273,14 @@ class Account(DefaultAccount):
                 if isinstance(sess.address, tuple)
                 else sess.address
             )
-            addr = f"{sess.protocol_flags['CLIENTNAME']} ({ip_addr})"
+            client = sess.protocol_flags.get("CLIENTNAME", None)
+            addr = f"{client} ({ip_addr})"
             sess_str = (
                 f"|w* {isess}|n"
                 if session and session.sessid == sess.sessid
                 else f"  {isess}"
             )
-            width = min(sess.protocol_flags["SCREENWIDTH"][0], 56)
+            width = sess.protocol_flags.get("SCREENWIDTH"[0], 56)
             sess_strings.append(f"  {sess_str} {addr}")
 
         if not characters:
