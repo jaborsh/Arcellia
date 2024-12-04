@@ -77,11 +77,14 @@ EMBERLYN_BEACH_ROOMS = {
             "taste": "The air carries a salty tang, with a hint of damp, rotting wood lingering on the back of your tongue.",
         },
         "details": {
-            "pier planks": "The planks of the pier are rough and splintered, many of them worn down by the relentless erosion of water and time. Some are cracked, revealing the dark, damp understructure beneath.",
-            "ropes and nets": "Old, frayed ropes dangle over the sides of the pier, remnants of a time when this structure saw regular use. The nets that remain are brittle and crumbling, tangled beyond use.",
+            "planks": "The planks of the pier are rough and splintered, many of them worn down by the relentless erosion of water and time. Some are cracked, revealing the dark, damp understructure beneath.",
+            "ropes": "Old, frayed ropes dangle over the sides of the pier, remnants of a time when this structure saw regular use.",
+            "nets": "The nets that remain are brittle and crumbling, tangled beyond use.",
             "water": "The water beneath the pier is dark and stagnant, its surface covered in patches of algae that ripple slightly with the breeze, concealing any movement below.",
         },
-        "objects": [object_prototypes.EMBERLYN_SHORE_HYMNS],
+        "inventory": {
+            "objects": [object_prototypes.EMBERLYN_SHORE_HYMNS],
+        },
     },
     (1, 3): {
         "key": "|#C7B299Emberlyn Shore|n",

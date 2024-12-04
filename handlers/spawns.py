@@ -110,41 +110,31 @@ class SpawnHandler:
                 self.appearance._save()
                 self.attributes.remove(key)
 
-        if clothing := self.attributes.get("clothing"):
-            self.data["clothing"] = clothing
-            self.spawn_inventory(clothing.deserialize())
+        if inventory := self.attributes.get("inventory"):
+            for k, v in inventory.items():
+                self.data[k] = v.deserialize()
+                self.spawn_inventory(v.deserialize())
             self._save()
-            self.attributes.remove("clothing")
-
-        if equipment := self.attributes.get("equipment"):
-            self.data["equipment"] = equipment
-            self.spawn_inventory(equipment.deserialize())
-            self._save()
-            self.attributes.remove("equipment")
-
-        if objects := self.attributes.get("objects"):
-            self.data["objects"] = objects
-            self.spawn_inventory(objects.deserialize())
-            self._save()
-            self.attributes.remove("objects")
-
-        if weapons := self.attributes.get("weapons"):
-            self.data["weapons"] = weapons
-            self.spawn_inventory(weapons.deserialize())
-            self._save()
-            self.attributes.remove("weapons")
+            self.attributes.remove("inventory")
 
         if stats := self.attributes.get("stats"):
             for k, v in stats.items():
-                self.stats.add(
-                    k,
-                    k.capitalize(),
-                    base=v["base"],
-                    min=v["min"],
-                    max=v["max"],
-                    trait_type=v["trait_type"],
-                )
-            # self.attributes.remove("stats")
+                if v["trait_type"] in ("counter", "gauge"):
+                    self.stats.add(
+                        k,
+                        k.capitalize(),
+                        base=v["base"],
+                        min=v["min"],
+                        max=v["max"],
+                        trait_type=v["trait_type"],
+                    )
+                else:
+                    self.stats.add(
+                        k,
+                        k.capitalize(),
+                        base=v["base"],
+                        trait_type=v["trait_type"],
+                    )
 
     def spawn_inventory(self, inventory_data):
         for prototype in inventory_data:

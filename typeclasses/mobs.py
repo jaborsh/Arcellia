@@ -72,8 +72,8 @@ class Mob(Object):
     def at_die(self):
         self.location.msg_contents("$You() $conj(die)!", from_obj=self)
         for char in self.location.contents_get(content_type="character"):
-            char.experience.current += self.experience.current
-            char.msg(f"You gain {self.experience.current} experience.")
+            char.experience.current += self.experience.value
+            char.msg(f"You gain {self.experience.value} experience.")
 
         for item in self.contents:
             item.move_to(self.location, quiet=True)
