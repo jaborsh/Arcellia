@@ -1,7 +1,66 @@
+from abc import ABC, abstractmethod
+
+from django.conf import settings
 from evennia.prototypes import spawner
 from evennia.prototypes.prototypes import search_objects_with_prototype
 from evennia.utils import dbserialize
-from evennia.utils.utils import lazy_property
+from evennia.utils.utils import class_from_module, inherits_from, lazy_property
+
+TYPECLASSES = {
+    "clothing": settings.BASE_CLOTHING_TYPECLASS,
+    "equipment": settings.BASE_EQUIPMENT_TYPECLASS,
+    "weapon": settings.BASE_WEAPON_TYPECLASS,
+}
+
+
+class SpawnStrategy(ABC):
+    @abstractmethod
+    def equip(self, obj, item):
+        pass
+
+
+class ClothingSpawnStrategy(SpawnStrategy):
+    def equip(self, obj, item):
+        obj.clothing.wear(item)
+
+
+class EquipmentSpawnStrategy(SpawnStrategy):
+    def equip(self, obj, item):
+        obj.equipment.wear(item)
+
+
+class InventorySpawner:
+    def __init__(self, owner):
+        self.owner = owner
+        self.strategies = {
+            TYPECLASSES["clothing"]: ClothingSpawnStrategy(),
+            TYPECLASSES["equipment"]: EquipmentSpawnStrategy(),
+            TYPECLASSES["weapon"]: EquipmentSpawnStrategy(),
+        }
+
+    def spawn_or_update(self, prototype):
+        existing_objects = [
+            obj
+            for obj in search_objects_with_prototype(prototype["prototype_key"])
+            if obj in self.owner.contents
+        ]
+
+        if existing_objects:
+            spawner.batch_update_objects_with_prototype(
+                prototype, objects=existing_objects, exact=False
+            )
+            return existing_objects
+
+        prototype.update({"home": self.owner, "location": self.owner})
+        new_obj = spawner.spawn(prototype)[0]
+        print(new_obj)
+
+        for typeclass, strategy in self.strategies.items():
+            if inherits_from(new_obj, class_from_module(typeclass)):
+                strategy.equip(self.owner, new_obj)
+                break
+
+        return new_obj
 
 
 class SpawnHandler:
@@ -10,6 +69,7 @@ class SpawnHandler:
         self._db_attribute = db_attribute
         self._db_category = db_category
         self.data = {}
+        self.inventory_spawner = InventorySpawner(obj)
         self._load()
 
     def _load(self):
@@ -33,62 +93,59 @@ class SpawnHandler:
     def attributes(self):
         return self.obj.attributes
 
+    @lazy_property
+    def stats(self):
+        return self.obj.stats
+
     def at_post_spawn(self, prototype=None):
-        """Handle post-spawn operations like inventory and senses."""
+        appearance_attrs = {
+            "desc": "desc",
+            "display_name": "display_name",
+            "senses": "senses",
+        }
 
-        # Handle inventory spawning
-        if inventory := self.attributes.get("inventory"):
-            self.data = inventory
-            self.spawn_inventory(inventory.deserialize())
+        for attr, key in appearance_attrs.items():
+            if value := self.attributes.get(key):
+                setattr(self.appearance, attr, value)
+                self.appearance._save()
+                self.attributes.remove(key)
+
+        if clothing := self.attributes.get("clothing"):
+            self.data["clothing"] = clothing
+            self.spawn_inventory(clothing.deserialize())
             self._save()
-            self.attributes.remove("inventory")
+            self.attributes.remove("clothing")
 
-        # Handle senses
-        if senses := self.attributes.get("senses"):
-            self.appearance.senses = senses
-            self.appearance._save()
-            self.attributes.remove("senses")
+        if equipment := self.attributes.get("equipment"):
+            self.data["equipment"] = equipment
+            self.spawn_inventory(equipment.deserialize())
+            self._save()
+            self.attributes.remove("equipment")
+
+        if objects := self.attributes.get("objects"):
+            self.data["objects"] = objects
+            self.spawn_inventory(objects.deserialize())
+            self._save()
+            self.attributes.remove("objects")
+
+        if weapons := self.attributes.get("weapons"):
+            self.data["weapons"] = weapons
+            self.spawn_inventory(weapons.deserialize())
+            self._save()
+            self.attributes.remove("weapons")
+
+        if stats := self.attributes.get("stats"):
+            for k, v in stats.items():
+                self.stats.add(
+                    k,
+                    k.capitalize(),
+                    base=v["base"],
+                    min=v["min"],
+                    max=v["max"],
+                    trait_type=v["trait_type"],
+                )
+            # self.attributes.remove("stats")
 
     def spawn_inventory(self, inventory_data):
-        """
-        Spawn or update inventory items.
-
-        Args:
-            inventory_data (dict): Dictionary containing inventory information
-        """
-        for prototype in (
-            inventory_data.get("clothing", [])
-            + inventory_data.get("equipment", [])
-            + inventory_data.get("objects", [])
-            + inventory_data.get("weapons", [])
-        ):
-            # Check for existing matching objects
-            existing_objects = [
-                obj
-                for obj in search_objects_with_prototype(
-                    prototype["prototype_key"]
-                )
-                if obj in self.obj.contents
-            ]
-
-            if existing_objects:
-                # Update existing objects
-                spawner.batch_update_objects_with_prototype(
-                    prototype,
-                    objects=existing_objects,
-                    exact=False,
-                )
-            else:
-                from typeclasses.clothing import Clothing
-                from typeclasses.equipment.equipment import Equipment
-                from typeclasses.equipment.weapons import Weapon
-
-                # Spawn new object
-                prototype.update({"home": self.obj, "location": self.obj})
-                new_obj = spawner.spawn(prototype)[0]
-
-                # Handle equipping
-                if isinstance(new_obj, Clothing):
-                    self.obj.clothing.wear(new_obj)
-                elif isinstance(new_obj, (Equipment, Weapon)):
-                    self.obj.equipment.wear(new_obj)
+        for prototype in inventory_data:
+            self.inventory_spawner.spawn_or_update(prototype)

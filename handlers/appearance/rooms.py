@@ -106,23 +106,15 @@ class RoomAppearanceHandler(AppearanceHandler):
         if data := self.obj.attributes.get(
             self._db_attribute, category=self._db_category
         ):
-            self.descriptions = dbserialize.deserialize(
-                data.get("descriptions", {})
-            )
-            self.details = dbserialize.deserialize(data.get("details", {}))
-            self.room_messages = dbserialize.deserialize(
-                data.get("room_messages", [])
-            )
-            self.room_message_rate = dbserialize.deserialize(
-                data.get("room_message_rate", 0)
-            )
-            self.broadcast_repeat_task = dbserialize.deserialize(
-                data.get("broadcast_repeat_task", None)
-            )
-            self.room_states = dbserialize.deserialize(
-                data.get("room_states", [])
-            )
-            self.senses = dbserialize.deserialize(data.get("senses", {}))
+            data = dbserialize.deserialize(data)
+
+            self.descriptions = data.get("descriptions", {})
+            self.details = data.get("details", {})
+            self.room_messages = data.get("room_messages", [])
+            self.room_message_rate = data.get("room_message_rate", 0)
+            self.broadcast_repeat_task = data.get("broadcast_repeat_task", None)
+            self.room_states = data.get("room_states", [])
+            self.senses = data.get("senses", {})
 
     def _save(self):
         self.obj.attributes.add(
@@ -141,6 +133,11 @@ class RoomAppearanceHandler(AppearanceHandler):
     @property
     def desc(self):
         return self.get_desc()
+
+    @desc.setter
+    def desc(self, value):
+        self.descriptions["default"] = value
+        self._save()
 
     @property
     def time_of_day(self):
@@ -237,7 +234,7 @@ class RoomAppearanceHandler(AppearanceHandler):
                 seasonal_states.append(state)
 
         if not seasons:
-            return self.obj.attributes.get("desc", self._fallback_desc)
+            return self.descriptions.get("default", self._fallback_desc)
 
         for seasonal_state in seasonal_states:
             if desc := self.descriptions.get(seasonal_state):
@@ -247,7 +244,7 @@ class RoomAppearanceHandler(AppearanceHandler):
         if desc := (self.descriptions.get(season)):
             return desc
 
-        return self.obj.attributes.get("desc", self._fallback_desc)
+        return self.descriptions.get("default", self._fallback_desc)
 
     def add_room_state(self, *room_states):
         """
@@ -562,8 +559,8 @@ class RoomAppearanceHandler(AppearanceHandler):
         z = self.obj.tags.get(category="room_z_coordinate")
         xyz = f"[{x},{y},{z}]" if x and y and z else ""
         if looker and self.obj.locks.check_lockstring(looker, "perm(Builder)"):
-            return f"{self.obj.display_name}{xyz}(#{self.obj.id})"
-        return self.obj.display_name
+            return f"{self.display_name}{xyz}(#{self.obj.id})"
+        return self.display_name
 
     def get_display_desc(self, looker, **kwargs):
         """

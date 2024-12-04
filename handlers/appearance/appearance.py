@@ -27,7 +27,7 @@ class AppearanceHandler:
         senses (dict): Stored sensory information for non-visual perceptions
     """
 
-    def __init__(self, obj, db_attribute_key="appearance", db_category=None):
+    def __init__(self, obj, db_attribute="appearance", db_category=None):
         """
         Initialize the AppearanceHandler.
 
@@ -39,10 +39,13 @@ class AppearanceHandler:
                 Defaults to None.
         """
         self.obj = obj
-        self._db_attribute = db_attribute_key
+        self._db_attribute = db_attribute
         self._db_category = db_category
         self._fallback_desc = "You see nothing special."
-        self.descriptions = {}
+        self.descriptions = {
+            "default": self.obj.attributes.get("desc", self._fallback_desc)
+        }
+        self.display_name = self.obj.key
         self.senses = {}
         self._load()
 
@@ -58,6 +61,7 @@ class AppearanceHandler:
         ):
             data = dbserialize.deserialize(data)
             self.descriptions = data.get("descriptions", {})
+            self.display_name = data.get("display_name", self.obj.key)
             self.senses = data.get("senses", {})
 
     def _save(self):
@@ -71,6 +75,7 @@ class AppearanceHandler:
             self._db_attribute,
             {
                 "descriptions": self.descriptions,
+                "display_name": self.display_name,
                 "senses": self.senses,
             },
             category=self._db_category,
@@ -93,6 +98,15 @@ class AppearanceHandler:
             if obj != looker and obj.access(looker, "view")
         ]
 
+    @property
+    def desc(self):
+        return self.descriptions.get("default", self._fallback_desc)
+
+    @desc.setter
+    def desc(self, value):
+        self.descriptions["default"] = value
+        self._save()
+
     def get_display_name(self, looker=None, **kwargs):
         """
         Get the display name of the object for a specific looker.
@@ -109,8 +123,8 @@ class AppearanceHandler:
             - Can be extended to provide different names based on the looker's properties
         """
         if looker and self.obj.locks.check_lockstring(looker, "perm(Builder)"):
-            return f"{self.obj.display_name}(#{self.obj.id})"
-        return self.obj.display_name
+            return f"{self.display_name}(#{self.obj.id})"
+        return self.display_name
 
     def get_display_desc(self, looker, **kwargs):
         """
@@ -127,7 +141,7 @@ class AppearanceHandler:
             - Returns a default message if no description is set
             - Description is stripped of leading/trailing whitespace
         """
-        return self.obj.attributes.get("desc", self._fallback_desc)
+        return self.descriptions.get("default", self._fallback_desc).strip()
 
     def get_display_characters(self, looker, **kwargs):
         """
@@ -214,7 +228,7 @@ class AppearanceHandler:
             - Preserves color codes in the formatted string
             - Can override the base key via the 'key' kwarg
         """
-        key = kwargs.get("key", self.obj.get_display_name(looker))
+        key = kwargs.get("key", self.get_display_name(looker))
         key, id_suffix = extract_id_suffix(key)
         clean_key, colors = extract_color_codes(key)
         no_article = kwargs.get("no_article", False)

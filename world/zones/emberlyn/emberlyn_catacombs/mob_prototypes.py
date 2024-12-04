@@ -17,17 +17,15 @@ WANDERING_UNDEAD = {
         "sound": "A soft scraping echoes with each step, accompanied by the brittle clatter of bone, barely louder than a whisper.",
         "taste": "A taste of stale, dry air tinged with the faint bitterness of rot touches the tongue, lingering unpleasantly.",
     },
-    "inventory": {
-        "clothing": [
-            clothing_prototypes.TATTERED_ROBE,
-            clothing_prototypes.WEATHERED_LEATHER_BOOTS,
-        ],
-        "experience": (11, 30),
-        "stats": {
-            "health": {"base": 85, "min": 0, "max": 85, "trait_type": "gauge"}
-        },
-        "weapons": [weapon_prototypes.SLENDER_SWORD],
+    "clothing": [
+        clothing_prototypes.TATTERED_ROBE,
+        clothing_prototypes.WEATHERED_LEATHER_BOOTS,
+    ],
+    "weapons": [weapon_prototypes.SLENDER_SWORD],
+    "stats": {
+        "health": {"base": 85, "min": 0, "max": 85, "trait_type": "gauge"}
     },
+    "experience": (11, 30),
 }
 
 UNDEAD_SOLDIER = {
@@ -44,15 +42,12 @@ UNDEAD_SOLDIER = {
         "sound": "A muted creak echoes as he shifts, the strained groan of ancient metal joints that refuse to break.",
         "taste": "The air tastes of cold iron and grit, as though touched by the lingering spirit of his countless battles.",
     },
-    "inventory": {
-        "clothing": [clothing_prototypes.FRAYED_GREEN_CAPE],
-        "equipment": [],
-        "experience": (38, 70),
-        "stats": {
-            "health": {"base": 192, "min": 0, "max": 192, "trait_type": "gauge"}
-        },
-        "weapons": [weapon_prototypes.IRON_SPEAR],
+    "clothing": [clothing_prototypes.FRAYED_GREEN_CAPE],
+    "weapons": [weapon_prototypes.IRON_SPEAR],
+    "stats": {
+        "health": {"base": 192, "min": 0, "max": 192, "trait_type": "gauge"}
     },
+    "experience": (38, 70),
 }
 
 UNDEAD_SOLDIER_BOSS = {
@@ -69,15 +64,12 @@ UNDEAD_SOLDIER_BOSS = {
         "sound": "The soft clink of metal accompanies his every movement, a rhythm like a dirge from an ancient, forgotten battlefield.",
         "taste": "The air holds a bitter tang, the taste of steel and leather mingling with a hint of dust from the past.",
     },
-    "inventory": {
-        "clothing": [clothing_prototypes.HERALDIC_TABARD],
-        "equipment": [],
-        "experience": 400,
-        "stats": {
-            "health": {"base": 394, "min": 0, "max": 394, "trait_type": "gauge"}
-        },
-        "weapons": [weapon_prototypes.ORNAMENTAL_LONGSWORD],
+    "clothing": [clothing_prototypes.HERALDIC_TABARD],
+    "weapons": [weapon_prototypes.ORNAMENTAL_LONGSWORD],
+    "stats": {
+        "health": {"base": 394, "min": 0, "max": 394, "trait_type": "gauge"}
     },
+    "experience": 400,
 }
 
 

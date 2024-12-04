@@ -112,14 +112,7 @@ MAX_CHAR_LIMIT_WARNING = (
 ######################################################################
 COMMAND_DEFAULT_CLASS = "commands.command.Command"
 EXTRA_LAUNCHER_COMMANDS["xyzgrid"] = "world.xyzgrid.launchcmd.xyzcommand"
-PROTOTYPE_MODULES += [
-    "prototypes.common_prototypes",
-    "prototypes.containers",
-    "prototypes.currencies",
-    "prototypes.gemstones",
-    "world.nautilus.prototypes",
-    "world.xyzgrid.xyzprototypes",
-]
+PROTOTYPE_MODULES += ["world.xyzgrid.xyzprototypes"]
 
 # On a multi-match when search objects or commands, the user has the
 # ability to search again with an index marker that differentiates
@@ -185,6 +178,18 @@ TIME_GAME_EPOCH = None
 # together with a time factor of 1 should keep the game in sync with
 # the real time (add a different epoch to shift time)
 TIME_IGNORE_DOWNTIMES = True
+
+######################################################################
+# Typeclasses and other paths
+######################################################################
+# Typeclass for clothing (fallback)
+BASE_CLOTHING_TYPECLASS = "typeclasses.clothing.Clothing"
+# Typeclass for equipment (fallback)
+BASE_EQUIPMENT_TYPECLASS = "typeclasses.equipment.equipment.Equipment"
+# Typeclass for weapons (fallback)
+BASE_WEAPON_TYPECLASS = "typeclasses.equipment.weapons.Weapon"
+# Typeclass for mobs (fallback)
+BASE_MOB_TYPECLASS = "typeclasses.mobs.Mob"
 
 ######################################################################
 # Default Account setup and access

@@ -203,11 +203,7 @@ class Object(ObjectParent, DefaultObject):
 
     @property
     def display_name(self):
-        return self.attributes.get("display_name", self.name)
-
-    @display_name.setter
-    def display_name(self, value: str):
-        self.db.display_name = value
+        return self.appearance.display_name
 
     @property
     def senses(self):
@@ -252,17 +248,6 @@ class Object(ObjectParent, DefaultObject):
 
     def at_object_post_spawn(self, prototype=None):
         self.spawn.at_post_spawn(prototype=prototype)
-        # if self.attributes.get("senses", {}):
-        #     self.appearance.senses = copy(self.attributes.get("senses"))
-        #     self.appearance._save()
-
-        # if spawns := self.attributes.get("spawn", {}):
-        #     self.spawn_clothing(spawns.get("clothing", []))
-        #     self.spawn_equipment(spawns.get("equipment", []))
-        #     self.spawn_inventory(spawns.get("inventory", []))
-        #     self.spawn_stats(spawns.get("stats", {}))
-        #     self.spawn_weapons(spawns.get("weapons", []))
-        #     self.attributes.remove("spawn")
 
     def at_post_puppet(self, **kwargs):
         logger.log_sec(

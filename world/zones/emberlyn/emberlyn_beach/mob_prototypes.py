@@ -14,10 +14,8 @@ EMBERLYN_BEACH_VEILED_WOMAN = {
         "sound": "Her movements are nearly silent, save for the soft rustle of cloth against her skin, like whispers against stone.",
         "taste": "The air around her tastes metallic, like the edge of a blade, sharp and lingering.",
     },
+    "clothing": [clothing_prototypes.EMBERLYN_BEACH_VEILED_WOMAN_ROBE],
     "interaction": "world.zones.emberlyn.emberlyn_beach.interactions.veiled_woman",
-    "inventory": {
-        "clothing": [clothing_prototypes.EMBERLYN_BEACH_VEILED_WOMAN_ROBE],
-    },
 }
 
 
