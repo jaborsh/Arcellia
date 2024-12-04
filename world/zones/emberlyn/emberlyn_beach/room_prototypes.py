@@ -81,8 +81,8 @@ EMBERLYN_BEACH_ROOMS = {
             "ropes and nets": "Old, frayed ropes dangle over the sides of the pier, remnants of a time when this structure saw regular use. The nets that remain are brittle and crumbling, tangled beyond use.",
             "water": "The water beneath the pier is dark and stagnant, its surface covered in patches of algae that ripple slightly with the breeze, concealing any movement below.",
         },
-        "spawn": {
-            "inventory": [object_prototypes.EMBERLYN_SHORE_HYMNS],
+        "inventory": {
+            "objects": [object_prototypes.EMBERLYN_SHORE_HYMNS],
         },
     },
     (1, 3): {

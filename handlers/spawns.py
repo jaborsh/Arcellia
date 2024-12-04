@@ -9,22 +9,19 @@ class SpawnHandler:
         self.obj = obj
         self._db_attribute = db_attribute
         self._db_category = db_category
-        self.clothing = []
+        self.data = {}
         self._load()
 
     def _load(self):
         if data := self.obj.attributes.get(
             self._db_attribute, category=self._db_category
         ):
-            data = dbserialize.deserialize(data)
-            self.clothing = data.get("clothing", [])
+            self.data = dbserialize.deserialize(data)
 
     def _save(self):
         self.obj.attributes.add(
             self._db_attribute,
-            {
-                "clothing": self.clothing,
-            },
+            self.data,
             category=self._db_category,
         )
 
@@ -37,35 +34,61 @@ class SpawnHandler:
         return self.obj.attributes
 
     def at_post_spawn(self, prototype=None):
-        if self.attributes.get("senses"):
-            self.appearance.senses = self.attributes.get("senses")
+        """Handle post-spawn operations like inventory and senses."""
+
+        # Handle inventory spawning
+        if inventory := self.attributes.get("inventory"):
+            self.data = inventory
+            self.spawn_inventory(inventory.deserialize())
+            self._save()
+            self.attributes.remove("inventory")
+
+        # Handle senses
+        if senses := self.attributes.get("senses"):
+            self.appearance.senses = senses
             self.appearance._save()
             self.attributes.remove("senses")
-        if self.attributes.get("spawns"):
-            spawns = self.attributes.get("spawns")
-            self.spawn_clothing(spawns.get("clothing", []))
-            self._save()
-            self.attributes.remove("spawns")
-        if self.attributes.get("stories"):
-            self.attributes.add("stories", self.attributes.get("stories"))
 
-    def spawn_clothing(self, clothing):
-        for clothing_prototype in clothing:
-            all_matching = search_objects_with_prototype(
-                clothing_prototype["prototype_key"]
-            )
-            matching_clothes = [
-                obj for obj in all_matching if obj in self.obj.contents
+    def spawn_inventory(self, inventory_data):
+        """
+        Spawn or update inventory items.
+
+        Args:
+            inventory_data (dict): Dictionary containing inventory information
+        """
+        for prototype in (
+            inventory_data.get("clothing", [])
+            + inventory_data.get("equipment", [])
+            + inventory_data.get("objects", [])
+            + inventory_data.get("weapons", [])
+        ):
+            # Check for existing matching objects
+            existing_objects = [
+                obj
+                for obj in search_objects_with_prototype(
+                    prototype["prototype_key"]
+                )
+                if obj in self.obj.contents
             ]
 
-            if matching_clothes:
+            if existing_objects:
+                # Update existing objects
                 spawner.batch_update_objects_with_prototype(
-                    clothing_prototype.deserialize(),
-                    objects=matching_clothes,
+                    prototype,
+                    objects=existing_objects,
                     exact=False,
                 )
             else:
-                clothing_prototype["home"] = self.obj
-                clothing_prototype["location"] = self.obj
-                article = spawner.spawn(clothing_prototype)[0]
-                self.obj.clothing.wear(article)
+                from typeclasses.clothing import Clothing
+                from typeclasses.equipment.equipment import Equipment
+                from typeclasses.equipment.weapons import Weapon
+
+                # Spawn new object
+                prototype.update({"home": self.obj, "location": self.obj})
+                new_obj = spawner.spawn(prototype)[0]
+
+                # Handle equipping
+                if isinstance(new_obj, Clothing):
+                    self.obj.clothing.wear(new_obj)
+                elif isinstance(new_obj, (Equipment, Weapon)):
+                    self.obj.equipment.wear(new_obj)

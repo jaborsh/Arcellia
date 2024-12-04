@@ -17,7 +17,7 @@ WANDERING_UNDEAD = {
         "sound": "A soft scraping echoes with each step, accompanied by the brittle clatter of bone, barely louder than a whisper.",
         "taste": "A taste of stale, dry air tinged with the faint bitterness of rot touches the tongue, lingering unpleasantly.",
     },
-    "spawn": {
+    "inventory": {
         "clothing": [
             clothing_prototypes.TATTERED_ROBE,
             clothing_prototypes.WEATHERED_LEATHER_BOOTS,
@@ -44,7 +44,7 @@ UNDEAD_SOLDIER = {
         "sound": "A muted creak echoes as he shifts, the strained groan of ancient metal joints that refuse to break.",
         "taste": "The air tastes of cold iron and grit, as though touched by the lingering spirit of his countless battles.",
     },
-    "spawn": {
+    "inventory": {
         "clothing": [clothing_prototypes.FRAYED_GREEN_CAPE],
         "equipment": [],
         "experience": (38, 70),
@@ -69,7 +69,7 @@ UNDEAD_SOLDIER_BOSS = {
         "sound": "The soft clink of metal accompanies his every movement, a rhythm like a dirge from an ancient, forgotten battlefield.",
         "taste": "The air holds a bitter tang, the taste of steel and leather mingling with a hint of dust from the past.",
     },
-    "spawn": {
+    "inventory": {
         "clothing": [clothing_prototypes.HERALDIC_TABARD],
         "equipment": [],
         "experience": 400,
